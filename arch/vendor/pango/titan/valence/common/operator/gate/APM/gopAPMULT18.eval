@@ -1,0 +1,288 @@
+*************************************************************
+
+Copyright (c) 2014 by PANGO MICROSYSTEMS, INC
+ALL RIGHTS RESERVED.
+
+THE SOURCE CODE CONTAINED HEREIN IS PROPRIETARY TO PANGO MICROSYSTEMS, INC.
+IT SHALL NOT BE REPRODUCED OR DISCLOSED IN WHOLE OR IN PART OR USED BY
+PARTIES WITHOUT WRITTEN AUTHORIZATION FROM THE OWNER.
+
+  Operator  [gopAPMULT18]
+
+  Author    [Peifu Shen]
+
+  Abstract  [P = X * ( Y +/- Z)]
+
+  Parameter:
+
+      GRS_DISABLED    Global reset disabled/enabled
+      SYNC_RST        sync reset
+      IREG_BYP        Input Register
+      AREG_BYP        pre-Adder output Register
+      MREG_BYP        Multiplier output Register
+      PREADD_EN       pre-adder  0:disabled M = X * Y
+                                 1:enabled  M = X * (Y +/- Z)
+
+  Revision History:
+        GTP_MULT18
+        GTP_PREADD_MULT18
+
+***************************************************************************/
+
+gate
+operator gopAPMULT18
+{
+    parameter
+    (
+        bit IREG_SYNC = 1'b0,
+        bit AREG_SYNC = 1'b0,
+        bit MREG_SYNC = 1'b0,
+        bit OREG_SYNC = 1'b0,
+        bit IREG_BYP = 1'b0,
+        bit AREG_BYP = 1'b0,
+        bit MREG_BYP = 1'b0,
+        bit OREG_BYP = 1'b0,
+        int OP_PRAD_A = 0,
+        int OP_MULT_A = 18,
+        bit PSE_A[16:0] = 17'h0_0000,
+        bit PSE_B[16:0] = 17'h0_0000,
+        bit PSE_C[16:0] = 17'h0_0000,
+        bit GRS_DISABLED = 1'b0
+    );
+
+    port
+    (
+        input CLK /* pragma PAP_ARC_GOP_CTRL_PIN = "GCLK|RCLK"*/,
+        input CE /* pragma PAP_ARC_GOP_CTRL_PIN = CE*/,
+        input RST /* pragma PAP_ARC_GOP_CTRL_PIN = RST*/,
+        input DX[17:0],
+        input DY[17:0],
+        input DZ[17:0],
+        input DX_SIGNED,
+        input DY_SIGNED,
+        input DZ_SIGNED,
+        input OP_PRAD,
+        output DP[36:0]
+    );
+};
+
+/**Implementation Body******************************************************
+
+  Author    [Peifu Shen]
+
+  Abstract  []
+
+  Revision History:
+
+***************************************************************************/
+implementation impl_mult18a of gopAPMULT18
+{
+    bit ctrl_irbyp_2_opa = (OP_PRAD_A == 0) ? 1'b1 : IREG_BYP;
+
+    device devAPMULT18A dev_mult18a
+    parameter map
+    (
+        CTRL_IRBYP_0_OP0 => 1'b1,
+        CTRL_IRBYP_1_OP7 => 1'b1,
+        CTRL_IRBYP_2_OPA => ctrl_irbyp_2_opa,
+        CTRL_IRBYP_4_OP8 => 1'b1,
+        SYNC_CTIR => {4{IREG_SYNC}},
+        IR_BYP_0_XA => IREG_BYP,
+        IR_BYP_1_XA => IREG_BYP,
+        IR_BYP_2_YA => IREG_BYP,
+        IR_BYP_3_YA => IREG_BYP,
+        IR_BYP_4_ZA => (OP_PRAD_A == 0) ? 1'b0 : IREG_BYP,
+        IR_BYP_5_ZA => (OP_PRAD_A == 0) ? 1'b0 : IREG_BYP,
+        SYNC_IR_0_XA => IREG_SYNC,
+        SYNC_IR_1_XA => IREG_SYNC,
+        SYNC_IR_2_YA => IREG_SYNC,
+        SYNC_IR_3_YA => IREG_SYNC,
+        SYNC_IR_4_ZA => (OP_PRAD_A == 0) ? 1'b0 : IREG_SYNC,
+        SYNC_IR_5_ZA => (OP_PRAD_A == 0) ? 1'b0 : IREG_SYNC,
+        PRADOR_BYP_0_XA => AREG_BYP,
+        PRADOR_BYP_1_XA => AREG_BYP,
+        PRADOR_BYP_2_YA => AREG_BYP,
+        PRADOR_BYP_3_YA => AREG_BYP,
+        SYNC_PRAD_0_XA => AREG_SYNC,
+        SYNC_PRAD_1_XA => AREG_SYNC,
+        SYNC_PRAD_2_YA => AREG_SYNC,
+        SYNC_PRAD_3_YA => AREG_SYNC,
+        PR_BYP_0_MA  => MREG_BYP,
+        PR_BYP_1_MA  => MREG_BYP,
+        PR_BYP_4_XA  => MREG_BYP,
+        PR_BYP_6_YA  => MREG_BYP,
+        PR_BYP_8_ZA  => MREG_BYP,
+        SYNC_PR_0_MA => MREG_SYNC,
+        SYNC_PR_1_MA => MREG_SYNC,
+        SYNC_PR_4_XA => MREG_SYNC,
+        SYNC_PR_6_YA => MREG_SYNC,
+        SYNC_PR_8_ZA => MREG_SYNC,
+        OR_BYP_0_A  => OREG_BYP,
+        OR_BYP_1_A  => OREG_BYP,
+        SYNC_OR_0_A => OREG_SYNC,
+        SYNC_OR_1_A => OREG_SYNC,
+        OP_PRAD_A => OP_PRAD_A,
+        OP_MULT_A => (OP_PRAD_A == 0) ? 18 : 19,
+        DXIA_PSE => PSE_A,
+        DYIA_PSE => PSE_B,
+        DZIA_PSE => {15'h0000, PSE_C},
+        DXIA_SIGNED_POL => 1'b1,
+        DYIA_SIGNED_POL => 1'b1,
+        DZIA_SIGNED_POL => (OP_PRAD_A == 0) ? 1'b0 : 1'b1,
+        OP_PRAD_A_POL => (OP_PRAD_A == 0) ? 1'b0 : 1'b1,
+        OR2CIM_EN_0_A => 1'b1,
+        OR2CIM_EN_1_A => 1'b1,
+        GRS_DIS => GRS_DISABLED
+    )
+    port map
+    (
+        CLK[0] => CLK,
+        CE[0]  => CE,
+        RST[0] => RST,
+        APM_OP_PRAD[0] => OP_PRAD,
+        DXIA => DX,
+        DYIA => DY,
+        DZIA => DZ,
+        DXIA_SIGNED => DX_SIGNED,
+        DYIA_SIGNED => DY_SIGNED,
+        DZIA_SIGNED => DZ_SIGNED,
+        DPO => DP
+    );
+};
+
+/**Implementation Body******************************************************
+
+  Author    [Peifu Shen]
+
+  Abstract  []
+
+  Revision History:
+
+***************************************************************************/
+implementation impl_mult18b of gopAPMULT18
+{
+    bit ctrl_irbyp_3_opb = (OP_PRAD_A == 0) ? 1'b1 : IREG_BYP;
+    bit ctir[7:0] = {ctrl_irbyp_3_opb ? 2'b00 : 2'b01, 6'b000000};
+
+    device devAPMULT18B dev_mult18b
+    parameter map
+    (
+        CTRL_IRBYP_0_OP0 => 1'b1,
+        CTRL_IRBYP_1_OP7 => 1'b1,
+        CTRL_IRBYP_3_OPB => ctrl_irbyp_3_opb,
+        CTRL_IRBYP_4_OP8 => 1'b1,
+        SYNC_CTIR => {4{IREG_SYNC}},
+        CLK_CTIR => ctir,
+        CE_CTIR  => ctir,
+        RST_CTIR => ctir,
+        IR_BYP_7_XB  => IREG_BYP,
+        IR_BYP_8_XB  => IREG_BYP,
+        IR_BYP_9_YB  => IREG_BYP,
+        IR_BYP_10_YB => IREG_BYP,
+        IR_BYP_11_ZB => (OP_PRAD_A == 0) ? 1'b0 : IREG_BYP,
+        IR_BYP_12_ZB => (OP_PRAD_A == 0) ? 1'b0 : IREG_BYP,
+        CLK_IR_7_XB  => (IREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        CLK_IR_8_XB  => (IREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        CLK_IR_9_YB  => (IREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        CLK_IR_10_YB => (IREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        CLK_IR_11_ZB => (IREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        CLK_IR_12_ZB => (IREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        CE_IR_7_XB   => (IREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        CE_IR_8_XB   => (IREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        CE_IR_9_YB   => (IREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        CE_IR_10_YB  => (IREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        CE_IR_11_ZB  => (IREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        CE_IR_12_ZB  => (IREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        RST_IR_7_XB  => (IREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        RST_IR_8_XB  => (IREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        RST_IR_9_YB  => (IREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        RST_IR_10_YB => (IREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        RST_IR_11_ZB => (IREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        RST_IR_12_ZB => (IREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        SYNC_IR_7_XB  => IREG_SYNC,
+        SYNC_IR_8_XB  => IREG_SYNC,
+        SYNC_IR_9_YB  => IREG_SYNC,
+        SYNC_IR_10_YB => IREG_SYNC,
+        SYNC_IR_11_ZB => (OP_PRAD_A == 0) ? 1'b0 : IREG_SYNC,
+        SYNC_IR_12_ZB => (OP_PRAD_A == 0) ? 1'b0 : IREG_SYNC,
+        PRADOR_BYP_4_XB => AREG_BYP,
+        PRADOR_BYP_5_XB => AREG_BYP,
+        PRADOR_BYP_6_YB => AREG_BYP,
+        PRADOR_BYP_7_YB => AREG_BYP,
+        CLK_PRAD_4_XB => (AREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        CLK_PRAD_5_XB => (AREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        CLK_PRAD_6_YB => (AREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        CLK_PRAD_7_YB => (AREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        CE_PRAD_4_XB  => (AREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        CE_PRAD_5_XB  => (AREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        CE_PRAD_6_YB  => (AREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        CE_PRAD_7_YB  => (AREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        RST_PRAD_4_XB => (AREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        RST_PRAD_5_XB => (AREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        RST_PRAD_6_YB => (AREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        RST_PRAD_7_YB => (AREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        SYNC_PRAD_4_XB => AREG_SYNC,
+        SYNC_PRAD_5_XB => AREG_SYNC,
+        SYNC_PRAD_6_YB => AREG_SYNC,
+        SYNC_PRAD_7_YB => AREG_SYNC,
+        PR_BYP_2_MB => MREG_BYP,
+        PR_BYP_3_MB => MREG_BYP,
+        PR_BYP_5_XB => MREG_BYP,
+        PR_BYP_7_YB => MREG_BYP,
+        PR_BYP_9_ZB => MREG_BYP,
+        CLK_PR_2_MB => (MREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        CLK_PR_5_XB => (MREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        CLK_PR_7_YB => (MREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        CLK_PR_9_ZB => (MREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        CE_PR_2_MB  => (MREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        CE_PR_5_XB  => (MREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        CE_PR_7_YB  => (MREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        CE_PR_9_ZB  => (MREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        RST_PR_2_MB => (MREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        RST_PR_5_XB => (MREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        RST_PR_7_YB => (MREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        RST_PR_9_ZB => (MREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        SYNC_PR_2_MB => MREG_SYNC,
+        SYNC_PR_3_MB => MREG_SYNC,
+        SYNC_PR_5_XB => MREG_SYNC,
+        SYNC_PR_7_YB => MREG_SYNC,
+        SYNC_PR_9_ZB => MREG_SYNC,
+        OR_BYP_2_B => OREG_BYP,
+        OR_BYP_3_B => OREG_BYP,
+        CLK_OR_2_B => (OREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        CLK_OR_3_B => (OREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        CE_OR_2_B  => (OREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        CE_OR_3_B  => (OREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        RST_OR_2_B => (OREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        RST_OR_3_B => (OREG_BYP == 1'b1) ? 2'b00 : 2'b01,
+        SYNC_OR_2_B => OREG_SYNC,
+        SYNC_OR_3_B => OREG_SYNC,
+        OP_PRAD_B => OP_PRAD_A,
+        OP_MULT_B => (OP_PRAD_A == 0) ? 18 : 19,
+        DXIB_PSE => PSE_A,
+        DYIB_PSE => PSE_B,
+        DZIB_PSE => {14'h0000, PSE_C},
+        DXIB_SIGNED_POL => 1'b1,
+        DYIB_SIGNED_POL => 1'b1,
+        DZIB_SIGNED_POL => (OP_PRAD_A == 0) ? 1'b0 : 1'b1,
+        OP_PRAD_B_POL => (OP_PRAD_A == 0) ? 1'b0 : 1'b1,
+        OR2CIM_EN_2_B => 1'b1,
+        OR2CIM_EN_3_B => 1'b1,
+        GRS_DIS => GRS_DISABLED
+    )
+    port map
+    (
+        CLK[1] => CLK,
+        CE[1]  => CE,
+        RST[1] => RST,
+        APM_OP_PRAD[1] => OP_PRAD,
+        DXIB => DX,
+        DYIB => DY,
+        DZIB => DZ,
+        DXIB_SIGNED => DX_SIGNED,
+        DYIB_SIGNED => DY_SIGNED,
+        DZIB_SIGNED => DZ_SIGNED,
+        DPO => DP
+    );
+};
+

@@ -1,0 +1,63 @@
+*****************************************************************
+
+  Device    [ODDR_L]
+
+  Author    [hzhang]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+prim
+device ODDR_L
+{
+    parameter                                 
+    (                                         
+        config bit    GRS_EN    = 1'b0,       
+        config bit    LRS_EN    = 1'b0        
+    )                                         
+    port
+    (
+        input  LRS,
+        input  DATA[1:0],
+        input  TS,
+
+        input  SYSCLK,
+
+        output DO,
+        output TO
+    );
+
+}; // end of device ODDR_L
+
+
+propagation prop of ODDR_L
+{
+   propagate ( DATA[0] |-> DO );
+   propagate ( DATA[1] |-> DO );
+
+   propagate ( TS      |-> TO );
+   propagate ( LRS     |-> DO );
+   propagate ( SYSCLK  |-> DO );
+
+};
+
+timing oddrl_tnl of ODDR_L
+{
+   operator V_OGDDR  V_OGDDR
+      parameter map                                                              
+      (                                                                          
+          LRS_EN      =>  ( LRS_EN == 1'b1) ? "TRUE" : "FALSE",             
+          GRS_EN      =>  ( GRS_EN == 1'b1) ? "TRUE" : "FALSE"              
+      )                                                                          
+      port map                                                                   
+      (                                                                          
+          D         =>   DATA,                                                
+          T         =>   TS,                                                
+          RCLK      =>   SYSCLK,             
+          RST       =>   LRS,               
+          PADO      =>   DO,                                                     
+          PADT      =>   TO                                                      
+      );                                                                         
+}

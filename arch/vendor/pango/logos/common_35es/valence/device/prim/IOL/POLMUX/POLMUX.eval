@@ -1,0 +1,81 @@
+*****************************************************************
+
+  Device    [POLMUX]
+
+  Author    [guoxi]
+
+  Abstract  [The Prim Device Of POLMUX]
+
+  Revision History:
+
+********************************************************************************/
+prim
+device POLMUX
+{
+    parameter
+    (
+        config string CP_POLARITY_INV = "FALSE"
+    );
+    port 
+    (
+        input  X,
+        output Y 
+    );
+
+}; // end of device POLMUX
+
+/**Device***********************************************************************
+
+  Device    [POLMUX]
+
+  Abstract  [This specified how to propagate the input signal to the outputs based on
+             configuration]
+
+  Revision History:
+
+********************************************************************************/
+propagation pop of POLMUX
+{
+    if (CP_POLARITY_INV == "FALSE")
+    {
+        propagate ( X --> Y );
+    }
+    else
+    {
+        propagate ( X ~-> Y );
+    }
+}; // end of propagation for POLMUX
+
+
+/**Device***********************************************************************                  
+                                                                                                  
+  Device    [POLMUX]                                                                                
+                                                                                                  
+  Author    [kongbiao]                                                                               
+                                                                                                  
+  Abstract  [This specified the timing model under specific configuration]                        
+                                                                                                  
+  Revision History:                                                                               
+                                                                                                  
+********************************************************************************/                 
+                                                                                                  
+timing  polmux_tnl of POLMUX  
+{
+    if (CP_POLARITY_INV == "FALSE")
+    {
+        Y <= X;
+    }
+    else if (CP_POLARITY_INV == "TRUE")
+    {
+        operator V_INV V_INV
+            port map
+            (
+                I => X,
+                Z => Y
+            );
+    }
+    else
+    {
+        Y <= 1'bx;
+    }
+};

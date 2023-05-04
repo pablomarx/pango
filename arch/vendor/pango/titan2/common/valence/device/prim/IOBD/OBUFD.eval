@@ -1,0 +1,65 @@
+*****************************************************************
+
+  Device    [OBUFD]
+
+  Author    [yqtan]
+
+  Abstract  [The Prim Device For OBUFD]
+
+  Revision History:
+
+********************************************************************************/
+prim
+device OBUFD
+{
+    parameter
+    (
+        config string CP_IOB_MODE     = "OBUFHP",      //"OBUFHP" "OBUFHP_T" "OBUFHP_DS" "IOBUFHP" "IOBUFHP_DS"
+        config string CP_PORT_STATUS  = "PULLUP",        
+        config string CP_OPENDRAIN    = "OFF"  
+    );
+    port
+    (
+       output  OUT,
+       output  DIFFO_OUT, 
+       input   IN,
+       input   DO, 
+       input   DO_NDRV
+    );
+
+}// end of device OBUFD
+
+/**Device***********************************************************************
+
+  Device    [OBUFD]
+
+  Abstract  [This specified how to propagate the input signal to the outputs based on
+             configuration]
+
+  Revision History:
+
+********************************************************************************/
+propagation pop of OBUFD
+{
+    if (CP_IOB_MODE == "OBUFHR")
+    {
+        propagate ( DO --> OUT);
+    }
+    else if (CP_IOB_MODE == "OBUFHR_DS")
+    {
+        propagate ( DO --> OUT);
+        propagate ( DO ~-> DIFFO_OUT);
+    }
+    else  if (CP_IOB_MODE == "OBUFHR_T" || CP_IOB_MODE == "IOBUFHR")
+    {
+        propagate ( DO |-> OUT);
+        propagate ( DO_NDRV |-> OUT);
+    }
+    else if (CP_IOB_MODE == "OBUFHR_T_DS" || CP_IOB_MODE == "IOBUFHR_DS")
+    {
+        propagate ( DO |-> OUT);
+        propagate ( DO_NDRV |-> OUT);
+        propagate ( DO |-> DIFFO_OUT);
+        propagate ( DO_NDRV |-> DIFFO_OUT);
+    }
+}; // end of propagation for OBUFD

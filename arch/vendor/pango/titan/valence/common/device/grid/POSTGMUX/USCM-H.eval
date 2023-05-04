@@ -1,0 +1,122 @@
+*****************************************************************
+
+  Device    [USCM]
+
+  Author    [clwang]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+grid
+device USCM
+{
+    parameter
+    (
+        config string USCM_MODE = "CLK1" // "NORSW", "NEGSW", "POSSW", "BUFCE_A_0", "BUFCE_B_0", "BUFCE_A_1", "BUFCE_B_1", "BUF_A", "BUF_B" "CLK1"
+    );
+    port
+    (
+        config input SC_USCMMODE[7:0] =  8'b0000_0000 /*pragma PAP_CFG_BIT_NAME = "SC_USCMMODE<7>, SC_USCMMODE<6>, SC_USCMMODE<5>, SC_USCMMODE<4>, SC_USCMMODE<3>, SC_USCMMODE<2>, SC_USCMMODE<1>, SC_USCMMODE<0>" */,
+               input   CLK0 = 1'b1, 
+               input   CLK1 = 1'b1, 
+               input   SEL  = 1'b1,
+               output  CLKOUT
+    );
+}; // end of device USCM
+
+structure netlist of USCM
+{
+    device USCM_INST USCM_INST
+        parameter map
+        (
+            USCM_MODE => USCM_MODE
+        )
+        port map
+        (
+            CLK0     =>  CLK0,
+            CLK1     =>  CLK1,
+            SEL      =>  SEL,
+            CLKOUT   =>  CLKOUT
+        );
+
+}; // end of structure netlist of USCM
+
+/*******************************************************************************
+
+  Device    [USCM]
+
+  Author    [clwang]
+
+  Abstract  [Configure the configuration bits based on the value of config parameter]
+
+  Revision History:
+
+********************************************************************************/
+configuration cfg of USCM
+{
+    // "NORSW", "NEGSW", "POSSW", "BUFCE_A_0", "BUFCE_B_0", "BUFCE_A_1", "BUFCE_B_1", "BUF_A", "BUF_B"                       
+
+    if (USCM_MODE == "CLK1")
+    {
+        SC_USCMMODE := 8'b0000_0000;
+    }
+    else if (USCM_MODE == "NORSW")
+    {
+        SC_USCMMODE := 8'b0100_0001;
+    }
+    else if (USCM_MODE == "NEGSW")
+    {
+        SC_USCMMODE := 8'b0101_0001;
+    }
+    else if (USCM_MODE == "POSSW")
+    {
+        SC_USCMMODE := 8'b1111_0000;
+    }
+    else if (USCM_MODE == "BUFCE_B_0")
+    {
+        SC_USCMMODE := 8'b0100_0011;
+    }
+    else if (USCM_MODE == "BUFCE_B_1")
+    {
+        SC_USCMMODE := 8'b1110_0010;
+    }
+    else if (USCM_MODE == "BUFCE_A_0")
+    {
+        SC_USCMMODE := 8'b0100_0100;   //8'b0100_0101;
+    }
+    else if (USCM_MODE == "BUFCE_A_1")
+    {
+        SC_USCMMODE := 8'b1110_0100;
+    }
+    else if (USCM_MODE == "BUF_A")
+    {
+        SC_USCMMODE := 8'b0001_1101;
+    }
+    else if (USCM_MODE == "BUF_B")
+    {
+        SC_USCMMODE := 8'b0000_1011;
+    }
+    else
+    {
+        SC_USCMMODE := 8'b0000_0000;
+    }
+}; // end of configuration cfg of USCM
+
+timing tnl of USCM
+{   
+   operator V_USCM V_USCM
+        parameter map
+        (
+            USCM_MODE => USCM_MODE,
+            SIM_DEVICE => "TITAN"
+        )
+        port map
+        (
+            CLK0     =>  CLK0,
+            CLK1     =>  CLK1,
+            SEL      =>  SEL,
+            CLKOUT   =>  CLKOUT
+        );
+}

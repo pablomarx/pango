@@ -1,0 +1,79 @@
+*******************************************************************
+
+  Operator    [gopOMDDR]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+gate
+operator gopOMDDR
+{
+    parameter
+    (
+        string OCLK_SRC       = "WCLK_DEL",         // "WCLK", "WCLK_DEL"   
+        bit    LRS_EN         = 1'b0,
+        bit    GRS_EN         = 1'b0,
+        bit    CLK_INV        = 1'b0,
+        bit    LRS_INV        = 1'b0
+    );
+    port
+    (
+        input   D[1:0],
+        input   T,
+
+        input   TCLK,        
+        input   SYSCLK /* pragma PAP_ARC_GOP_CTRL_PIN = "GCLK|RCLK"*/,
+        input   RESET /* pragma PAP_ARC_GOP_CTRL_PIN = RST*/,
+
+        output  PADO,
+        output  PADT,
+
+        output  DO_OUT,
+        output  TO_OUT
+    );
+};
+
+implementation impl of gopOMDDR
+{
+    // ODDR config
+
+    if((OCLK_SRC != "WCLK") && (OCLK_SRC != "WCLK_DEL"))
+    {
+        error("Error config ODDR_OCLK = %s in gopOMDDR", OCLK_SRC);
+    }
+  
+    device devOMDDRIOL gate_omddriol
+        parameter map
+        (
+            ODDR_LRS_EN  =>   LRS_EN,
+
+            GRS_EN       =>   GRS_EN,
+
+            ODDR_OCLK    =>   OCLK_SRC,
+
+            CLK_O_INV    =>   CLK_INV,
+            LRS_INV      =>   LRS_INV
+        )
+    
+        port map 
+        (
+            TX_DATA      =>   D,
+            TS_CTRL[0]   =>   T,
+
+            WCLK         =>   (OCLK_SRC == "WCLK") ? TCLK : 1'bx,
+            WCLK_DEL     =>   (OCLK_SRC == "WCLK_DEL") ? TCLK : 1'bx,
+
+            SYSCLK       =>   SYSCLK,
+            LRS          =>   RESET,
+
+            DO           =>   PADO,            
+            TO           =>   PADT,
+
+            DO_OUT       =>  DO_OUT,
+            TO_OUT       =>  TO_OUT
+        );
+};
+
+

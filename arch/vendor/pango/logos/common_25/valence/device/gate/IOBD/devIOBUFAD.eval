@@ -1,0 +1,95 @@
+******************************************************************
+//
+//  Device    [devIOBUFAD]
+//
+//  project   []
+//  
+//  Author    [guoxi]
+//
+//  Abstract  [ ]
+//
+//  Revision History:
+//                       
+//********************************************************************************/
+
+gate device devIOBUFAD : device IOBD
+{
+    parameter
+    (
+        config string CP_IOB_MODE     = "IOBUFHR",     //"IBUFHR","OBUFHR","IOBUFHR","OBUFHR_T","IBUFHR_DS","OBUFHR_DS","IOBUFHR_DS"
+        config string CP_PORT_STATUS  = "PUP3325",    //"PULL_UP","PULL_DOWN","KEEPER", "UNUSED" on input pad
+        config string CP_IO_STANDARD  = "LVCMOS33",   //IO standard: lvcmos18 lvcmos15 lvcmos12
+        config string CP_DIFFIN_TERM  = "OFF",        //differential input terminal resistor: "ON", "OFF"
+        config string CP_DDRIN_TERM   = "OFF",        //terminal resistor for DDR input:"OFF","ON"
+        config string CP_W_VOLT_R_IN  = "NOHYS",      //"NOHYS","SHYS_I","SHYS_II","LHYS","OD33","OD25","OD18","UD12","UD18","UD25"
+        config string CP_DRV_STRENGTH = "8",          // output drvier strength: 2,4,6,8,12,16,24
+        config string CP_SLEW_MODE    = "F",          //slew rate: "FAST"->"F", "SLOW"->"S"
+        config string CP_HOT_SOCKET   = "ON",         //hot_socket feature, "ON", "OFF"
+        config string CP_VCCIO        = "3.3"         //bank power supply, "2.5", "3.3"
+   );
+    port
+    (   
+        input  DO, 
+        input  TS,
+        input MIPI_SW_DYN,
+        output DIN,
+        inout  PAD
+    );
+};  // end of device devIOBUFAD
+
+
+/*******************************************************************************
+
+  Device    [devIOBUFAD]
+
+  Author    []
+
+  Abstract  [gate grid devIOBUFAD. structure nestlist]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devIOBUFAD
+{
+    // Wires connecting to ports. 
+    wire ntPAD;
+    wire ntDO;
+    wire ntTS;
+    wire ntDIN;
+    wire ntMIPI_SW_DYN;
+    ntMIPI_SW_DYN <= MIPI_SW_DYN;
+    
+    PAD  <= ntPAD;
+    ntDO <= DO;
+    ntTS <= TS;
+    DIN  <= ntDIN;
+    
+    device OBUFD OBUFD
+        parameter map
+        (
+            CP_IOB_MODE    => CP_IOB_MODE,
+            CP_IO_STANDARD => CP_IO_STANDARD
+        )
+        port map
+        (
+            OUT         => ntPAD,
+            DO          => ntDO,
+            TS          => ntTS,
+            MIPI_SW_DYN => ntMIPI_SW_DYN
+        );
+    
+    device IBUFD IBUFD
+        parameter map
+        (
+            CP_IOB_MODE    => CP_IOB_MODE,
+            CP_IO_STANDARD => CP_IO_STANDARD
+        )
+        port map
+        (
+            OUT         => ntDIN,
+            IN          => ntPAD,
+            MIPI_SW_DYN => ntMIPI_SW_DYN
+        );
+            
+};  // end of structure netlist of devIOBUFAD            
+

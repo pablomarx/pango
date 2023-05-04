@@ -1,0 +1,106 @@
+*****************************************************************
+
+  Device    [devDMUX_S]
+
+  Author    [guoxi]
+
+  Abstract  [THE DEVICE CAN BE USED FOR WMUX.]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devDMUX_S : device devD_S
+{
+    parameter
+    (
+        config bit     CP_INITD[31:0] = 32'hffff_ffff,
+        config string  CP_MODED       = "LUT5",         //"LUT5" "ROM" "WMUX" "RAM" "ARITH" "PRIENC" "MUX4" "XOR" "COMP" "RAM"
+        config string  CP_MASK      := "FALSE",
+        config string  CP_Y3MUX_SEL   := "FX"            //"FX":F3 "CYX":CYD "MF":L8    
+    );
+    
+    port
+    (        
+        input    D0,
+        input    D1,
+        input    D2,
+        input    D3,
+        input    D4,
+        input    DD,
+        output   Y3
+    );
+}; // end of device devDMUX_S
+
+
+/*******************************************************************************
+
+  Device    [devDMUX_S]
+
+  Author    [guoxi]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devDMUX_S
+{
+    // Wires for input ports
+    wire ntD0;
+    wire ntD1;
+    wire ntD2;
+    wire ntD3;
+    wire ntD4;
+    wire ntDD;
+
+    // Wires connecting to output ports
+    wire ntY3;
+    // Internal wires
+    wire ntL5D;
+    //
+    // Connection to ports
+    //
+ 
+    ntD0      <= D0;
+    ntD1      <= D1;
+    ntD2      <= D2;
+    ntD3      <= D3;
+    ntD4      <= D4;
+    ntDD      <= DD;    
+    Y3        <= ntY3;          
+    //
+    // Instances. FGA section
+    //
+
+    device FYSC FYD
+        parameter map
+        (
+            CP_INIT   => CP_INITD,
+            CP_MODE   => CP_MODED,
+            CP_MASK   => CP_MASK 
+        )
+        port map
+        (
+            A0   => ntD0,
+            A1   => ntD1,
+            A2   => ntD2,
+            A3   => ntD3,
+            A4   => ntD4,
+            AD   => ntDD,
+            L5   => ntL5D
+        );
+    
+    device YMUX  Y3MUX
+        parameter map
+        (
+            CP_OUT_SEL => CP_Y3MUX_SEL
+        )
+        port map
+        (
+            Y    => ntY3,
+            FX   => ntL5D
+        );
+    
+}; // end of structure netlist of devDMUX_S
+                         

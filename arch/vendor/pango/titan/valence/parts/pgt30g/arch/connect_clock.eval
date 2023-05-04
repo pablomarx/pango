@@ -1,0 +1,236 @@
+k;
+use pango_defs, pg_funcs, pg30_funcs, pg30_defs;
+
+/*******************************************************************************
+
+  Author    [zhang min]
+
+  Abstract  [Connect global clock, regional clock, IO clock wire]
+
+  Revision History:
+
+********************************************************************************/
+structure arch_nl connect_clock of devPGT30G
+{
+    
+    //connect global clock wire
+    connect_global_clock_mux 
+    (
+        POST_GMUX_CLK_TILE_X   ,
+        POST_GMUX_CLK_TILE_Y   ,
+        
+        PRE_GMUX_CLK_L_TILE_X  ,
+        PRE_GMUX_CLK_L_TILE_Y  ,
+        
+        PRE_GMUX_CLK_R_TILE_X  ,
+        PRE_GMUX_CLK_R_TILE_Y  ,
+        
+        PRE_GMUX_CLK_T_TILE_X  ,
+        PRE_GMUX_CLK_T_TILE_Y  ,
+        
+        PRE_GMUX_CLK_B_TILE_X  ,
+        PRE_GMUX_CLK_B_TILE_Y  ,
+    
+        PLL_TILE_X0 ,
+        PLL_TILE_Y0 ,
+        
+        PLL_TILE_X1 ,
+        PLL_TILE_Y1 ,
+        
+        PLL_TILE_X2 ,
+        PLL_TILE_Y2 ,
+        
+        PLL_TILE_X3 ,
+        PLL_TILE_Y3 ,
+        
+        USCM_TILE_X  ,
+        
+        USCM_NW_TILE0_Y ,
+        USCM_NW_TILE1_Y ,
+
+        USCM_NE_TILE0_Y ,
+        USCM_NE_TILE1_Y ,
+
+        USCM_SW_TILE0_Y ,
+        USCM_SW_TILE1_Y ,
+
+        USCM_SE_TILE0_Y ,
+        USCM_SE_TILE1_Y ,
+        
+        IOCLKGEN_T_TILE_X ,
+        IOCLKGEN_T_TILE_Y , 
+                        
+        IOCLKGEN_B_TILE_X ,
+        IOCLKGEN_B_TILE_Y ,
+                         
+        IOCLKGEN_R_TILE_X ,
+        IOCLKGEN_R_TILE_Y
+    
+    
+    );
+
+    // connect regional clock wire
+    connect_regional_clock_mux 
+    (
+        REG_HMUX03_CLK_TILE_X ,
+        REG_HMUX03_CLK_TILE_Y ,
+                              
+        REG_HMUX12_CLK_TILE_X ,
+        REG_HMUX12_CLK_TILE_Y ,
+                              
+                              
+        REG_VMUX0_CLK_TILE_X  ,
+        REG_VMUX0_CLK_TILE_Y  ,
+                              
+        REG_VMUX1_CLK_TILE_X  ,
+        REG_VMUX1_CLK_TILE_Y  ,
+                              
+        REG_VMUX2_CLK_TILE_X  ,
+        REG_VMUX2_CLK_TILE_Y  ,
+                              
+        REG_VMUX3_CLK_TILE_X  ,
+        REG_VMUX3_CLK_TILE_Y  ,
+        
+        IOCLKGEN_R_TILE_X     ,
+        IOCLKGEN_R_TILE_Y     ,
+        
+        IOCLKGEN_T_TILE_X     ,
+        IOCLKGEN_T_TILE_Y     , 
+        
+        IOCLKGEN_B_TILE_X     ,
+        IOCLKGEN_B_TILE_Y     , 
+        
+        PLL_TILE_X0           ,
+        PLL_TILE_Y0           ,
+        
+        PLL_TILE_X1           ,
+        PLL_TILE_Y1           ,
+        
+        PLL_TILE_X2           ,
+        PLL_TILE_Y2           ,
+        
+        PLL_TILE_X3           ,
+        PLL_TILE_Y3           
+
+    );
+    
+
+    // connect IO clock wire
+    connect_io_clock_mux 
+    (
+        IOCLKGEN_T_TILE_X  ,
+        IOCLKGEN_T_TILE_Y  ,
+                           
+        IOCLKGEN_B_TILE_X  ,
+        IOCLKGEN_B_TILE_Y  ,
+                           
+        IOCLKGEN_R_TILE_X  ,
+        IOCLKGEN_R_TILE_Y  ,
+        
+        IO_CLK_BRIDGE_X    ,
+        IO_CLK_BRIDGE_Y
+    
+    );
+    
+    const unsigned int r_tile_x1[] = { 47 };
+    const unsigned int r_tile_y1[] = { 62, 63, 60, 60, 21, 22, 19, 19 };
+    
+    const unsigned int r_tile_x2[] = { 22, 17, 25, 27 };
+    const unsigned int r_tile_y2[] = { 0, 81 };
+    
+    unsigned int tx, ty, cnt, ioTx, ioTy;
+    
+    //connect clk_delay in right
+    cnt = 0;
+    foreach tx ( r_tile_x1 )
+    {
+        foreach ty ( r_tile_y1 )
+        {
+            if(cnt % 2 == 0)
+            {
+                ioTy = ty;
+            }
+            else if(cnt % 2 == 1)
+            {
+                connect_clk_delay(tx, ioTy, tx, ty, NUM_TILE_X, NUM_TILE_Y); 
+            }
+            
+            cnt = cnt + 1;
+        }
+    } 
+    
+    //connect clk_delay in top and bottom
+    cnt = 0;
+    foreach ty ( r_tile_y2 )
+    {
+        foreach tx ( r_tile_x2 )
+        {
+            if(cnt % 2 == 0)
+            {
+                ioTx = tx;
+            }
+            else if(cnt % 2 == 1)
+            {
+                connect_clk_delay(ioTx, ty, tx, ty, NUM_TILE_X, NUM_TILE_Y);
+            }
+            
+            cnt = cnt + 1;
+        }
+    } 
+    
+    
+    const unsigned int r_tile_x3[] = { 1,2, 4,6, 7,9, 10,11, 13,15, 16,18, 19,20, 22,25, 26,28, 29,30, 32,34, 35,37, 38,39, 41,43, 44,46 };
+    const unsigned int r_tile_y3[] = { 0, 81 };
+    
+    //connect connect_io_sgmii in top and bottom
+    cnt = 0;
+    unsigned int from_x, to_x;
+    
+    foreach ty ( r_tile_y3 )
+    {
+        foreach tx ( r_tile_x3 )
+        {
+            if(cnt % 2 == 0)
+            {
+                from_x = tx;
+            }
+            else if(cnt % 2 == 1)
+            {
+                to_x = tx;
+                
+                connect_io_sgmii(from_x, ty, to_x, ty);
+            }
+            
+            cnt = cnt + 1;
+        }
+    }     
+    
+    const unsigned int r_tile_x4[] = { 47 };
+    const unsigned int r_tile_y4[] = { 80,78, 77,75, 74,72, 71,70, 68,67, 65,64, 62,60, 59,57, 56,54, 53,51, 50,49, 47,46, 44,43, 41,40, 39,37, 
+                                       36,34, 33,31, 30,29, 27,26, 24,23, 21,19, 18,16, 15,13, 12,10, 9,8, 6,5, 3,2 };
+                                       
+    //connect connect_io_sgmii in right
+    cnt = 0;
+    unsigned int from_y, to_y;
+    
+    foreach tx ( r_tile_x4 )
+    {
+        foreach ty ( r_tile_y4 )
+        {
+            if(cnt % 2 == 0)
+            {
+                from_y = ty;
+            }
+            else if(cnt % 2 == 1)
+            {
+                to_y = ty;
+                
+                connect_io_sgmii(tx, from_y, tx, to_y); 
+            }
+            
+            cnt = cnt + 1;
+        }
+    } 
+
+}; // end of structure arch_nl connect_clock of devPGT30G
+

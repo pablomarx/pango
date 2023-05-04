@@ -1,0 +1,2159 @@
+*****************************************************************
+
+  Device    [IOB_LA]
+
+  Author    [hzhang]
+
+  Abstract  [IOB_LA(TRUE PAD) is a grid device of the IOBs which are placed on the
+            Left of Arch.]
+
+  Revision History:
+
+********************************************************************************/
+grid
+device IOB_LA
+{
+   property
+    (
+        //DONT_USE means this iob unbond, and EMPTY means the layout dont have this iob ;NAME will assign PAD name later
+        bool   DONT_USE = false,
+        bool   EMPTY = false,
+        string PAD_NAME = "",
+        string PIN_NAME = "",
+        string LOCATION = "",
+        string HARDWARE_NAME = "",
+        string IO_TYPE  = "",
+        bool   SHARED_IO = false,
+        bool   CLK_PAD   = false
+    );
+
+    parameter
+    (
+        config string IOB_MODE   = "UNUSED",    // "IBUF", "OBUF", "IOBUF", "OBUFDS", "OBUFT", "IBUFDS" "IOBUFDS", 
+        config string TERMINATED = "PULLUP",    /* "UNUSED" , "PULLUP" , "PULLDOWN" , "KEEPER" */
+        config string HOT_SOCKET = "ON",        // ON; OFF
+        config string POWER_MODE = "ON",        // ON; OFF; ON--> POWER GUARD
+        config string VCCIO      = "3.3",       // "3.3" "2.5" "1.8" "1.5" "1.2"
+        
+        config string OPENDRAIN  = "OFF",       // OFF: NA; ON: OD
+        // ibuf
+        config string HYS_DRIVE_MODE   = "NOHYS" ,    // "NOHYS","SMHYS_I","SMHYS_II","LGHYS","OD","UD" 
+        
+        config string VREF_MODE  = "IN"    ,    // "IN": VREF_IN;
+        config string VREF_IN_MODE  = "OFF",    // "OFF" "0.45" "0.5" "0.55"
+        config string DDR_TERM_MODE = "ON",     //  "TERM": "ON" "OFF" "NONE"        
+        config string VREF_OUT_MODE = "VREF1",  // "VREF1" "VREF2" "VREF3" "EXT_DRV" 
+        
+        config string DIFF_IN_TERM_MODE = "OFF", // "ON" "OFF" 
+
+        // obuf
+        config string SLEW_MODE         = "F",  // "F" "S"
+        config string DRV_CURR_EN       = "TRUE",  // "TRUE" "FALSE" 
+        config string DRV_CURR_VAL      = "0",  /*  LVCMOS33 : 4/8/12/16/20/24         (Driver Current) 
+                                                    LVCMOS25 : 4/8/12/16/20            (Driver Current)
+                                                    LVCMOS18 : 4/8/12/16               (Driver Current)
+                                                    LVCMOS15 : 4/8/12                  (Driver Current)
+                                                    LVCMOS12 : 2/6                     (Driver Current)
+                                                    PCI33    : 1.5                        
+                                                    LVTTL33  : 4/8/12/16/20/24         (Driver Current)
+                                                    SSTL25_I : 8.1                     (Driver Current) 
+                                                    SSTL25_II: 16.2                    (Driver Current)
+                                                    DEFAULT  : 0*/
+        
+        // modify for bug-7123
+        config string PMOS_FINGER       = "1", /*   SSTL25_I : 1/2/3/4/5/6             (Driver Current) 
+                                                    SSTL25_II: 1/2/3/4/5/6             (Driver Current) 
+                                                    SSTL18_I : 1/2/3/4/5/6             (Driver Current) 
+                                                    SSTL18_II: 1/2/3/4/5/6             (Driver Current) 
+                                                    SSTL15_I : 1/2/3/4/5/6             (Driver Current) 
+                                                    SSTL15_II: 1/2/3/4/5/6             (Driver Current) 
+                                                    HSTL18_I : 1/2/3/4/5/6             (Driver Current) 
+                                                    HSTL18_II: 1/2/3/4/5/6             (Driver Current) 
+                                                    HSTL15_I : 1/2/3/4/5/6             (Driver Current) 
+                                                    DEFAULT  : 1                                       */
+                                                    
+        config string NMOS_FINGER       = "1", /*   SSTL25_I : 1/2/3/4/5/6             (Driver Current) 
+                                                    SSTL25_II: 1/2/3/4/5/6             (Driver Current) 
+                                                    SSTL18_I : 1/2/3/4/5/6             (Driver Current) 
+                                                    SSTL18_II: 1/2/3/4/5/6             (Driver Current) 
+                                                    SSTL15_I : 1/2/3/4/5/6             (Driver Current) 
+                                                    SSTL15_II: 1/2/3/4/5/6             (Driver Current) 
+                                                    HSTL18_I : 1/2/3/4/5/6             (Driver Current) 
+                                                    HSTL18_II: 1/2/3/4/5/6             (Driver Current) 
+                                                    HSTL15_I : 1/2/3/4/5/6             (Driver Current) 
+                                                    DEFAULT  : 1                                       */                                            
+        
+        config string IOSTANDARD = "DEFAULT" 
+        /*
+        ibuf:
+            LVCMOS33, LVCMOS25, LVCMOS18, LVCMOS15, LVCMOS12, LVTTL33, PCI33: NOHYS/SMHYS_I/SMHYS_II/LGHYS/ODXX/UDXX
+            SSTL25_I/II: OFF/0.45/0.50/0.55(VREF_IN);
+            LVDS: NOTERM
+            VREF: The STANDARD is for referent pin(only IOB_LA), and this time only set VREF_OUT_MODE = "EXT_DRV", others set val is 'b0 
+            SSTL25D  : SSTL25        ibuf  
+        obuf:
+            LVCMOS33 : F/S(SLEW); 4/8/12/16/20/24         (Driver Current) 
+            LVCMOS25 : F/S(SLEW); 4/8/12/16/20            (Driver Current)
+            LVCMOS18 : F/S(SLEW); 4/8/12/16               (Driver Current)
+            LVCMOS15 : F/S(SLEW); 4/8/12                  (Driver Current)
+            LVCMOS12 : F/S(SLEW); 2/6                     (Driver Current)
+            PCI33    : F/S(SLEW)                          
+            LVTTL33  : F/S(SLEW); 4/8/12/16/20/24         (Driver Current)
+            SSTL25_I : F/S(SLEW); 8.1                     (Driver Current) 
+            SSTL25_II: F/S(SLEW); 16.2                    (Driver Current)
+            LVDS25E / RSDS25E / PPDS25E : LVCMOS25         obuf
+            LVPECL33E                   : LVCMOS33      obuf
+            SSTL25D_I                   : SSTL25_I      obuf
+            SSTL25D_II                  : SSTL25_II     obuf 
+        iobuf:    
+        */            
+    );
+    port
+    (
+        // These are the config ports.
+        config input SC_DIFF_IN_EN = 1'b0   /*pragma PAP_CFG_BIT_NAME = "SC_ENINR" */,
+        
+        config input SC_BUS_KEEPER[1:0] = 2'b00  /*pragma PAP_CFG_BIT_NAME = "SC_PU, SC_PD_N" */,
+        config input SC_HOT_SOCKET = 1'b0   /*pragma PAP_CFG_BIT_NAME = "SC_CLAMP" */,
+        config input SC_POWER_MODE = 1'b0   /*pragma PAP_CFG_BIT_NAME = "SC_PWRGRD_E" */,
+        config input SC_3325_N     = 1'b0   /*pragma PAP_CFG_BIT_NAME = "SC_3325_N" */,
+        config input SC_DYNTERM         = 1'b0   /*pragma PAP_CFG_BIT_NAME = "SC_DYNTERM" */, 
+        
+        // single_end_in
+        config input SC_ENINS_N    = 1'b0  /*pragma PAP_CFG_BIT_NAME = "SC_ENINS_N" */,
+        config input SC_RD         = 1'b0   /*pragma PAP_CFG_BIT_NAME = "SC_RD" */,      // resistance of input enable       
+        config input SC_INSBT2     = 1'b0  /*pragma PAP_CFG_BIT_NAME = "SC_INSBT2 " */,
+        config input SC_INSBT1     = 1'b0  /*pragma PAP_CFG_BIT_NAME = "SC_INSBT1  " */,
+        config input SC_H2L        = 1'b0  /*pragma PAP_CFG_BIT_NAME = "SC_H2L    " */,
+        
+        // single_end_out 
+        config input SC_PG[2:0]   = 3'b000  /*pragma PAP_CFG_BIT_NAME = "SC_PG1, SC_PG2_N ,SC_PG3 " */ ,
+        config input SC_NG[2:0]   = 3'b000  /*pragma PAP_CFG_BIT_NAME = "SC_NG1, SC_NG2_N ,SC_NG3 " */, 
+        config input SC_SLEW_N    = 1'b0    /*pragma PAP_CFG_BIT_NAME = "SC_SLEW_N  " */,  
+                
+        // BANK6~7
+        config input SC_PU2_B                 = 1'b0   /*pragma PAP_CFG_BIT_NAME = "SC_PU2_B"*/,
+        config input SC_PU3_B                 = 1'b0   /*pragma PAP_CFG_BIT_NAME = "SC_PU3_B"*/,
+        config input SC_PD2                   = 1'b0   /*pragma PAP_CFG_BIT_NAME = "SC_PD2"*/,
+        config input SC_PD3                   = 1'b0   /*pragma PAP_CFG_BIT_NAME = "SC_PD3"*/,
+        config input SC_STDBY_INR             = 1'b0   /*pragma PAP_CFG_BIT_NAME = "SC_STDBY_INR"*/,
+        config input SC_INR_ON                = 1'b0   /*pragma PAP_CFG_BIT_NAME = "SC_INR_ON"*/,
+        config input SC_VRE[1:0]              = 2'b00  /*pragma PAP_CFG_BIT_NAME = "SC_VRE<1>, SC_VRE<0>"*/,
+        config input SC_VREFPD_N              = 1'b0   /*pragma PAP_CFG_BIT_NAME = "SC_VREFPD_N"*/,
+        config input SC_HSPD_CTRL[1:0]        = 2'b00  /*pragma PAP_CFG_BIT_NAME = "SC_HSPD_CTRL<1>, SC_HSPD_CTRL<0>"*/,      
+
+        inout  PAD,
+
+        input  TO = 1'b1,
+        input  DO = 1'b1,
+        output DIN,
+        
+        input  DIFFI_IN = 1'b1,
+        output DIFFI_OUT
+    );
+
+}// end of device IOB_LA
+
+/*******************************************************************************
+
+  Device    [IOB_LA]
+
+  Author    []
+
+  Abstract  [The structure netlist of IOB_LA is described in the similar fashion
+             as in HDL. In unit instantiation statement, the formal pin may be
+             connected to net which is declared explicitly.
+
+             In Valence, the connection can also be made from formal pin to other
+             pin or port, in which case Valence compiler shall create the net to
+             fulfil the connection. The built-in naming convention is kicked in
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of IOB_LA
+{
+    // Wires for input ports
+    wire ntTO, ntDO, ntDIFFI_IN;
+    ntTO        <= TO;
+    ntDO        <= DO;
+    ntDIFFI_IN  <= DIFFI_IN;
+
+   // Wires connecting to output ports
+
+    wire ntPAD;
+    wire ntINBUF;
+
+    PAD         <= ntPAD;
+    DIFFI_OUT   <= ntPAD;
+    DIN         <= ntINBUF;
+
+    device IOB_INBUFLA INBUFLA
+        parameter map
+        (
+            IOB_MODE          => IOB_MODE,
+            DDR_TERM_MODE     => DDR_TERM_MODE,
+            DIFF_IN_TERM_MODE => DIFF_IN_TERM_MODE,
+            IOSTANDARD        => IOSTANDARD
+        )
+        port map
+        (
+            IN          => ntPAD,
+            DIFFI_IN    => ntDIFFI_IN,
+            O           => ntINBUF
+        );
+    
+    device IOB_OBUFLA OBUFLA
+        parameter map
+        (
+            IOB_MODE     => IOB_MODE,
+            SLEW_MODE    => SLEW_MODE,
+            DRV_CURR_VAL => DRV_CURR_VAL,
+            IOSTANDARD   => IOSTANDARD
+        )
+        port map
+        (
+            TS             => ntTO,
+            IN             => ntDO,
+            OUT            => ntPAD
+        );
+
+    def_disable_timing <pin OUT of <device OBUFLA>> -> <pin IN of <device INBUFLA>>;
+
+}; // end of structure netlist of IOB_LA
+
+/*******************************************************************************
+
+  Device    [IOB_LA]
+
+  Author    []
+
+  Abstract  [The floorplan structure]
+
+  Revision History:
+
+********************************************************************************/
+floorplan
+structure fp_struct of IOB_LA
+{
+    device IOB_INBUFLA  INBUFLA;
+
+    device IOB_OBUFLA   OBUFLA;
+
+
+}; // end of structure fp_struct of IOB_LA
+
+
+
+/*******************************************************************************
+
+  Device    [IOB_LA]
+
+  Author    []
+
+  Abstract  [Configure the configuration bits based on the value of config parameter]
+
+  Revision History:
+
+********************************************************************************/
+configuration cfg of IOB_LA
+{
+
+    // IO CONFIG PORT SETTING
+    if (TERMINATED == "PULLUP")
+    {
+        SC_BUS_KEEPER := 2'b00;
+    }
+    else if (TERMINATED == "PULLDOWN")
+    {
+        SC_BUS_KEEPER := 2'b11;
+    }
+    else if (TERMINATED == "KEEPER")
+    {
+        SC_BUS_KEEPER := 2'b10;
+    }
+    else if (TERMINATED == "UNUSED")
+    {
+        SC_BUS_KEEPER := 2'b01;
+    }
+
+    if (HOT_SOCKET == "ON")
+    {
+        SC_HOT_SOCKET := 1'b0;
+    }
+    else // if (HOT_SOCKET == "OFF")
+    {
+        SC_HOT_SOCKET := 1'b1; 
+    }
+    
+    if (POWER_MODE == "ON")
+    {
+        SC_POWER_MODE := 1'b0;
+    }
+    else // if (POWER_MODE == "OFF")
+    {
+        SC_POWER_MODE := 1'b1;
+    }
+    
+    if (IOB_MODE == "IBUF" || IOB_MODE == "IBUFDS")
+    {
+        if ( IOSTANDARD == "LVCMOS33" || IOSTANDARD == "DEFAULT" || IOSTANDARD == "LVCMOS25" 
+           || IOSTANDARD == "LVCMOS18" || IOSTANDARD == "LVCMOS15" 
+           || IOSTANDARD == "LVCMOS12" || IOSTANDARD == "LVTTL33" 
+           || IOSTANDARD == "PCI33")
+        {
+            if (HYS_DRIVE_MODE == "NOHYS")
+            {
+                SC_ENINS_N := 1'b0  ;
+                SC_RD      := 1'b0  ;
+                SC_INSBT2  := 1'b0  ;
+                SC_INSBT1  := 1'b0  ;
+                SC_H2L     := 1'b0  ;
+            }
+            else if (HYS_DRIVE_MODE == "SMHYS_I")
+            {
+                SC_ENINS_N := 1'b0  ;
+                SC_RD      := 1'b1  ;
+                SC_INSBT2  := 1'b0  ;
+                SC_INSBT1  := 1'b0  ;
+                SC_H2L     := 1'b0  ;    
+            }
+            else if (HYS_DRIVE_MODE == "SMHYS_II")
+            {
+                SC_ENINS_N := 1'b0  ;
+                SC_RD      := 1'b0  ;
+                SC_INSBT2  := 1'b0  ;
+                SC_INSBT1  := 1'b0  ;
+                SC_H2L     := 1'b1  ;    
+            }
+            else if (HYS_DRIVE_MODE == "LGHYS")
+            {
+                SC_ENINS_N := 1'b0  ;
+                SC_RD      := 1'b1  ;
+                SC_INSBT2  := 1'b0  ;
+                SC_INSBT1  := 1'b0  ;
+                SC_H2L     := 1'b1  ;    
+            }
+            else if (!strncmp(HYS_DRIVE_MODE,"OD",2))
+            {
+                SC_ENINS_N := 1'b0  ;
+                SC_RD      := 1'b0  ;
+                SC_INSBT2  := 1'b1  ;
+                SC_INSBT1  := 1'b1  ;
+                SC_H2L     := 1'b0  ;    
+            }
+            else // if (HYS_DRIVE_MODE == "UD")
+            {
+                SC_ENINS_N := 1'b0  ;
+                SC_RD      := 1'b1  ;
+                SC_INSBT2  := 1'b1  ;
+                SC_INSBT1  := 1'b1  ;
+                SC_H2L     := 1'b0  ;    
+            }    
+        }
+        else if ( IOSTANDARD == "SSTL25_I"  || IOSTANDARD == "SSTL25_II" 
+                || IOSTANDARD == "SSTL18_I" || IOSTANDARD == "SSTL18_II"
+                || IOSTANDARD == "SSTL15_I" ||  IOSTANDARD == "SSTL15_II"
+                || IOSTANDARD == "HSTL18_I" || IOSTANDARD == "HSTL18_II"
+                || IOSTANDARD == "HSTL15_I" || IOSTANDARD == "HSTL15_II"
+
+                || IOSTANDARD == "HSTL15D"    || IOSTANDARD == "HSTL18D"
+                || IOSTANDARD == "SSTL15D"  || IOSTANDARD == "SSTL18D"
+                || IOSTANDARD == "SSTL25D")
+        {                  
+            if (VREF_MODE == "OUT" )
+            {        
+                if (VREF_OUT_MODE == "VREF1")
+                {
+                    SC_ENINS_N := 1'b1  ;  
+                    SC_RD      := 1'b0  ;  
+                    SC_INSBT2  := 1'b0  ;  
+                    SC_INSBT1  := 1'b0  ;  
+                    SC_H2L     := 1'b1  ; 
+                                    
+                    if (DDR_TERM_MODE == "ON")
+                    {
+                        SC_DYNTERM := 1'b1  ;
+                    }
+                    else //if (DDR_TERM_MODE == "OFF")
+                    {
+                        SC_DYNTERM := 1'b0  ;
+                    }
+                }
+                else if (VREF_OUT_MODE == "VREF2")
+                {
+                    SC_ENINS_N := 1'b1  ;
+                    SC_RD      := 1'b0  ;
+                    SC_INSBT2  := 1'b0  ;
+                    SC_INSBT1  := 1'b1  ;
+                    SC_H2L     := 1'b0  ;
+                    
+                    if (DDR_TERM_MODE == "ON")
+                    {
+                        SC_DYNTERM := 1'b1  ;
+                    }
+                    else //if (DDR_TERM_MODE == "OFF")
+                    {
+                        SC_DYNTERM := 1'b0  ;
+                    }             
+                }
+                else if (VREF_OUT_MODE == "VREF3")
+                {
+                    SC_ENINS_N := 1'b1  ;  
+                    SC_RD      := 1'b0  ;  
+                    SC_INSBT2  := 1'b0  ;  
+                    SC_INSBT1  := 1'b1  ;  
+                    SC_H2L     := 1'b1  ; 
+                    
+                    if (DDR_TERM_MODE == "ON")
+                    {
+                        SC_DYNTERM := 1'b1  ;
+                    }
+                    else //if (DDR_TERM_MODE == "OFF")
+                    {
+                        SC_DYNTERM := 1'b0  ;
+                    } 
+                }
+                else if (VREF_OUT_MODE == "EXT_DRV")
+                {
+                    SC_ENINS_N := 1'b1  ;
+                    SC_RD      := 1'b0  ;
+                    SC_INSBT2  := 1'b1  ;
+                    SC_INSBT1  := 1'b0  ;
+                    SC_H2L     := 1'b1  ;
+                    SC_DYNTERM := 1'b0  ;     
+                }
+            }
+            else
+            {
+                if (VREF_OUT_MODE == "VREF1")
+                {
+                    SC_ENINS_N := 1'b1  ;  
+                    SC_RD      := 1'b0  ;  
+                    SC_INSBT2  := 1'b0  ;  
+                    SC_INSBT1  := 1'b0  ;  
+                    SC_H2L     := 1'b1  ; 
+                    SC_DYNTERM := 1'b0  ;
+                }
+                else if (VREF_OUT_MODE == "VREF2")
+                {
+                    SC_ENINS_N := 1'b1  ;
+                    SC_RD      := 1'b0  ;
+                    SC_INSBT2  := 1'b0  ;
+                    SC_INSBT1  := 1'b1  ;
+                    SC_H2L     := 1'b0  ;
+                    SC_DYNTERM := 1'b0  ;             
+                }
+                else if (VREF_OUT_MODE == "VREF3")
+                {
+                    SC_ENINS_N := 1'b1  ;  
+                    SC_RD      := 1'b0  ;  
+                    SC_INSBT2  := 1'b0  ;  
+                    SC_INSBT1  := 1'b1  ;  
+                    SC_H2L     := 1'b1  ; 
+                    SC_DYNTERM := 1'b0  ;
+                }
+                else
+                {
+                    SC_ENINS_N := 1'b1  ;  
+                    SC_RD      := 1'b0  ;  
+                    SC_INSBT2  := 1'b0  ;  
+                    SC_INSBT1  := 1'b0  ;  
+                    SC_H2L     := 1'b1  ;
+                    SC_DYNTERM := 1'b0  ;
+                }           
+            }
+        }
+        else  if ( IOSTANDARD == "LVDS" )
+        {
+            if (DIFF_IN_TERM_MODE == "ON")
+            {
+                SC_ENINS_N := 1'b0  ;
+                SC_RD      := 1'b1  ;
+                SC_INSBT2  := 1'b0  ;
+                SC_INSBT1  := 1'b0  ;
+                SC_H2L     := 1'b0  ;
+                SC_DYNTERM := 1'b0  ;      
+            }
+            else // if (DIFF_IN_TERM_MODE == "OFF")
+            {
+                SC_ENINS_N := 1'b0  ;
+                SC_RD      := 1'b0  ;
+                SC_INSBT2  := 1'b0  ;
+                SC_INSBT1  := 1'b0  ;
+                SC_H2L     := 1'b0  ;
+                SC_DYNTERM := 1'b0  ;      
+            }
+        }
+        else if (IOSTANDARD == "VREF")
+        {
+            SC_ENINS_N := 1'b1  ;
+            SC_RD      := 1'b0  ;
+            SC_INSBT2  := 1'b1  ;
+            SC_INSBT1  := 1'b0  ;
+            SC_H2L     := 1'b1  ;
+            SC_DYNTERM := 1'b0  ;             
+        }
+        SC_PG := 3'b010;
+        SC_NG := 3'b010;
+
+    }
+    else if (IOB_MODE == "OBUF" || IOB_MODE == "OBUFDS" || IOB_MODE == "OBUFT" )
+    {   
+        if ( IOSTANDARD == "LVCMOS33" || IOSTANDARD == "DEFAULT"
+          || IOSTANDARD == "LVCMOS25"
+          || IOSTANDARD == "LVCMOS18"
+          || IOSTANDARD == "LVCMOS15"
+          || IOSTANDARD == "LVCMOS12"
+          || IOSTANDARD == "LVTTL33")
+        { 
+             if (DRV_CURR_EN == "TRUE")
+             {
+                if ( IOSTANDARD == "LVCMOS33" || IOSTANDARD == "DEFAULT")
+                {
+                    if (OPENDRAIN == "ON" && (IOB_MODE == "OBUF" || IOB_MODE == "OBUFT"))
+                    {
+                        SC_PG := 3'b010;             
+                    }
+                    else
+                    { 
+                        if (DRV_CURR_VAL == "4")
+                        {
+                            SC_PG := 3'b110;
+                        }
+                        else if (DRV_CURR_VAL == "8")
+                        {
+                            SC_PG := 3'b000;
+                        }
+                        else if (DRV_CURR_VAL == "12")
+                        {
+                            SC_PG := 3'b011;
+                        }
+                        else if (DRV_CURR_VAL == "16")
+                        {
+                            SC_PG := 3'b111;
+                        }
+                        else if (DRV_CURR_VAL == "20")
+                        {
+                            SC_PG := 3'b001;
+                        }
+                        else if (DRV_CURR_VAL == "24")
+                        {
+                            SC_PG := 3'b101;
+                        } 
+                    }
+                           
+                    if (DRV_CURR_VAL == "4")
+                    {
+                        SC_NG := 3'b110;
+                    }
+                    else if (DRV_CURR_VAL == "8")
+                    {
+                        SC_NG := 3'b000;
+                    }
+                    else if (DRV_CURR_VAL == "12")
+                    {
+                        SC_NG := 3'b011;
+                    }
+                    else if (DRV_CURR_VAL == "16")
+                    {
+                        SC_NG := 3'b111;
+                    }
+                    else if (DRV_CURR_VAL == "20")
+                    {
+                        SC_NG := 3'b001;
+                    }
+                    else if (DRV_CURR_VAL == "24")
+                    {
+                        SC_NG := 3'b101;
+                    }         
+                }
+                else if ( IOSTANDARD == "LVCMOS25")
+                {
+                    if (OPENDRAIN == "ON" && (IOB_MODE == "OBUF" || IOB_MODE == "OBUFT"))
+                    {
+                        SC_PG := 3'b010;             
+                    }
+                    else
+                    {
+             
+                        if (DRV_CURR_VAL == "4")
+                        {
+                            SC_PG := 3'b000;
+                        }
+                        else if (DRV_CURR_VAL == "8")
+                        {
+                            SC_PG := 3'b011;
+                        }
+                        else if (DRV_CURR_VAL == "12")
+                        {
+                            SC_PG := 3'b111;
+                        }
+                        else if (DRV_CURR_VAL == "16")
+                        {
+                            SC_PG := 3'b001;
+                        }
+                        else if (DRV_CURR_VAL == "20")
+                        {
+                            SC_PG := 3'b101;
+                        }           
+                    }
+                    
+                    if (DRV_CURR_VAL == "4")
+                    {
+                        SC_NG := 3'b000;
+                    }
+                    else if (DRV_CURR_VAL == "8")
+                    {
+                        SC_NG := 3'b011;
+                    }
+                    else if (DRV_CURR_VAL == "12")
+                    {
+                        SC_NG := 3'b111;
+                    }
+                    else if (DRV_CURR_VAL == "16")
+                    {
+                        SC_NG := 3'b001;
+                    }
+                    else if (DRV_CURR_VAL == "20")
+                    {
+                        SC_NG := 3'b101;
+                    } 
+                } 
+                else if ( IOSTANDARD == "LVCMOS18" )
+                {
+                    if (OPENDRAIN == "ON" && (IOB_MODE == "OBUF" || IOB_MODE == "OBUFT"))
+                    {
+                        SC_PG := 3'b010;             
+                    }
+                    else
+                    {
+                        if (DRV_CURR_VAL == "4")
+                        {
+                            SC_PG := 3'b000;
+                        }
+                        else if (DRV_CURR_VAL == "8")
+                        {
+                            SC_PG := 3'b011;
+                        }
+                        else if (DRV_CURR_VAL == "12")
+                        {
+                            SC_PG := 3'b001;
+                        }
+                        else if (DRV_CURR_VAL == "16")
+                        {
+                            SC_PG := 3'b101;
+                        }           
+                    }
+                    
+                    if (DRV_CURR_VAL == "4")
+                    {
+                        SC_NG := 3'b000;
+                    }
+                    else if (DRV_CURR_VAL == "8")
+                    {
+                        SC_NG := 3'b011;
+                    }
+                    else if (DRV_CURR_VAL == "12")
+                    {
+                        SC_NG := 3'b001;
+                    }
+                    else if (DRV_CURR_VAL == "16")
+                    {
+                        SC_NG := 3'b101;
+                    }
+                }
+                else if ( IOSTANDARD == "LVCMOS15" )
+                {
+                    if (OPENDRAIN == "ON" && (IOB_MODE == "OBUF" || IOB_MODE == "OBUFT"))
+                    {
+                        SC_PG := 3'b010;             
+                    }
+                    else
+                    {
+                        if (DRV_CURR_VAL == "4")
+                        {
+                            SC_PG := 3'b011;
+                        }
+                        else if (DRV_CURR_VAL == "8")
+                        {
+                            SC_PG := 3'b001;
+                        }
+                        else if (DRV_CURR_VAL == "12")
+                        {
+                            SC_PG := 3'b101;
+                        }      
+                    }
+             
+                    if (DRV_CURR_VAL == "4")
+                    {
+                        SC_NG := 3'b011;
+                    }
+                    else if (DRV_CURR_VAL == "8")
+                    {
+                        SC_NG := 3'b001;
+                    }
+                    else if (DRV_CURR_VAL == "12")
+                    {
+                        SC_NG := 3'b101;
+                    }
+                }
+                else if ( IOSTANDARD == "LVCMOS12" )
+                {
+                    if (OPENDRAIN == "ON" && (IOB_MODE == "OBUF" || IOB_MODE == "OBUFT"))
+                    {
+                        SC_PG := 3'b010;             
+                    }
+                    else
+                    {  
+                        if (DRV_CURR_VAL == "2")
+                        {
+                            SC_PG := 3'b000;
+                        }
+                        else if (DRV_CURR_VAL == "6")
+                        {
+                            SC_PG := 3'b101;
+                        }
+                    }
+             
+                    if (DRV_CURR_VAL == "2")
+                    {
+                        SC_NG := 3'b000;
+                    }
+                    else if (DRV_CURR_VAL == "6")
+                    {
+                        SC_NG := 3'b101;
+                    }        
+                }
+                else if (IOSTANDARD == "LVTTL33")
+                {
+                    if (OPENDRAIN == "ON" && (IOB_MODE == "OBUF" || IOB_MODE == "OBUFT"))
+                    {
+                        SC_PG := 3'b010;             
+                    }
+                    else
+                    {
+                        if (DRV_CURR_VAL == "4")
+                        {
+                            SC_PG := 3'b110;
+                        }
+                        else if (DRV_CURR_VAL == "8")
+                        {
+                            SC_PG := 3'b000;
+                        }
+                        else if (DRV_CURR_VAL == "12")
+                        {
+                            SC_PG := 3'b011;
+                        }
+                        else if (DRV_CURR_VAL == "16")
+                        {
+                            SC_PG := 3'b111;
+                        }
+                        else if (DRV_CURR_VAL == "20")
+                        {
+                            SC_PG := 3'b001;
+                        }
+                        else if (DRV_CURR_VAL == "24")
+                        {
+                            SC_PG := 3'b101;
+                        }            
+                    }
+                    if (DRV_CURR_VAL == "4")
+                    {
+                        SC_NG := 3'b110;
+                    }
+                    else if (DRV_CURR_VAL == "8")
+                    {
+                        SC_NG := 3'b000;
+                    }
+                    else if (DRV_CURR_VAL == "12")
+                    {
+                        SC_NG := 3'b011;
+                    }
+                    else if (DRV_CURR_VAL == "16")
+                    {
+                        SC_NG := 3'b111;
+                    }
+                    else if (DRV_CURR_VAL == "20")
+                    {
+                        SC_NG := 3'b001;
+                    }
+                    else if (DRV_CURR_VAL == "24")
+                    {
+                        SC_NG := 3'b101;
+                    }                
+                }            
+             }
+             else // if (DRV_CURR_EN == "FALSE") 
+             {
+                 if (OPENDRAIN == "ON" && (IOB_MODE == "OBUF" || IOB_MODE == "OBUFT"))
+                 {
+                     SC_PG := 3'b010;             
+                 }
+                 else
+                 {
+                     if (PMOS_FINGER == "1") 
+                     {
+                        SC_PG := 3'b110;
+                     }
+                     else if (PMOS_FINGER == "2")
+                     {
+                         SC_PG := 3'b000;
+                     }    
+                     else if (PMOS_FINGER == "3")
+                     {
+                         SC_PG := 3'b011;
+                     }    
+                     else if (PMOS_FINGER == "4")
+                     {
+                        SC_PG := 3'b111;
+                     }
+                     else if (PMOS_FINGER == "5")
+                     {
+                         SC_PG := 3'b001;
+                     }
+                     else if (PMOS_FINGER == "6")
+                     {
+                         SC_PG := 3'b101;
+                     }    
+                     else
+                     {
+                         SC_PG := 3'b110;
+                     }
+                 } 
+                
+                if (NMOS_FINGER == "1")
+                { 
+                   SC_NG := 3'b110;
+                }   
+                else if (NMOS_FINGER == "2")
+                {
+                    SC_NG := 3'b000;
+                }    
+                else if (NMOS_FINGER == "3")
+                {
+                    SC_NG := 3'b011;
+                }    
+                else if (NMOS_FINGER == "4")
+                {
+                    SC_NG := 3'b111;
+                }
+                else if (NMOS_FINGER == "5")
+                {
+                    SC_NG := 3'b001;
+                }
+                else if (NMOS_FINGER == "6")
+                {
+                    SC_NG := 3'b101;
+                }    
+                else
+                {
+                    SC_NG := 3'b110;   
+                }   
+            }                       
+        }                  
+        else if ( IOSTANDARD == "LVPECL33E" 
+               || IOSTANDARD == "LVDS25E" ||  IOSTANDARD == "RSDS25E" ||  IOSTANDARD == "PPDS25E")
+        {   
+            if (DRV_CURR_EN == "TRUE") 
+            {   
+                if (IOSTANDARD == "LVPECL33E" )
+                {
+                    if (DRV_CURR_VAL == "4")
+                    {
+                        SC_PG := 3'b110;
+                        SC_NG := 3'b110;
+                    }
+                    else if (DRV_CURR_VAL == "8")
+                    {
+                        SC_PG := 3'b000;
+                        SC_NG := 3'b000;
+                    }
+                    else if (DRV_CURR_VAL == "12")
+                    {
+                        SC_PG := 3'b011;
+                        SC_NG := 3'b011;
+                    }
+                    else if (DRV_CURR_VAL == "16")
+                    {
+                        SC_PG := 3'b111;
+                        SC_NG := 3'b111;
+                    }
+                    else if (DRV_CURR_VAL == "20")
+                    {
+                        SC_PG := 3'b001;
+                        SC_NG := 3'b001;
+                    }
+                    else if (DRV_CURR_VAL == "24")
+                    {
+                        SC_PG := 3'b101;
+                        SC_NG := 3'b101;
+                    }
+                }
+                else //if (IOSTANDARD == "LVDS25E" ||  IOSTANDARD == "RSDS25E" ||  IOSTANDARD == "PPDS25E")
+                {
+                    if (DRV_CURR_VAL == "4")
+                    {
+                        SC_PG := 3'b000;
+                        SC_NG := 3'b000;
+                    }
+                    else if (DRV_CURR_VAL == "8")
+                    {
+                        SC_PG := 3'b011;
+                        SC_NG := 3'b011;
+                    }
+                    else if (DRV_CURR_VAL == "12")
+                    {
+                        SC_PG := 3'b111;
+                        SC_NG := 3'b111;
+                    }
+                    else if (DRV_CURR_VAL == "16")
+                    {
+                        SC_PG := 3'b001;
+                        SC_NG := 3'b001;
+                    }
+                    else if (DRV_CURR_VAL == "20")
+                    {
+                        SC_PG := 3'b101;
+                        SC_NG := 3'b101;
+                    }                
+                }           
+            }
+            else // if (DRV_CURR_EN == "FALSE")
+            { 
+                if (PMOS_FINGER == "1") 
+                {
+                   SC_PG := 3'b110;
+                }
+                else if (PMOS_FINGER == "2")
+                {
+                    SC_PG := 3'b000;
+                }    
+                else if (PMOS_FINGER == "3")
+                {
+                    SC_PG := 3'b011;
+                }    
+                else if (PMOS_FINGER == "4")
+                {
+                   SC_PG := 3'b111;
+                }
+                else if (PMOS_FINGER == "5")
+                {
+                    SC_PG := 3'b001;
+                }
+                else if (PMOS_FINGER == "6")
+                {
+                    SC_PG := 3'b101;
+                }    
+                else
+                {
+                    SC_PG := 3'b110;
+                }         
+                    
+                if (NMOS_FINGER == "1")
+                { 
+                   SC_NG := 3'b110;
+                }   
+                else if (NMOS_FINGER == "2")
+                {
+                    SC_NG := 3'b000;
+                }    
+                else if (NMOS_FINGER == "3")
+                {
+                    SC_NG := 3'b011;
+                }    
+                else if (NMOS_FINGER == "4")
+                {
+                    SC_NG := 3'b111;
+                }
+                else if (NMOS_FINGER == "5")
+                {
+                    SC_NG := 3'b001;
+                }
+                else if (NMOS_FINGER == "6")
+                {
+                    SC_NG := 3'b101;
+                }    
+                else
+                {
+                    SC_NG := 3'b110;   
+                }            
+            }  
+        }        
+        else if ( IOSTANDARD == "PCI33" )
+        {
+            if (OPENDRAIN == "ON" && (IOB_MODE == "OBUF" || IOB_MODE == "OBUFT"))
+            {
+                SC_PG := 3'b010;             
+            }
+            else
+            {
+                SC_PG := 3'b110;
+            } 
+            SC_NG := 3'b110;
+        }
+        else if ( IOSTANDARD == "SSTL25_I"  || IOSTANDARD == "SSTL25D_I"
+               || IOSTANDARD == "SSTL25_II" || IOSTANDARD == "SSTL25D_II"
+               || IOSTANDARD == "SSTL18_I"  || IOSTANDARD == "SSTL18D_I"
+               || IOSTANDARD == "SSTL18_II" || IOSTANDARD == "SSTL18D_II"
+               || IOSTANDARD == "SSTL15_I"  || IOSTANDARD == "SSTL15D_I"
+               || IOSTANDARD == "SSTL15_II" || IOSTANDARD == "SSTL15D_II"
+               || IOSTANDARD == "HSTL18_I"  || IOSTANDARD == "HSTL18D_I"
+               || IOSTANDARD == "HSTL18_II" || IOSTANDARD == "HSTL18D_II"
+               || IOSTANDARD == "HSTL15_I"  || IOSTANDARD == "HSTL15D_I")
+         {
+            if (DRV_CURR_EN == "TRUE")
+            {
+                 if ( IOSTANDARD == "SSTL25_I" || IOSTANDARD == "SSTL25D_I")
+                 {
+                     if (DRV_CURR_VAL == "8.1")
+                     {
+                         SC_PG := 3'b000;
+                         SC_NG := 3'b000;
+                     }
+                 }
+                 else if ( IOSTANDARD == "SSTL25_II" || IOSTANDARD == "SSTL25D_II")
+                 {
+                     if (DRV_CURR_VAL == "16.2")
+                     {
+                         SC_PG := 3'b101;
+                         SC_NG := 3'b101;
+                     }
+                 }
+                 else if ( IOSTANDARD == "SSTL18_I" || IOSTANDARD == "SSTL18D_I" )
+                 {
+                     if (DRV_CURR_VAL == "6.7")
+                     {
+                         SC_PG := 3'b011;
+                         SC_NG := 3'b011;
+                     }
+                 }
+                 else if ( IOSTANDARD == "SSTL18_II" || IOSTANDARD == "SSTL18D_II"  )
+                 {
+                     if (DRV_CURR_VAL == "13.4")
+                     {
+                         SC_PG := 3'b101;
+                         SC_NG := 3'b101;
+                     }
+                 }
+                 else if ( IOSTANDARD == "SSTL15_I" || IOSTANDARD == "SSTL15D_I")
+                 {
+                     if (DRV_CURR_VAL == "7.5")
+                     {
+                         SC_PG := 3'b001;
+                         SC_NG := 3'b001;
+                     }
+                 }
+                 else if ( IOSTANDARD == "SSTL15_II" || IOSTANDARD == "SSTL15D_II" )
+                 {
+                     if (DRV_CURR_VAL == "8.8")
+                     {
+                         SC_PG := 3'b101;
+                         SC_NG := 3'b101;
+                     }
+                 }
+                 else if ( IOSTANDARD == "HSTL18_I" || IOSTANDARD == "HSTL18D_I" )
+                 {
+                     if (DRV_CURR_VAL == "8")
+                     {
+                         SC_PG := 3'b011;
+                         SC_NG := 3'b011;
+                     }
+                 }
+                 else if ( IOSTANDARD == "HSTL18_II" || IOSTANDARD == "HSTL18D_II" )
+                 {
+                     if (DRV_CURR_VAL == "16")
+                     {
+                         SC_PG := 3'b101;
+                         SC_NG := 3'b101;
+                     }
+                 }
+                 else if ( IOSTANDARD == "HSTL15_I" || IOSTANDARD == "HSTL15D_I" )
+                 {
+                     if (DRV_CURR_VAL == "8")
+                     {
+                         SC_PG := 3'b001;
+                         SC_NG := 3'b001;
+                     }
+                 }            
+            }
+            else
+            {
+                if (PMOS_FINGER == "1") 
+                {
+                   SC_PG := 3'b110;
+                }
+                else if (PMOS_FINGER == "2")
+                {
+                    SC_PG := 3'b000;
+                }    
+                else if (PMOS_FINGER == "3")
+                {
+                    SC_PG := 3'b011;
+                }    
+                else if (PMOS_FINGER == "4")
+                {
+                   SC_PG := 3'b111;
+                }
+                else if (PMOS_FINGER == "5")
+                {
+                    SC_PG := 3'b001;
+                }
+                else if (PMOS_FINGER == "6")
+                {
+                    SC_PG := 3'b101;
+                }    
+                else
+                {
+                    SC_PG := 3'b110;
+                }
+                    
+                    
+                if (NMOS_FINGER == "1")
+                { 
+                   SC_NG := 3'b110;
+                }   
+                else if (NMOS_FINGER == "2")
+                {
+                    SC_NG := 3'b000;
+                }    
+                else if (NMOS_FINGER == "3")
+                {
+                    SC_NG := 3'b011;
+                }    
+                else if (NMOS_FINGER == "4")
+                {
+                    SC_NG := 3'b111;
+                }
+                else if (NMOS_FINGER == "5")
+                {
+                    SC_NG := 3'b001;
+                }
+                else if (NMOS_FINGER == "6")
+                {
+                    SC_NG := 3'b101;
+                }    
+                else
+                {
+                    SC_NG := 3'b110;   
+                }            
+            }
+        }        
+        else //if ( IOSTANDARD == "LVDS" || IOSTANDARD == "RSDS" || IOSTANDARD == "PPDS")
+        {
+            SC_PG := 3'b010;
+            SC_NG := 3'b010;
+        }
+    }
+    else if (IOB_MODE == "IOBUF" || IOB_MODE == "IOBUFDS")
+    {
+        // ibuf
+        if ( IOSTANDARD == "LVCMOS33" || IOSTANDARD == "DEFAULT" || IOSTANDARD == "LVCMOS25" 
+           || IOSTANDARD == "LVCMOS18" || IOSTANDARD == "LVCMOS15" 
+           || IOSTANDARD == "LVCMOS12" || IOSTANDARD == "LVTTL33" 
+           || IOSTANDARD == "PCI33")
+        {
+            if (HYS_DRIVE_MODE == "NOHYS")
+            {
+                SC_ENINS_N := 1'b0  ;
+                SC_RD      := 1'b0  ;
+                SC_INSBT2  := 1'b0  ;
+                SC_INSBT1  := 1'b0  ;
+                SC_H2L     := 1'b0  ;
+            }
+            else if (HYS_DRIVE_MODE == "SMHYS_I")
+            {
+                SC_ENINS_N := 1'b0  ;
+                SC_RD      := 1'b1  ;
+                SC_INSBT2  := 1'b0  ;
+                SC_INSBT1  := 1'b0  ;
+                SC_H2L     := 1'b0  ;    
+            }
+            else if (HYS_DRIVE_MODE == "SMHYS_II")
+            {
+                SC_ENINS_N := 1'b0  ;
+                SC_RD      := 1'b0  ;
+                SC_INSBT2  := 1'b0  ;
+                SC_INSBT1  := 1'b0  ;
+                SC_H2L     := 1'b1  ;    
+            }
+            else if (HYS_DRIVE_MODE == "LGHYS")
+            {
+                SC_ENINS_N := 1'b0  ;
+                SC_RD      := 1'b1  ;
+                SC_INSBT2  := 1'b0  ;
+                SC_INSBT1  := 1'b0  ;
+                SC_H2L     := 1'b1  ;    
+            }
+            else if (!strncmp(HYS_DRIVE_MODE,"OD",2))
+            {
+                SC_ENINS_N := 1'b0  ;
+                SC_RD      := 1'b0  ;
+                SC_INSBT2  := 1'b1  ;
+                SC_INSBT1  := 1'b1  ;
+                SC_H2L     := 1'b0  ;    
+            }
+            else // if (HYS_DRIVE_MODE == "UD")
+            {
+                SC_ENINS_N := 1'b0  ;
+                SC_RD      := 1'b1  ;
+                SC_INSBT2  := 1'b1  ;
+                SC_INSBT1  := 1'b1  ;
+                SC_H2L     := 1'b0  ;    
+            }    
+        }
+        else if ( IOSTANDARD == "SSTL25_I" || IOSTANDARD == "SSTL25_II" 
+                || IOSTANDARD == "SSTL18_I" || IOSTANDARD == "SSTL18_II"
+                || IOSTANDARD == "SSTL15_I" ||  IOSTANDARD == "SSTL15_II"
+                || IOSTANDARD == "HSTL18_I" || IOSTANDARD == "HSTL18_II"
+                || IOSTANDARD == "HSTL15_I" || IOSTANDARD == "HSTL15_II")
+        {
+            if (VREF_MODE == "OUT" )
+            {        
+                if (VREF_OUT_MODE == "VREF1")
+                {
+                    SC_ENINS_N := 1'b1  ;  
+                    SC_RD      := 1'b0  ;  
+                    SC_INSBT2  := 1'b0  ;  
+                    SC_INSBT1  := 1'b0  ;  
+                    SC_H2L     := 1'b1  ; 
+                                    
+                    if (DDR_TERM_MODE == "ON")
+                    {
+                        SC_DYNTERM := 1'b1  ;
+                    }
+                    else //if (DDR_TERM_MODE == "OFF")
+                    {
+                        SC_DYNTERM := 1'b0  ;
+                    }
+                }
+                else if (VREF_OUT_MODE == "VREF2")
+                {
+                    SC_ENINS_N := 1'b1  ;
+                    SC_RD      := 1'b0  ;
+                    SC_INSBT2  := 1'b0  ;
+                    SC_INSBT1  := 1'b1  ;
+                    SC_H2L     := 1'b0  ;
+                    
+                    if (DDR_TERM_MODE == "ON")
+                    {
+                        SC_DYNTERM := 1'b1  ;
+                    }
+                    else //if (DDR_TERM_MODE == "OFF")
+                    {
+                        SC_DYNTERM := 1'b0  ;
+                    }             
+                }
+                else if (VREF_OUT_MODE == "VREF3")
+                {
+                    SC_ENINS_N := 1'b1  ;  
+                    SC_RD      := 1'b0  ;  
+                    SC_INSBT2  := 1'b0  ;  
+                    SC_INSBT1  := 1'b1  ;  
+                    SC_H2L     := 1'b1  ; 
+                    
+                    if (DDR_TERM_MODE == "ON")
+                    {
+                        SC_DYNTERM := 1'b1  ;
+                    }
+                    else //if (DDR_TERM_MODE == "OFF")
+                    {
+                        SC_DYNTERM := 1'b0  ;
+                    } 
+                }
+                else if (VREF_OUT_MODE == "EXT_DRV")
+                {
+                    SC_ENINS_N := 1'b1  ;
+                    SC_RD      := 1'b0  ;
+                    SC_INSBT2  := 1'b1  ;
+                    SC_INSBT1  := 1'b0  ;
+                    SC_H2L     := 1'b1  ;
+                    SC_DYNTERM := 1'b0  ;     
+                }        
+            }
+            else
+            {
+                if (VREF_OUT_MODE == "VREF1")
+                {
+                    SC_ENINS_N := 1'b1  ;  
+                    SC_RD      := 1'b0  ;  
+                    SC_INSBT2  := 1'b0  ;  
+                    SC_INSBT1  := 1'b0  ;  
+                    SC_H2L     := 1'b1  ; 
+                    SC_DYNTERM := 1'b0  ;
+                }
+                else if (VREF_OUT_MODE == "VREF2")
+                {
+                    SC_ENINS_N := 1'b1  ;
+                    SC_RD      := 1'b0  ;
+                    SC_INSBT2  := 1'b0  ;
+                    SC_INSBT1  := 1'b1  ;
+                    SC_H2L     := 1'b0  ;
+                    SC_DYNTERM := 1'b0  ;             
+                }
+                else if (VREF_OUT_MODE == "VREF3")
+                {
+                    SC_ENINS_N := 1'b1  ;  
+                    SC_RD      := 1'b0  ;  
+                    SC_INSBT2  := 1'b0  ;  
+                    SC_INSBT1  := 1'b1  ;  
+                    SC_H2L     := 1'b1  ; 
+                    SC_DYNTERM := 1'b0  ;
+                }
+                else
+                {
+                    SC_ENINS_N := 1'b1  ;  
+                    SC_RD      := 1'b0  ;  
+                    SC_INSBT2  := 1'b0  ;  
+                    SC_INSBT1  := 1'b0  ;  
+                    SC_H2L     := 1'b1  ;
+                    SC_DYNTERM := 1'b0  ;
+                }
+            }
+                        
+        }
+        else  if ( IOSTANDARD == "LVDS" )
+        {
+            if (DIFF_IN_TERM_MODE == "ON")
+            {
+                SC_ENINS_N := 1'b0  ;
+                SC_RD      := 1'b1  ;
+                SC_INSBT2  := 1'b0  ;
+                SC_INSBT1  := 1'b0  ;
+                SC_H2L     := 1'b0  ;
+                SC_DYNTERM := 1'b0  ;      
+            }
+            else // if (DIFF_IN_TERM_MODE == "OFF")
+            {
+                SC_ENINS_N := 1'b0  ;
+                SC_RD      := 1'b0  ;
+                SC_INSBT2  := 1'b0  ;
+                SC_INSBT1  := 1'b0  ;
+                SC_H2L     := 1'b0  ;
+                SC_DYNTERM := 1'b0  ;      
+            }
+        }
+        else if ( IOSTANDARD == "SSTL25D_I" || IOSTANDARD == "SSTL25D_II" 
+               || IOSTANDARD == "SSTL18D_I" || IOSTANDARD == "SSTL18D_II"
+               || IOSTANDARD == "SSTL15D_I" || IOSTANDARD == "SSTL15D_II"
+               || IOSTANDARD == "HSTL18D_I" || IOSTANDARD == "HSTL18D_II"
+               || IOSTANDARD == "HSTL15D_I" || IOSTANDARD == "HSTL15D_II")
+        {
+            if (DDR_TERM_MODE == "ON")
+            {
+                SC_DYNTERM := 1'b1  ;
+            }
+            else //if (DDR_TERM_MODE == "OFF")
+            {
+                SC_DYNTERM := 1'b0  ;
+            }  
+        }
+        
+        // outbuf
+        if ( IOSTANDARD == "LVCMOS33" || IOSTANDARD == "DEFAULT"
+          || IOSTANDARD == "LVCMOS25"
+          || IOSTANDARD == "LVCMOS18"
+          || IOSTANDARD == "LVCMOS15" 
+          || IOSTANDARD == "LVCMOS12" 
+          || IOSTANDARD == "LVTTL33" )
+        {
+            if (DRV_CURR_EN == "TRUE")
+            {
+                if ( IOSTANDARD == "LVCMOS33" || IOSTANDARD == "DEFAULT" )
+                {
+                    if (DRV_CURR_VAL == "4")
+                    {
+                        SC_PG := 3'b110;
+                        SC_NG := 3'b110;
+                    }
+                    else if (DRV_CURR_VAL == "8")
+                    {
+                        SC_PG := 3'b000;
+                        SC_NG := 3'b000;
+                    }
+                    else if (DRV_CURR_VAL == "12")
+                    {
+                        SC_PG := 3'b011;
+                        SC_NG := 3'b011;
+                    }
+                    else if (DRV_CURR_VAL == "16")
+                    {
+                        SC_PG := 3'b111;
+                        SC_NG := 3'b111;
+                    }
+                    else if (DRV_CURR_VAL == "20")
+                    {
+                        SC_PG := 3'b001;
+                        SC_NG := 3'b001;
+                    }
+                    else if (DRV_CURR_VAL == "24")
+                    {
+                        SC_PG := 3'b101;
+                        SC_NG := 3'b101;
+                    }   
+                }                                                             
+                else if ( IOSTANDARD == "LVCMOS25" )
+                {
+                    if (DRV_CURR_VAL == "4")
+                    {
+                        SC_PG := 3'b000;
+                        SC_NG := 3'b000;
+                    }
+                    else if (DRV_CURR_VAL == "8")
+                    {
+                        SC_PG := 3'b011;
+                        SC_NG := 3'b011;
+                    }
+                    else if (DRV_CURR_VAL == "12")
+                    {
+                        SC_PG := 3'b111;
+                        SC_NG := 3'b111;
+                    }
+                    else if (DRV_CURR_VAL == "16")
+                    {
+                        SC_PG := 3'b001;
+                        SC_NG := 3'b001;
+                    }
+                    else if (DRV_CURR_VAL == "20")
+                    {
+                        SC_PG := 3'b101;
+                        SC_NG := 3'b101;
+                    }
+                }
+                else if ( IOSTANDARD == "LVCMOS18" )
+                {
+                    if (DRV_CURR_VAL == "4")
+                    {
+                        SC_PG := 3'b000;
+                        SC_NG := 3'b000;
+                    }
+                    else if (DRV_CURR_VAL == "8")
+                    {
+                        SC_PG := 3'b011;
+                        SC_NG := 3'b011;
+                    }
+                    else if (DRV_CURR_VAL == "12")
+                    {
+                        SC_PG := 3'b001;
+                        SC_NG := 3'b001;
+                    }
+                    else if (DRV_CURR_VAL == "16")
+                    {
+                        SC_PG := 3'b101;
+                        SC_NG := 3'b101;
+                    }
+                }
+                else if ( IOSTANDARD == "LVCMOS15" )
+                {
+                    if (DRV_CURR_VAL == "4")
+                    {
+                        SC_PG := 3'b011;
+                        SC_NG := 3'b011;
+                    }
+                    else if (DRV_CURR_VAL == "8")
+                    {
+                        SC_PG := 3'b001;
+                        SC_NG := 3'b001;
+                    }
+                    else if (DRV_CURR_VAL == "12")
+                    {
+                        SC_PG := 3'b101;
+                        SC_NG := 3'b101;
+                    } 
+                }
+                else if ( IOSTANDARD == "LVCMOS12" )
+                {
+                    if (DRV_CURR_VAL == "2")
+                    {
+                        SC_PG := 3'b000;
+                        SC_NG := 3'b000;
+                    }
+                    else if (DRV_CURR_VAL == "6")
+                    {
+                        SC_PG := 3'b101;
+                        SC_NG := 3'b101;
+                    }
+                }
+                else if ( IOSTANDARD == "LVTTL33" )
+                {
+                    if (DRV_CURR_VAL == "4")
+                    {
+                        SC_PG := 3'b110;
+                        SC_NG := 3'b110;
+                    }
+                    else if (DRV_CURR_VAL == "8")
+                    {
+                        SC_PG := 3'b000;
+                        SC_NG := 3'b000;
+                    }
+                    else if (DRV_CURR_VAL == "12")
+                    {
+                        SC_PG := 3'b011;
+                        SC_NG := 3'b011;
+                    }
+                    else if (DRV_CURR_VAL == "16")
+                    {
+                        SC_PG := 3'b111;
+                        SC_NG := 3'b111;
+                    }
+                    else if (DRV_CURR_VAL == "20")
+                    {
+                        SC_PG := 3'b001;
+                        SC_NG := 3'b001;
+                    }
+                    else if (DRV_CURR_VAL == "24")
+                    {
+                        SC_PG := 3'b101;
+                        SC_NG := 3'b101;
+                    }
+                }            
+            }
+            else
+            {
+                if (PMOS_FINGER == "1") 
+                {
+                   SC_PG := 3'b110;
+                }
+                else if (PMOS_FINGER == "2")
+                {
+                    SC_PG := 3'b000;
+                }    
+                else if (PMOS_FINGER == "3")
+                {
+                    SC_PG := 3'b011;
+                }    
+                else if (PMOS_FINGER == "4")
+                {
+                   SC_PG := 3'b111;
+                }
+                else if (PMOS_FINGER == "5")
+                {
+                    SC_PG := 3'b001;
+                }
+                else if (PMOS_FINGER == "6")
+                {
+                    SC_PG := 3'b101;
+                }    
+                else
+                {
+                    SC_PG := 3'b110;
+                }         
+                    
+                if (NMOS_FINGER == "1")
+                { 
+                   SC_NG := 3'b110;
+                }   
+                else if (NMOS_FINGER == "2")
+                {
+                    SC_NG := 3'b000;
+                }    
+                else if (NMOS_FINGER == "3")
+                {
+                    SC_NG := 3'b011;
+                }    
+                else if (NMOS_FINGER == "4")
+                {
+                    SC_NG := 3'b111;
+                }
+                else if (NMOS_FINGER == "5")
+                {
+                    SC_NG := 3'b001;
+                }
+                else if (NMOS_FINGER == "6")
+                {
+                    SC_NG := 3'b101;
+                }    
+                else
+                {
+                    SC_NG := 3'b110;   
+                }            
+            }        
+        }
+        else if ( IOSTANDARD == "PCI33" )
+        {
+            SC_PG := 3'b110;
+            SC_NG := 3'b110;
+        } 
+        else if ( IOSTANDARD == "SSTL25_I"  || IOSTANDARD == "SSTL25D_I"
+               || IOSTANDARD == "SSTL25_II" || IOSTANDARD == "SSTL25D_II"
+               || IOSTANDARD == "SSTL18_I"  || IOSTANDARD == "SSTL18D_I"
+               || IOSTANDARD == "SSTL18_II" || IOSTANDARD == "SSTL18D_II"
+               || IOSTANDARD == "SSTL15_I"  || IOSTANDARD == "SSTL15D_I"
+               || IOSTANDARD == "SSTL15_II" || IOSTANDARD == "SSTL15D_II"
+               || IOSTANDARD == "HSTL18_I"  || IOSTANDARD == "HSTL18D_I"
+               || IOSTANDARD == "HSTL18_II" || IOSTANDARD == "HSTL18D_II"
+               || IOSTANDARD == "HSTL15_I"  || IOSTANDARD == "HSTL15D_I")
+         { 
+            if (DRV_CURR_EN == "TRUE")
+            {
+                if ( IOSTANDARD == "SSTL25_I" || IOSTANDARD == "SSTL25D_I")
+                {
+                    if (DRV_CURR_VAL == "8.1")
+                    {
+                        SC_PG := 3'b000;
+                        SC_NG := 3'b000;
+                    }
+                }
+                else if ( IOSTANDARD == "SSTL25_II" || IOSTANDARD == "SSTL25D_II")
+                {
+                    if (DRV_CURR_VAL == "16.2")
+                    {
+                        SC_PG := 3'b101;
+                        SC_NG := 3'b101;
+                    } 
+                }
+                else if ( IOSTANDARD == "SSTL18_I" || IOSTANDARD == "SSTL18D_I")
+                {
+                    if (DRV_CURR_VAL == "6.7")
+                    {
+                        SC_PG := 3'b011;
+                        SC_NG := 3'b011;
+                    }
+                }
+                else if ( IOSTANDARD == "SSTL18_II" || IOSTANDARD == "SSTL18D_II")
+                {
+                    if (DRV_CURR_VAL == "13.4")
+                    {
+                        SC_PG := 3'b101;
+                        SC_NG := 3'b101;
+                    } 
+                }
+                else if ( IOSTANDARD == "SSTL15_I" || IOSTANDARD == "SSTL15D_I")
+                {
+                    if (DRV_CURR_VAL == "7.5")
+                    {
+                        SC_PG := 3'b001;
+                        SC_NG := 3'b001;
+                    } 
+                }
+                else if ( IOSTANDARD == "SSTL15_II" || IOSTANDARD == "SSTL15D_II")
+                {
+                    if (DRV_CURR_VAL == "8.8")
+                    {
+                        SC_PG := 3'b101;
+                        SC_NG := 3'b101;
+                    }
+                }
+                else if ( IOSTANDARD == "HSTL18_I" || IOSTANDARD == "HSTL18D_I")
+                {
+                    if (DRV_CURR_VAL == "8")
+                    {
+                        SC_PG := 3'b011;
+                        SC_NG := 3'b011;
+                    }
+                }
+                else if ( IOSTANDARD == "HSTL18_II" || IOSTANDARD == "HSTL18D_II")
+                {
+                    if (DRV_CURR_VAL == "16")
+                    {
+                        SC_PG := 3'b101;
+                        SC_NG := 3'b101;
+                    }
+                }
+                else if ( IOSTANDARD == "HSTL15_I" || IOSTANDARD == "HSTL15D_I")
+                {
+                    if (DRV_CURR_VAL == "8")
+                    {
+                        SC_PG := 3'b001;
+                        SC_NG := 3'b001;
+                    }
+                }
+            
+            }
+            else
+            {
+                if (PMOS_FINGER == "1") 
+                {
+                   SC_PG := 3'b110;
+                }
+                else if (PMOS_FINGER == "2")
+                {
+                    SC_PG := 3'b000;
+                }    
+                else if (PMOS_FINGER == "3")
+                {
+                    SC_PG := 3'b011;
+                }    
+                else if (PMOS_FINGER == "4")
+                {
+                   SC_PG := 3'b111;
+                }
+                else if (PMOS_FINGER == "5")
+                {
+                    SC_PG := 3'b001;
+                }
+                else if (PMOS_FINGER == "6")
+                {
+                    SC_PG := 3'b101;
+                }    
+                else
+                {
+                    SC_PG := 3'b110;
+                }
+                    
+                    
+                if (NMOS_FINGER == "1")
+                { 
+                   SC_NG := 3'b110;
+                }   
+                else if (NMOS_FINGER == "2")
+                {
+                    SC_NG := 3'b000;
+                }    
+                else if (NMOS_FINGER == "3")
+                {
+                    SC_NG := 3'b011;
+                }    
+                else if (NMOS_FINGER == "4")
+                {
+                    SC_NG := 3'b111;
+                }
+                else if (NMOS_FINGER == "5")
+                {
+                    SC_NG := 3'b001;
+                }
+                else if (NMOS_FINGER == "6")
+                {
+                    SC_NG := 3'b101;
+                }    
+                else
+                {
+                    SC_NG := 3'b110;   
+                } 
+            }  
+        }
+        else //if ( IOSTANDARD == "LVDS" || IOSTANDARD == "RSDS" || IOSTANDARD == "PPDS")
+        {
+            SC_PG := 3'b010;
+            SC_NG := 3'b010;
+        }
+    } 
+    
+     
+    if (IOB_MODE == "IOBUF" || IOB_MODE == "IOBUFDS"
+      || IOB_MODE == "IBUF" || IOB_MODE == "IBUFDS")
+    {
+         if ( IOSTANDARD == "SSTL25_I" || IOSTANDARD == "SSTL25_II" 
+           || IOSTANDARD == "SSTL18_I" || IOSTANDARD == "SSTL18_II"
+           || IOSTANDARD == "SSTL15_I" || IOSTANDARD == "SSTL15_II"
+           || IOSTANDARD == "HSTL18_I" || IOSTANDARD == "HSTL18_II"
+           || IOSTANDARD == "HSTL15_I" || IOSTANDARD == "HSTL15_II"  
+           || IOSTANDARD == "HSTL15D"  || IOSTANDARD == "HSTL18D"
+           || IOSTANDARD == "SSTL15D"  || IOSTANDARD == "SSTL18D"
+           || IOSTANDARD == "SSTL25D"  
+           || IOSTANDARD == "HSTL15D_I"    
+           || IOSTANDARD == "HSTL18D_I" || IOSTANDARD == "HSTL18D_II" 
+           || IOSTANDARD == "SSTL15D_I" || IOSTANDARD == "SSTL15D_II" 
+           || IOSTANDARD == "SSTL18D_I" || IOSTANDARD == "SSTL18D_II"
+           || IOSTANDARD == "SSTL25D_I" || IOSTANDARD == "SSTL25D_II")
+         {
+             if (VREF_MODE == "OUT" )
+             {        
+                 if (VREF_OUT_MODE == "EXT_DRV")
+                 {
+                     SC_DIFF_IN_EN := 1'b0;
+         
+                 }    
+                 else //if (VREF_OUT_MODE == "EXT_DRV")
+                 {
+                     SC_DIFF_IN_EN := 1'b1;
+                 }         
+             }
+             else
+             {
+                 SC_DIFF_IN_EN := 1'b1;
+             }
+         }
+         else  if (IOSTANDARD == "LVDS")
+         {
+             SC_DIFF_IN_EN := 1'b1;
+         }
+    }
+    
+    
+    // IO BANK CONFIG PORT SETTING    
+    if (IOB_MODE == "OBUF" || IOB_MODE == "OBUFT" || IOB_MODE == "IOBUF")
+    {  
+        if ( IOSTANDARD == "LVCMOS33" || IOSTANDARD == "DEFAULT"     
+        || IOSTANDARD == "LVPECL33E")
+        {  
+            if (SLEW_MODE == "S")
+            {
+                SC_SLEW_N := 1'b0;
+                SC_3325_N := 1'b0;
+            }
+            else //if (SLEW_MODE == "F")
+            {
+                SC_SLEW_N := 1'b1;
+                SC_3325_N := 1'b1;    
+            }    
+        }                                                             
+        else if ( IOSTANDARD == "LVCMOS25"    
+        || IOSTANDARD == "LVDS25E" 
+        || IOSTANDARD == "RSDS25E" 
+        || IOSTANDARD == "PPDS25E"  )
+        {   
+            if (SLEW_MODE == "S")
+            {
+                SC_SLEW_N := 1'b0;
+                SC_3325_N := 1'b0;
+            }
+            else //if (SLEW_MODE == "F")
+            {
+                SC_SLEW_N := 1'b1;
+                SC_3325_N := 1'b1;    
+            }  
+        }
+        else if ( IOSTANDARD == "LVCMOS18" )
+        {            
+            if (SLEW_MODE == "S")
+            {
+                SC_SLEW_N := 1'b0;
+                SC_3325_N := 1'b0;
+            }
+            else //if (SLEW_MODE == "F")
+            {
+                SC_SLEW_N := 1'b1;
+                SC_3325_N := 1'b0;    
+            } 
+        }
+        else if ( IOSTANDARD == "LVCMOS15" )
+        {
+            if (SLEW_MODE == "S")
+            {
+                SC_SLEW_N := 1'b0;
+                SC_3325_N := 1'b0;
+            }
+            else //if (SLEW_MODE == "F")
+            {
+                SC_SLEW_N := 1'b1;
+                SC_3325_N := 1'b0;    
+            } 
+        }
+        else if ( IOSTANDARD == "LVCMOS12" )
+        {  
+            if (SLEW_MODE == "S")
+            {
+                SC_SLEW_N := 1'b0;
+                SC_3325_N := 1'b0;
+            }
+            else //if (SLEW_MODE == "F")
+            {
+                SC_SLEW_N := 1'b1;
+                SC_3325_N := 1'b0;    
+            }
+        }
+        else if ( IOSTANDARD == "PCI33" )
+        {
+            if (SLEW_MODE == "S")
+            {
+                SC_SLEW_N := 1'b0;
+                SC_3325_N := 1'b0;
+            }
+            else //if (SLEW_MODE == "F")
+            {
+                SC_SLEW_N := 1'b1;
+                SC_3325_N := 1'b1;    
+            }
+        }   
+        else if ( IOSTANDARD == "LVTTL33" )
+        {  
+            if (SLEW_MODE == "S")
+            {
+                SC_SLEW_N := 1'b0;
+                SC_3325_N := 1'b0;
+            }
+            else //if (SLEW_MODE == "F")
+            {
+                SC_SLEW_N := 1'b1;
+                SC_3325_N := 1'b1;    
+            } 
+        }
+        else if ( IOSTANDARD == "SSTL25_I" || IOSTANDARD == "SSTL25D_I")
+        {  
+            if (SLEW_MODE == "S")
+            {
+                SC_SLEW_N := 1'b0;
+                SC_3325_N := 1'b0;
+            }
+            else //if (SLEW_MODE == "F")
+            {
+                SC_SLEW_N := 1'b1;
+                SC_3325_N := 1'b1;    
+            } 
+        }
+        else if ( IOSTANDARD == "SSTL25_II" || IOSTANDARD == "SSTL25D_II" )
+        {
+            if (SLEW_MODE == "S")
+            {
+                SC_SLEW_N := 1'b0;
+                SC_3325_N := 1'b0;
+            }
+            else //if (SLEW_MODE == "F")
+            {
+                SC_SLEW_N := 1'b1;
+                SC_3325_N := 1'b1;    
+            } 
+        }
+        else if ( IOSTANDARD == "SSTL18_I" || IOSTANDARD == "SSTL18D_I"  )
+        {
+            if (SLEW_MODE == "S")
+            {
+                SC_SLEW_N := 1'b0;
+                SC_3325_N := 1'b0;
+            }
+            else //if (SLEW_MODE == "F")
+            {
+                SC_SLEW_N := 1'b1;
+                SC_3325_N := 1'b0;    
+            } 
+        }
+        else if ( IOSTANDARD == "SSTL18_II" || IOSTANDARD == "SSTL18D_II"  )
+        {   
+            if (SLEW_MODE == "S")
+            {
+                SC_SLEW_N := 1'b0;
+                SC_3325_N := 1'b0;
+            }
+            else //if (SLEW_MODE == "F")
+            {
+                SC_SLEW_N := 1'b1;
+                SC_3325_N := 1'b0;    
+            } 
+        }          
+                
+        else if ( IOSTANDARD == "SSTL15_I" || IOSTANDARD == "SSTL15D_I" )
+        {
+            if (SLEW_MODE == "S")
+            {
+                SC_SLEW_N := 1'b0;
+                SC_3325_N := 1'b0;
+            }
+            else //if (SLEW_MODE == "F")
+            {
+                SC_SLEW_N := 1'b1;
+                SC_3325_N := 1'b0;    
+            } 
+        }
+        else if ( IOSTANDARD == "SSTL15_II" || IOSTANDARD == "SSTL15D_II"  )
+        {
+            if (SLEW_MODE == "S")
+            {
+                SC_SLEW_N := 1'b0;
+                SC_3325_N := 1'b0;
+            }
+            else //if (SLEW_MODE == "F")
+            {
+                SC_SLEW_N := 1'b1;
+                SC_3325_N := 1'b0;    
+            } 
+        }
+        else if ( IOSTANDARD == "HSTL18_I" || IOSTANDARD == "HSTL18D_I" )
+        {
+           
+            if (SLEW_MODE == "S")
+            {
+                SC_SLEW_N := 1'b0;
+                SC_3325_N := 1'b0;
+            }
+            else //if (SLEW_MODE == "F")
+            {
+                SC_SLEW_N := 1'b1;
+                SC_3325_N := 1'b0;    
+            } 
+        }
+        else if ( IOSTANDARD == "HSTL18_II" || IOSTANDARD == "HSTL18D_II" )
+        {
+            if (SLEW_MODE == "S")
+            {
+                SC_SLEW_N := 1'b0;
+                SC_3325_N := 1'b0;
+            }
+            else //if (SLEW_MODE == "F")
+            {
+                SC_SLEW_N := 1'b1;
+                SC_3325_N := 1'b0;    
+            } 
+        }
+        else if ( IOSTANDARD == "HSTL15_I" || IOSTANDARD == "HSTL15D_I" )
+        {
+            if (SLEW_MODE == "S")
+            {
+                SC_SLEW_N := 1'b0;
+                SC_3325_N := 1'b0;
+            }
+            else //if (SLEW_MODE == "F")
+            {
+                SC_SLEW_N := 1'b1;
+                SC_3325_N := 1'b0;    
+            } 
+        }
+    }     
+    
+    // IO BANK CONFIG PORT SETTING   
+    if (VCCIO == "2.5")
+    {
+        SC_PU2_B    := 1'b0    ;  
+        SC_PU3_B    := 1'b0    ;  
+        SC_PD2      := 1'b0    ;  
+        SC_PD3      := 1'b0    ; 
+    }    
+    else if (VCCIO == "1.8")
+    {
+        SC_PU2_B    := 1'b1    ;  
+        SC_PU3_B    := 1'b0    ;  
+        SC_PD2      := 1'b1    ;  
+        SC_PD3      := 1'b0    ;     
+    }
+    else if (VCCIO == "1.5")
+    {
+        SC_PU2_B    := 1'b0    ;  
+        SC_PU3_B    := 1'b1    ;  
+        SC_PD2      := 1'b0    ;  
+        SC_PD3      := 1'b1    ;     
+    }
+    else if (VCCIO == "1.2")
+    {
+        SC_PU2_B    := 1'b1    ;  
+        SC_PU3_B    := 1'b1    ;  
+        SC_PD2      := 1'b1    ;  
+        SC_PD3      := 1'b1    ;       
+    }
+    else //if (VCCIO == "3.3") 
+    {
+        SC_PU2_B    := 1'b0    ;
+        SC_PU3_B    := 1'b0    ;
+        SC_PD2      := 1'b0    ;
+        SC_PD3      := 1'b0    ;        
+    }
+    
+    if ( IOSTANDARD == "SSTL25_I"  || IOSTANDARD == "SSTL25_II" 
+      || IOSTANDARD == "SSTL18_I"  || IOSTANDARD == "SSTL18_II"
+      || IOSTANDARD == "SSTL15_I"  || IOSTANDARD == "SSTL15_II"            
+      || IOSTANDARD == "SSTL25D"   || IOSTANDARD == "SSTL18D"    || IOSTANDARD == "SSTL15D"  
+      || IOSTANDARD == "SSTL25D_I" || IOSTANDARD == "SSTL25D_II"
+      || IOSTANDARD == "SSTL18D_I" || IOSTANDARD == "SSTL18D_II" 
+      || IOSTANDARD == "SSTL15D_I" || IOSTANDARD == "SSTL15D_II")
+    {
+        if (VREF_MODE == "IN")
+        {
+            if (VREF_IN_MODE == "0.45")
+            {
+                SC_VRE       := 2'b01   ;
+                SC_VREFPD_N  := 1'b1    ;           
+            }
+            else if (VREF_IN_MODE == "0.5")
+            {
+                SC_VRE       := 2'b10   ; 
+                SC_VREFPD_N  := 1'b1    ; 
+            }
+            else if (VREF_IN_MODE == "0.55")
+            {
+                SC_VRE       := 2'b11   ;   
+                SC_VREFPD_N  := 1'b1    ;  
+            }  
+            else if (VREF_IN_MODE == "OFF")
+            {
+                SC_VRE       := 2'b00   ;
+                SC_VREFPD_N  := 1'b0    ;
+            }
+        }
+        else
+        {
+            SC_VREFPD_N  := 1'b1    ; 
+        }        
+        
+        SC_STDBY_INR             := 1'b0    ;
+    } 
+    else if ( IOSTANDARD == "HSTL18_I"  || IOSTANDARD == "HSTL18_II"
+           || IOSTANDARD == "HSTL15_I"  || IOSTANDARD == "HSTL15_II"            
+           || IOSTANDARD == "HSTL18D"   || IOSTANDARD == "HSTL15D"
+           || IOSTANDARD == "HSTL18D_I" || IOSTANDARD == "HSTL18D_II"
+           || IOSTANDARD == "HSTL15D_I")
+    {
+        if (VREF_MODE == "IN")
+        {
+            if (VREF_IN_MODE == "0.45")
+            {
+                SC_VRE       := 2'b01   ;
+                SC_VREFPD_N  := 1'b1    ; 
+         
+            }
+            else if (VREF_IN_MODE == "0.5")
+            {
+                SC_VRE       := 2'b10   ; 
+                SC_VREFPD_N  := 1'b1    ; 
+            }
+            else if (VREF_IN_MODE == "0.55")
+            {
+                SC_VRE       := 2'b11   ;   
+                SC_VREFPD_N  := 1'b1    ;
+            }  
+            else if (VREF_IN_MODE == "OFF")
+            {
+                SC_VRE       := 2'b00   ;
+                SC_VREFPD_N  := 1'b0    ;
+            }
+        }
+        else
+        {
+            SC_VREFPD_N  := 1'b1    ; 
+        }
+                   
+        SC_STDBY_INR             := 1'b0    ;
+          
+    } 
+
+    if (IOB_MODE == "IBUF" || IOB_MODE == "IOBUF" || IOB_MODE == "IBUFDS" || IOB_MODE == "IOBUFDS")
+    {
+        // ibuf
+        if ( IOSTANDARD == "SSTL25_I" || IOSTANDARD == "SSTL25_II" 
+          || IOSTANDARD == "SSTL18_I" || IOSTANDARD == "SSTL18_II"
+          || IOSTANDARD == "SSTL15_I" ||  IOSTANDARD == "SSTL15_II"                
+          || IOSTANDARD == "SSTL25D"  || IOSTANDARD == "SSTL18D"   || IOSTANDARD == "SSTL15D"
+          || IOSTANDARD == "HSTL18_I" || IOSTANDARD == "HSTL18_II" || IOSTANDARD == "HSTL18D"
+          || IOSTANDARD == "HSTL15_I" ||  IOSTANDARD == "HSTL15_II"|| IOSTANDARD == "HSTL15D" 
+          || IOSTANDARD == "LVDS")
+        {
+            SC_INR_ON                := 1'b1    ;    
+        }  
+        else 
+        {
+            SC_INR_ON                := 1'b0    ; 
+        }  
+    } 
+         
+    if ( IOB_MODE == "OBUF"  || IOB_MODE == "IOBUF" 
+      || IOB_MODE == "OBUFT" || IOB_MODE == "OBUFDS"
+      || IOB_MODE == "IOBUFDS") 
+    {
+        // obuf
+        if (IOSTANDARD == "SSTL25_I"  || IOSTANDARD == "SSTL25_II"
+         || IOSTANDARD == "SSTL25D_I" || IOSTANDARD == "SSTL25D_II")
+        {
+            SC_HSPD_CTRL             := 2'b00   ;
+        }
+        else if (IOSTANDARD == "SSTL18_I" || IOSTANDARD == "SSTL18_II"
+              || IOSTANDARD == "SSTL18D_I"|| IOSTANDARD == "SSTL18D_II"
+              || IOSTANDARD == "HSTL18_I" || IOSTANDARD == "HSTL18_II"
+              || IOSTANDARD == "HSTL18D"  || IOSTANDARD == "HSTL18D_I" || IOSTANDARD == "HSTL18D_II")
+        {
+            SC_HSPD_CTRL             := 2'b10   ;    
+        }
+        else if (IOSTANDARD == "SSTL15_I"  || IOSTANDARD == "SSTL15_II"
+              || IOSTANDARD == "SSTL15D_I" || IOSTANDARD == "SSTL15D_II" 
+              || IOSTANDARD == "HSTL15_I"  || IOSTANDARD == "HSTL15_II"            
+              || IOSTANDARD == "HSTL15D"   || IOSTANDARD == "HSTL15D_I")
+        {
+            SC_HSPD_CTRL             := 2'b01   ;    
+        }
+        else
+        {
+            SC_HSPD_CTRL             := 2'b00   ;    
+        }
+    }
+}; // end of configuration cfg of IOB_LA

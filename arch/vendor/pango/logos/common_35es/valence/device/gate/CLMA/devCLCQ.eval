@@ -1,0 +1,230 @@
+*****************************************************************
+
+  Device    [devCLCQ]
+
+  Author    [liujiao]
+
+  Abstract  [THE DEVICE CAN BE USED FOR ADDIDTION+FF WITH C PART OF
+            CLMA.]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devCLCQ : device devC
+{
+    parameter
+    (
+        config string CP_GRS_EN   = "TRUE",
+        config bit CP_INITC[31:0] = 32'h0000_0000,
+        config string CP_MODEC    = "LUT5",                   // "LUT5" "ROM" "WMUX" "ARITH" "LATCH"        
+                
+        config string CP_Y2MUX_SEL  = "FX",      //"FX":F2 "CYX":CYC "MF":QP1
+        config string CP_Q2MUX_SEL := "YX",           //"YX":Y2 "MX":M1 "SRQ":Q1  
+        config string CP_CEMUX_SEL = "LOCAL",           //"LOCAL":CE; "CHAIN":CEIN 
+        config string CP_RSMUX_SEL = "LOCAL",           //"LOCAL":RS; "CHAIN":RSIN
+        config string CP_CLK_POL   = "FALSE",             //1'b0: "CLK"; 1'b1: "Invert CLK" - CLMA Global
+        config string CP_LCE_POL   = "FALSE",            //1'b0: "CE"; 1'b1: "Invert CE" - CLMA Global
+        config string CP_LRS_POL   = "FALSE",            //1'b0: "RS"; 1'b1: "Invert RS" - CLMA Global
+        config string CP_LCE_EN  = "FALSE",             //1'b0: "Disable"; 1'b1: "Enable"
+        config string CP_LRS_EN  = "FALSE",             //1'b0: "Disable"; 1'b1: "Enable"
+        config string CP_RS_MODE = "ASYNC",          //"SYNC" "ASYNC" - CLMA Global
+        config string CP_FF2_RS  = "SET"             //"RESET" "SET" 
+    );
+    
+    port
+    (
+               input    C0, C1, C2, C3, C4, CD,
+               output   Y2, Q2,  
+               input    RS, CE, CLK,
+        logic  input    FGC_CIN,
+        logic  output   FGC_COUT,
+               input    RSCI,
+               output   RSCO,
+               input    CECI,
+               output   CECO
+    );
+}; // end of device devCLCQ
+
+
+/*******************************************************************************
+
+  Device    [devCLCQ]
+
+  Author    [liujiao]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devCLCQ
+{
+    // Wires for input ports
+    wire ntC0, ntC1, ntC2, ntC3, ntC4, ntCD; 
+    wire ntRS, ntCE, ntCLK;
+
+    wire ntRSCI;
+    wire ntCECI;
+
+    // Wires connecting to output ports
+    wire ntY2,ntQ2;
+    wire ntRSCO;
+    wire ntCECO;
+
+    // Internal wires
+    wire ntL5C, ntCYC;
+    
+    wire ntCYB;
+    wire ntQD2;
+    wire ntCLKR;
+    wire ntRS_P;
+    wire ntCE_P;
+    //
+    // Connection to ports
+    //
+    ntC0      <= C0;
+    ntC1      <= C1;
+    ntC2      <= C2;
+    ntC3      <= C3;
+    ntC4      <= C4;
+    ntCD      <= CD;
+
+    ntRS      <= RS;
+    ntCE      <= CE;
+    ntCLK     <= CLK;
+    ntCYB     <= FGC_CIN;
+
+    ntRSCI    <= RSCI;
+    ntCECI    <= CECI;
+
+    Y2        <= ntY2;
+    Q2        <= ntQ2;
+      
+    FGC_COUT  <= ntCYC;
+
+    RSCO     <= ntRSCO;
+    CECO     <= ntCECO;
+    
+    //
+    // Instances. FGA section
+    //
+
+    device FY FYC 
+        parameter map
+        (
+            CP_INIT => CP_INITC,
+            CP_MODE => CP_MODEC
+        )
+        port map 
+        (
+            A0  => ntC0,
+            A1  => ntC1,
+            A2  => ntC2,
+            A3  => ntC3,
+            A4  => ntC4,
+            AD  => ntCD,
+            CIN => ntCYB,
+            COUT => ntCYC,
+            L5   => ntL5C 
+        );   
+
+    device YMUX Y2MUX
+        parameter map
+        (
+            CP_OUT_SEL  => CP_Y2MUX_SEL
+        )    
+        port map
+        (
+            FX   => ntL5C,
+            CYX  => ntCYC,
+            Y    => ntY2
+        );
+    
+    device QMUX Q2MUX
+        parameter map
+        (
+            CP_OUT_SEL  => CP_Q2MUX_SEL
+        )      
+        port map
+        (
+            YX  => ntY2,
+            Q   => ntQD2
+        );
+    
+    device FF FF2
+        parameter map
+        (
+            CP_GRS_EN  => CP_GRS_EN,
+            CP_RS_MODE => CP_RS_MODE,
+            CP_FF_RS   => CP_FF2_RS
+        )
+        port map
+        (
+            D  => ntQD2,
+            RS => ntRSCO,
+            CE => ntCECO,
+            CLK => ntCLKR,
+            Q  => ntQ2
+        );   
+
+    device MUX2_P RSMUX
+        parameter map
+        (
+            SEL  => CP_RSMUX_SEL
+        )     
+        port map
+        (
+            DI1  => ntRSCI,
+            DI0  => ntRS_P,
+            DOUT   => ntRSCO
+        );
+
+    device MUX2_P CEMUX
+        parameter map
+        (
+            SEL  => CP_CEMUX_SEL
+        )     
+        port map
+        (
+            DI1  => ntCECI,
+            DI0  => ntCE_P,
+            DOUT   => ntCECO
+        );
+
+    device LRS_POLMUX LRSPOLMUX
+        parameter map
+        (
+            CP_LRS_EN   => CP_LRS_EN,
+            CP_LRS_POL  => CP_LRS_POL
+        )     
+        port map
+        (
+            IN  => ntRS,
+            Y   => ntRS_P
+        );
+
+    device LCE_POLMUX LCEPOLMUX
+        parameter map
+        (
+            CP_LCE_EN   => CP_LCE_EN,
+            CP_LCE_POL  => CP_LCE_POL
+        )     
+        port map
+        (
+            IN  => ntCE,
+            Y   => ntCE_P
+        );
+
+    device CLK_POLMUX CLKPOLMUX
+        parameter map
+        (
+            CP_CLK_POL  => CP_CLK_POL
+        )      
+        port map
+        (
+            IN  => ntCLK,
+            Y   => ntCLKR
+        );
+}; // end of structure netlist of devCLCQ
+

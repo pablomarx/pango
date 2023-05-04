@@ -1,0 +1,68 @@
+*******************************************************************
+
+  Operator    [gopIOBUFIOL]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+gate
+operator gopIOBUFIOL
+{
+    parameter
+    (
+        string MIPI_MODE = "FALSE",
+        string FROM_DQSL = "FALSE"
+    )
+    port
+    (
+        input   MIPI_IN,
+        input   IN,
+        input   TS,
+        output  OUT,
+        output  MIPI_OUT,
+
+        // from to IOB
+        output  T,
+        input   I,
+        output  O,
+        output  INCK,
+        output  DO_OUT,
+        output  TO_OUT,
+        input   MI,
+        output  MO
+    );
+};
+
+implementation impl of gopIOBUFIOL
+{
+    device devIOBUFIOL gate_iobufiol
+        parameter map
+        (
+            CP_DOMODE     => FROM_DQSL == "FALSE" ? "DD" : "OUT_EXT",
+            CP_MIPI_EN    => MIPI_MODE == "TRUE" ? "ENABLE" : "DISABLE"
+        )
+        port map 
+        (
+           TX_DATA[7]   =>  (FROM_DQSL == "FALSE") ? IN : 1'bx, 
+           OUT_EXT      =>  (FROM_DQSL == "TRUE") ? IN : 1'bx,
+           
+           TS_CTRL[0]   =>  TS,                
+           RX_DATA_DD   =>  OUT,
+           MIPI_OUT     =>  MIPI_OUT,
+
+           TO           =>  T,
+           DI           =>  I,
+           DO           =>  O,
+           INCK         =>  INCK,
+
+           DO_OUT       =>  DO_OUT,
+           TO_OUT       =>  TO_OUT,
+            
+           MIPI_SW_DYN_O =>  MO,
+           MIPI_SW_DYN_I =>  MI,
+           
+           MIPI_IN       =>  MIPI_IN
+        );
+};

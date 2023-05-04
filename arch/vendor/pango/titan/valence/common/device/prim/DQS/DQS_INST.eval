@@ -1,0 +1,161 @@
+*****************************************************************
+
+  Device    [DQS_INST]
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+
+prim
+device DQS_INST
+{    parameter
+    (
+        // These are the config parameters that are used to enable formal flow. They
+        // should be present in the declaration only if a MACRO is set. In normal
+        // implementation flow they should be turned off.
+        config string APP_MODE               = "DDC",          // "DDC" ; "DCC" 
+        config string GRS_EN                 = "TRUE",          // "TRUE" ; "FALSE" 
+        config string CLK_GATE_EN            = "TRUE",          // "TRUE" ; "FALSE" 
+        config bit    LRS_POL                = 1'b1,            // 1'b0: noinv; 1'b1: inv
+        config string READ_EN                = "TRUE",          // "TRUE" ; "FALSE"
+        config string DQS_MODE               = "FULL_RATE",     // "FULL_RATE" "HALF_RATE" "QUAD_RATE"                                                                
+        config string CDR_EN                 = "TRUE",          // "TRUE" ; "FALSE"
+        //config string CLK90_SEL            = "IOCLK0",        // "IOCLK0" "IOCLK1" "IOCLK2" "IOCLK3"
+        //config string CLK_SEL              = "IOCLK0",        // "IOCLK0" "IOCLK1" "IOCLK2" "IOCLK3"
+        config string WL_CTRL_EN             = "FALSE",         // "TRUE" ; "FALSE"
+        config bit    CLK_DELAY_STEP[8:0]    = 9'b0_0000_0000,  // 
+        config string CLK_EN                 = "TRUE",          // "TRUE" ; "FALSE"
+        config string CLKDIV_FACTOR          = "2",             // "2", "3.5", "4", "5" 
+        config string DQS_DEL_EN             = "TRUE",          // "TRUE" ; "FALSE" 
+        config string RDEL_CTRL_EN           = "TRUE",          // "TRUE" ; "FALSE" 
+        config bit    DQS_DELAY_STEP[8:0]    = 9'b0_0000_0000,  // "DEFAULT"
+        config string DQS_DLL_IN_EN          = "TRUE",          // "TRUE" ; "FALSE"  
+        config bit    MARGIN                 = 1'b0,            
+        config string FIFO_EN                = "TRUE",          // "TRUE" ; "FALSE"   
+        config string FIFO_MODE              = "MDDR",          // "MDDR" : DDR MEM; "GDDR" : GENERIC DDR
+        config bit    FIF0_ADDR_INIT[2:0]    = 3'b000,               
+        config bit    FIFOMODE_SEL           = 1'b0,
+        config string DQSI_SEL               = "DQSI0"//,         // "DQSI0" "DQSI1"
+        //config int    CLK_DELAY_STEP_INT     = 0,
+        //config int    DQS_DELAY_STEP_INT     = 0
+    );
+    port
+    (
+        input  CE_DQS,
+        input  DQSI[1:0],
+        input  WCLK_TREE,
+        input  WCLK_DEL_TREE,
+        input  DQSI_DEL_TREE,
+
+        input  DCC_CLK_CTRL[2:0],
+        input  SAMPLE_CLK_SLIP,
+        input  IOCLK_SEL[3:0],
+        input  WL_STEP[7:0],
+        input  CLK1_STEP[7:0],
+        input  CLKGATE,
+        input  WL_CTRL[2:0],
+        output WL_OV,
+
+        input  DQS_GATE_CTRL[3:0],
+        input  READ_CLK_CTRL[2:0],
+        output DQS_GATE_TRAINING_STATUS,
+        output READ_VALID,
+        input  RDEL_CTRL[2:0],
+        output RDEL_OV,
+
+        input   RST,
+        input   SYSCLK,
+        input   DLL_CODE[7:0],
+                
+        input   IOCLK[1:0] ,
+        output  SAMPLE_CLK,
+        output  PROBE_CLK,
+        output  SAMPLE_CLK_DIV,
+        output  WCLK,
+        output  WCLK_DEL,
+        output  DQSI_DEL,
+        output  IFIFO_RADDR[2:0],
+        output  IFIFO_WADDR[2:0]
+    );
+
+}// end of device DQS_INST
+
+
+timing tnl of DQS_INST
+{
+    if (APP_MODE == "DCC" )
+    {
+        operator V_DCC DCC
+            parameter map
+            (
+                GRS_EN               =>  GRS_EN,
+                SAMPLE_CLKDIV_FACTOR =>  CLKDIV_FACTOR
+            )
+            port map
+            (
+                CLKOUT_CTRL      => DCC_CLK_CTRL,
+                CLKIN0           => IOCLK[0],
+                CLKIN1           => IOCLK[1],
+                RST              => RST,
+                CLK0_SEL         => IOCLK_SEL[1:0],
+                CLK1_SEL         => IOCLK_SEL[3:2],
+                DELAY_STEP0      => WL_STEP,
+                DELAY_STEP1      => CLK1_STEP,
+                SAMPLE_CLKOUT    => SAMPLE_CLK,
+                PROBE_CLKOUT     => PROBE_CLK,
+                SAMPLE_CLKDIVOUT => SAMPLE_CLK_DIV
+            );
+    }
+    else
+    {
+        operator V_DDC DDC
+            parameter map
+            (
+                GRS_EN               => GRS_EN,
+                CLKA_GATE_EN         => CLK_GATE_EN,
+                DDC_MODE             => DQS_MODE,
+                W_MOVE_EN            => WL_CTRL_EN,
+                WCLK_DELAY_OFFSET    => CLK_DELAY_STEP,
+                R_MOVE_EN            => RDEL_CTRL_EN,
+                DQSI_DELAY_OFFSET    => DQS_DELAY_STEP,
+                R_DELAY_STEP_EN      => DQS_DLL_IN_EN,
+                R_EXTEND             => (MARGIN == 1'b1) ? "TRUE" : "FALSE",
+                IFIFO_GENERIC        => (FIFO_MODE == "GDDR") ? "TRUE" : "FALSE",
+                RADDR_INIT           =>  FIF0_ADDR_INIT
+            )
+            port map
+            (
+                RST           => RST,
+                CLKB          => SYSCLK,
+                CLKA          => IOCLK[0],            
+                CLKA_GATE     => CLKGATE,
+                DELAY_STEP1   => DLL_CODE,    
+                DELAY_STEP0   => WL_STEP,
+                W_LOAD_N      => WL_CTRL[0],
+                W_MOVE        => WL_CTRL[1],
+                W_DIRECTION   => WL_CTRL[2],
+                WDELAY_OB     => WL_OV,
+                WCLK          => WCLK,
+                WCLK_DELAY    => WCLK_DEL,          
+                DQS_GATE_CTRL => DQS_GATE_CTRL,
+                READ_CLK_CTRL => READ_CLK_CTRL,
+                DQSI          => (DQSI_SEL == "DQSI0") ? DQSI[0] : DQSI[1] ,
+                R_LOAD_N      => RDEL_CTRL[0],    
+                R_MOVE        => RDEL_CTRL[1],    
+                R_DIRECTION   => RDEL_CTRL[2],    
+                RDELAY_OB     => RDEL_OV,           
+                DQSI_DELAY    => DQSI_DEL,          
+                DGTS          => DQS_GATE_TRAINING_STATUS,              
+                READ_VALID    => READ_VALID,        
+                IFIFO_WADDR   => IFIFO_WADDR,  
+                IFIFO_RADDR   => IFIFO_RADDR   
+            );
+
+    }
+
+
+};

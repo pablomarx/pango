@@ -1,0 +1,112 @@
+*************************************************************
+
+Copyright (c) 2014 by PANGO MICROSYSTEMS, INC
+ALL RIGHTS RESERVED.
+
+THE SOURCE CODE CONTAINED HEREIN IS PROPRIETARY TO PANGO MICROSYSTEMS, INC.
+IT SHALL NOT BE REPRODUCED OR DISCLOSED IN WHOLE OR IN PART OR USED BY
+PARTIES WITHOUT WRITTEN AUTHORIZATION FROM THE OWNER.
+
+  Operator  [GTP_PREADD_FIR_B]
+
+  Author    [Peifu Shen]
+
+  Abstract  []
+
+  Revision History:
+
+***************************************************************************/
+
+implementation impl of GTP_PREADD_FIR_B
+{
+    bit SC_PSE_H0[25:0] = 26'b00000000000000000000000000;
+    bit SC_PSE_Y0[24:0] = 25'b0000000000000000000000000;
+    bit SC_PSE_Z0[24:0] = 25'b0000000000000000000000000;
+    operator gopAPM64 firb
+    parameter map
+    (
+        OPCD_BYP => (INREG_EN == "FALSE") ? 9'h1FF : 9'b1_0001_0100,
+        IREG_BYP => (INREG_EN == "FALSE") ? 1'b1 : 1'b0,
+        IREG_BYP_ZA => (INREG_Z0_EN == "FALSE") ? 1'b1 : 1'b0,
+        IREG_BYP_ZB => (INREG_Z0_EN == "FALSE") ? 1'b1 : 1'b0,
+        AREG_BYP => 1'b1,
+        MREG_BYP => 1'b1,
+        OREG_BYP => (OUTREG_EN == "FALSE") ? 1'b1 : 1'b0,
+        IREG_SYNC => (SYNC_RST == "FALSE") ? 1'b0 : 1'b1,
+        AREG_SYNC => 1'b0,
+        MREG_SYNC => 1'b0,
+        OREG_SYNC => (SYNC_RST == "FALSE") ? 1'b0 : 1'b1,
+        OP_PRAD_A => 27,
+        OP_PRAD_B => 27,
+        OP_MULT_A => 27,
+        OP_MULT_B => 27,
+        ALU_MODE => "FIRB",
+        OR2CASCADE_EN => 1'b1,
+        OPCD => {5'b0100_0, (OPCD_CPI_SEL ? 2'b01 : 2'b10), 4'b0001},
+        OPCD_DYN_SEL => {5'h0, {2{OPCD_DYN_SEL}}, 4'h0},
+        OPCD_DYN_POL => {5'h0, OPCD_DYN_SEL ? 2'b01 : 2'b00, 4'h0},
+        SOURCEB => {INPUT_OP[0], INPUT_OP[0]},
+        IRDSEL_B => {DYN_OP_SEL[0], DYN_OP_SEL[0]},
+        IRB_SHFEN => 2'b11,
+        IRSHF_B_SEL => 1'b1,
+        SOURCEC => {INPUT_OP[2], INPUT_OP[2]},
+        IRDSEL_C => {DYN_OP_SEL[2], DYN_OP_SEL[2]},
+        IRC_SHFEN => 2'b11,
+        IRSHF_C_SEL => 1'b1,
+        CYSIGNED_SEL => 1'b1,
+        CZSIGNED_SEL => 1'b1,
+        PSE_A1 => {8'hFF, SC_PSE_H0[25], SC_PSE_H0[25:18]},
+        PSE_B1 => {9'h1FF,SC_PSE_Y0[24], SC_PSE_Y0[24:18]},
+        PSE_C1 => {9'h1FF,SC_PSE_Z0[24], SC_PSE_Z0[24:18]},
+        GRS_DISABLED => (GRS_EN == "FALSE") ? 1'b1 : 1'b0,
+        PRAD_FIR_INPUT_OP => {4'b0000, INPUT_OP}
+    )
+    port map
+    (
+        CLK => CLK,
+        CE  => CE,
+        RST => RST,
+        OP_IR_0 => S0,
+        OP_IR_1 => DYN_OP[0],
+        OP_IR_3 => S0,
+        OP_IR_7 => DYN_OP[0],
+        OP_IR_4 => 1'b1,
+        OP_IR_5 => S1,
+        OP_IR_6 => DYN_OP[1],
+        OP_PRAD => 2'b00,
+        OP_POST_4 => OPCD_CPI_DYN,
+        OP_POST_5 => OPCD_CPI_DYN,
+        DXA      => H0[17:0],
+        DYA      => Y0[17:0],
+        DZA[17:0] => Z0[17:0],
+        DXA_SIGNED => 1'b0,
+        DYA_SIGNED => 1'b0,
+        DZA_SIGNED => 1'b0,
+        DXB[17]   => H0[26],
+        DXB[16:9] => 8'h00,
+        DXB[8:0]  => H0[26:18],
+        DYB[17]   => Y0[25],
+        DYB[16:8] => 9'h00,
+        DYB[7:0]  => Y0[25:18],
+        DZB[17]   => Z0[25],
+        DZB[16:8] => 9'h00,
+        DZB[7:0]  => Z0[25:18],
+        DXB_SIGNED => H0_SIGNED,
+        DYB_SIGNED => Y0_SIGNED,
+        DZB_SIGNED => Z0_SIGNED,
+        CYI[25:0] => CYI,
+        CYO[25:0] => CYO,
+        CZI[25:0] => CZI,
+        CZO[25:0] => CZO,
+        CYI_SIGNED => CYI_SIGNED,
+        CZI_SIGNED => CZI_SIGNED,
+        CYO_SIGNED => CYO_SIGNED,
+        CZO_SIGNED => CZO_SIGNED,
+        CPI[63:0] => CPI,
+        CPO[63:0] => CPO,
+        CPI_SIGNED => CPI_SIGNED,
+        CPO_SIGNED => CPO_SIGNED,
+        DP => P
+    );
+};
+

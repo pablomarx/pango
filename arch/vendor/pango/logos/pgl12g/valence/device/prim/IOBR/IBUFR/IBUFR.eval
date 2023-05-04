@@ -1,0 +1,100 @@
+*****************************************************************
+
+  Device    [IBUFR]
+
+  Author    [yqtan]
+
+  Abstract  [The Prim Device For IBUFR]
+
+  Revision History:
+
+********************************************************************************/
+prim
+device IBUFR
+{
+    parameter   
+   (
+       config string CP_IOB_MODE = "IBUFHR",  //"IBUFHR" "IBUFHR_DS" "IOBUFHR" "IVREFHR" "UNUSED"
+       config string CP_IO_STANDARD = "SLVS"
+    );
+    port
+    (
+       input  IN, 
+       input  DIFFI_IN,
+       input  MIPI_SW_DYN,
+       output OUT 
+    );
+
+}// end of device IBUFR
+
+/**Device***********************************************************************
+
+  Device    [IBUFR]
+
+  Abstract  [This specified how to propagate the input signal to the outputs based on
+             configuration]
+
+  Revision History:
+
+********************************************************************************/
+propagation pop of IBUFR
+{
+    if (CP_IO_STANDARD == "SLVS")
+    {
+        if (CP_IOB_MODE == "IBUFHR" || CP_IOB_MODE == "IOBUFHR" || CP_IOB_MODE == "IBUFHR_DS")
+        {
+            propagate ( IN |-> OUT );
+            propagate ( DIFFI_IN |-> OUT );
+            propagate ( MIPI_SW_DYN |-> OUT );
+        }
+    }
+    else if (CP_IOB_MODE == "IBUFHR" || CP_IOB_MODE == "IOBUFHR")
+    {
+        propagate ( IN --> OUT );
+    }
+    //else if (CP_IOB_MODE == "IBUFHR_DS" || CP_IOB_MODE == "IOBUFHR_DS")
+    //{
+    //    // DIFFI_OUT  <=  PAD;
+    //}
+}; // end of propagation for IBUFR
+
+timing tnl of IBUFR
+{
+    if (CP_IO_STANDARD == "SLVS")
+    {
+        operator V_INBUF_MIPI ibfmipi
+            parameter map
+            (
+                IOSTANDARD => CP_IO_STANDARD,
+                MIPI_MODE  => (CP_IOB_MODE == "IBUFHR_DS" || CP_IOB_MODE == "IOBUFHR_DS") ? "MASTER" : "SLAVE"
+            )
+            port map
+            (
+                I  => IN,
+                IB => DIFFI_IN,
+                M  => MIPI_SW_DYN,
+                O  => OUT
+            );
+    }
+    else if (CP_IOB_MODE == "IBUFHR" || CP_IOB_MODE == "IOBUFHR")
+    {
+        operator V_IBUF ibuf
+            parameter map
+            (
+                IOSTANDARD => CP_IO_STANDARD
+            )
+            port map
+            (
+                I => IN,
+                O => OUT
+            );
+    }
+    else //if (CP_IOB_MODE == "IVREFHR")
+    {
+        operator V_ONE ibuf_one
+        port map
+        (
+            Z => OUT
+        );
+    }
+};

@@ -1,0 +1,81 @@
+*****************************************************************
+
+  Device    [EFUSECODE]
+
+  Author    [clwang]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+grid
+device EFUSECODE/* pragma PAP_LIB_NO_PRUNE */
+{
+    parameter
+    (
+        config bit USERCODE[31:0] = 32'h0000_0000
+    );
+    port
+    (
+        config input SC_USERCODE[31:0] = 32'h0000_0000 
+        /*pragma PAP_CFG_BIT_NAME = "SC_USERCODE<31>, SC_USERCODE<30>, SC_USERCODE<29>, SC_USERCODE<28>, SC_USERCODE<27>, SC_USERCODE<26>, SC_USERCODE<25>, SC_USERCODE<24>, SC_USERCODE<23>, SC_USERCODE<22>, SC_USERCODE<21>, SC_USERCODE<20>, SC_USERCODE<19>, SC_USERCODE<18>, SC_USERCODE<17>, SC_USERCODE<16>, SC_USERCODE<15>, SC_USERCODE<14>, SC_USERCODE<13>, SC_USERCODE<12>, SC_USERCODE<11>, SC_USERCODE<10>, SC_USERCODE<9>, SC_USERCODE<8>, SC_USERCODE<7>, SC_USERCODE<6>, SC_USERCODE<5>, SC_USERCODE<4>, SC_USERCODE<3>, SC_USERCODE<2>, SC_USERCODE<1>, SC_USERCODE<0>"*/,
+        output EFUSE[31:0]
+    );
+} // end of device EFUSECODE
+
+/*******************************************************************************
+
+  Device    [EFUSECODE]
+
+  Author    [clwang]
+
+  Abstract  [The structure netlist of EFUSECODE is described in the similar fashion 
+             as in HDL. In unit instantiation statement, the formal pin may be 
+             connected to net which is declared explicitly. 
+             
+             In Valence, the connection can also be made from formal pin to other 
+             pin or port, in which case Valence compiler shall create the net to 
+             fulfil the connection. The built-in naming convention is kicked in 
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+
+structure netlist of EFUSECODE
+{
+    device EFUSECODE_INST EFUSECODE_INST
+        parameter map
+        (
+            USERCODE => USERCODE
+        )
+        port map
+        (
+            EFUSE  => EFUSE
+        );
+
+}; // end of structure netlist of EFUSECODE
+
+
+configuration cfg of EFUSECODE             
+{                                    
+    SC_USERCODE     :=  USERCODE    ;                                     
+}; // end of configuration cfg of EFUSECODE
+
+timing tnl of EFUSECODE
+{
+    operator V_EFUSECODE V_EFUSECODE
+        parameter map
+        (
+            SIM_EFUSE_VALUE => USERCODE
+        )
+        port map
+        (
+            EFUSE_CODE => EFUSE   
+        );
+};
+

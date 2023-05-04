@@ -1,0 +1,155 @@
+tarted
+grid
+device MRCKB
+{
+    // grid_property_def_start
+    // grid_property_def_end
+
+    parameter
+    (
+        config string CP_SYN = "ENABLE",
+        config string CP_OUT_SEL = "POSEDGE",
+        config string CP_MODE_SEL = "ENABLE",
+        config string CP_CE_INV = "FALSE"
+    );
+    port
+    (
+// configuration_body_def_on
+
+
+    config input SC_SYN = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_SYN" */,
+
+    config input SC_OUT_SEL = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_OUT_SEL" */,
+
+    config input SC_MODE_SEL = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_MODE_SEL" */,
+
+    config input SC_CE_INV = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_CE_INV" */,
+
+// configuration_body_def_end
+
+        input CLKIN_P = 1'b1,
+        input CE = 1'b1,
+        output CLKOUT_U_P
+    );
+};
+//grid device end
+
+//grid device structure netlist started
+structure netlist of MRCKB
+{
+};
+//grid device structure netlist end
+//grid device configure body started
+
+configuration cfg of MRCKB
+{
+
+//initial config body0 begin
+    if(CP_SYN == "DISABLE")
+    {
+        SC_SYN  :=  1'b0;
+    }
+    else if(CP_SYN == "ENABLE")
+    {
+        SC_SYN  :=  1'b1;
+    }
+    else
+    {
+        SC_SYN  :=  1'bx;
+        error("illegal setting for CP_SYN  :=  %s",CP_SYN);
+    }
+
+//initial config body0 end
+
+
+//initial config body1 begin
+    if(CP_OUT_SEL == "NEGEDGE")
+    {
+        SC_OUT_SEL  :=  1'b0;
+    }
+    else if(CP_OUT_SEL == "POSEDGE")
+    {
+        SC_OUT_SEL  :=  1'b1;
+    }
+    else
+    {
+        SC_OUT_SEL  :=  1'bx;
+        error("illegal setting for CP_OUT_SEL  :=  %s",CP_OUT_SEL);
+    }
+
+//initial config body1 end
+
+
+//initial config body2 begin
+    if(CP_MODE_SEL == "DISABLE")
+    {
+        SC_MODE_SEL  :=  1'b0;
+    }
+    else if(CP_MODE_SEL == "ENABLE")
+    {
+        SC_MODE_SEL  :=  1'b1;
+    }
+    else
+    {
+        SC_MODE_SEL  :=  1'bx;
+        error("illegal setting for CP_MODE_SEL  :=  %s",CP_MODE_SEL);
+    }
+
+//initial config body2 end
+
+
+//initial config body3 begin
+    if(CP_CE_INV == "FALSE")
+    {
+        SC_CE_INV  :=  1'b0;
+    }
+    else if(CP_CE_INV == "TRUE")
+    {
+        SC_CE_INV  :=  1'b1;
+    }
+    else
+    {
+        SC_CE_INV  :=  1'bx;
+        error("illegal setting for CP_CE_INV  :=  %s",CP_CE_INV);
+    }
+
+//initial config body3 end
+
+};
+
+//grid device configure body end
+
+
+timing mrckb_tnl of MRCKB
+{
+    if (CP_MODE_SEL == "DISABLE")
+    {
+        operator V_BUF MCKB
+        port map
+        (
+            I => CLKIN_P,
+            Z => CLKOUT_U_P
+        );
+    }
+    else
+    {
+        operator V_CLKBUFMXCE MCKBCE
+        parameter map
+        (
+            CE_TYPE => (CP_SYN == "ENABLE") ? "SYNC" : "ASYNC",
+            TRIGGER_MODE => CP_OUT_SEL,
+            CE_INV  => CP_CE_INV
+        )
+        port map
+        (
+            CLKIN  => CLKIN_P,
+            CE     => CE,
+            CLKOUT => CLKOUT_U_P
+        );
+    }
+
+};

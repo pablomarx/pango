@@ -1,0 +1,214 @@
+*****************************************************************
+
+  Device    [devABQ_S]
+
+  Author    [guoxi]
+
+  Abstract  [THE FF WITH THE PORT-AD OR PORT-BD.]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devABQ_S : device CLMS
+{
+    parameter
+    ( 
+        config string  CP_GRS_EN      = "FALSE",        
+        config string  CP_Y0MUX_SEL  := "MF",      //"FX":F0 "CYX":CYA "MF":QP0
+        config string  CP_ABPMUX_SEL  = "X0D",     //"X0D":AD "X1D":BD
+        config string  CP_QABMUX_SEL := "PY",      //"Y6":Y6AB "PY":ABP "SRQ":Q0
+        config string  CP_RS_MODE    = "ASYNC",   //"SYNC" "ASYNC" - CLMS Global
+        config string  CP_FFAB_RS    = "SET",     //"RESET" "SET"
+        config string  CP_RSMUX_SEL  = "LOCAL",   //"LOCAL":RS; "CHAIN":RSIN
+        config string  CP_CEMUX_SEL  = "LOCAL",   //"LOCAL":CE; "CHAIN":CEIN
+        config string  CP_LRS_POL    = "FALSE",   //1'b0: "RS"; 1'b1: "Invert RS" - CLMS Global
+        config string  CP_LRS_EN     = "TRUE",   //1'b0: "Disable"; 1'b1: "Enable"
+        config string  CP_CLK_POL    = "FALSE",   //"FALSE"; "TRUE"
+        config string  CP_LCE_POL = "FALSE",      //"FALSE"; "TRUE"
+        config string  CP_LCE_EN  = "TRUE"       //"FALSE"; "TRUE"
+     );
+    
+    port
+    (
+        input    AD,
+        input    BD,
+        input    RS,
+        input    CE,
+        input    CLK,
+        input    RSCI,
+        input    CECI,
+
+        output   Y0,
+        output   RSCO,
+        output   CECO
+    );
+}; // end of device devABQ_S
+
+
+/*******************************************************************************
+
+  Device    [devABQ_S]
+
+  Author    [guoxi]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devABQ_S
+{
+    // Wires for input ports
+    wire ntBD; 
+    wire ntAD; 
+    wire ntRS;
+    wire ntCE;
+    wire ntCLK;
+
+    wire ntRSCI;
+    wire ntCECI;
+
+    // Wires connecting to output ports
+    wire ntY0;
+    wire ntRSCO;
+    wire ntCECO;
+
+    // Internal wires   
+    wire ntQP0;
+    wire ntDP0_DI;
+    wire ntRS_P;
+    wire ntCE_P;
+    wire ntCLKCO;
+    wire ntDP0;
+
+    //
+    // Connection to ports
+    //
+ 
+    ntAD      <= AD;
+    ntBD      <= BD;
+    ntRS      <= RS;
+    ntCE      <= CE;
+    ntCLK     <= CLK;
+    ntRSCI    <= RSCI;
+    ntCECI    <= CECI;
+
+    Y0       <= ntY0;      
+    RSCO     <= ntRSCO;
+    CECO     <= ntCECO;
+    
+    //
+    // Instances. FGA section
+    //
+
+    device YMUX  Y0MUX
+        parameter map
+        (
+            CP_OUT_SEL => CP_Y0MUX_SEL
+        )
+        port map
+        (
+            Y    => ntY0,
+            MF   => ntQP0
+        );
+
+    device PMUX  ABPMUX
+        parameter map
+        (
+            CP_OUT_SEL => CP_ABPMUX_SEL
+        )
+        port map
+        (
+            Y   => ntDP0_DI,
+            X1D => ntBD,
+            X0D => ntAD
+        );
+    
+    device APPQMUX  QABMUX
+        parameter map
+        (
+            CP_OUT_SEL => CP_QABMUX_SEL
+        )
+        port map
+        (
+            Q   => ntDP0,
+            PY  => ntDP0_DI 
+        );
+    
+    device FF FFAB
+        parameter map
+        (
+            CP_GRS_EN  => CP_GRS_EN,
+            CP_RS_MODE => CP_RS_MODE,
+            CP_FF_RS   => CP_FFAB_RS
+        )
+        port map
+        (
+            Q   => ntQP0,
+            D   => ntDP0,
+            CE  => ntCECO,
+            CLK => ntCLKCO,
+            RS  => ntRSCO
+        );
+
+    device MUX2_P  RSMUX
+        parameter map
+        (
+            SEL => CP_RSMUX_SEL
+        )
+        port map
+        (
+            DOUT  => ntRSCO,
+            DI1   => ntRSCI,
+            DI0   => ntRS_P
+        );
+
+    device MUX2_P  CEMUX
+        parameter map
+        (
+            SEL => CP_CEMUX_SEL
+        )
+        port map
+        (
+            DOUT  => ntCECO,
+            DI1   => ntCECI,
+            DI0   => ntCE_P
+        );
+
+    device LRS_POLMUX  LRSPOLMUX
+        parameter map
+        (
+            CP_LRS_EN  => CP_LRS_EN,
+            CP_LRS_POL => CP_LRS_POL
+        )
+        port map
+        (
+            Y  => ntRS_P,
+            IN => ntRS
+        );
+
+    device LCE_POLMUX  LCEPOLMUX
+        parameter map
+        (
+            CP_LCE_EN  => CP_LCE_EN,
+            CP_LCE_POL => CP_LCE_POL
+        )
+        port map
+        (
+            Y  => ntCE_P,
+            IN => ntCE
+        );
+
+    device CLK_POLMUX  CLKPOLMUX
+        parameter map
+        (
+            CP_CLK_POL => CP_CLK_POL
+        )
+        port map
+        (
+            Y  => ntCLKCO,
+            IN => ntCLK
+        );
+}; // end of structure netlist of devABQ_S
+

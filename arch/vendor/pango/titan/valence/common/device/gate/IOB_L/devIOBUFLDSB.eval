@@ -1,0 +1,138 @@
+******************************************************************
+//
+//  Device    [devIOBUFLDSB]
+//
+//  project   [Pango]
+//  
+//  Author    [hzhang]
+//
+//  Abstract  [ ]
+//
+//  Revision History:
+//                       
+//********************************************************************************/
+
+gate device devIOBUFLDSB : device IOB_LB
+{
+    parameter 
+    (   
+        config string IOB_MODE          := "IOBUFDS",
+        config string TERMINATED         = "UNUSED",    /* "UNUSED" , "PULLUP" , "PULLDOWN" , "KEEPER" */
+        config string HOT_SOCKET         = "ON",        // ON; OFF
+        config string POWER_MODE         = "ON",        // ON; OFF
+        config string VCCIO              = "3.3",       // "3.3" "2.5" "1.8" "1.5" "1.2"
+        
+        // ibuf
+        config string HYS_DRIVE_MODE     = "NOHYS" ,    // "NOHYS","SMHYS_I","SMHYS_II","LGHYS","OD","UD" 
+        config string VREF_MODE          = "IN"    ,    // "IN": VREF_IN; "OUT": VREF_OUT
+        config string VREF_IN_MODE       = "OFF",    // "OFF" "0.45" "0.50" "0.55"
+        config string DDR_TERM_MODE      = "ON",     // "TERM": "ON" "OFF"     
+        config string VREF_OUT_MODE      = "VREF1",  // "VREF1" "VREF2" "VREF3" "EXT_DRV"         
+        config string DIFF_IN_TERM_MODE  = "ON",     // "ON" "OFF"
+        
+        // obuf
+        config string SLEW_MODE          = "F",  // "F" "S"
+        config string DRV_CURR_EN        = "TRUE",  // "TRUE" "FALSE"  
+        config string DRV_CURR_VAL       = "4",
+        config string PMOS_FINGER        = "1",  // "1" "2" "3" "4" "5" "6"
+        config string NMOS_FINGER        = "1",  // "1" "2" "3" "4" "5" "6"
+        config string IOSTANDARD         = "DEFAULT"
+    );
+   
+    port
+    (   
+
+        
+        // add Port DO & TO for the io set to Pseudo-DS , such as IOSTANDARD == "SSTL25D_I". 
+        input  DO, 
+        input  TO,
+        inout  PAD,
+        output DIFFI_OUT
+     );
+};  // end of device devIOBUFDSB
+
+
+/*******************************************************************************
+
+  Device    [devIOBUFLDSB]
+
+  Author    []
+
+  Abstract  [gate grid devIOBUFLDSB. structure nestlist]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devIOBUFLDSB
+{
+    // Wires connecting to ports. 
+
+    wire ntDO, ntTO;
+    wire ntPAD;
+    
+
+    ntTO           <= TO;
+    ntDO           <= DO;
+
+    PAD            <= ntPAD;
+    DIFFI_OUT      <= ntPAD;
+    
+
+    device IOB_OBUFLB OBUFLB
+        parameter map
+        (
+            IOB_MODE     => IOB_MODE,
+            SLEW_MODE    => SLEW_MODE,
+            DRV_CURR_VAL => DRV_CURR_VAL,
+            IOSTANDARD   => IOSTANDARD
+        )
+        port map
+        (
+            TS    => ntTO,
+            IN    => ntDO,
+            OUT   => ntPAD
+        );
+
+
+};  // end of structure netlist of devIOBUFLDSB            
+          
+timing tnl of devIOBUFLDSB
+{   
+    
+    if (!strncmp(IOSTANDARD, "SSTL25D" , 7)
+        || !strncmp(IOSTANDARD, "SSTL18D" , 7) 
+        || !strncmp(IOSTANDARD, "SSTL15D" , 7) 
+        || !strncmp(IOSTANDARD, "HSTL18D" , 7) 
+        || !strncmp(IOSTANDARD, "HSTL15D" , 7)
+        || !strncmp(IOSTANDARD, "LVCMOS" , 6)
+        || !strcmp(IOSTANDARD, "DEFAULT"))
+    {
+        wire ntPAD;
+        operator V_OBUFT obuft
+        parameter map
+        (
+            IOSTANDARD => IOSTANDARD,
+            SLEW_RATE  => (SLEW_MODE == "S") ? "SLOW" : "FAST",
+            DRIVE_STRENGTH => DRV_CURR_VAL
+        )
+        port map
+        (
+            I => DO,
+            T => TO,
+            O => ntPAD
+        );  
+        DIFFI_OUT  <= ntPAD; 
+        PAD        <= ntPAD;
+    
+    }
+    else
+    {
+        wire ntPAD, ntDIFFO_IN;
+
+        DIFFI_OUT  <= ntPAD;
+        //ntPAD      <= DIFFO_IN;
+        PAD        <= ntPAD;
+    
+    }
+
+}

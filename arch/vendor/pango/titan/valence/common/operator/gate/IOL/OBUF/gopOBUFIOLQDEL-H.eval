@@ -1,0 +1,88 @@
+*******************************************************************
+
+  Operator    [gopOBUFIOLQDEL]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+gate
+operator gopOBUFIOLQDEL
+{
+    parameter
+    (
+        string GRS_EN          = "FALSE",           // "TRUE" "FALSE"  
+        string DELAY_SEL       = "DEFAULT",
+        bit    IODLY_CTRL_EN   = 1'b0,
+        bit    IODLY_STEP[6:0] = 7'b000_0000,
+        
+        string OFF_CE_EN      = "UNUSED",    //1'b0 => "UNUSED";     1'b1 => "USED"
+        string OFF_LRS_EN     = "UNUSED",  //1'b0 => "UNUSED";   1'b1 => "USED"
+        string OFF_SET        = "RESET",     //1'b0 => "RESET"; 1'b1 => "SET"
+        string OFF_SYNC       = "ASYNC",     //1'b0 => "ASYNC";      1'b1 => "SYNC"    
+        bit    OFF_LATCH      = 1'b0,      //1'b1 => latch; 1'b0 => flip flop
+
+        bit    CLK_O_INV      = 1'b0,
+        bit    CE_INV         = 1'b0,
+        bit    LRS_INV        = 1'b0
+    );
+    port
+    (
+        input   IN,
+
+        input   SYSCLK /* pragma PAP_ARC_GOP_CTRL_PIN = "GCLK|RCLK"*/,
+        input   CE /* pragma PAP_ARC_GOP_CTRL_PIN = CE*/,
+        input   LRS /* pragma PAP_ARC_GOP_CTRL_PIN = RST*/,
+
+        input   IODLY_CTRL[2:0],
+        output  IODLY_OV,
+
+        // from to IOB
+        output  T,
+        output  O,
+
+        output  DO_OUT
+    );
+};
+
+implementation impl of gopOBUFIOLQDEL
+{
+    device devOBUFIOLQDEL gate_obufiolqdel
+        parameter map
+        (
+            GRS_EN        => (GRS_EN == "TRUE") ? 1'b1 : 1'b0,
+            DELAY_SEL       => DELAY_SEL,
+            IODLY_CTRL_EN   => IODLY_CTRL_EN,
+            IODLY_STEP      => IODLY_STEP,
+
+
+            OFF_CE_EN    => (OFF_CE_EN  == "USED")     ? 1'b1 : 1'b0,
+            OFF_LRS_EN   => (OFF_LRS_EN == "USED")  ? 1'b1 : 1'b0,
+            OFF_SET      => (OFF_SET    == "SET")    ? 1'b1 : 1'b0,
+            OFF_SYNC     => (OFF_SYNC   == "SYNC")     ? 1'b1 : 1'b0,    
+
+            OFF_LATCH    => OFF_LATCH,
+
+            CLK_O_INV    =>  CLK_O_INV,
+            CE_INV       =>  CE_INV,
+            LRS_INV      =>  LRS_INV
+        )
+        port map
+        (
+            TX_DATA[5]   =>  IN,
+
+            SYSCLK         =>  SYSCLK,
+            CE           =>  CE,
+            LRS          =>  LRS,
+
+            IODLY_CTRL   =>  IODLY_CTRL,
+            IODLY_OV     =>  IODLY_OV,
+            TO           =>  T,
+            DO           =>  O,
+
+            DO_OUT       =>  DO_OUT
+        );
+};
+
+

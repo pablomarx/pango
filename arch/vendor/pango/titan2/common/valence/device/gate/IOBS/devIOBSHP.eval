@@ -1,0 +1,126 @@
+*****************************************************************
+
+  Device    [devIOBSHP]
+
+  Author    []
+
+  Abstract  [IOBS  is a grid device of the IOBs which are placed on the
+            TOP/RIGHT/BOTTOM of Arch.]
+
+  Revision History:
+
+********************************************************************************/
+
+gate
+device devIOBSHP : device IOBSHP
+{
+    parameter
+    (
+        config string CP_IOB_MODE = "UNUSED",
+        config string CP_PORT_STATUS = "PULLUP",
+        config string CP_IO_STANDARD = "DEFAULT",
+        config string CP_DRV_STRENGTH = "12",
+        config string CP_SLEW_MODE = "S",
+        config string CP_OPENDRAIN = "OFF",
+        config string CP_VREF = "OFF",
+        config string CP_DYN_IN = "OFF",
+        config string CP_DIFFIN_TERM = "OFF",
+        config string CP_DYN_TERM = "OFF",
+        config string CP_HYS = "OFF",
+        config string CP_VCCIO = "1.8",
+        config string CP_DDRIN_TERM = "OFF",
+        config string CP_TERM_VAL = "48",
+        config string CP_PREEMP = "ON"
+    );
+    port
+    (
+        input S11_ENINR_DYN = 1'b1,
+        input DIFFO_IN = 1'b1,
+        input S11_USR_DO_P = 1'b1,
+        input S11_USR_DO_N = 1'b1,
+        output DIN,
+        output DIFFI_OUT,
+        inout PAD
+    );
+};
+
+
+//grid device structure netlist started
+structure netlist of devIOBSHP
+{
+    //for inter connect net
+    wire            ntOBUFO_IN              ;
+                                            
+    //for input port net                    
+    wire            ntS11_ENINR_DYN         ;
+    wire            ntS11_USR_DO_P          ;
+    wire            ntS11_USR_DO_N          ;
+    wire            ntDIFFO_IN              ;
+    
+    
+    //for output port
+    wire            ntDIN                   ;
+    wire            ntDIFFI_OUT             ;
+    wire            ntPAD                   ;
+    
+    
+    //connect to input port
+    ntS11_ENINR_DYN    <= S11_ENINR_DYN     ;
+    ntS11_USR_DO_P     <= S11_USR_DO_P      ;
+    ntS11_USR_DO_N     <= S11_USR_DO_N      ;
+    ntDIFFO_IN         <= DIFFO_IN          ;
+    
+    
+    //connect to output port
+    DIN                <= ntDIN             ;
+    DIFFI_OUT          <= ntDIFFI_OUT       ;
+    PAD                <= ntPAD             ;
+    
+    
+    device IOBHP_IBUFS IOBHP_IBUFS
+    parameter map
+    (
+        CP_IOB_MODE    => CP_IOB_MODE       ,
+        CP_DYN_IN      => CP_DYN_IN
+    )
+    port map
+    (
+        OUT            => ntDIN             ,
+        IN_DYN_EN      => ntS11_ENINR_DYN   ,
+        DIFFI_OUT      => ntDIFFI_OUT       ,
+        IN             => ntPAD
+    );
+    
+    device IOBHP_OBUFS IOBHP_OBUFS
+    parameter map
+    (
+        CP_IOB_MODE    => CP_IOB_MODE       ,
+        CP_OPENDRAIN   => CP_OPENDRAIN
+    )
+    port map
+    (
+        OUT            => ntOBUFO_IN        ,
+        PAD            => ntPAD             ,
+        DO_P           => ntS11_USR_DO_P    ,
+        DO_N           => ntS11_USR_DO_N    ,
+        IN             => ntPAD
+    );
+    
+    device IOBHP_DIFFOSMUX IOBHP_DIFFOSMUX
+    parameter map
+    (
+        CP_IOB_MODE    => CP_IOB_MODE       ,
+        CP_PORT_STATUS => CP_PORT_STATUS
+    )
+    port map
+    (
+        OUT            => ntPAD             ,
+        DO_P           => ntS11_USR_DO_P    ,
+        DO_N           => ntS11_USR_DO_N    ,
+        IN             => ntPAD             ,
+        DIFFO_IN       => ntDIFFO_IN        ,
+        OBUFO_IN       => ntOBUFO_IN
+    );
+};// end of structure netlist of devIOBSHP
+
+

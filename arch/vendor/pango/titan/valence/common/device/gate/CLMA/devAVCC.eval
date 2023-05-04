@@ -1,0 +1,94 @@
+*****************************************************************
+
+  Device    [devAVCC]
+
+  Author    []
+
+  Abstract  [THE DEVICE CAN BE USED FOR LUT.]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devAVCC : device devA
+{
+    parameter
+    (
+        config bit INITA[31:0]       := 32'hffff_ffff,        
+        config string FGA_MODE       := "LUT5",              // "LUT5" "ROM" "WMUX" "ARITH"  
+        config string Y0MUX_SEL      := "FG"                // "FFAB" "FG" "CY" 
+    );
+    
+    port
+    (
+        output   Y0
+    );
+}; // end of device devAVCC
+
+
+/*******************************************************************************
+
+  Device    [devAVCC]
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devAVCC
+{
+    // Wires for input ports
+
+    // Wires connecting to output ports
+
+    wire ntY0MUX;
+
+    // Internal wires
+    wire ntFGA_Z;
+
+    //
+    // Connection to ports
+    //
+
+    Y0        <= ntY0MUX;
+    
+    //
+    // Instances. FGA section
+    //
+
+    device FGA FGA 
+        parameter map
+        (
+            INIT        => INITA,
+            MODE        => FGA_MODE
+        )
+        port map 
+        (
+            Z    => ntFGA_Z 
+        );
+
+    device Y0MUX Y0MUX
+        parameter map
+        (
+            CFG  => Y0MUX_SEL
+        )       
+        port map
+        (
+            FG  => ntFGA_Z,
+            Z   => ntY0MUX
+        );
+}; // end of structure netlist of devAVCC
+timing tnl of devAVCC
+{   
+   operator V_ONE V_FGA
+       parameter map
+       (
+           SECTION  => "A"
+       )
+       port map 
+       (
+          Z => Y0
+       );
+}

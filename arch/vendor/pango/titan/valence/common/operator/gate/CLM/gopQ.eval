@@ -1,0 +1,511 @@
+*********************************************************************
+
+  Operator    [gopQ]
+  
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+ ********************************************************************************/
+gate
+operator gopQ
+{
+    parameter
+    (
+        string GRS_EN       = "FALSE",           // "TRUE" "FALSE"
+        string LRS_EN       = "TRUE",            // "TRUE"   "FALSE"
+        string PMUX_SEL     = "AC" ,               // "AC" --> "AD" OR "CD"   "BD" --> "BD" OR  "DD"    
+        string CEMUX_SEL    = "CE" ,               // "CE" "CEIN"    
+        string RSMUX_SEL    = "RS" ,               // "RS" "RSIN"    
+        bit    CLK_POS      = 1'b0,                // 1'b0: "CLK"; 1'b1: "CLK_B"
+        bit    CE_POS       = 1'b0,                // 1'b0: "CE";  1'b1: "CE_B"
+        bit    RS_POS       = 1'b0,                // 1'b0: "RS";  1'b1: "RS_B"
+        string CE_USED      = "USED",              // "USED" "UNUSED"
+        string RS_USED      = "USED",              // "USED" "UNUSED"
+        string SYNC_MODE    = "SYNC",              // "SYNC" "ASYNC" 
+        string FF_SET       = "RESET"              // "RESET" "SET"
+    );
+
+    port
+    (
+        input  D, 
+        input  CLK /* pragma PAP_ARC_GOP_CTRL_PIN = "GCLK|RCLK"*/,
+        input  CE /* pragma PAP_ARC_GOP_CTRL_PIN = CE*/,
+        input  RS /* pragma PAP_ARC_GOP_CTRL_PIN = RST*/,
+        output CEOUT, RSOUT, Q
+    );
+};
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devABQ_S of gopQ
+{
+    string  ABPMUX_SEL = (PMUX_SEL == "AC") ? "AD" : "BD";   
+    device devABQ_S gatedev
+        parameter map 
+        ( 
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,
+            ABPMUX_SEL   => ABPMUX_SEL ,  
+            CEMUX_SEL    => CEMUX_SEL  ,
+            RSMUX_SEL    => RSMUX_SEL  ,
+            CLK_POS      => CLK_POS    , 
+            CE_POS       => (CE_USED == "USED") ? CE_POS : 1'b0, 
+            RS_POS       => (RS_USED == "USED") ? RS_POS : 1'b1,                 
+            SYNC_MODE    => SYNC_MODE  , 
+            FFAB_SET     => FF_SET   
+        )
+        port map 
+        (                            
+            AD    => (ABPMUX_SEL == "AD") ? D : 1'bx, 
+            BD    => (ABPMUX_SEL == "BD") ? D : 1'bx,      
+            Y0    => Q,          
+            RS    => (RSMUX_SEL == "RS")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE    => (CEMUX_SEL == "CE")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx, 
+            CLK   => CLK, 
+            RSIN  => (RSMUX_SEL == "RS")  ? 1'bx : RS,         
+            RSOUT => RSOUT,       
+            CEIN  => (CEMUX_SEL == "CE")  ? 1'bx : CE,        
+            CEOUT => CEOUT
+        );
+}; // end of implementation impl_devABQ_S of gopQ
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devAQ_S of gopQ
+{    
+    device devAQ_S gatedev
+        parameter map 
+        ( 
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,
+            CEMUX_SEL    => CEMUX_SEL  ,
+            RSMUX_SEL    => RSMUX_SEL  ,
+            CLK_POS      => CLK_POS    , 
+            CE_POS       => (CE_USED == "USED") ? CE_POS : 1'b0, 
+            RS_POS       => (RS_USED == "USED") ? RS_POS : 1'b1,                 
+            SYNC_MODE    => SYNC_MODE  , 
+            FF0_SET      => FF_SET   
+        )
+        port map 
+        (
+            M0    => D,      
+            Q0    => Q,          
+            RS    => (RSMUX_SEL == "RS")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE    => (CEMUX_SEL == "CE")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx, 
+            CLK   => CLK, 
+            RSIN  => (RSMUX_SEL == "RS")  ? 1'bx : RS,         
+            RSOUT => RSOUT,       
+            CEIN  => (CEMUX_SEL == "CE")  ? 1'bx : CE,        
+            CEOUT => CEOUT
+        );
+}; // end of implementation impl_devAQ_S of gopQ
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devBQ_S of gopQ
+{    
+    device devBQ_S gatedev
+        parameter map 
+        ( 
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,
+            CEMUX_SEL    => CEMUX_SEL  ,
+            RSMUX_SEL    => RSMUX_SEL  ,
+            CLK_POS      => CLK_POS    , 
+            CE_POS       => (CE_USED == "USED") ? CE_POS : 1'b0, 
+            RS_POS       => (RS_USED == "USED") ? RS_POS : 1'b1,                 
+            SYNC_MODE    => SYNC_MODE  , 
+            FF1_SET      => FF_SET   
+        )
+        port map 
+        (
+            M2    => D,      
+            Q1    => Q,          
+            RS    => (RSMUX_SEL == "RS")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE    => (CEMUX_SEL == "CE")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx, 
+            CLK   => CLK, 
+            RSIN  => (RSMUX_SEL == "RS")  ? 1'bx : RS,         
+            RSOUT => RSOUT,       
+            CEIN  => (CEMUX_SEL == "CE")  ? 1'bx : CE,        
+            CEOUT => CEOUT
+        );
+}; // end of implementation impl_devBQ_S of gopQ
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devCDQ_S of gopQ
+{
+    string  CDPMUX_SEL = (PMUX_SEL == "AC") ? "CD" : "DD";   
+    device devCDQ_S gatedev
+        parameter map 
+        ( 
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,
+            CDPMUX_SEL   => CDPMUX_SEL ,  
+            CEMUX_SEL    => CEMUX_SEL  ,
+            RSMUX_SEL    => RSMUX_SEL  ,
+            CLK_POS      => CLK_POS    , 
+            CE_POS       => (CE_USED == "USED") ? CE_POS : 1'b0, 
+            RS_POS       => (RS_USED == "USED") ? RS_POS : 1'b1,                 
+            SYNC_MODE    => SYNC_MODE  , 
+            FFCD_SET      => FF_SET   
+        )
+        port map 
+        (                            
+            CD    => (CDPMUX_SEL == "CD") ? D : 1'bx, 
+            DD    => (CDPMUX_SEL == "DD") ? D : 1'bx,      
+            Y2    => Q,          
+            RS    => (RSMUX_SEL == "RS")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE    => (CEMUX_SEL == "CE")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx, 
+            CLK   => CLK, 
+            RSIN  => (RSMUX_SEL == "RS")  ? 1'bx : RS,         
+            RSOUT => RSOUT,       
+            CEIN  => (CEMUX_SEL == "CE")  ? 1'bx : CE,        
+            CEOUT => CEOUT
+        );
+}; // end of implementation impl_devCDQ_S of gopQ
+
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devCQ_S of gopQ
+{    
+    device devCQ_S gatedev
+        parameter map 
+        ( 
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,
+            CEMUX_SEL    => CEMUX_SEL  ,
+            RSMUX_SEL    => RSMUX_SEL  ,
+            CLK_POS      => CLK_POS    , 
+            CE_POS       => (CE_USED == "USED") ? CE_POS : 1'b0, 
+            RS_POS       => (RS_USED == "USED") ? RS_POS : 1'b1,                  
+            SYNC_MODE    => SYNC_MODE  , 
+            FF2_SET      => FF_SET   
+        )
+        port map 
+        (
+            M1    => D,      
+            Q2    => Q,          
+            RS    => (RSMUX_SEL == "RS")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE    => (CEMUX_SEL == "CE")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx, 
+            CLK   => CLK, 
+            RSIN  => (RSMUX_SEL == "RS")  ? 1'bx : RS,         
+            RSOUT => RSOUT,       
+            CEIN  => (CEMUX_SEL == "CE")  ? 1'bx : CE,        
+            CEOUT => CEOUT
+        );
+}; // end of implementation impl_devCQ_S of gopQ
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devDQ_S of gopQ
+{    
+    device devDQ_S gatedev
+        parameter map 
+        ( 
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,
+            CEMUX_SEL    => CEMUX_SEL  ,
+            RSMUX_SEL    => RSMUX_SEL  ,
+            CLK_POS      => CLK_POS    , 
+            CE_POS       => (CE_USED == "USED") ? CE_POS : 1'b0, 
+            RS_POS       => (RS_USED == "USED") ? RS_POS : 1'b1,                
+            SYNC_MODE    => SYNC_MODE  , 
+            FF3_SET     => FF_SET   
+        )
+        port map 
+        (
+            M3    => D,      
+            Q3    => Q,          
+            RS    => (RSMUX_SEL == "RS")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE    => (CEMUX_SEL == "CE")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx, 
+            CLK   => CLK, 
+            RSIN  => (RSMUX_SEL == "RS")  ? 1'bx : RS,         
+            RSOUT => RSOUT,       
+            CEIN  => (CEMUX_SEL == "CE")  ? 1'bx : CE,        
+            CEOUT => CEOUT
+        );
+}; // end of implementation impl_devDQ_S of gopQ
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devABQ of gopQ
+{
+    string  ABPMUX_SEL = (PMUX_SEL == "AC") ? "AD" : "BD";   
+    device devABQ gatedev
+        parameter map 
+        ( 
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,
+            ABPMUX_SEL   => ABPMUX_SEL ,  
+            CEMUX_SEL    => CEMUX_SEL  ,
+            RSMUX_SEL    => RSMUX_SEL  ,
+            CLK_POS      => CLK_POS    , 
+            CE_POS       => (CE_USED == "USED") ? CE_POS : 1'b0, 
+            RS_POS       => (RS_USED == "USED") ? RS_POS : 1'b1,                 
+            SYNC_MODE    => SYNC_MODE  , 
+            FFAB_SET     => FF_SET   
+        )
+        port map 
+        (                            
+            AD    => (ABPMUX_SEL == "AD") ? D : 1'bx, 
+            BD    => (ABPMUX_SEL == "BD") ? D : 1'bx,      
+            Y0    => Q,          
+            RS    => (RSMUX_SEL == "RS")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE    => (CEMUX_SEL == "CE")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx,  
+            CLK   => CLK, 
+            RSIN  => (RSMUX_SEL == "RS")  ? 1'bx : RS,         
+            RSOUT => RSOUT,       
+            CEIN  => (CEMUX_SEL == "CE")  ? 1'bx : CE,        
+            CEOUT => CEOUT
+        );
+}; // end of implementation impl_devABQ of gopQ
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devAQ of gopQ
+{    
+    device devAQ gatedev
+        parameter map 
+        ( 
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,
+            CEMUX_SEL    => CEMUX_SEL  ,
+            RSMUX_SEL    => RSMUX_SEL  ,
+            CLK_POS      => CLK_POS    , 
+            CE_POS       => (CE_USED == "USED") ? CE_POS : 1'b0, 
+            RS_POS       => (RS_USED == "USED") ? RS_POS : 1'b1,                 
+            SYNC_MODE    => SYNC_MODE  , 
+            FF0_SET      => FF_SET   
+        )
+        port map 
+        (
+            M0    => D,      
+            Q0    => Q,          
+            RS    => (RSMUX_SEL == "RS")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE    => (CEMUX_SEL == "CE")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx, 
+            CLK   => CLK, 
+            RSIN  => (RSMUX_SEL == "RS")  ? 1'bx : RS,         
+            RSOUT => RSOUT,       
+            CEIN  => (CEMUX_SEL == "CE")  ? 1'bx : CE,        
+            CEOUT => CEOUT
+        );
+}; // end of implementation impl_devAQ of gopQ
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devBQ of gopQ
+{    
+    device devBQ gatedev
+        parameter map 
+        ( 
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,
+            CEMUX_SEL    => CEMUX_SEL  ,
+            RSMUX_SEL    => RSMUX_SEL  ,
+            CLK_POS      => CLK_POS    , 
+            CE_POS       => (CE_USED == "USED") ? CE_POS : 1'b0, 
+            RS_POS       => (RS_USED == "USED") ? RS_POS : 1'b1,                  
+            SYNC_MODE    => SYNC_MODE  , 
+            FF1_SET      => FF_SET   
+        )
+        port map 
+        (
+            M2    => D,      
+            Q1    => Q,          
+            RS    => (RSMUX_SEL == "RS")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE    => (CEMUX_SEL == "CE")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx, 
+            CLK   => CLK, 
+            RSIN  => (RSMUX_SEL == "RS")  ? 1'bx : RS,         
+            RSOUT => RSOUT,       
+            CEIN  => (CEMUX_SEL == "CE")  ? 1'bx : CE,        
+            CEOUT => CEOUT
+        );
+}; // end of implementation impl_devBQ of gopQ
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devCDQ of gopQ
+{
+    string  CDPMUX_SEL = (PMUX_SEL == "AC") ? "CD" : "DD";   
+    device devCDQ gatedev
+        parameter map 
+        ( 
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,
+            CDPMUX_SEL   => CDPMUX_SEL ,  
+            CEMUX_SEL    => CEMUX_SEL  ,
+            RSMUX_SEL    => RSMUX_SEL  ,
+            CLK_POS      => CLK_POS    , 
+            CE_POS       => (CE_USED == "USED") ? CE_POS : 1'b0, 
+            RS_POS       => (RS_USED == "USED") ? RS_POS : 1'b1,                  
+            SYNC_MODE    => SYNC_MODE  , 
+            FFCD_SET     => FF_SET   
+        )
+        port map 
+        (                            
+            CD    => (CDPMUX_SEL == "CD") ? D : 1'bx, 
+            DD    => (CDPMUX_SEL == "DD") ? D : 1'bx,      
+            Y2    => Q,          
+            RS    => (RSMUX_SEL == "RS")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE    => (CEMUX_SEL == "CE")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx, 
+            CLK   => CLK, 
+            RSIN  => (RSMUX_SEL == "RS")  ? 1'bx : RS,         
+            RSOUT => RSOUT,       
+            CEIN  => (CEMUX_SEL == "CE")  ? 1'bx : CE,        
+            CEOUT => CEOUT
+        );
+}; // end of implementation impl_devCDQ of gopQ
+
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devCQ of gopQ
+{    
+    device devCQ gatedev
+        parameter map 
+        ( 
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,
+            CEMUX_SEL    => CEMUX_SEL  ,
+            RSMUX_SEL    => RSMUX_SEL  ,
+            CLK_POS      => CLK_POS    , 
+            CE_POS       => (CE_USED == "USED") ? CE_POS : 1'b0, 
+            RS_POS       => (RS_USED == "USED") ? RS_POS : 1'b1,                
+            SYNC_MODE    => SYNC_MODE  , 
+            FF2_SET      => FF_SET   
+        )
+        port map 
+        (
+            M1    => D,      
+            Q2    => Q,          
+            RS    => (RSMUX_SEL == "RS")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE    => (CEMUX_SEL == "CE")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx, 
+            CLK   => CLK, 
+            RSIN  => (RSMUX_SEL == "RS")  ? 1'bx : RS,         
+            RSOUT => RSOUT,       
+            CEIN  => (CEMUX_SEL == "CE")  ? 1'bx : CE,        
+            CEOUT => CEOUT
+        );
+}; // end of implementation impl_devCQ of gopQ
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devDQ of gopQ
+{    
+    device devDQ gatedev
+        parameter map 
+        ( 
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,
+            CEMUX_SEL    => CEMUX_SEL  ,
+            RSMUX_SEL    => RSMUX_SEL  ,
+            CLK_POS      => CLK_POS    , 
+            CE_POS       => (CE_USED == "USED") ? CE_POS : 1'b0, 
+            RS_POS       => (RS_USED == "USED") ? RS_POS : 1'b1,                 
+            SYNC_MODE    => SYNC_MODE  , 
+            FF3_SET      => FF_SET   
+        )
+        port map 
+        (
+            M3    => D,      
+            Q3    => Q,          
+            RS    => (RSMUX_SEL == "RS")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE    => (CEMUX_SEL == "CE")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx, 
+            CLK   => CLK, 
+            RSIN  => (RSMUX_SEL == "RS")  ? 1'bx : RS,         
+            RSOUT => RSOUT,       
+            CEIN  => (CEMUX_SEL == "CE")  ? 1'bx : CE,        
+            CEOUT => CEOUT
+        );
+}; // end of implementation impl_devDQ of gopQ
+
+

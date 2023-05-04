@@ -1,0 +1,295 @@
+*************************************************************************
+****************************************************************************************/
+library work;
+use pgl_defs,pgl200es_defs;
+use pgl200es_funcs_connect_clk,pgl_funcs_connect_clk;
+
+
+structure arch_nl connect_CLKTREE of PGL200ES
+{
+
+    int L_REGIONS[] = {[0:7]};
+    
+    int ty, tx,tx_wlsr1,rx;
+
+    int flag_io,flag_ud,flag_iol,flag_lr,flag_iock , flag_rd,flag_loop,flag_rckb;
+    int tx_iock ;
+
+    string iock ,iob;
+
+    connect_PLL_input();
+    connect_USCM_input();
+
+    connect_WLSR2_input();
+
+
+    flag_loop = 0;
+
+    foreach rx(L_REGIONS)
+    {
+        foreach tx(L_IOL_TILES_X)
+        {
+
+            if(!((rx==4&&tx==IOL0_TILE_X)||(rx>1&&tx==IOL1_TILE_X)||(rx<4&&tx==IOL2_TILE_X)))
+            {
+                iock = (!((rx==3&&tx==IOL0_TILE_X)||((rx==2||rx==3)&&tx==IOL1_TILE_X))) ? "IOCKGATEDLL_TILE" : (rx==3&&tx==IOL0_TILE_X) ? "IOCKGATEDLL2_TILE" : "RCKB_TILE" ;
+                iob = (rx==3&&tx==IOL0_TILE_X) ? "IOB_TILE_HALF" : "IOB_TILE" ;
+                flag_lr = (tx==IOL0_TILE_X) ? 1 : 0 ;
+                flag_rckb = (tx==IOL1_TILE_X&&(rx==2||rx==3)) ? 1 : 0 ;
+
+                connect_IOCKGATEDLL_input_pgl200es(tx,rx,flag_loop,flag_lr,flag_rckb,iock,iob);
+
+                flag_loop = flag_loop + 1 ;
+            }
+        }
+    }
+
+
+// global clk to io
+
+    foreach rx( L_REGIONS  )
+    {
+        foreach flag_lr( {0,1} )
+        {
+            flag_io = (rx==4&&flag_lr==1) ? 0 : 
+                        ((rx==2||rx==3)&&flag_lr==0) ? 0 : 1 ;
+
+            flag_ud = (rx==0||(rx==5&&flag_lr==1)||(rx==4&&flag_lr==0)) ? 0 : 
+                      (rx==7||(rx==3&&flag_lr==1)||(rx==1&&flag_lr==0)) ? 1 : 2 ;
+
+            flag_iol = (flag_lr==1&&rx==3) ? 0 : 1 ; 
+
+            tx = (flag_lr==1) ? IOL0_TILE_X : (rx<2) ? IOL1_TILE_X : IOL2_TILE_X ;
+                       
+            if(!((rx<4&&tx>IOL1_TILE_X)||(flag_lr==1&&rx==4)||(tx==IOL1_TILE_X&&(rx==2||rx==3))))
+            {
+                connect_IOCLK_input_pgl200es(rx,tx,8,flag_lr,flag_io,flag_ud,flag_iol);
+            }
+        }
+    }
+
+};//end of structure arch_nl connect_CLKTREE of PGL200ES
+/***************************************************************************************
+****************************************************************************************/
+library work;
+use pgl_defs,pgl200es_defs;
+use pgl200es_funcs_connect_clk;
+
+structure arch_nl connect_CLKTREE_COL of PGL200ES
+{
+
+    int L_REGIONS[] = {[0:7]};
+    
+    int ty, tx,tx_wlsr1,rx;
+
+    int flag_io,flag_ud,flag_iol,flag_lr,flag_iock , flag_rd,flag_loop,flag_rckb;
+    int tx_iock ;
+
+    string iock ,iob;
+
+// CLK to ALL COL WLSR
+ 
+    string type_lr ;
+
+    foreach rx( L_REGIONS )
+    {
+        ty = rx * NUM_TILES_REGION + MID_TILE_REGION ;
+
+        unsigned int l_wlsr_tx[] = (rx<=3) ? L_WLSR_TILES_X_D : {L_WLSR_TILES_X_U};
+        unsigned int l_wlsr1s_tx[] = (rx<=3) ? L_WLSR1S_TILES_X_D : L_WLSR1S_TILES_X_U;
+        unsigned int l_wlsr1b_tx[] = (rx<=3) ? L_WLSR1B_TILES_X_D : L_WLSR1B_TILES_X_U;
+        unsigned int l_wlsrd_tx[] = (rx<=3) ? L_WLSRD_TILES_X_D : L_WLSRD_TILES_X;
+        unsigned int l_iock_tx[] = (rx<=3) ? {IOL0_TILE_X,IOL1_TILE_X} : {IOL0_TILE_X,IOL2_TILE_X};
+        
+        foreach tx({[1:69,71:159]})
+        {
+            if(!(rx==4&&tx<=NUM_TILE_HSST_X))
+            {
+                if(rx>3)
+                {
+                    tx_wlsr1 = (tx<=WLSR1_TILE_X_L1) ? WLSR1_TILE_X_L2 :
+                               (tx<=PLL_TILE_X) ? WLSR1_TILE_X_L0 : 
+                               (tx<=WLSR1_TILE_X_R1) ? WLSR1_TILE_X_R0 :
+                                WLSR1_TILE_X_R2 ;
+
+                    type_lr = (tx<=WLSR1_TILE_X_L2) ? "L" : 
+                              (tx<=WLSR1_TILE_X_L1) ? "R" : 
+                              (tx<=WLSR1_TILE_X_L0) ? "L" :
+                              (tx<=PLL_TILE_X)      ? "R" :     
+                              (tx>WLSR1_TILE_X_R2)  ? "R" : 
+                              (tx>WLSR1_TILE_X_R1)  ? "L" : 
+                              (tx>WLSR1_TILE_X_R0)  ? "R" : "L" ;
+                }
+                else
+                {
+                    tx_wlsr1 = (tx<=WLSR1_TILE_X_L1) ? WLSR1_TILE_X_L2 :
+                               (tx<=PLL_TILE_X) ? WLSR1_TILE_X_L0 : 
+                               WLSR1_TILE_X_D_R0  ;
+
+                    type_lr = (tx<=WLSR1_TILE_X_L2) ? "L" : 
+                              (tx<=WLSR1_TILE_X_L1) ? "R" : 
+                              (tx<=WLSR1_TILE_X_L0) ? "L" :
+                              (tx<=PLL_TILE_X)      ? "R" :     
+                              (tx>WLSR1_TILE_X_D_R0)  ? "R" : "L" ;
+                                                  
+                }
+
+                iock = ((rx==2||rx==3)&&tx>BLSR_TILE_X) ? "WLSRA_TILE" : (rx==3&&tx<BLSR_TILE_X) ? "IOCKGATEDLL2_TILE" : "IOCKGATEDLL_TILE" ;
+                flag_lr = (tx>BLSR_TILE_X) ? 0 : 1 ;
+
+                if(!(rx<=3&&tx>79))
+                {
+                    connect_CLKEB_input_pgl200es( tx, rx, type_lr, NUM_TILE_HSST_X + 1, tx_wlsr1,l_wlsr_tx,l_wlsr1s_tx,l_wlsr1b_tx, l_wlsrd_tx,{PLL_TILE_X},l_iock_tx,iock,flag_lr);
+                }
+            }
+        }  
+    }
+
+// for SRB clk connect
+
+    string wlsr;
+
+    int ty_wlsr,tmp_ty,tmp_tx;
+
+    foreach rx( L_REGIONS )
+    {
+        unsigned int l_wlsr_tx[] = (rx<=3) ? L_WLSR_TILES_X_D : L_WLSR_TILES_X_U;
+        unsigned int l_wlsr1s_tx[] = (rx<=3) ? L_WLSR1S_TILES_X_D : L_WLSR1S_TILES_X_U;
+        unsigned int l_wlsr1b_tx[] = (rx<=3) ? L_WLSR1B_TILES_X_D : L_WLSR1B_TILES_X_U;
+        unsigned int l_wlsrd_tx[] = (rx<=3) ? L_WLSRD_TILES_X_D : L_WLSRD_TILES_X;
+        unsigned int l_iock_tx[] = (rx<=3) ? {IOL0_TILE_X,IOL1_TILE_X} : {IOL0_TILE_X,IOL2_TILE_X};
+        
+        foreach tx({[1:69,71:159]})
+        {
+            foreach ty({[0:14,16:30]})
+            {
+
+                if(!((rx==4&&tx<=NUM_TILE_HSST_X)||(rx==3&&tx<=NUM_TILE_HSST_X&&ty>15)||(rx==7&&tx>CCS_TILE_X&&tx<BLSR_TILE_X&&ty>15)))
+                {
+                    iock = ((rx==2||rx==3)&&tx>BLSR_TILE_X) ? "WLSRA_TILE" : (rx==3&&tx<BLSR_TILE_X) ? "IOCKGATEDLL2_TILE" : "IOCKGATEDLL_TILE" ;
+
+                    if(!(rx<=3&&tx>79))
+                    {
+                        connect_SRB_CLK_input_pgl200es( tx, ty, rx, NUM_TILE_HSST_X + 1,l_wlsr_tx,l_wlsr1s_tx,l_wlsr1b_tx, l_wlsrd_tx,{PLL_TILE_X},l_iock_tx,iock);
+                    }
+                }
+            }
+        }  
+    }
+
+}  // end of connect_CLKTREE_COL
+/***************************************************************************************
+****************************************************************************************/
+library work;
+use pgl_defs,pgl200es_defs;
+use pgl200es_funcs_connect_clk;
+
+
+structure arch_nl interconnect_CLKTREE_buf of PGL200ES
+{
+    int L_REGIONS[] = {[0:7]};
+    
+    int ty, tx,tx_wlsr1,rx;
+
+    int flag_io,flag_ud,flag_iol,flag_lr,flag_iock , flag_rd,flag_loop,flag_rckb;
+    int tx_iock ;
+
+    string iock ,iob;
+
+// for clk buf
+
+    int tx_wlsr2 = PLL_TILE_X; 
+    int tx_pll = PLL_TILE_X;
+    int tx_dll_l = 1;
+    int tx_dll_r = NUM_TILE_X - 1;
+
+    foreach rx( L_REGIONS  )
+    {
+        ty = rx * NUM_TILES_REGION + MID_TILE_REGION ;
+
+        flag_lr=1;
+
+        flag_io = (rx==4&&flag_lr==1) ? 0 : 
+                    ((rx==2||rx==3)&&flag_lr==0) ? 0 : 1 ;
+
+        flag_rd = (rx<4&&flag_lr==0) ? 1 : 0 ;
+
+        iock = ((rx==2||rx==3)&&flag_lr==0) ? "WLSRA_TILE" : (rx==3&&flag_lr==1) ? "IOCKGATEDLL2_TILE" : "IOCKGATEDLL_TILE" ;
+
+        tx_iock = IOL0_TILE_X ;                
+
+        connect_CLKBUF_input_pgl200es(ty,WLSR1_TILE_X_L1,WLSR1_TILE_X_L2,WLSR1_TILE_X_L0,PLL_TILE_X,tx_iock,HSST_TILE_X,HSST_TILE_Y,iock,"HSST_TILE",flag_io,flag_lr,flag_rd);
+
+        interconnect_CLKBUF_wlsr1(ty,WLSR1_TILE_X_L1,WLSR1_TILE_X_L2,WLSR1_TILE_X_L0,PLL_TILE_X,tx_iock,iock,flag_io,1,flag_rd);
+  
+        flag_lr=0 ;
+
+        flag_io = (rx==4&&flag_lr==1) ? 0 : 
+                    ((rx==2||rx==3)&&flag_lr==0) ? 0 : 1 ;
+
+        flag_rd = (rx<4&&flag_lr==0) ? 1 : 0 ;
+
+        iock = ((rx==2||rx==3)&&flag_lr==0) ? "WLSRA_TILE" : (rx==3&&flag_lr==1) ? "IOCKGATEDLL2_TILE" : "IOCKGATEDLL_TILE" ;
+
+        tx_iock = (rx < 4) ? IOL1_TILE_X : IOL2_TILE_X ;
+
+        int tx_wlsr1_r0 = (rx < 4) ? WLSR1_TILE_X_D_R0  : WLSR1_TILE_X_R0 ;
+        int tx_wlsr1_r1 = (rx < 4) ? WLSR1_TILE_X_D_R1  : WLSR1_TILE_X_R1 ;
+        int tx_wlsr1_r2 = (rx < 4) ? WLSR1_TILE_X_D_R0  : WLSR1_TILE_X_R2 ;
+
+        connect_CLKBUF_input_pgl200es(ty,tx_wlsr1_r1,tx_wlsr1_r2,tx_wlsr1_r0,PLL_TILE_X,tx_iock,HSST_TILE_X,HSST_TILE_Y,iock,"HSST_TILE",flag_io,flag_lr,flag_rd);
+
+        interconnect_CLKBUF_wlsr1(ty,tx_wlsr1_r1,tx_wlsr1_r2,tx_wlsr1_r0,PLL_TILE_X,tx_iock,iock,flag_io,0,flag_rd);
+    }
+}
+/***************************************************************************************
+****************************************************************************************/
+library work;
+use pgl_defs,pgl200es_defs;
+use pgl_funcs_connect_clk,pgl200es_funcs_connect_clk;
+structure arch_nl connect_rlybufs_tile of PGL200ES
+{
+    int rx,tx,ty_pll0,ty_pll1,ty_wlsr2;
+
+    foreach rx({[0:5]})
+    {
+        tx=70+rx;
+
+        ty_pll0 = (rx < 3) ? 16 + rx * NUM_TILES_REGION : 16 + (rx+2) * NUM_TILES_REGION ;
+        ty_pll1 = (rx < 3) ? 11 + rx * NUM_TILES_REGION : 11 + (rx+2) * NUM_TILES_REGION ;
+        ty_wlsr2 =  MID_TILE_REGION + (rx+1) * NUM_TILES_REGION; 
+
+        connect_rlybufs_tile(tx, RLYBUFS_TILE_Y, PLL_TILE_X, ty_pll0, ty_pll1, PLL_TILE_X, ty_wlsr2);
+
+    }
+
+    int ty,flag_ud;
+
+    string iock_u ;
+
+    foreach tx( L_IOL_TILES_X )
+    {
+      foreach ty( L_RLYBUFS50_TILES_Y )
+      {
+        if(!((tx==IOL1_TILE_X&&ty>NUM_TILES_REGION)||(tx==IOL2_TILE_X&&ty<5*NUM_TILES_REGION)))      
+        {
+
+            iock_u = (tx==IOL0_TILE_X&&ty==3*NUM_TILES_REGION) ? "IOCKGATEDLL2_TILE" : "IOCKGATEDLL_TILE" ;
+
+            connect_rlybufs5_input(tx, ty,iock_u,"IOCKGATEDLL_TILE");
+
+        }
+      }
+      foreach ty( {155} )
+      {
+        if(tx==IOL2_TILE_X)      
+        {
+            connect_rlybufs5_input(tx, ty,"IOCKGATEDLL_TILE","IOCKGATEDLL_TILE");
+
+        }
+      }
+    }
+
+};//end of structure arch_nl connect_rlybufs_tile of PGL200ES
+
+

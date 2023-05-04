@@ -1,0 +1,58 @@
+*******************************************************************
+
+  Operator    [gopCLKDELAY]
+
+  Abstract  []
+
+  Revision History:
+
+ ********************************************************************************/
+gate
+operator gopCLKDELAY
+{
+    parameter
+    (
+        bit    CLKDLY_STEP[7:0] = 8'b00000000,
+        string DLY_CTRL_SEL     = "FALSE"
+    );
+
+    port
+    (
+        input  CLKIN,
+        input  DLL_STEP[7:0],
+        output CLKOUT,
+        input  CLKDLY_CTRL[2:0],
+        output CLKDLY_OV
+    );
+};
+
+/**Implementation Body*******************************************************************
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_CLKDELAY of gopCLKDELAY
+{
+    device IOCKDLY IOCKDLY_inst
+        parameter map
+        (
+            CP_USE_DLL_STEP =>  DLY_CTRL_SEL,
+            CP_CLKDLY_STEP  =>  CLKDLY_STEP
+        )
+        port map
+        (
+            CLK_IN      => CLKIN, 
+            DIRECTION   => CLKDLY_CTRL[2],
+            LOAD        => CLKDLY_CTRL[0],
+            MOVE        => CLKDLY_CTRL[1], 
+            DLL_STEP    => DLL_STEP,
+            COUT        => CLKDLY_OV,
+            CLK_OUT     => CLKOUT
+        );
+
+}; // end of implementation impl_CLKDELAY of gopCLKDELAY
+

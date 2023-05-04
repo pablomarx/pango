@@ -1,0 +1,266 @@
+*********************************************************************
+
+  Operator    [gopA2Q1]
+  
+  Author    [liujiao]
+
+  Abstract  []
+
+  Revision History:
+
+ ********************************************************************************/
+gate
+operator gopA2Q1
+{
+    parameter
+    (
+        string GRS_EN          = "FALSE",           // "TRUE" "FALSE"
+        string LRS_EN          = "TRUE",            // "TRUE"   "FALSE"
+        bit    INIT0[31:0]      = 32'h0000_0000,
+        bit    INIT1[31:0]      = 32'h0000_0000,
+        string MODE0            = "ARITH",
+        string MODE1            = "ARITH",
+        string YXMUX_SEL0       = "FX",                // "FG" "CY"
+        string YXMUX_SEL1       = "FX",                // "FG" "CY" 
+        string CEMUX_SEL       = "LOCAL",                // "CE" "CEIN" 
+        string RSMUX_SEL       = "LOCAL",                // "RS" "RSIN"
+        string CLK_POS         = "FALSE",                // 1'b0: "CLK"; 1'b1: "CLK_B"
+        string CE_POS          = "FALSE",                // 1'b0: "CE";  1'b1: "CE_B"
+        string RS_POS          = "FALSE",                // 1'b0: "RS";  1'b1: "RS_B"
+        string CE_USED         = "USED",              // "USED"  "UNUSED"
+        string RS_USED         = "USED",              // "USED"  "UNUSED"
+        string SYNC_MODE       = "SYNC",              // "SYNC" "ASYNC"
+        string FF_SET          = "SET"              // "RESET" "SET"         
+    );
+
+    port
+    (
+        input  I00, I0X, I01, I02, I03, I04, Cin,
+        input  I10, I1X, I11, I12, I13, I14, //Cin1,
+        input  CLK /*pragma PAP_ARC_GOP_CTRL_PIN="GCLK|RCLK|IOCLK"*/,
+        input  CE /*pragma PAP_ARC_GOP_CTRL_PIN="CE"*/,
+        input  RS /*pragma PAP_ARC_GOP_CTRL_PIN="RST"*/,
+        output RSOUT, CEOUT,
+        output Cout, Y0, Y1, Q
+    );
+};
+
+
+implementation impl_ABS of gopA2Q1
+{          
+    device devABLCQ1_S gatedev
+        parameter map 
+        ( 
+            CP_INITA     => INIT0,
+            CP_INITB     => INIT1,
+            CP_MODEA  => MODE0, 
+            CP_MODEB  => MODE1,    
+            CP_GRS_EN    => GRS_EN,
+            CP_Y0MUX_SEL => YXMUX_SEL0  ,                             // "FFAB" "FG" "CY"
+            CP_Y1MUX_SEL => YXMUX_SEL1  ,                             // "FFAB" "FG" "CY"
+            CP_CEMUX_SEL => CEMUX_SEL  ,                             
+            CP_RSMUX_SEL => RSMUX_SEL  ,                             
+            CP_CLK_POL   => CLK_POS    ,                             
+            CP_LCE_POL    => (CE_USED == "USED") ? CE_POS : "FALSE",     
+            CP_LRS_POL    => (RS_USED == "USED") ? RS_POS : "TRUE",
+            CP_LCE_EN    => (CE_USED == "USED") ? "TRUE" : "FALSE",
+            CP_LRS_EN    => (RS_USED == "USED") ? "TRUE" : "FALSE",    
+            CP_RS_MODE => SYNC_MODE,                              // "SYNC" "ASYNC"  
+            CP_FF1_RS   => FF_SET                                  // "RESET" "SET"              
+        )
+        port map 
+        (                            
+            A0     => I00, 
+            A1     => I01, 
+            A2     => I02, 
+            A3     => I03, 
+            A4     => I04, 
+            AD     => I0X, 
+            
+            B0     => I10, 
+            B1     => I11, 
+            B2     => I12, 
+            B3     => I13, 
+            B4     => I14, 
+            BD     => I1X,
+            
+            Y0     => Y0, 
+            Y1     => Y1,
+            
+            Q1     => Q,
+            RS     => (RSMUX_SEL == "LOCAL")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE     => (CEMUX_SEL == "LOCAL")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx, 
+            CLK    => CLK, 
+            RSCI   => (RSMUX_SEL == "LOCAL")  ? 1'bx : RS,         
+            RSCO  => RSOUT,       
+            CECI   => (CEMUX_SEL == "LOCAL")  ? 1'bx : CE,        
+            CECO  => CEOUT,
+            CIN        => Cin,
+            FGB_COUT   => Cout 
+        );
+}; // end of implementation devABLCQ0_S of gopA2Q1
+
+
+implementation impl_CDS of gopA2Q1
+{      
+    device devCDLCQ1_S gatedev
+        parameter map 
+        ( 
+            CP_INITC     => INIT0,
+            CP_INITD     => INIT1,
+            CP_MODEC  => MODE0,
+            CP_MODED  => MODE1,  
+            CP_GRS_EN    => GRS_EN, 
+            CP_Y2MUX_SEL => YXMUX_SEL0  ,                             // "FFAB" "FG" "CY"
+            CP_Y3MUX_SEL => YXMUX_SEL1  ,                             // "FFAB" "FG" "CY"
+            CP_CEMUX_SEL => CEMUX_SEL  ,                             
+            CP_RSMUX_SEL => RSMUX_SEL  ,                             
+            CP_CLK_POL   => CLK_POS    ,                             
+            CP_LCE_POL    => (CE_USED == "USED") ? CE_POS : "FALSE",     
+            CP_LRS_POL    => (RS_USED == "USED") ? RS_POS : "TRUE", 
+            CP_LCE_EN    => (CE_USED == "USED") ? "TRUE" : "FALSE",
+            CP_LRS_EN    => (RS_USED == "USED") ? "TRUE" : "FALSE",   
+            CP_RS_MODE => SYNC_MODE,                              // "SYNC" "ASYNC"  
+            CP_FF3_RS   => FF_SET                                  // "RESET" "SET"              
+        )
+        port map 
+        (                            
+            C0       => I00,   
+            C1       => I01,   
+            C2       => I02,   
+            C3       => I03,   
+            C4       => I04,   
+            CD       => I0X,
+            
+            D0       => I10,    
+            D1       => I11,    
+            D2       => I12,    
+            D3       => I13,    
+            D4       => I14,    
+            DD       => I1X, 
+            
+            Y2       => Y0,
+            Y3       => Y1, 
+            Q3       => Q,
+            RS       => (RSMUX_SEL == "LOCAL")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE       => (CEMUX_SEL == "LOCAL")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx, 
+            CLK      => CLK, 
+            RSCI     => (RSMUX_SEL == "LOCAL")  ? 1'bx : RS,         
+            RSCO    => RSOUT,       
+            CECI     => (CEMUX_SEL == "LOCAL")  ? 1'bx : CE,        
+            CECO    => CEOUT,
+            FGC_CIN    => Cin,
+            COUT       => Cout
+        );
+}; // end of implementation impl_CDS of gopA2Q1
+
+
+implementation impl_AB of gopA2Q1
+{
+    device devABLCQ1 gatedev
+        parameter map 
+        ( 
+            CP_INITA     => INIT0,
+            CP_INITB     => INIT1,
+            CP_MODEA  => MODE0,
+            CP_MODEB  => MODE1,    
+            CP_GRS_EN    => GRS_EN,
+            CP_Y0MUX_SEL => YXMUX_SEL0  ,                             // "FFAB" "FG" "CY"
+            CP_Y1MUX_SEL => YXMUX_SEL1  ,                             // "FFAB" "FG" "CY"
+            CP_CEMUX_SEL => CEMUX_SEL  ,                             
+            CP_RSMUX_SEL => RSMUX_SEL  ,                             
+            CP_CLK_POL   => CLK_POS    ,                             
+            CP_LCE_POL    => (CE_USED == "USED") ? CE_POS : "FALSE",     
+            CP_LRS_POL    => (RS_USED == "USED") ? RS_POS : "TRUE", 
+            CP_LCE_EN    => (CE_USED == "USED") ? "TRUE" : "FALSE",
+            CP_LRS_EN    => (RS_USED == "USED") ? "TRUE" : "FALSE",   
+            CP_RS_MODE => SYNC_MODE,                              // "SYNC" "ASYNC"  
+            CP_FF1_RS   => FF_SET                                  // "RESET" "SET"              
+        )
+        port map 
+        (                            
+            A0     => I00,    
+            A1     => I01,    
+            A2     => I02,    
+            A3     => I03,    
+            A4     => I04,    
+            AD     => I0X,
+            
+            B0       => I10,   
+            B1       => I11,   
+            B2       => I12,   
+            B3       => I13,   
+            B4       => I14,   
+            BD       => I1X,
+             
+            Y0     => Y0, 
+            Y1     => Y1,
+            Q1     => Q,
+            RS     => (RSMUX_SEL == "LOCAL")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE     => (CEMUX_SEL == "LOCAL")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx, 
+            CLK    => CLK, 
+            RSCI   => (RSMUX_SEL == "LOCAL")  ? 1'bx : RS,         
+            RSCO  => RSOUT,       
+            CECI   => (CEMUX_SEL == "LOCAL")  ? 1'bx : CE,        
+            CECO  => CEOUT,
+            CIN        => Cin,
+            FGB_COUT   => Cout
+        );
+
+}; // end of implementation impl_AB of gopA2Q1
+
+
+implementation impl_CD of gopA2Q1
+{   
+    device devCDLCQ1 gatedev
+        parameter map 
+        ( 
+            CP_INITC     => INIT0,
+            CP_INITD     => INIT1,
+            CP_MODEC  => MODE0,
+            CP_MODED  => MODE1,
+            CP_GRS_EN    => GRS_EN,   
+            CP_Y2MUX_SEL => YXMUX_SEL0  ,                             // "FFAB" "FG" "CY"
+            CP_Y3MUX_SEL => YXMUX_SEL1  ,                             // "FFAB" "FG" "CY"
+            CP_CEMUX_SEL => CEMUX_SEL  ,                             
+            CP_RSMUX_SEL => RSMUX_SEL  ,                             
+            CP_CLK_POL   => CLK_POS    ,                             
+            CP_LCE_POL    => (CE_USED == "USED") ? CE_POS : "FALSE",     
+            CP_LRS_POL    => (RS_USED == "USED") ? RS_POS : "TRUE", 
+            CP_LCE_EN    => (CE_USED == "USED") ? "TRUE" : "FALSE",
+            CP_LRS_EN    => (RS_USED == "USED") ? "TRUE" : "FALSE",   
+            CP_RS_MODE => SYNC_MODE,                              // "SYNC" "ASYNC"  
+            CP_FF3_RS   => FF_SET                                  // "RESET" "SET"              
+        )
+        port map 
+        (                            
+            C0       => I00,    
+            C1       => I01,    
+            C2       => I02,    
+            C3       => I03,    
+            C4       => I04,    
+            CD       => I0X,
+            
+            D0       => I10,  
+            D1       => I11,  
+            D2       => I12,  
+            D3       => I13,  
+            D4       => I14,  
+            DD       => I1X,
+             
+            Y2       => Y0,
+            Y3       => Y1, 
+            Q3       => Q,
+            RS       => (RSMUX_SEL == "LOCAL")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE       => (CEMUX_SEL == "LOCAL")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx, 
+            CLK      => CLK, 
+            RSCI     => (RSMUX_SEL == "LOCAL")  ? 1'bx : RS,         
+            RSCO    => RSOUT,       
+            CECI     => (CEMUX_SEL == "LOCAL")  ? 1'bx : CE,        
+            CECO    => CEOUT,
+            FGC_CIN    => Cin,
+            COUT       => Cout
+        );
+ 
+}; // end of implementation impl_CD of gopA2Q1
+

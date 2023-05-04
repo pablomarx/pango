@@ -1,0 +1,319 @@
+*****************************************************************
+
+  Device    [devCDLCQQ_S]
+
+  Author    [liujiao]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devCDLCQQ_S : device CLMS
+{
+    parameter
+    (
+        config string CP_GRS_EN         = "TRUE",             // "TRUE" "FALSE"
+        config bit    CP_INITC[31:0]    = 32'hffff_ffff,
+        config bit    CP_INITD[31:0]    = 32'hffff_ffff, 
+        config string CP_MODEC          = "ARITH",                // "LUT5" "ROM" "WMUX" "ARITH" 
+        config string CP_MODED          = "ARITH",                // "LUT5" "ROM" "WMUX" "ARITH" 
+        config string CP_Y2MUX_SEL      = "FX",                // "FFCD" "FG" "CY"
+        config string CP_Y3MUX_SEL      = "FX",                // "L8"  "FG" "CY"
+        config string CP_Q2MUX_SEL     := "YX",                // "Y2"   "FF1" "M1"
+        config string CP_Q3MUX_SEL     := "YX",                // "Y3"  "FFCD" "M3"
+        config string CP_CEMUX_SEL      = "LOCAL",                // "CE" "CECI" 
+        config string CP_RSMUX_SEL      = "LOCAL",                // "RS" "RSCI"
+        config string CP_CLK_POL        = "FALSE",                // 1'b0: "CLK"; 1'b1: "CLK_B"   
+        config string CP_LCE_POL        = "FALSE",                // 1'b0: "CE";  1'b1: "CE_B"
+        config string CP_LRS_POL        = "FALSE",                // 1'b0: "RS"   1'b1:  "RS_B"
+        config string CP_RS_MODE        = "SYNC",              // "SYNC" "ASYNC"
+        config string CP_FF2_RS         = "SET",              // "RESET" "SET"
+        config string CP_FF3_RS         = "SET",              // "RESET" "SET"
+        config string CP_LRS_EN         = "FALSE",                  // 1'b0: "FALSE"; 1'b1: "TRUE"
+        config string CP_LCE_EN         = "FALSE",                  // 1'b0: "FALSE"; 1'b1: "TRUE"
+        config string CP_MASK          := "FALSE" 
+    );
+    
+    port
+    (
+        output   Q2, Q3,
+        output   Y2, Y3,
+        output   RSCO,
+        output   CECO,
+        output   COUT,
+        
+        input    C0, C1, C2, C3, C4, CD,
+        input    D0, D1, D2, D3, D4, DD,         
+        input    RS, CE, CLK,
+        input    RSCI,      
+        input    CECI,    
+ logic  input    FGC_CIN
+      
+
+    );
+}; // end of device devCDLCQQ_S
+
+
+/*******************************************************************************
+
+  Device    [devCDLCQQ_S]
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devCDLCQQ_S
+{
+    // Wires for input ports
+    wire ntC0, ntC1, ntC2, ntC3, ntC4, ntCD; 
+    wire ntRS, ntCE, ntCLK;
+    wire ntRSCI;
+    wire ntCECI;
+
+    // Wires connecting to output ports
+    wire ntY2,ntQ2; 
+    wire ntRSCO;
+    wire ntCECO;
+
+    // Internal wires
+    wire ntL5C, ntCYC;
+    wire ntQD2;
+    
+    wire ntCYB;
+
+    wire ntRS_P, ntCE_P, ntCLKCO;
+    
+    wire ntD0, ntD1, ntD2, ntD3, ntD4, ntDD; 
+
+    // Wires connecting to output ports
+    wire ntY3,ntQ3;
+    wire ntCOUT;
+
+    // Internal wires
+    wire ntL5D;
+    wire ntQD3;    
+
+    //
+    // Connection to ports
+    //
+ 
+    ntC0      <= C0;
+    ntC1      <= C1;
+    ntC2      <= C2;
+    ntC3      <= C3;
+    ntC4      <= C4;
+    ntCD      <= CD;
+
+    ntRS      <= RS;
+    ntCE      <= CE;
+    ntCLK     <= CLK;
+    
+    ntCYB     <= FGC_CIN;
+    ntRSCI    <= RSCI;
+    ntCECI    <= CECI;
+
+    Y2        <= ntY2;
+    Q2        <= ntQ2;      
+
+    RSCO     <= ntRSCO;
+    CECO     <= ntCECO;
+    
+    ntD0      <= D0;
+    ntD1      <= D1;
+    ntD2      <= D2;
+    ntD3      <= D3;
+    ntD4      <= D4;
+    ntDD      <= DD;
+
+    Y3        <= ntY3;
+    Q3        <= ntQ3;
+      
+    COUT      <= ntCOUT;
+    
+    //
+    // Instances. FGA section
+    //
+
+    device LUT5S FYC
+        parameter map
+        (
+            CP_INIT   => CP_INITC,
+            CP_MODE   => CP_MODEC,
+            CP_MASK   => CP_MASK
+        )
+        port map 
+        (
+            A0   => ntC0,
+            A1   => ntC1,
+            A2   => ntC2,
+            A3   => ntC3,
+            A4   => ntC4,
+            AD   => ntCD,
+            CIN  => ntCYB,
+            COUT => ntCYC,
+            L5   => ntL5C 
+        );
+
+    device YMUX Y2MUX
+        parameter map
+        (
+            CP_OUT_SEL  => CP_Y2MUX_SEL
+        )     
+        port map
+        (
+            FX  => ntL5C, 
+            CYX => ntCYC,
+            Y   => ntY2
+        );
+    
+    device QMUX Q2MUX
+        parameter map
+        (
+            CP_OUT_SEL  => CP_Q2MUX_SEL
+        )    
+        port map
+        (
+            YX  => ntY2,
+            Q   => ntQD2
+        );
+    
+    device FF FF2
+        parameter map
+        (
+            CP_GRS_EN => CP_GRS_EN,
+            CP_RS_MODE => CP_RS_MODE,
+            CP_FF_RS   => CP_FF2_RS
+        )
+        port map
+        (
+            D  => ntQD2,
+            RS => ntRSCO, 
+            CE => ntCECO, 
+            CLK => ntCLKCO,
+            Q  => ntQ2
+        );
+
+    device LUT5SC FYD 
+        parameter map
+        (
+            CP_INIT   => CP_INITD,
+            CP_MODE   => CP_MODED,
+            CP_MASK   => CP_MASK
+        )
+        port map 
+        (
+            A0   => ntD0,
+            A1   => ntD1,
+            A2   => ntD2,
+            A3   => ntD3,
+            A4   => ntD4,
+            AD   => ntDD,
+            CIN  => ntCYC,
+            COUT => ntCOUT,
+            L5   => ntL5D
+        );
+
+    device YMUX Y3MUX
+        parameter map
+        (
+            CP_OUT_SEL  => CP_Y3MUX_SEL
+        )     
+        port map
+        (
+            FX  => ntL5D, 
+            CYX => ntCOUT,
+            Y   => ntY3
+        );
+    
+    device QMUX Q3MUX
+        parameter map
+        (
+            CP_OUT_SEL  => CP_Q3MUX_SEL
+        )    
+        port map
+        (
+            YX  => ntY3,
+            Q   => ntQD3
+        );
+    
+    device FF FF3
+        parameter map
+        (
+            CP_GRS_EN => CP_GRS_EN,
+            CP_RS_MODE => CP_RS_MODE,
+            CP_FF_RS   => CP_FF3_RS
+        )
+        port map
+        (
+            D  => ntQD3,
+            RS => ntRSCO, 
+            CE => ntCECO, 
+            CLK => ntCLKCO,
+            Q  => ntQ3
+        );
+        
+    device MUX2_P RSMUX
+        parameter map
+        (
+            SEL    => CP_RSMUX_SEL
+        )    
+        port map
+        (
+            DI0  => ntRS_P, 
+            DI1  => ntRSCI,
+            DOUT => ntRSCO
+        );
+
+    device MUX2_P CEMUX
+        parameter map
+        (
+            SEL    => CP_CEMUX_SEL
+        )     
+        port map
+        (
+            DI0  => ntCE_P, 
+            DI1  => ntCECI,
+            DOUT => ntCECO
+        );
+
+
+    device LRS_POLMUX LRSPOLMUX
+        parameter map
+        (
+            CP_LRS_EN  => CP_LRS_EN,
+            CP_LRS_POL => CP_LRS_POL
+        )     
+        port map
+        (
+            IN  => ntRS, 
+            Y   => ntRS_P
+        );
+
+    device LCE_POLMUX  LCEPOLMUX
+        parameter map
+        (
+            CP_LCE_EN  => CP_LCE_EN,
+            CP_LCE_POL => CP_LCE_POL
+        )     
+        port map
+        (
+            IN  => ntCE, 
+            Y   => ntCE_P
+        );
+
+    device CLK_POLMUX  CLKPOLMUX
+        parameter map
+        (
+            CP_CLK_POL    => CP_CLK_POL
+        )        
+        port map
+        (
+            IN  => ntCLK, 
+            Y   => ntCLKCO
+        );
+}; 

@@ -1,0 +1,107 @@
+*****************************************************************
+
+  Device    [IOCLK GATE]
+
+  Author    [clwang]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+grid
+device IOCLKGATE
+{
+
+    parameter
+    (
+        // These are the config parameters that are used to enable formal flow. They
+        // should be present in the declaration only if a MACRO is set. In normal
+        // implementation flow they should be turned off.
+        config bit GATEEN = 1'b0
+    );
+    port
+    (
+        // These are the config ports.
+        config input SC_GATEEN  = 1'b0 /*pragma PAP_CFG_BIT_NAME = "SC_GATEEN" */,
+        
+        // input   RSTN, 
+        
+       input   CLK = 1'b1, 
+       input   DIN = 1'b1, 
+       
+       output  OUT 
+    );
+
+}// end of device IOCLKGATE
+
+/*******************************************************************************
+
+  Device    [IOCLKGATE]
+
+  Author    []
+
+  Abstract  [The structure netlist of IOCLK GATE is described in the similar fashion 
+             as in HDL. In unit instantiation statement, the formal pin may be 
+             connected to net which is declared explicitly. 
+             
+             In Valence, the connection can also be made from formal pin to other 
+             pin or port, in which case Valence compiler shall create the net to 
+             fulfil the connection. The built-in naming convention is kicked in 
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of IOCLKGATE
+{
+     device IOCLKGATE_INST IOCLKGATE_INST
+        parameter map
+        (
+            GATEEN  => GATEEN
+        )
+        port map
+        (
+            CLK  => CLK,
+            DIN  => DIN,
+            OUT  => OUT
+        );
+
+}; // end of structure netlist of IOCLKGATE
+
+/*******************************************************************************
+
+  Device    [IOCLKGATE]
+
+  Author    []
+
+  Abstract  [Configure the configuration bits based on the value of config parameter]
+
+  Revision History:
+
+********************************************************************************/
+configuration cfg of IOCLKGATE
+{
+     SC_GATEEN := GATEEN;
+}; // end of configuration cfg of IOCLKGATE
+
+timing tnl of IOCLKGATE
+{
+    operator V_IOCLKBUF V_IOCLKBUF
+        parameter map
+        (
+            GATE_EN  => (GATEEN == 1'b1) ? "TRUE" : "FALSE"
+        )
+        port map
+        (
+            CLKIN    => CLK, 
+            DI       => DIN, 
+            CLKOUT   => OUT
+        );
+}
+
+
+

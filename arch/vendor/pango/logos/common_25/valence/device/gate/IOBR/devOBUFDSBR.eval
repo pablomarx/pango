@@ -1,0 +1,72 @@
+******************************************************************
+//
+//  Device    [devOBUFDSBR]
+//
+//  project   []
+//  
+//  Author    [guoxi]
+//
+//  Abstract  [ B part of DS]
+//
+//  Revision History:
+//                       
+//********************************************************************************/
+
+gate device devOBUFDSBR : device IOBR
+{
+    parameter 
+    (
+        config string CP_IOB_MODE      = "IBUFHR",     //"IBUFHR","OBUFHR","IOBUFHR","OBUFHR_T","IBUFHR_DS","IVREFHR"
+        config string CP_PORT_STATUS   = "PULLUP",     //"PULL_UP","PULL_DOWN","KEEPER" on input pad
+        config string CP_IO_STANDARD   = "LVCMOS33",   //IO standard: lvcmos33 lvcmos25 lvcmos18 lvcmos15 lvcmos12
+        config string CP_DIFFIN_TERM   = "OFF",        //differential input terminal resistor: "ON", "OFF"
+        config string CP_DDRIN_TERM    = "OFF",        //terminal resistor for DDR input:"OFF","ON"
+        config string CP_W_VOLT_R_IN   = "NOHYS",      //"NOHYS","SHYS_I","SHYS_II","LHYS","OD33","OD25","OD18","UD12","UD18","UD25"
+        config string CP_DRV_STRENGTH  = "8",          // output drvier strength: 2,4,6,8,12,16,24
+        config string CP_SLEW_MODE     = "F",          //slew rate: "FAST"->"F", "SLOW"->"S"
+        config string CP_HOT_SOCKET    = "ON",         //hot_socket feature, "ON", "OFF"
+        config string CP_VCCIO         = "3.3"         //bank power supply, "2.5", "3.3"
+    );
+    port
+    ( 
+        input  TS,
+        input DIFFO_IN, 
+        inout PAD
+     );
+};  // end of device devOBUFDSBR
+
+
+/*******************************************************************************
+
+  Device    [devOBUFDSBR]
+
+  Author    []
+
+  Abstract  [gate grid devOBUFDSBR. structure nestlist]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devOBUFDSBR
+{
+    // Wires connecting to ports. 
+    wire ntPAD;
+    wire ntDIFFO_IN;
+    
+    ntDIFFO_IN <= DIFFO_IN;
+    PAD        <= ntPAD;
+    
+    device DIFFORMUX DIFFORMUX
+        parameter map
+        (
+            CP_IOB_MODE    => CP_IOB_MODE
+            //CP_IO_STANDARD => CP_IO_STANDARD
+        )
+        port map
+        (
+            OUT      => ntPAD,
+            DIFFO_IN => ntDIFFO_IN
+        );
+    
+};  // end of structure netlist of devOBUFDSBR            
+            

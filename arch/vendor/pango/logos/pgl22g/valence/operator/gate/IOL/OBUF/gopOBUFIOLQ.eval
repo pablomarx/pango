@@ -1,0 +1,75 @@
+*******************************************************************
+
+  Operator    [gopOBUFIOLQ]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+gate
+operator gopOBUFIOLQ
+{
+    parameter
+    (
+        string MIPI_MODE      = "FALSE",
+        string GRS_EN         = "FALSE",           // "TRUE" "FALSE"
+        string OFF_CE_EN      = "UNUSED",   
+        string OFF_LRS_EN     = "UNUSED",   
+        string OFF_SET        = "RESET",     
+        string OFF_SYNC       = "ASYNC",     
+        string OFF_LATCH      = "FF",        
+
+        string CLK_O_INV      = "FALSE",    
+        string CE_INV         = "FALSE",    
+        string LRS_INV        = "FALSE"
+    );
+    port
+    (
+        input   IN,
+
+        input   SYSCLK /*pragma PAP_ARC_GOP_CTRL_PIN="GCLK|RCLK"*/,
+        input   CE /*pragma PAP_ARC_GOP_CTRL_PIN="CE"*/,
+        input   LRS /*pragma PAP_ARC_GOP_CTRL_PIN="RST"*/,
+        input   MI,
+        output  MO,
+        // from to IOB
+        output  T,
+        output  O,
+
+        output  DO_OUT
+    );
+};
+
+implementation impl of gopOBUFIOLQ
+{
+    device devOBUFIOLQ gate_obufiolq
+        parameter map
+        (
+            CP_GRS_DIS     => GRS_EN == "FALSE" ? "TRUE" : "FALSE",
+            CP_OUTCE_EN    => OFF_CE_EN == "USED" ? "ENABLE" : "DISABLE",       
+            CP_OUTLRS_EN   => OFF_LRS_EN == "USED" ? "ENABLE" : "DISABLE",      
+            CP_OFF_SET     => OFF_SET,         
+            CP_FF_SYNC     => OFF_SYNC,         
+            CP_OFF_LATCH   => OFF_LATCH,      
+
+            CP_OUTCLK_POL   =>  CLK_O_INV,      
+            CP_CE_POL       =>  CE_INV,         
+            CP_LRS_POL      =>  LRS_INV,
+            CP_MIPI_EN      =>  MIPI_MODE == "TRUE" ? "ENABLE" : "DISABLE"
+        )
+        port map
+        (
+            TX_DATA[7]   =>  IN,
+
+            CLK_SYS      =>  SYSCLK,
+            CE           =>  CE,
+            LRS          =>  LRS,
+            TO           =>  T,
+            DO           =>  O,
+
+            DO_OUT        =>  DO_OUT,
+            MIPI_SW_DYN_O =>  MO,
+            MIPI_SW_DYN_I =>  MI
+        );
+};

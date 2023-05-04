@@ -1,0 +1,115 @@
+use pgl_defs;
+use pgl100h_defs ;
+use pgl_WLSR2_input_inc,pgl_PLL_input_inc,pgl_USCM_input_inc,pgl_IOCKGATEDLL_input_inc;
+
+package pgl100h_funcs_connect_clk
+{
+
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_PLL_input_100h
+(
+    int ty_clkmux1,
+    int ty_clkmux2,
+    string dev_clkmux
+)
+{
+    STRUCT inc_spec_PLL_input incVar;
+    int tx,ty;
+    int tx_con,ty_con;
+    string pin_pll;
+    string pin_con;
+    string device_con;
+    int sx,sy;   
+    unsigned int temp_ty;
+
+    string pll , clkmux; 
+
+    int sx_con,sy_con;
+
+    clkmux = dev_clkmux ;
+
+    foreach incVar(inc_PLL_input_spec)
+    {        
+        tx = incVar.tx_pll;
+        ty = incVar.ty_pll;
+        sx = tx * NUM_GRID_X + 2;
+        sy = ty * NUM_GRID_Y;
+
+        pll = (!(ty==ty_clkmux1 || ty==ty_clkmux2)) ? "PLL_100H_TILE" : clkmux ;        
+
+        pin_pll = incVar.port_name_pll;
+        pin_con = incVar.port_name_con;
+
+        if((pin_con!="TIEH")&&(pin_con!="TBD"))
+        {
+            device_con = incVar.device_name_con;
+            tx_con = incVar.tx_con;
+            ty_con = incVar.ty_con;
+            sx_con = ((incVar.device_name_con=="PLL_100H_TILE")||(incVar.device_name_con=="RLYBUFS_TILE")||(incVar.device_name_con=="CLKMUX_100H_TILE")) ? tx_con*NUM_GRID_X + 2 : tx_con * NUM_GRID_X;
+            sy_con = ty_con * NUM_GRID_Y;
+
+            connect
+            (
+                <pin *pin_pll of <device *pll @ [sx,sy]>> => <wire *pin_con of <device *device_con @ [sx_con,sy_con]>>
+            );
+        }
+    }    
+
+}//end of function connect_PLL_input
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_ioclk_v_input
+(
+    int rx,
+    int tx,
+    int ty,
+    int ty_dqsl,
+    string sig_clk_iol_i,
+    string sig_clk_iol_o,
+    string sig_clk_iock,
+    string dev_dqsl,
+    string dev_iol,
+    string dev_iock,
+    int flag_iol,
+    int flag_dqslcon
+)
+{
+    int sx,sy,sy_dqsl,sy_iock;
+
+    string clk_iol_o = sig_clk_iol_o ;
+    string clk_iol_i = sig_clk_iol_i ;
+    string clk_iock = sig_clk_iock ;
+    string dqsl = dev_dqsl ;
+    string iol = dev_iol ;
+    string iock = dev_iock ;
+
+    sx = tx * NUM_GRID_X + 2;
+
+    sy = ty * NUM_GRID_Y ;
+
+    sy_dqsl = ty_dqsl * NUM_GRID_Y ;
+
+    sy_iock = rx * NUM_TILES_REGION * NUM_GRID_Y + MID_TILE_REGION* NUM_GRID_Y - NUM_GRID_Y ;
+
+    if(flag_dqslcon==1)
+    {
+        connect(<pin CLK_IOL_BUF of <device *dqsl @[sx,sy_dqsl]>> =>  <wire *clk_iock of <device *iock @[sx,sy_iock]>>);
+    }
+
+    if(flag_iol==1)
+    {
+        connect(<pin IOCLK of <device *iol @[sx,sy]>> =>  <wire *clk_iol_o of <device *dqsl @[sx,sy_dqsl]>>);
+    }
+    else
+    {
+        connect
+        (
+            <pin CLK_IOL_BUF[1] of <device *dqsl @[sx,sy_dqsl]>> =>  <wire DQS_TILO  of <device *dqsl @[sx,sy_dqsl]>>,
+            <pin CLK_IOL_BUF[0] of <device *dqsl @[sx,sy_dqsl]>> =>  <wire DQS_TILO of <device *dqsl @[sx,sy_dqsl]>>
+        );
+    }
+}//end of function connect_IOCLK_input
+
+}//end of package pgl_funcs_connect_clk
+

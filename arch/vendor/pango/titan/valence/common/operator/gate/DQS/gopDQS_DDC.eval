@@ -1,0 +1,111 @@
+*******************************************************************
+
+  Operator    [gopDQS_DDC]
+
+  Abstract  []
+
+  Revision History:
+
+ ********************************************************************************/
+gate
+operator gopDQS_DDC
+{
+    parameter
+    (
+        string GRS_EN                 = "TRUE",          // "TRUE" : 1'b0; "FALSE" : 1'b1
+        string CLK_GATE_EN            = "TRUE",          // "TRUE" : 1'b1; "FALSE" : 1'b0
+        bit    LRS_POL                = 1'b0,            // 1'b0: noinv; 1'b1: inv
+        string DQS_MODE               = "FULL_RATE",     // "FULL_RATE" "HALF_RATE" "QUAD_RATE"  
+        string WL_CTRL_EN             = "FALSE",         // "TRUE" : 1'b1; "FALSE" : 1'b0
+        bit    CLK_DELAY_STEP[8:0]    = 9'h000,          // 
+        string CLK_EN                 = "TRUE",          // "TRUE" : 1'b1; "FALSE" : 1'b0
+        string RDEL_CTRL_EN           = "TRUE",          // "TRUE" : 1'b1; "FALSE" : 1'b0
+        bit    DQS_DELAY_STEP[8:0]    = 9'h000,          // "DEFAULT"
+        string DQS_DLL_IN_EN          = "TRUE",          // "TRUE" : 1'b0; "FALSE" : 1'b1 
+        bit    MARGIN                 = 1'b0,            
+        string FIFO_MODE              = "MDDR",          // "MDDR" : DDR MEM; "GDDR" : GENERIC DDR
+        bit    FIF0_ADDR_INIT[2:0]    = 3'b000, 
+        string DQSI_SEL               = "DQSI0"           // "DQSI0" "DQSI1"  
+    );
+
+    port
+    (
+        input  RST /* pragma PAP_ARC_GOP_CTRL_PIN = RST*/,
+        input  RCLK /* pragma PAP_ARC_GOP_CTRL_PIN = "GCLK|RCLK"*/,
+        input  IOCLK /* pragma PAP_ARC_GOP_CTRL_PIN = IOCLK*/,
+        input  GN,
+        input  DLL_STEP[7:0],    
+        input  WL_STEP[7:0],
+        input  WL_CTRL[2:0],
+        output WL_OV,
+        output WCLK,
+        output WCLK_DEL,
+        input  DQS_GATE_CTRL[3:0],
+        input  READ_CLK_CTRL[2:0],
+        input  DQSI,
+        input  RDEL_CTRL[2:0],
+        output RDEL_OV,
+        output DQSI_DEL,
+        output DGTS,
+        output READ_VALID,
+        output IFIFO_WADDR[2:0],
+        output IFIFO_RADDR[2:0]
+    );
+};
+
+/**Implementation Body*******************************************************************
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_dqs of gopDQS_DDC
+{  
+    device devDDC dqs_ddc_inst
+        parameter map
+        (
+            GRS_EN            => GRS_EN              ,
+            CLK_GATE_EN       => CLK_GATE_EN         ,
+            LRS_POL           => LRS_POL             ,
+            DQS_MODE          => DQS_MODE            ,              
+            WL_CTRL_EN        => WL_CTRL_EN          ,
+            CLK_DELAY_STEP    => CLK_DELAY_STEP,
+            CLK_EN            => CLK_EN              ,
+            RDEL_CTRL_EN      => RDEL_CTRL_EN        ,
+            DQS_DELAY_STEP    => DQS_DELAY_STEP,
+            DQS_DLL_IN_EN     => DQS_DLL_IN_EN       ,
+            MARGIN            => MARGIN              ,
+            FIFO_MODE         => FIFO_MODE           ,
+            FIF0_ADDR_INIT    => FIF0_ADDR_INIT      ,
+            DQSI_SEL          => DQSI_SEL
+        )
+        port map
+        (
+            RST                      => RST, 
+            SYSCLK                   => RCLK, 
+            IOCLK[0]                 => IOCLK,  
+            CLKGATE                  => GN,    
+            WL_STEP                  => WL_STEP,   
+            WL_CTRL                  => WL_CTRL, 
+            DQS_GATE_CTRL            => DQS_GATE_CTRL, 
+            READ_CLK_CTRL            => READ_CLK_CTRL, 
+            DQSI[0]                  =>  (DQSI_SEL == "DQSI0") ? DQSI : 1'bx,  
+            DQSI[1]                  =>  (DQSI_SEL == "DQSI1") ? DQSI : 1'bx,       
+            RDEL_CTRL                => RDEL_CTRL,
+            WL_OV                    => WL_OV,               
+            WCLK                     => WCLK,               
+            WCLK_DEL                 => WCLK_DEL, 
+            RDEL_OV                  => RDEL_OV,  
+            DQSI_DEL                 => DQSI_DEL,  
+            DQS_GATE_TRAINING_STATUS => DGTS,
+            READ_VALID               => READ_VALID, 
+            DLL_CODE                 => DLL_STEP,
+            IFIFO_RADDR              => IFIFO_RADDR,        
+            IFIFO_WADDR              => IFIFO_WADDR 
+        );
+
+}; // end of implementation impl_dqs of gopDQS_DDC
+

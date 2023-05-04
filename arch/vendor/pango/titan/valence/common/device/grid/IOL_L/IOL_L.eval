@@ -1,0 +1,877 @@
+*****************************************************************
+
+  Device    [IOL_L]
+
+  Author    [hzhang]
+
+  Abstract  [IOL_L is on the Left of Arch.]
+
+  Revision History:
+
+********************************************************************************/
+grid
+device IOL_L
+{
+
+    parameter
+    (
+        config string TS_MUX_SEL     = "TS_TSFF",   //"TS_TSFF", "TS_IN" "TS_ODDR" "ZERO"
+        config string OUT_MUX_SEL    = "DATAIN",    //" DATAIN", "ODDR_DO" "OFF_Q"
+
+        config string DO_SEL         = "DO",   // "DO", "DO_COMP"
+        config string TO_SEL         = "TO",   // "TO", "TO_COMP"
+
+        config string IDDR_MODE       = "DISABLE",      //" DISABLE", "IGDDR"
+        config string ODDR_MODE       = "DISABLE",      //" DISABLE", "OGDDR" 
+
+        config string DELAY_MODE     = "NODELAY",   //"NODELAY", "INDELAY", "OUTDELAY", "INOUTDELAY",
+        config string DELAY_SEL      = "DEFAULT",   //"DEFAULT":  offset
+                                                    //"25PS":     offset+25ps
+                                                    //"50PS":     offset+50ps
+                                                    //"100PS":    offset+100ps
+        config bit    IODLY_CTRL_EN   = 1'b0,        // The enable signal of IODLY_CTRL                                            
+        config bit    IODLY_STEP[6:0] = 7'b000_0000, // IOL input delay chain value control. Each delay step is ~50ps.   
+                                                     // Delay value is linear increased with the binary code increase.
+                                                     // 00000: minimum input delay
+                                                     // 10000: mid point input delay
+                                                     // 11111: maximum input delay
+        config bit    IDDR_LRS_EN    = 1'b0,
+        config bit    ODDR_LRS_EN    = 1'b0,
+
+        config bit    TMDDR_CLK_INV   = 1'b0,           // IOL TMDDR(ODDR_DQS) clock invertion control
+                                                        // 0: not invert TMDDR clock 1: invert TMDDR clock
+
+        // FF
+        config bit    TRI_FORCE[1:0] = 2'b00, 
+        config bit    TSFF_USED      =  1'b0,
+        config bit    TSFF_CE_EN     = 1'b0,
+        config bit    TSFF_LRS_EN    = 1'b0,
+        config bit    TSFF_SET       = 1'b0,      //1'b1 => set; 1'b0 => reset
+        config bit    TSFF_SYNC      = 1'b0,      //1'b1 => sync; 1'b0 => async
+        config bit    TSFF_LATCH     = 1'b0,      //1'b1 => latch; 1'b0 => flip flop
+
+        config bit    OFF_USED        =  1'b0, 
+        config bit    OFF_CE_EN      = 1'b0,
+        config bit    OFF_LRS_EN     = 1'b0,
+        config bit    OFF_SET        = 1'b0,      //1'b1 => set; 1'b0 => reset
+        config bit    OFF_SYNC       = 1'b0,      //1'b1 => sync; 1'b0 => async
+        config bit    OFF_LATCH      = 1'b0,      //1'b1 => latch; 1'b0 => flip flop
+
+        config bit    IFF_USED        =  1'b0,
+        config bit    IFF_CE_EN      = 1'b0,
+        config bit    IFF_LRS_EN     = 1'b0,
+        config bit    IFF_SET        = 1'b0,      //1'b1 => set; 1'b0 => reset
+        config bit    IFF_SYNC       = 1'b0,      //1'b1 => sync; 1'b0 => async
+        config bit    IFF_LATCH      = 1'b0,      //1'b1 => latch; 1'b0 => flip flop
+
+        
+        config bit    GRS_EN         = 1'b1,
+        config bit    CLK_I_INV      = 1'b0,
+        config bit    CLK_O_INV      = 1'b0,
+        config bit    CE_INV         = 1'b0,
+        config bit    LRS_INV         = 1'b0,
+        
+        
+        
+        config bit    TS_INV          = 1'b0         // IOL tri-state signal invertion control
+                                                     // 1'b0: not invert TS
+                                                     // 1'b1: invert TS
+    );
+    port
+    (
+        // These are the config ports.
+        
+        // common config
+        config input SC_SGMII_INSEL            = 1'b0     /*pragma PAP_CFG_BIT_NAME = "SC_SGMII_INSEL" */,
+        config input SC_DIS_GRS                = 1'b0     /*pragma PAP_CFG_BIT_NAME = "SC_DIS_GRS" */,
+        config input SC_CLK_IN_POLARITY_INV    = 1'b0      /*pragma PAP_CFG_BIT_NAME = "SC_INCLK_POL" */,
+        config input SC_CLK_OUT_POLARITY_INV   = 1'b0      /*pragma PAP_CFG_BIT_NAME = "SC_OUTCLK_POL" */,
+        config input SC_CE_POLARITY_INV        = 1'b0      /*pragma PAP_CFG_BIT_NAME = "SC_CE_POL" */,
+        config input SC_LRS_POLARITY_INV       = 1'b0      /*pragma PAP_CFG_BIT_NAME = "SC_LRS_POL" */,
+        config input SC_TS_POL                 = 1'b0     /*pragma PAP_CFG_BIT_NAME = "SC_TS_POL" */,
+                                                           
+        // IDDR config                                     
+        config input SC_INLRS_EN               = 1'b0      /*pragma PAP_CFG_BIT_NAME = "SC_INLRS_EN" */,
+                                                           
+        // ODDR config                                     
+        // SC_ODDR_LRS_EN                                  
+        config input SC_OUTLRS_EN              = 1'b0      /*pragma PAP_CFG_BIT_NAME = "SC_OUTLRS_EN" */,
+        config input SC_OUT_TO_PAD_TS_SEL[1:0] = 2'b00     /*pragma PAP_CFG_BIT_NAME = "SC_TSMODE<1>, SC_TSMODE<0>" */,
+        config input SC_TMDDR_CLK_INV          = 1'b0   /*pragma PAP_CFG_BIT_NAME = "SC_TSCLK_POL" */,
+        // input/output config                             
+        // SC_TS_OUT_SEL SC_DOUT_OUT_SEL
+        config input SC_DIFF                   = 1'b0  /*pragma PAP_CFG_BIT_NAME = "SC_DIFF" */,
+        config input SC_WIN_CENTSEL            = 1'b0 /*pragma PAP_CFG_BIT_NAME = "SC_WIN_CENTSEL" */,
+                                                           
+        // delay path config                               
+        config input SC_IN_DEL_MUX             = 1'b0      /*pragma PAP_CFG_BIT_NAME = "SC_INDEL_EN" */,
+        config input SC_OUT_DEL_MUX            = 1'b0      /*pragma PAP_CFG_BIT_NAME = "SC_OUTDEL_EN" */,
+        config input SC_IODLY_CTRL_EN          = 1'b0         /*pragma PAP_CFG_BIT_NAME = "SC_IMARG_EN" */,
+        config input SC_IODLY_STEP[6:0]        = 7'b000_0000  /*pragma PAP_CFG_BIT_NAME = "SC_INDELAY_CNTL<6>, SC_INDELAY_CNTL<5>, SC_INDELAY_CNTL<4>, SC_INDELAY_CNTL<3>, SC_INDELAY_CNTL<2>, SC_INDELAY_CNTL<1>, SC_INDELAY_CNTL<0>" */,
+        config input SC_ISI_DELSEL[1:0]        = 2'b00        /*pragma PAP_CFG_BIT_NAME = "SC_ISI_DELSEL<1>, SC_ISI_DELSEL<0>" */, 
+                                                           
+        // IFF config                                      
+        config input SC_IFF_CE_EN              = 1'b0      /*pragma PAP_CFG_BIT_NAME = "SC_INCE_EN" */,
+        config input SC_IFF_SET                = 1'b0      /*pragma PAP_CFG_BIT_NAME = "SC_IN_RS" */,          //1'b1 => set; 1'b0 => reset
+        config input SC_FF_SYNC                = 1'b0      /*pragma PAP_CFG_BIT_NAME = "SC_ASYNCMODE" */,      //1'b1 => sync; 1'b0 => async of IFF , OFF, TSFF
+        config input SC_IFF_LATCH              = 1'b0      /*pragma PAP_CFG_BIT_NAME = "SC_LATCHMODE<0>" */,   //1'b1 => latch; 1'b0 => flip flop
+                                                           
+        // OFF config                                      
+        config input SC_OUTCE_EN               = 1'b0      /*pragma PAP_CFG_BIT_NAME = "SC_OUTCE_EN" */,        // OFF_CE_MUX, TSFF_CEMUX
+        config input SC_OFF_SET                = 1'b0      /*pragma PAP_CFG_BIT_NAME = "SC_OUT_RS" */,          //1'b1 => set; 1'b0 => reset
+        config input SC_OFF_LATCH              = 1'b0      /*pragma PAP_CFG_BIT_NAME = "SC_LATCHMODE<1>" */,    //1'b1 => latch; 1'b0 => flip flop
+                                                           
+        // TSFF config                                     
+        config input SC_TSFF_SET               = 1'b0      /*pragma PAP_CFG_BIT_NAME = "SC_TS_RS" */,           //1'b1 => set; 1'b0 => reset
+        config input SC_TSFF_LATCH             = 1'b0      /*pragma PAP_CFG_BIT_NAME = "SC_LATCHMODE<2>" */,    //1'b1 => latch; 1'b0 => flip flop 
+               
+        config input SC_OUTCLK_EN              = 1'b0      /*pragma PAP_CFG_BIT_NAME = "SC_OUTCLK_EN" */, 
+        config input SC_INCLK_EN               = 1'b0      /*pragma PAP_CFG_BIT_NAME = "SC_INCLK_EN" */, 
+        config input SC_IDDR_MODE[3:0]         = 4'b0000   /*pragma PAP_CFG_BIT_NAME = "SC_INPUTMODE<3>, SC_INPUTMODE<2>, SC_INPUTMODE<1>, SC_INPUTMODE<0>" */,
+        config input SC_OUT_TO_PAD_DO_SEL[1:0] = 2'b00     /*pragma PAP_CFG_BIT_NAME = "SC_OUTPUTMODE<6>,SC_OUTPUTMODE<5>" */,                
+        config input SC_ODDR_MODE[4:0]         = 5'b0_0000 /*pragma PAP_CFG_BIT_NAME = "SC_OUTPUTMODE<4>, SC_OUTPUTMODE<3>, SC_OUTPUTMODE<2>, SC_OUTPUTMODE<1>, SC_OUTPUTMODE<0>" */, 
+        config input SC_TRI_FORCE[1:0]         = 2'b00     /*pragma PAP_CFG_BIT_NAME = "SC_TRI_FORCE<1>, SC_TRI_FORCE<0>"*/,
+                
+        // from/to SRB
+
+        output  RX_DATA_DD,
+
+        input   SYSCLK = 1'b1,
+        input   CE     = 1'b1,
+        input   LRS    = 1'b1,
+
+        input   TS_CTRL = 1'b1,
+        input   SLIP    = 1'b1,
+    
+        input   TX_DATA[1:0] = 2'b11,
+        output  RX_DATA[1:0],
+
+        input   IODLY_CTRL[2:0] = 3'b111,
+        output  IODLY_OV,
+
+        input   DPI_CTRL[1:0] = 2'b11,
+        input   DPI_STS_CLR = 1'b1,
+        output  DPI_STS[1:0],
+
+        // from/to IOB
+        output TO,
+        input  DIN = 1'b1,
+        output DO,
+
+        input   DO_IN = 1'b1,
+        input   TO_IN = 1'b1,
+        output  DO_OUT,
+        output  TO_OUT
+    );
+
+}// end of device IOL_L
+
+/*******************************************************************************
+
+  Device    [IOL_L]
+
+  Author    []
+
+  Abstract  [The structure netlist of IOL_L is described in the similar fashion
+             as in HDL. In unit instantiation statement, the formal pin may be
+             connected to net which is declared explicitly.
+
+             In Valence, the connection can also be made from formal pin to other
+             pin or port, in which case Valence compiler shall create the net to
+             fulfil the connection. The built-in naming convention is kicked in
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of IOL_L
+{
+    // Wires for input ports
+
+    wire ntSYSCLK, ntCE, ntLRS;
+    wire ntDIN, ntTS_CTRL;
+
+    ntSYSCLK          <= SYSCLK;
+    ntCE              <= CE;
+    ntLRS             <= LRS;
+    ntDIN             <= DIN;
+    ntTS_CTRL         <= TS_CTRL;
+
+    // Wires connecting to output ports
+    wire ntIODLY_OV;
+    wire ntIN_DELSEL_MUX;
+    wire ntIFF;
+    wire ntTS_MUX;
+    wire ntOUT_DELSEL_MUX;
+
+    IODLY_OV   <= ntIODLY_OV;
+    RX_DATA_DD   <= ntIN_DELSEL_MUX ;
+
+    wire  ntDO_IN,  ntTO_IN;
+
+    wire  ntDO_MUX, ntTO_MUX;
+
+    ntDO_IN   <= DO_IN;
+    ntTO_IN   <= TO_IN;
+
+    TO_OUT    <= ntTS_MUX;
+    DO_OUT    <= ntOUT_DELSEL_MUX;
+    
+    TO        <= ntTO_MUX;
+    DO        <= ntDO_MUX;
+    // Internal wires
+    wire ntLRS_MUX;
+    wire ntCE_MUX;
+    wire ntSYSCLK_MUX_I;
+    wire ntSYSCLK_MUX_O;
+
+    wire ntTSFF_CE_MUX;
+    wire ntTSFF_LRS_MUX;
+    wire ntTSFF_Q;
+
+    wire ntODDR_LRS_MUX;
+    wire ntODDR_TS;
+    wire ntODDR_TX;
+
+    wire ntOFF_CE_MUX;
+    wire ntOFF_LRS_MUX;
+    wire ntOFF_Q;
+
+    wire ntIFF_CE_MUX;
+    wire ntIFF_LRS_MUX;
+
+    wire ntIDDR_ICLK_MUX;
+    wire ntIDDR_LRS_MUX;
+    wire ntRX_DATA0;
+            
+    wire ntDPI_P, ntDPI_N;
+
+    wire ntIN_OUT_DELSEL_MUX;
+    wire ntDELAY_DOUT;
+    wire ntOUTPUT_MUX;
+
+    // TSFF
+    device LRS_MUX_L LRS_MUX_L
+        parameter map
+        (
+            LRS_INV => LRS_INV
+        )
+        port map
+        (
+            I1  => ntLRS,
+            I0  => ntLRS,
+            Y   => ntLRS_MUX
+        );
+
+    device CE_MUX_L CE_MUX_L
+        parameter map
+        (
+            CE_INV => CE_INV
+        )
+        port map
+        (
+            I1   => ntCE,
+            I0   => ntCE,
+            Y    => ntCE_MUX
+        );
+
+    device SYSCLK_MUX_I_L SYSCLK_MUX_I_L
+        parameter map
+        (
+            CLK_INV => CLK_I_INV
+        )
+        port map
+        (
+            I1   => ntSYSCLK,
+            I0   => ntSYSCLK,
+            Y    => ntSYSCLK_MUX_I
+        );
+
+    device SYSCLK_MUX_O_L SYSCLK_MUX_O_L
+        parameter map
+        (
+            CLK_INV => CLK_O_INV
+        )
+        port map
+        (
+            I1   => ntSYSCLK,
+            I0   => ntSYSCLK,
+            Y    => ntSYSCLK_MUX_O
+        );
+
+   // TSFF
+   
+    device TSFF_CE_MUX_L TSFF_CE_MUX_L
+        parameter map
+        (
+            CE_USED => TSFF_CE_EN
+        )
+        port map
+        (
+            CE    => ntCE_MUX,
+            ONE   => 1'b1,
+            Y     => ntTSFF_CE_MUX
+        );
+
+    device TSFF_LRS_MUX_L TSFF_LRS_MUX_L
+        parameter map
+        (
+            LRS_USED => TSFF_LRS_EN
+        )
+        port map
+        (
+            LRS   => ntLRS_MUX,
+            ZERO  => 1'b0,
+            Y     => ntTSFF_LRS_MUX
+        );
+
+    device TSFF_L TSFF_L
+        parameter map
+        (
+           SET    => TSFF_SET,      //1'b1 => set; 1'b0 => reset
+           SYNC   => TSFF_SYNC,     //1'b1 => sync; 1'b0 => async
+           LATCH  => TSFF_LATCH,    //1'b1 => latch; 1'b0 => flip flop
+           GRS_EN => GRS_EN,
+           LRS_EN => TSFF_LRS_EN
+        )
+        port map
+        (
+           D   => ntTS_CTRL,
+           CLK => ntSYSCLK_MUX_O,
+           CE  => ntTSFF_CE_MUX,
+           LRS => ntTSFF_LRS_MUX,
+           Q   => ntTSFF_Q
+        );
+
+    // ODDR
+
+    device ODDR_LRS_MUX_L ODDR_LRS_MUX_L
+        parameter map
+        (
+            LRS_USED => ODDR_LRS_EN
+        )
+        port map
+        (
+            LRS   => ntLRS_MUX,
+            ZERO  => 1'b0,
+            Y     => ntODDR_LRS_MUX
+        );
+
+    device ODDR_L ODDR_L
+        parameter map
+        (
+            GRS_EN    =>  GRS_EN,
+            LRS_EN    =>  ODDR_LRS_EN
+        )
+        port map
+        (
+            LRS          => ntODDR_LRS_MUX,
+            DATA         => TX_DATA,
+            TS           => ntTS_CTRL,
+
+            SYSCLK         => ntSYSCLK_MUX_O,
+
+             DO          => ntODDR_TX,       
+             TO          => ntODDR_TS
+        );
+
+    // connected with TSFF & ODDR
+    device TS_MUX_L TS_MUX_L
+        parameter map
+        (
+            TS_SEL => TS_MUX_SEL
+        )
+        port map
+        (
+            I2  => ntTSFF_Q,
+            I1  => ntTS_CTRL,
+            I0  => ntODDR_TS,
+            Y   => ntTS_MUX
+        );
+    
+    // OFF
+    device OFF_CE_MUX_L OFF_CE_MUX_L
+        parameter map
+        (
+            CE_USED => OFF_CE_EN
+        )
+        port map
+        (
+            CE  => ntCE_MUX,
+            ONE => 1'b1,
+            Y   => ntOFF_CE_MUX
+        );
+
+    device OFF_LRS_MUX_L OFF_LRS_MUX_L
+        parameter map
+        (
+            LRS_USED => OFF_LRS_EN
+        )
+        port map
+        (
+            LRS   => ntLRS_MUX,
+            ZERO  => 1'b0,
+            Y     => ntOFF_LRS_MUX
+        );
+
+    device OFF_L OFF_L
+        parameter map
+        (
+           SET    => OFF_SET,      //1'b1 => set; 1'b0 => reset
+           SYNC   => OFF_SYNC,     //1'b1 => sync; 1'b0 => async
+           LATCH  => OFF_LATCH,    //1'b1 => latch; 1'b0 => flip flop
+           GRS_EN => GRS_EN,
+           LRS_EN => OFF_LRS_EN
+        )
+        port map
+        (
+           D   => TX_DATA[0],
+           CLK => ntSYSCLK_MUX_O,
+           CE  => ntOFF_CE_MUX,
+           LRS => ntOFF_LRS_MUX,
+           Q   => ntOFF_Q
+        );
+
+    // connected with OFF & ODDR
+
+    device OUTPUT_MUX_L OUTPUT_MUX_L
+        parameter map
+        (
+           OUT_SEL    => OUT_MUX_SEL
+        )
+        port map
+        (
+            I2  => TX_DATA[0],
+            I1  => ntODDR_TX,
+            I0  => ntOFF_Q,
+            Y   => ntOUTPUT_MUX
+        );
+
+    // IFF
+    device IFF_CE_MUX_L IFF_CE_MUX_L
+        parameter map
+        (
+           CE_USED  => IFF_CE_EN
+        )
+        port map
+        (
+            CE  => ntCE_MUX,
+            ONE => 1'b1,
+            Y   => ntIFF_CE_MUX
+        );
+
+    device IFF_LRS_MUX_L IFF_LRS_MUX_L
+        parameter map
+        (
+           LRS_USED   => IFF_LRS_EN
+        )
+        port map
+        (
+            LRS  => ntLRS_MUX,
+            ZERO  => 1'b0,
+            Y    => ntIFF_LRS_MUX
+        );
+
+    device IFF_L IFF_L
+        parameter map
+        (
+           SET    => IFF_SET,      //1'b1 => set; 1'b0 => reset
+           SYNC   => IFF_SYNC,     //1'b1 => sync; 1'b0 => async
+           LATCH  => IFF_LATCH,    //1'b1 => latch; 1'b0 => flip flop
+           GRS_EN => GRS_EN,
+           LRS_EN => IFF_LRS_EN
+        )
+        port map
+        (
+           D   => ntIN_DELSEL_MUX,
+           CLK => ntSYSCLK_MUX_I,
+           CE  => ntIFF_CE_MUX,
+           LRS => ntIFF_LRS_MUX,
+           Q   => ntIFF
+        );
+
+
+   // IDDR
+    device IDDR_LRS_MUX_L IDDR_LRS_MUX_L
+        parameter map
+        (
+            LRS_USED => IDDR_LRS_EN
+        )
+        port map
+        (
+            LRS   => ntLRS_MUX,
+            ZERO  => 1'b0,
+            Y     => ntIDDR_LRS_MUX
+        );
+
+    device IDDR_L IDDR_L 
+        parameter map                     
+        (                                 
+            GRS_EN    =>  GRS_EN,         
+            LRS_EN    =>  IDDR_LRS_EN     
+        )                                       
+        port map
+        (
+            LRS            => ntIDDR_LRS_MUX,
+            DATAOUT        => { RX_DATA[1:1], ntRX_DATA0 },
+            IN             => ntIN_DELSEL_MUX,
+            SYSCLK         => ntSYSCLK_MUX_I
+        );
+
+     device IDDR_IFF_MUX_L IDDR_IFF_MUX_L
+        parameter map
+        (
+           DDR_USED => IDDR_MODE
+        )
+        port map
+        (
+            IDDR => ntRX_DATA0,
+            IFF  => ntIFF,
+            Y    => RX_DATA[0]
+        );
+   // DELAY
+
+    device IN_DELSEL_MUX_L IN_DELSEL_MUX_L
+        parameter map
+        (
+           DELAY_MODE => DELAY_MODE
+        )
+        port map
+        (
+            I1  => ntDELAY_DOUT,
+            I0  => ntDIN,
+            Y   => ntIN_DELSEL_MUX
+        );
+
+    device OUT_DELSEL_MUX_L OUT_DELSEL_MUX_L
+        parameter map
+        (
+           DELAY_MODE => DELAY_MODE
+        )
+        port map
+        (
+            I0   => ntOUTPUT_MUX,
+            I1   => ntDELAY_DOUT,
+            Y    => ntOUT_DELSEL_MUX
+        );
+
+    device IN_OUT_DELSEL_MUX_L IN_OUT_DELSEL_MUX_L
+        parameter map
+        (
+           DELAY_MODE => DELAY_MODE
+        )
+        port map
+        (
+            I0  => ntOUTPUT_MUX,
+            I1  => ntDIN,
+            Y   => ntIN_OUT_DELSEL_MUX
+        );
+
+
+   device DELAY_L DELAY_L
+       parameter map
+       (
+           IODLY_STEP => IODLY_STEP
+       )
+       port map
+       (
+           DIN        => ntIN_OUT_DELSEL_MUX,
+           DOUT       => ntDELAY_DOUT,
+           IODLY_CTRL => IODLY_CTRL,
+           IODLY_OV   => ntIODLY_OV
+       );
+
+    device DO_MUX_L DO_MUX_L
+       parameter map
+       (
+           DO_SEL  => DO_SEL
+       )
+       port map
+       (
+           I0   => ntOUT_DELSEL_MUX,
+           I1   => ntDO_IN,
+           Y    => ntDO_MUX
+       );
+
+    device TO_MUX_L TO_MUX_L
+       parameter map
+       (
+           TO_SEL  => TO_SEL
+       )
+       port map
+       (
+           I0   => ntTS_MUX,
+           I1   => ntTO_IN,
+           Y    => ntTO_MUX
+       );
+
+
+}; // end of structure netlist of IOL_L
+
+/*******************************************************************************
+
+  Device    [IOL_L]
+
+  Author    []
+
+/*******************************************************************************
+
+  Device    [IOL_L]
+
+  Author    []
+
+  Abstract  [The floorplan structure]
+
+  Revision History:
+
+********************************************************************************/
+floorplan
+structure fp_struct of IOL_L
+{
+    device IFF_L   IFF_L;
+    device IDDR_L  IDDR_L;
+    device OFF_L   OFF_L;
+    device ODDR_L  ODDR_L;
+    device TSFF_L  TSFF_L;
+    device DELAY_L DELAY_L;  
+
+}; // end of structure fp_struct of IOL_L
+
+
+
+/*******************************************************************************
+
+
+  Abstract  [Configure the configuration bits based on the value of config parameter]
+
+  Revision History:
+
+********************************************************************************/
+configuration cfg of IOL_L
+{
+    SC_DIS_GRS     := (GRS_EN == 1'b1) ? 1'b0 : 1'b1 ;
+    SC_SGMII_INSEL         := 1'b0            ;
+
+    SC_CLK_IN_POLARITY_INV       := CLK_I_INV          ;
+    SC_CLK_OUT_POLARITY_INV      := CLK_O_INV          ;
+    SC_CE_POLARITY_INV           := CE_INV             ;
+    SC_LRS_POLARITY_INV          := LRS_INV            ;
+    SC_TS_POL                    := TS_INV          ;
+    
+    // SC_IDDR_LRS_EN , SC_IFF_LRS_EN
+    if (IDDR_LRS_EN == 1'b1 || IFF_LRS_EN == 1'b1)
+    {
+        SC_INLRS_EN              := 1'b1               ;
+    }
+    else
+    {
+        SC_INLRS_EN              := 1'b0               ;
+    }
+    
+    
+    // SC_ODDR_LRS_EN , SC_TSFF_LRS_EN, SC_OFF_LRS_EN
+    if (ODDR_LRS_EN == 1'b1 || TSFF_LRS_EN == 1'b1 || OFF_LRS_EN == 1'b1)
+    {
+       SC_OUTLRS_EN                 := 1'b1           ;
+    }
+    else
+    {
+       SC_OUTLRS_EN                 := 1'b0           ;
+    }
+    
+    if (TS_MUX_SEL == "TS_TSFF")
+    {
+        SC_OUT_TO_PAD_TS_SEL   := 2'b01               ;
+    }
+    else if (TS_MUX_SEL == "TS_IN")
+    {
+        SC_OUT_TO_PAD_TS_SEL   := 2'b00               ;
+    }
+    else if (TS_MUX_SEL == "TS_ODDR")
+    {
+        SC_OUT_TO_PAD_TS_SEL   := 2'b10               ;
+    }
+    else
+    {
+        SC_OUT_TO_PAD_TS_SEL   := 2'b11               ;
+    }
+    
+    SC_TMDDR_CLK_INV           := TMDDR_CLK_INV       ;  
+
+    
+    // SC_TS_OUT_SEL SC_DOUT_OUT_SEL
+    if (TO_SEL == "TO" && DO_SEL == "DO")
+    {
+        SC_DIFF                    := 1'b0           ;
+    }
+    else if (TO_SEL == "TO_COMP" && DO_SEL == "DO_COMP")
+    {
+        SC_DIFF                    := 1'b1           ;
+    }
+    else //if(DO_SEL == "DO_COMP")
+    {
+        SC_DIFF                    := 1'b0           ;
+        error("TO_SEL,DO_SEL must be the same DIFF mode!");
+    }
+    SC_WIN_CENTSEL                 := 1'b0           ;
+    
+    if (DELAY_MODE == "INDELAY")
+    {
+       SC_IN_DEL_MUX                := 1'b1            ;
+       SC_OUT_DEL_MUX               := 1'b0            ;
+       
+    }
+    else if (DELAY_MODE == "OUTDELAY")
+    {
+       SC_IN_DEL_MUX                := 1'b0            ;
+       SC_OUT_DEL_MUX               := 1'b1            ;
+    }
+    else if (DELAY_MODE == "INOUTDELAY")
+    {
+       SC_IN_DEL_MUX                := 1'b1            ;
+       SC_OUT_DEL_MUX               := 1'b1            ;    
+    }
+    else // if (DELAY_MODE == "NODELAY")
+    {
+       SC_IN_DEL_MUX                := 1'b0            ;
+       SC_OUT_DEL_MUX               := 1'b0            ;
+    }
+    SC_IODLY_CTRL_EN                := IODLY_CTRL_EN   ;
+    SC_IODLY_STEP                   := IODLY_STEP      ;
+    if (DELAY_SEL == "DEFAULT")
+    {
+        SC_ISI_DELSEL               := 2'b00;
+    }
+    else if (DELAY_SEL == "25PS")  
+    {
+        SC_ISI_DELSEL               := 2'b01;
+    }  
+    else if (DELAY_SEL == "50PS")  
+    {
+        SC_ISI_DELSEL               := 2'b10;
+    } 
+    else if (DELAY_SEL == "100PS")  
+    {
+        SC_ISI_DELSEL               := 2'b11;
+    }  
+    else //  
+    {
+        SC_ISI_DELSEL               := 2'b00;
+    } 
+    
+    //SC_IFF_CE_EN                    := IFF_CE_EN;
+    if (IFF_CE_EN == 1'b1)
+    {
+        SC_IFF_CE_EN := 1'b0;
+    }
+    else
+    {
+        SC_IFF_CE_EN := 1'b1;
+    }
+
+    SC_IFF_SET                      := IFF_SET         ;
+    
+    if (TSFF_SYNC == 1'b1 || OFF_SYNC == 1'b1 || IFF_SYNC == 1'b1)
+    {
+        SC_FF_SYNC                  :=  1'b1           ;
+    }
+    else
+    {
+        SC_FF_SYNC                  :=  1'b0           ;
+    }
+    
+    SC_IFF_LATCH                 := IFF_LATCH       ;
+    
+    if (TSFF_CE_EN == 1'b1 || OFF_CE_EN == 1'b1)
+    {
+        SC_OUTCE_EN                 := 1'b0         ;
+    }
+    else
+    {
+        SC_OUTCE_EN                 := 1'b1         ;
+    }
+    
+    SC_OFF_SET                   := OFF_SET         ;
+    SC_OFF_LATCH                 := OFF_LATCH       ;
+    
+    SC_TSFF_SET                  := TSFF_SET        ;
+    SC_TSFF_LATCH                := TSFF_LATCH      ;
+    
+    if (TSFF_USED == 1'b1 || OFF_USED == 1'b1 )
+    {
+        SC_OUTCLK_EN             := 1'b1            ;
+    }
+    else //if (TSFF_USED == 1'b0 && OFF_USED == 1'b0 )
+    {
+        if (ODDR_MODE == "DISABLE")
+        {
+            SC_OUTCLK_EN             := 1'b0            ;
+        }
+        else
+        {
+            SC_OUTCLK_EN             := 1'b1            ;
+        }        
+    }
+
+    
+    if (IFF_USED == 1'b1)
+    {
+        SC_INCLK_EN             := 1'b1            ;
+    }
+    else
+    {
+        if (IDDR_MODE == "DISABLE")
+        {
+            SC_INCLK_EN             := 1'b0            ;
+        }
+        else
+        {
+            SC_INCLK_EN             := 1'b1            ;
+        }        
+    }
+
+    if (OUT_MUX_SEL == "DATAIN")
+    {
+        SC_OUT_TO_PAD_DO_SEL     := 2'b00           ;
+    }
+    else if (OUT_MUX_SEL == "ODDR_DO")
+    {
+        SC_OUT_TO_PAD_DO_SEL     := 2'b10           ;
+    }
+    else if (OUT_MUX_SEL == "OFF_Q")
+    {
+        SC_OUT_TO_PAD_DO_SEL     := 2'b01           ;
+    }
+    else // TX_DDRDO with ISI
+    {
+        SC_OUT_TO_PAD_DO_SEL     := 2'b11           ;
+    }
+
+    if (IDDR_MODE == "IGDDR")
+    {
+        SC_IDDR_MODE            := 4'b0001         ;
+    }
+    else 
+    {
+        SC_IDDR_MODE            := 4'b0000         ;
+    }
+
+    if (ODDR_MODE == "OGDDR")
+    {
+        SC_ODDR_MODE            := 5'b0_0001       ;    
+    }
+    else 
+    {
+        SC_ODDR_MODE            := 5'b0_0000       ;
+    }
+
+    SC_TRI_FORCE        := TRI_FORCE;
+}; // end of configuration cfg of IOL_L
+
+
+
+
+

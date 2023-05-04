@@ -1,0 +1,114 @@
+*****************************************************************
+
+  Device    [devIOLOTCMP]
+
+  Author    [hzhang]
+
+  Abstract  [device base on IOL, used as inout path through to IOB ]
+
+  Revision History:
+
+********************************************************************************/
+
+gate
+device devIOLOTCMP : device IOL
+{
+    parameter
+    (
+        config string DO_SEL      := "DO_COMP",       // "DO", "DO_COMP"
+        config string TO_SEL      := "TO_COMP",        // "TO", "TO_COMP"
+        
+        config bit    TRI_FORCE[1:0]  := 2'b11
+    );
+    port
+    (
+        input   DO_IN,
+        input   TO_IN,
+        output  TO,
+        output  DO
+    );
+
+}// end of device devIOLOTCMP
+
+/*******************************************************************************
+
+  Device    [devIOLOTCMP]
+
+  Author    []
+
+  Abstract  [The structure netlist of devIOLOTCMP is described in the similar fashion
+             as in HDL. In unit instantiation statement, the formal pin may be
+             connected to net which is declared explicitly.
+
+             In Valence, the connection can also be made from formal pin to other
+             pin or port, in which case Valence compiler shall create the net to
+             fulfil the connection. The built-in naming convention is kicked in
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devIOLOTCMP
+{
+    // Wires connecting to output ports
+
+    wire  ntDO_IN,  ntTO_IN;
+
+    wire  ntDO_MUX, ntTO_MUX;
+
+    ntDO_IN   <= DO_IN;
+    ntTO_IN   <= TO_IN;
+
+    TO        <= ntTO_MUX;
+    DO        <= ntDO_MUX;
+
+    device DO_MUX DO_MUX
+       parameter map
+       (
+           DO_SEL  => DO_SEL
+       )
+       port map
+       (
+           I1   => ntDO_IN,
+           Y    => ntDO_MUX
+       );
+
+    device TO_MUX TO_MUX
+       parameter map
+       (
+           TO_SEL  => TO_SEL
+       )
+       port map
+       (
+           I1   => ntTO_IN,
+           Y    => ntTO_MUX
+       );
+
+}; // end of structure netlist of devIOLOTCMP
+
+timing tnl of devIOLOTCMP
+{
+    operator V_INV inv
+        parameter map
+        (
+           SECTION => "OBUF_IOL_CMP"
+        )
+        port map
+        (
+            I => DO_IN,
+            Z => DO
+        );
+    operator V_BUF tbuf
+        parameter map
+        (
+           SECTION => "OBUF_IOL_CMPT"
+        )
+        port map
+        (
+            I => TO_IN,
+            Z => TO
+        );
+}

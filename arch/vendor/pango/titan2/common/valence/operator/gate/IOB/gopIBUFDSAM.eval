@@ -1,0 +1,115 @@
+*******************************************************************
+
+  Operator    [gopIBUFDSAM]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+
+gate
+operator gopIBUFDSAM
+{
+    parameter
+    (
+        string TERMINATED              = "NONE",    /* "NONE" , "PULLUP" , "PULLDOWN" , "KEEPER" */
+        string HOT_SOCKET              = "ON",        // ON: 1'b0; OFF: 1'b1
+        string VCCIO                   = "3.3",       // "3.3" "2.5" "1.8" "1.5" "1.2"
+                                       
+        string HYS_DRIVE_MODE          = "NOHYS" ,    // "NOHYS","SMHYS_I","SMHYS_II","LGHYS","OD","UD" 
+        string VREF_MODE               = "INT"    ,    // "INT": VREF_IN; "EXTERNAL": VREF_OUT
+        string VREF_PIN_LOC            = "NA"    ,    // "NA" "VREF1" "VREF2" "VREF3",
+                                                      // This Parameter is used for PCE and report.
+        string VREF_IN_MODE            = "OFF",    // "OFF" "0.45" "0.50" "0.55"
+        string DDR_TERM_MODE           = "OFF",     // "TERM": "ON" "OFF"     
+        string VREF_OUT_MODE           = "VREF0",  // "VREF0"   "VREF1"       
+        string DIFF_IN_TERM_MODE       = "OFF",
+        string IOSTANDARD              = "MINI-LVDS",
+        string CP_LP_EN                = "OFF",
+        string CP_DIFFIN_DYN_EN        = "FALSE",
+        string CP_DYN_TERM                = "OFF",
+        string CP_HYS                = "OFF",
+        string CP_DYN_IN                  = "OFF",
+        
+        // parameter of bkcl, just for transmit value from gui
+        //string CP_DRV_STRENGTH_DIFF_0  = "0",
+        //string CP_DRV_STRENGTH_DIFF_1  = "0",
+        //string CP_VCM_0                = "1.25",
+        //string CP_VCM_1                = "1.25",
+        //string CP_DIFFOUT_EN_0         = "FALSE",
+        //string CP_DIFFOUT_EN_1         = "FALSE",
+        string DDR_RES                 = "50"
+        //string CP_VREF_MODE            = "EXTERNAL",
+        //string CP_VREF_SEL             = "0.5"
+    );
+    port
+    (
+        input  IN_DYN_EN,
+        input  I,
+        input  DO,
+        input  DO_NDRV,
+        input  DIFFI_IN,
+        output O
+    );
+};
+
+implementation impl_D of gopIBUFDSAM
+{
+    device devIOBD gate_ibufds_d
+        parameter map
+        (
+            CP_IOB_MODE        =>  "IBUFHR_DS",
+            CP_PORT_STATUS     =>  TERMINATED,
+            CP_IO_STANDARD     =>  IOSTANDARD,
+            CP_DIFFIN_TERM     =>  DIFF_IN_TERM_MODE,
+            CP_DDRIN_TERM      =>  DDR_TERM_MODE,
+            CP_TERM_VAL          =>  DDR_RES,
+            CP_DYN_TERM        =>  CP_DYN_TERM,
+            //CP_IN_MAG
+            CP_HYS             =>  CP_HYS,
+            //CP_HOT_SOCKET      =>  HOT_SOCKET,
+            CP_VCCIO           =>  VCCIO,
+            CP_DYN_IN          =>  CP_DYN_IN
+            //CP_W_VOLT_R_IN     =>  HYS_DRIVE_MODE,
+        )
+        port map 
+        (
+            IN_DYN_EN => IN_DYN_EN,
+            DO        => DO,
+            DO_NDRV   => DO_NDRV,
+            PAD       => I,
+            DIFFI_IN  => DIFFI_IN, 
+            DIN       => O
+        );
+};
+
+implementation impl_IOBDHP of gopIBUFDSAM
+{
+    device devIOBDHP gate_dsam_bdhp
+        parameter map
+        (
+            CP_IOB_MODE        =>  "IBUFHR_DS",
+            CP_PORT_STATUS     =>  TERMINATED,
+            CP_IO_STANDARD     =>  IOSTANDARD,
+            CP_DIFFIN_TERM     =>  DIFF_IN_TERM_MODE,
+            CP_DDRIN_TERM      =>  DDR_TERM_MODE,
+            CP_TERM_VAL          =>  DDR_RES,
+            CP_DYN_TERM        =>  CP_DYN_TERM,
+            //CP_IN_MAG
+            CP_HYS             =>  CP_HYS,
+            //CP_HOT_SOCKET      =>  HOT_SOCKET,
+            CP_VCCIO           =>  VCCIO,
+            CP_DYN_IN          =>  CP_DYN_IN
+            //CP_W_VOLT_R_IN   =>  HYS_DRIVE_MODE,
+        )
+        port map 
+        (
+            S11_ENINR_DYN  => IN_DYN_EN,
+            S11_USR_DO_P   => DO,
+            S11_USR_DO_N   => DO_NDRV,
+            PAD       => I,
+            DIFFI_IN  => DIFFI_IN, 
+            DIN       => O
+        );
+};

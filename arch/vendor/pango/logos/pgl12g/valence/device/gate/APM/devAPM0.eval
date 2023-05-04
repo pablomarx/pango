@@ -1,0 +1,138 @@
+*****************************************************************
+
+  Device    [APM]
+
+  Author    [yukang]
+
+  Abstract  [The Grid Device APM]
+
+  Revision History: 2016/06/28
+
+   lower half of APM
+
+********************************************************************************/
+gate
+device devAPM0 : device APM
+{
+    parameter
+    (
+        config bit CP_XSIGNED = 1'b0, //signedness of X. X[17:9] and X[8:0] share the same signedness in mult9x9 mode
+        config bit CP_YSIGNED = 1'b0, //signedness of Y. Y[17:9] and Y[8:0] share the same signedness in mult9x9 mode
+
+        config bit CP_POSTADD = 1'b0,  //enable postadder 0/1
+        config bit CP_PREADD = 1'b0,  //enable preadder 0/1
+        config bit CP_PREREG = 1'b0,  //preadder reg 0/1
+
+        config bit CP_XREG = 1'b0,  //X input reg 0/1
+        config bit CP_XOREG[1:0] = 2'b00, //X cascade out reg latency 0/1/2/3
+        config bit CP_YREG = 1'b0,  //Y input reg 0/1
+        config bit CP_ZREG = 1'b0,  //Z input reg 0/1
+        config bit CP_MREG = 1'b0,  //multiplier reg 0/1
+        config bit CP_PREG = 1'b0,  //post adder reg 0/1
+        config bit CP_MODEXREG = 1'b0,  //MODEX input reg
+        config bit CP_MODEYREG = 1'b0,  //MODEY input reg
+        config bit CP_MODEZREG = 1'b0,  //MODEZ input reg
+
+        config bit CP_XSEL = 1'b0,  // mult X input select X/ntNXI
+        config bit CP_XBSEL[1:0] = 2'b00, //X back propagate mux select
+        config bit CP_ASYNC = 1'b0,  // RST is async/sync
+
+        //forced to SIMD mode
+        config bit CP_SIMD = 1'b1,   // single addsub18_mult18_add48 / dual addsub9_mult9_add24
+        config bit CP_ZINIT[23:0] = {24{1'b0}},  //Z constant input (RTI config bit in APM of PG family)
+
+        config bit CP_POREG = 1'b0, // PO,PCO use register output
+        config bit CP_ACCLOW = 1'b0, // accumulator use lower 18-bit feedback only
+        config bit CP_PCISEL = 1'b0, // select PCI for postadder carry in
+
+        //GOP config bit (internal param which is invisible to customer)
+        // should not be used in SIMD mode
+        config bit CP_XSE[7:0] = {8{1'b0}}, //X signed extension
+        config bit CP_YSE[7:0] = {8{1'b0}}, //Y signed extension
+        config bit CP_ZSE[22:0] = {23{1'b0}}, //Z signed extension
+
+        config bit CP_YCONST[8:0] = {9{1'b0}}, //Y constant input
+
+        config bit CP_YDYNSEL = 1'b0,               //Y constant select
+        config bit CP_MODEXCONST = 1'b0,    //MODEX constant input
+        config bit CP_MODEXDYNSEL = 1'b0,    //MODEX constant select
+        config bit CP_MODEYCONST[2:0] = {3{1'b0}}, //MODEY constant input
+        config bit CP_MODEYDYNSEL[2:0] = {3{1'b0}},     //MODEY constant select
+        config bit CP_MODEZCONST[3:0] = {4{1'b0}}, //MODEZ constant input
+        config bit CP_MODEZDYNSEL[3:0] = {4{1'b0}},     //MODEZ constant select
+
+        config bit CP_GRS_DIS = 1'b0,   //global rst disable
+        config bit CP_OR2CASECADE_EN = 1'b0,    //PO enalbe
+        config bit CP_OR2CORE_EN[0:0]  = {1'b1},   //P enalbe
+        config bit CP_IRX_SHFEN = 1'b0, //XO enalbe
+        config bit CP_IRZ_SHFEN = 1'b0, //XBO enable
+        config bit CP_MULT_EN[0:0]  = {1'b0}    //mult enalbe
+    );
+    port
+    (
+        output P[23:0],
+        output PO[23:0],                               //P cascade output
+        output XO[8:0],                               //X cascade output
+        output XBO[8:0],                              //X backward cascade output
+        output PCO,                                    //cascade Carry out
+
+        input  X[8:0]   = 9'b1_1111_1111,
+        input  XI[8:0]  = 9'b1_1111_1111,  //X cascade input
+        input  XBI[8:0] = 9'b1_1111_1111, //X backward cascade input
+        input  Y[8:0]   = 9'b1_1111_1111,
+        input  Z[23:0]   = 24'b1111_1111_1111_1111_1111_1111,
+        input  PI[23:0]  = 24'b1111_1111_1111_1111_1111_1111, //P cascade input
+        input  PCI,          //cascade Carryin
+        input  MODEX,
+        input  MODEY[2:0],
+        input  MODEZ[3:0],
+
+        input  CLK,
+        input  RST_X, //X reset signals
+        input  CE_X,  //X enable signals
+        input  RST_Y, //Y reset signals
+        input  CE_Y,  //Y enable signals
+        input  RST_Z, //Z reset signals
+        input  CE_Z,  //Z enable signals
+        input  RST_PRE, //PRE reset signals
+        input  CE_PRE,  //PRE enable signals
+        input  RST_M, //M reset signals
+        input  CE_M,  //M enable signals
+        input  RST_P, //P reset signals
+        input  CE_P,  //P enable signals
+        input  RST_MODEX, //MODEX reset signals
+        input  CE_MODEX,  //MODEX enable signals
+        input  RST_MODEY, //MODEY reset signals
+        input  CE_MODEY,  //MODEY enable signals
+        input  RST_MODEZ, //MODEZ reset signals
+        input  CE_MODEZ  //MODEZ enable signals
+    );
+
+};// end of device APM
+
+/*******************************************************************************
+
+  Device    [APM]
+
+  Author    [yqtan]
+
+  Abstract  [The structure netlist of APM is described in the similar fashion
+             as in HDL. In unit instantiation statement, the formal pin may be
+             connected to net which is declared explicitly.
+
+             In Valence, the connection can also be made from formal pin to other
+             pin or port, in which case Valence compiler shall create the net to
+             fulfil the connection. The built-in naming convention is kicked in
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devAPM0
+{
+   // device DUM_INST dummy;
+   device DUM_INST APM9A ;
+};

@@ -1,0 +1,105 @@
+*******************************************************************
+
+  Operator    [gopOGDDR]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+gate
+operator gopOGDDR
+{
+    parameter
+    (
+        string MIPI_MODE      = "FALSE",
+        string DOMODE         = "DDR",
+        string MODE           = "OGDDR",
+        bit    LRS_EN         = 1'b1,
+        bit    GRS_EN         = 1'b0,
+        bit    WL_EXTEND      = 1'b0,
+        bit    CP_TSDDR_SR    = 1'b0,
+        bit    CLK_INV        = 1'b0,
+        bit    LRS_INV        = 1'b0
+    );
+    port
+    (
+        input   D[7:0],
+        input   T[3:0],
+        input   SERCLK /*pragma PAP_ARC_GOP_CTRL_PIN="IOCLK"*/,
+        input   SYSCLK /*pragma PAP_ARC_GOP_CTRL_PIN="GCLK|RCLK"*/,
+        input   RESET /*pragma PAP_ARC_GOP_CTRL_PIN="RST"*/,
+
+        output  PADO,
+        output  PADT,
+        output  DO_OUT,
+        output  TO_OUT,
+        
+        input  MI,
+        output MO
+    );
+};
+
+implementation impl of gopOGDDR
+{
+    bit    SERCLK_SEL = 1'b0;
+    bit    OCLK_SEL[1:0] = 2'b00;
+    string TOMODE = "DDR";
+    
+    if (MODE == "OGDDR")
+    {
+        SERCLK_SEL = 1'b0;
+        OCLK_SEL   = 2'b00;
+    }
+    else if (MODE == "OGSER4")
+    {
+        SERCLK_SEL = 1'b0;
+        OCLK_SEL   = 2'b11;
+    }
+    else if (MODE == "OGSER7")
+    {
+        SERCLK_SEL = 1'b0;
+        OCLK_SEL   = 2'b11;
+        TOMODE = "OUT_EXT";
+    }
+    else if (MODE == "OGSER8")
+    {
+        SERCLK_SEL = 1'b0;
+        OCLK_SEL   = 2'b11;
+    }
+    
+    device devOGSER8IOLA gate_ogser8iola
+        parameter map
+        (
+            CP_ODDR_MODE     =>   MODE,
+            CP_SERCLK_SEL    =>   SERCLK_SEL,
+            CP_DOMODE        =>   MIPI_MODE == "FALSE" ? DOMODE : "DD",
+            CP_OCLK_SEL      =>   OCLK_SEL,
+            
+            CP_OUTLRS_EN     =>   LRS_EN == 1'b0 ? "DISABLE" : "ENABLE",
+            CP_WL_EXT        =>   WL_EXTEND == 1'b0 ? "FALSE" : "TRUE",
+            CP_TSDDR_SR      =>   CP_TSDDR_SR == 1'b0 ? "RESET" : "SET",
+            CP_GRS_DIS       =>   GRS_EN == 1'b0 ? "TRUE" : "FALSE",
+            CP_OUTCLK_POL    =>   CLK_INV == 1'b0 ? "FALSE" : "TRUE",
+            CP_LRS_POL       =>   LRS_INV == 1'b0 ? "FALSE" : "TRUE",
+            CP_TOMODE        =>   TOMODE,
+            CP_MIPI_EN       =>   MIPI_MODE == "FALSE" ? "DISABLE" : "ENABLE"
+        )
+        port map 
+        (
+            TX_DATA      =>   D,
+            TS_CTRL      =>   T,
+
+            CLK_IO       =>   SERCLK,
+            CLK_SYS      =>   SYSCLK,
+            LRS          =>   RESET,
+            
+            DO           =>   PADO,
+            TO           =>   PADT,
+            DO_OUT       =>   DO_OUT,
+            TO_OUT       =>   TO_OUT,
+           
+            MIPI_SW_DYN_O =>  MO,
+            MIPI_SW_DYN_I =>  MI
+        );
+};

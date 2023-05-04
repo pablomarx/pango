@@ -1,0 +1,148 @@
+*****************************************************************
+********************************************************************************/
+library work;
+use pgc_defs, pgc7km_defs;
+use pgc7km_funcs_connect_logic;
+structure arch_nl connect_srb_input_v of devPGC7KM
+{
+
+    unsigned int l_tile_y_u[41:0] = {[0:20],[22:42]};
+    unsigned int l_tile_y_d[41:0] = {[42:22],[20:0]};
+
+    unsigned int tx, l_ty[41:0];
+    unsigned int index_y;
+    unsigned int flag_ud, flag; 
+
+    foreach tx( L_SRB_TILES_X )
+    {
+        foreach flag_ud( {[0:1]} )
+        {
+            l_ty = (flag_ud==0) ? l_tile_y_u : l_tile_y_d;
+
+            foreach index_y( [0:41] )
+            {
+
+                connect_srb_input_v_7km(tx, l_ty, index_y, flag_ud, 1);
+                connect_srb_input_v_7km(tx, l_ty, index_y, flag_ud, 2);
+                connect_srb_input_v_7km(tx, l_ty, index_y, flag_ud, 4);
+            }
+        }
+    }
+
+};//end of structure arch_nl connect_srb_input_v of devPGC7KM
+/*******************************************************************************
+********************************************************************************/
+library work;
+use pgc_defs, pgc7km_defs;
+use pgc7km_funcs_connect_logic;
+structure arch_nl connect_srb_input_h of devPGC7KM
+{
+
+    unsigned int l_srb_x_r[23:0] = {[1:13],[15:25]};
+    unsigned int l_srb_x_l[23:0] = {[25:15],[13:1]};
+
+    unsigned int ty, l_tx[23:0];
+    unsigned int index;
+    unsigned int flag_lr, flag;
+
+    foreach ty( L_TILES_Y )
+    {
+        foreach flag_lr( {[0:1]} )
+        {
+            l_tx = (flag_lr==0) ? l_srb_x_l : l_srb_x_r;
+            foreach index( {[0:23]} )
+            {
+                connect_srb_input_h_7km(ty, l_tx, index, flag_lr, 1);
+                connect_srb_input_h_7km(ty, l_tx, index, flag_lr, 2);
+                connect_srb_input_h_7km(ty, l_tx, index, flag_lr, 4);
+            }
+        }
+    }
+};//end of structure arch_nl connect_srb_input_h of devPGC7KM
+/*******************************************************************************
+********************************************************************************/
+library work;
+use pgc_defs, pgc7km_defs;
+use pgc7km_funcs_connect_logic;
+structure arch_nl connect_srb_input_d of devPGC7KM
+{
+
+    unsigned int l_tile_y_u[41:0] = {[0:20],[22:42]};
+    unsigned int l_tile_y_d[41:0] = {[42:22],[20:0]};
+
+    unsigned int l_srb_x_r[23:0] = {[1:13],[15:25]};
+    unsigned int l_srb_x_l[23:0] = {[25:15],[13:1]};
+
+    unsigned int l_tx[23:0], l_ty[41:0];
+    unsigned int flag_ud, flag_lr;
+    unsigned int index, index_y;
+
+    foreach flag_ud( {[0:1]} )
+    {
+        l_ty = (flag_ud==0) ? l_tile_y_u : l_tile_y_d;
+
+        foreach flag_lr( {[0:1]} )
+        {
+            l_tx = (flag_lr==0) ? l_srb_x_l : l_srb_x_r;
+
+            foreach index( {[23:0]} )
+            {
+                foreach index_y( {[0:41]} )
+                {
+                    connect_srb_input_d_7km(l_tx, l_ty, flag_ud, flag_lr, index, index_y);
+                }
+            }
+        }
+    }
+
+};//end of structure arch_nl connect_srb_input_d of devPGC7KM
+/*******************************************************************************
+********************************************************************************/
+library work;
+use pgc_defs, pgc7km_defs;
+use pgc7km_funcs_connect_logic;
+structure arch_nl connect_CLM_input of devPGC7KM
+{
+    unsigned int tx, ty;
+
+    int ty_bl = CRAM_CTRL_TILE_Y;
+    int max_y = NUM_TILE_Y - 2;
+
+    foreach tx( L_CLMS_TILES_X )
+    {
+        foreach ty( L_TILES_Y )
+        {
+            connect_CLM_input_7km(tx, ty, ty_bl, max_y, "CLMS_TILE");
+        }
+    }
+
+    foreach tx( L_CLMSS_TILES_X )
+    {
+        foreach ty( L_TILES_Y )
+        {
+            connect_CLM_input_7km(tx, ty, ty_bl, max_y, "CLMSS_TILE");
+        }
+    }
+};//end of structure arch_nl connect_CLM_input of devPGC7KM
+/*******************************************************************************
+********************************************************************************/
+library work;
+use pgc_defs, pgc7km_defs;
+use pgc7km_funcs_connect_logic;
+structure arch_nl connect_drm_input of devPGC7KM
+{
+    unsigned int tx, ty;
+    int ty_bl = CRAM_CTRL_TILE_Y;
+    int min_y = 0;
+    int max_y = NUM_TILE_Y - 4;
+
+    foreach tx( L_DRM_TILES_X )
+    {
+        foreach ty( L_DRM_TILES_Y )
+        {
+            connect_drm_input_7km(tx, ty, ty_bl, min_y, max_y);
+        }
+    }
+
+};//end of structure arch_nl connect_drm_input of devPGC7KM
+

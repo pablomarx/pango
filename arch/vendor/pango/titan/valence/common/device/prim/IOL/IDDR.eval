@@ -1,0 +1,295 @@
+*****************************************************************
+
+  Device    [IDDR]
+
+  Author    [hzhang]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+prim
+device IDDR
+{
+    parameter
+    (
+        config string IDDR_MODE = "IGDDR",  //"IGDDR", "IGDES4", "IGDES7", "IGDES8", "IGDES10"
+                                            //"IMDDR", "IMDES4", "IMDES8"
+        
+        config bit    GRS_EN = 1'b1,       //1'b1; 1'b0        
+        config bit    LRS_EN = 1'b1,       //1'b1; 1'b0        
+        config bit    DPI_EN = 1'b0        //1'b1; 1'b0
+    )
+    port
+    (
+        input  LRS,
+        output DATAOUT[5:0],
+
+        input  IFIFO_WADDR[2:0],
+        input  IFIFO_RADDR[2:0],
+
+        input  ICLK,
+        input  DESCLK,
+        input  SYSCLK,
+
+        input  DPI_CTRL[1:0],
+        input  DPI_STS_CLR, 
+        input  DATA_IN,
+        output DPI_STS[1:0],
+
+        input  CIN[6:0],
+        output COUT[6:0]
+    );
+
+}; // end of device IDDR
+
+
+propagation prop of IDDR
+{ 
+   propagate ( DATA_IN |-> DATAOUT[0] );
+   propagate ( DATA_IN |-> DATAOUT[1] );
+   propagate ( DATA_IN |-> DATAOUT[2] );
+   propagate ( DATA_IN |-> DATAOUT[3] );
+   propagate ( DATA_IN |-> DATAOUT[4] );
+   propagate ( DATA_IN |-> DATAOUT[5] );
+
+   propagate ( DATA_IN |-> COUT );   
+   
+   propagate ( CIN   |-> DATAOUT[0] );
+   propagate ( CIN   |-> DATAOUT[1] );
+   propagate ( CIN   |-> DATAOUT[2] );
+   propagate ( CIN   |-> DATAOUT[3] );
+   propagate ( CIN   |-> DATAOUT[4] );
+   propagate ( CIN   |-> DATAOUT[5] );
+
+
+
+
+   propagate ( SYSCLK |-> DATAOUT[0] );
+   propagate ( SYSCLK |-> DATAOUT[1] );
+   propagate ( SYSCLK |-> DATAOUT[2] );
+   propagate ( SYSCLK |-> DATAOUT[3] );
+   propagate ( SYSCLK |-> DATAOUT[4] );
+   propagate ( SYSCLK |-> DATAOUT[5] );
+
+   propagate ( DESCLK |-> DATAOUT[0] );
+   propagate ( DESCLK |-> DATAOUT[1] );
+   propagate ( DESCLK |-> DATAOUT[2] );
+   propagate ( DESCLK |-> DATAOUT[3] );
+   propagate ( DESCLK |-> DATAOUT[4] );
+   propagate ( DESCLK |-> DATAOUT[5] );
+
+   propagate ( ICLK |-> DATAOUT[0] );
+   propagate ( ICLK |-> DATAOUT[1] );
+   propagate ( ICLK |-> DATAOUT[2] );
+   propagate ( ICLK |-> DATAOUT[3] );
+   propagate ( ICLK |-> DATAOUT[4] );
+   propagate ( ICLK |-> DATAOUT[5] );
+   
+   propagate ( LRS |-> DATAOUT[0] );
+   propagate ( LRS |-> DATAOUT[1] );
+   propagate ( LRS |-> DATAOUT[2] );
+   propagate ( LRS |-> DATAOUT[3] );
+   propagate ( LRS |-> DATAOUT[4] );
+   propagate ( LRS |-> DATAOUT[5] );
+   
+   propagate ( IFIFO_WADDR |-> DATAOUT[0] );
+   propagate ( IFIFO_RADDR |-> DATAOUT[0] );
+};
+
+/**Device***********************************************************************                  
+                                                                                                  
+  Device    [IDDR]                                                                                
+                                                                                                  
+  Author    [xsniu]                                                                               
+                                                                                                  
+  Abstract  [This specified the timing model under specific configuration]                        
+                                                                                                  
+  Revision History:                                                                               
+                                                                                                  
+********************************************************************************/                 
+                                                                                                  
+timing  iddr_tnl of IDDR  
+{
+    if(IDDR_MODE == "IGDDR")
+    { 
+        operator V_IGDDR  V_IGDDR
+        parameter map
+        (
+            LRS_EN      =>  ( LRS_EN == 1'b1)  ? "TRUE" : "FALSE", 
+            GRS_EN      =>  ( GRS_EN == 1'b1)  ? "TRUE" : "FALSE",
+            DPI_EN      =>  ( DPI_EN == 1'b1)  ? "TRUE" : "FALSE"  
+        )
+        port map
+        (
+            PADI           =>   DATA_IN,      
+            Q              =>   DATAOUT[5:4],
+            DPI_CTRL       =>   DPI_CTRL,
+            DPI_STS_CLR_N  =>   DPI_STS_CLR,  
+            DPI_STS        =>   DPI_STS,
+            RCLK           =>   SYSCLK,
+            RST            =>   LRS
+        );
+    }
+    else if(IDDR_MODE == "IGDES4")
+    {
+        operator V_IGDES4  V_IGDES4
+            parameter map
+            (
+                LRS_EN      =>  ( LRS_EN == 1'b1)  ? "TRUE" : "FALSE", 
+                GRS_EN      =>  ( GRS_EN == 1'b1)  ? "TRUE" : "FALSE", 
+                DPI_EN      =>  ( DPI_EN == 1'b1)  ? "TRUE" : "FALSE"  
+            )
+            port map
+            (
+                PADI           =>   DATA_IN,      
+                Q              =>   DATAOUT[5:2],
+                DPI_CTRL       =>   DPI_CTRL,
+                DPI_STS_CLR_N  =>   DPI_STS_CLR,  
+                DPI_STS        =>   DPI_STS,
+                RCLK           =>   SYSCLK,
+                DESCLK         =>   DESCLK,
+                RST            =>   LRS
+            );
+    }
+    else if(IDDR_MODE == "IGDES7")
+    {
+        operator V_IGDES7  V_IGDES7
+            parameter map
+            (
+                 LRS_EN      =>  ( LRS_EN == 1'b1)  ? "TRUE" : "FALSE",   
+                 GRS_EN      =>  ( GRS_EN == 1'b1)  ? "TRUE" : "FALSE",   
+                 DPI_EN      =>  ( DPI_EN == 1'b1)  ? "TRUE" : "FALSE"    
+            )
+            port map
+            (
+                PADI           =>   DATA_IN,      
+                Q[6:1]         =>   DATAOUT,  
+                DPI_CTRL       =>   DPI_CTRL,  
+                DPI_STS_CLR_N  =>   DPI_STS_CLR,  
+                DPI_STS        =>   DPI_STS,   
+                RCLK           =>   SYSCLK,    
+                DESCLK         =>   DESCLK,    
+                RST            =>   LRS        
+            );
+    }
+    else if(IDDR_MODE == "IGDES8")
+    {
+        operator V_IGDES8  V_IGDES8
+            parameter map                                                   
+            (                                                               
+                 LRS_EN      =>  ( LRS_EN == 1'b1)  ? "TRUE" : "FALSE",     
+                 GRS_EN      =>  ( GRS_EN == 1'b1)  ? "TRUE" : "FALSE",     
+                 DPI_EN      =>  ( DPI_EN == 1'b1)  ? "TRUE" : "FALSE"      
+            )                                                               
+            port map                                                        
+            (                                                               
+                PADI           =>   DATA_IN,                                
+                Q[7:2]         =>   DATAOUT,                                
+                DPI_CTRL       =>   DPI_CTRL,                               
+                DPI_STS_CLR_N  =>   DPI_STS_CLR,                            
+                DPI_STS        =>   DPI_STS,                                
+                RCLK           =>   SYSCLK,                                 
+                DESCLK         =>   DESCLK,                                 
+                RST            =>   LRS                                     
+            );                                                              
+    }
+    else if(IDDR_MODE == "IGDES10")
+    {
+        operator V_IGDES10  V_IGDES10
+            parameter map                                                     
+            (                                                                 
+                 LRS_EN      =>  ( LRS_EN == 1'b1)  ? "TRUE" : "FALSE",       
+                 GRS_EN      =>  ( GRS_EN == 1'b1)  ? "TRUE" : "FALSE",       
+                 DPI_EN      =>  ( DPI_EN == 1'b1)  ? "TRUE" : "FALSE"        
+            )                                                                 
+            port map                                                          
+            (                                                                 
+               PADI          =>   DATA_IN,                                  
+               Q[9:4]        =>   DATAOUT,                                  
+               DPI_CTRL      =>   DPI_CTRL,                                 
+               DPI_STS_CLR_N =>   DPI_STS_CLR,                              
+               DPI_STS       =>   DPI_STS,                                  
+               RCLK          =>   SYSCLK,                                   
+               DESCLK        =>   DESCLK,                                   
+               RST           =>   LRS                                       
+            );                                                                
+    }
+    else if(IDDR_MODE == "IMDDR")
+    {
+        operator V_IMDDR  V_IMDDR
+            parameter map                                                 
+            (                                                             
+                 LRS_EN      =>  ( LRS_EN == 1'b1)  ? "TRUE" : "FALSE",   
+                 GRS_EN      =>  ( GRS_EN == 1'b1)  ? "TRUE" : "FALSE",   
+                 DPI_EN      =>  ( DPI_EN == 1'b1)  ? "TRUE" : "FALSE"    
+            )                                                             
+            port map                                                                   
+            (                                                                          
+                DPI_CTRL       =>   DPI_CTRL,                                          
+                DPI_STS_CLR_N  =>   DPI_STS_CLR,                                       
+                DPI_STS        =>   DPI_STS,                                           
+                PADI           =>   DATA_IN,                                               
+                ICLK           =>   ICLK,                                          
+                RCLK           =>   SYSCLK,        
+                                                                                       
+                IFIFO_WADDR    =>   IFIFO_WADDR,                                       
+                IFIFO_RADDR    =>   IFIFO_RADDR,                                       
+                RST            =>   LRS,           
+                Q              =>   DATAOUT[5:4]                                            
+            );                                                                         
+    }
+    else if(IDDR_MODE == "IMDES4")
+    {
+        operator V_IMDES4  V_IMDES4
+            parameter map                                                  
+            (                                                              
+                 LRS_EN      =>  ( LRS_EN == 1'b1)  ? "TRUE" : "FALSE",    
+                 GRS_EN      =>  ( GRS_EN == 1'b1)  ? "TRUE" : "FALSE",    
+                 DPI_EN      =>  ( DPI_EN == 1'b1)  ? "TRUE" : "FALSE"     
+            )                                                              
+            port map                                                       
+            (                                                              
+                DPI_CTRL       =>   DPI_CTRL,                              
+                DPI_STS_CLR_N  =>   DPI_STS_CLR,                           
+                DPI_STS        =>   DPI_STS,                               
+                PADI           =>   DATA_IN,                               
+                ICLK           =>   ICLK,                                  
+                RCLK           =>   SYSCLK,                                
+                DESCLK         =>   DESCLK,                                                            
+                IFIFO_WADDR    =>   IFIFO_WADDR,                           
+                IFIFO_RADDR    =>   IFIFO_RADDR,                           
+                RST            =>   LRS,                                   
+                Q              =>   DATAOUT[5:2]  
+            );                                                                       
+    }
+    else if(IDDR_MODE == "IMDES8")
+    {
+        operator V_IMDES8  V_IMDES8 
+            parameter map                                                  
+            (                                                              
+                 LRS_EN      =>  ( LRS_EN == 1'b1)  ? "TRUE" : "FALSE",    
+                 GRS_EN      =>  ( GRS_EN == 1'b1)  ? "TRUE" : "FALSE",    
+                 DPI_EN      =>  ( DPI_EN == 1'b1)  ? "TRUE" : "FALSE"     
+            )                                                              
+            port map                                                                                                                                                          
+            (                                                                                                                                                                 
+                DPI_CTRL       =>   DPI_CTRL,                                                                                                                                 
+                DPI_STS_CLR_N  =>   DPI_STS_CLR,                                                                                                                              
+                DPI_STS        =>   DPI_STS,                                                                                                                                  
+                PADI           =>   DATA_IN,                                                                                                                                      
+                ICLK           =>   ICLK,                                                                                                                                 
+                RCLK           =>   SYSCLK,                                                                                               
+                DESCLK         =>   DESCLK,   
+                IFIFO_WADDR    =>   IFIFO_WADDR,                                                                                                                              
+                IFIFO_RADDR    =>   IFIFO_RADDR,                                                                                                                              
+                RST            =>   LRS,                                                                                                  
+                Q[7:2]         =>   DATAOUT  
+            );                                                                                                                                                     
+    }
+    else
+    {
+        error("Illegal configuration to generate timing model");
+    }
+}                                                                        

@@ -1,0 +1,223 @@
+*******************************************************************
+
+  Device    [devCDQ]
+
+  Author    [liujiao]
+
+  Abstract  [FF WITH PORT CD AND DD OF CLMS]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devCDQ : device CLMA
+{
+    parameter
+    (        
+        config string CP_GRS_EN     = "TRUE",  
+        config string CP_QCDMUX_SEL := "PY",           //"Y6":Y6CD "PY":CDP "SRQ":Q2
+        config string CP_CDPMUX_SEL = "X0D",          //"X0D":CD "X1D":DD 
+        config string CP_Y2MUX_SEL  := "MF",      //"FX":F2 "CYX":CYC "MF":QP1      
+        config string CP_CEMUX_SEL  = "LOCAL",           //"LOCAL":CE; "CHAIN":CEIN 
+        config string CP_RSMUX_SEL  = "LOCAL",           //"LOCAL":RS; "CHAIN":RSIN
+        config string CP_CLK_POL = "FALSE",             //1'b0: "CLK"; 1'b1: "Invert CLK" - CLMA Global
+        config string CP_LCE_POL  = "FALSE",            //1'b0: "CE"; 1'b1: "Invert CE" - CLMA Global
+        config string CP_LRS_POL  = "FALSE",            //1'b0: "RS"; 1'b1: "Invert RS" - CLMA Global
+        config string CP_LCE_EN  = "TRUE",             //1'b0: "Disable"; 1'b1: "Enable"
+        config string CP_LRS_EN  = "TRUE",             //1'b0: "Disable"; 1'b1: "Enable"
+        config string CP_RS_MODE = "ASYNC",          //"SYNC" "ASYNC" - CLMA Global
+        config string CP_FFCD_RS = "SET"             //"RESET" "SET"
+    );
+    port
+    (
+        input    CD, DD, 
+        output   Y2,      
+        input    RS, CE, CLK,
+        input    RSCI,
+        output   RSCO,
+        input    CECI,
+        output   CECO
+
+    );
+
+}// end of device devCDQ
+
+/*******************************************************************************
+
+  Device    [devCDQ]
+
+  Author    [liujiao]
+
+  Abstract  [The structure netlist of devCDQ is described in the similar fashion 
+             as in HDL. In unit instantiation statement, the formal pin may be 
+             connected to net which is declared explicitly. 
+             
+             In Valence, the connection can also be made from formal pin to other 
+             pin or port, in which case Valence compiler shall create the net to 
+             fulfil the connection. The built-in naming convention is kicked in 
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devCDQ
+{
+    // Wires for input ports
+    wire ntDD; 
+    wire ntCD; 
+    wire ntRS, ntCE, ntCLK;
+
+    wire ntRSCI;
+    wire ntCECI;
+
+    // Wires connecting to output ports
+    wire ntY2;
+
+    wire ntRSCO;
+    wire ntCECO;
+
+    // Internal wires
+    wire ntL5C;
+    wire ntDP1_DI;
+    wire ntY6CD;
+    wire ntDP1;
+    wire ntCLKR;
+    wire ntQP1;
+    wire ntRS_P;
+    wire ntCE_P;
+
+    //
+    // Connection to ports
+    //
+    ntCD      <= CD;
+    ntDD      <= DD;
+
+    ntRS      <= RS;
+    ntCE      <= CE;
+    ntCLK     <= CLK;
+    
+    ntRSCI    <= RSCI;
+    ntCECI    <= CECI;
+
+    Y2        <= ntY2;    
+    RSCO     <= ntRSCO;
+    CECO     <= ntCECO;
+
+    //
+    // Instances. FGC section
+    //
+
+    device YMUX Y2MUX
+        parameter map
+        (
+            CP_OUT_SEL  => CP_Y2MUX_SEL
+        )    
+        port map
+        (            
+            MF    => ntQP1,            
+            Y     => ntY2
+        );
+    device PMUX CDPMUX
+        parameter map
+        (
+            CP_OUT_SEL  => CP_CDPMUX_SEL
+        )   
+        port map
+        (  
+            X1D  => ntDD,
+            X0D  => ntCD,
+            Y    => ntDP1_DI
+        );
+        
+    device APPQMUX QCDMUX
+        parameter map
+        (
+            CP_OUT_SEL  => CP_QCDMUX_SEL
+        )      
+        port map
+        ( 
+            PY  => ntDP1_DI,            
+            Q   => ntDP1
+        );          
+        
+    device FF FFCD
+        parameter map
+        (
+            CP_GRS_EN  => CP_GRS_EN,
+            CP_RS_MODE => CP_RS_MODE,
+            CP_FF_RS   => CP_FFCD_RS
+        )
+        port map
+        (
+            D  => ntDP1,
+            RS => ntRSCO,
+            CE => ntCECO,
+            CLK => ntCLKR,
+            Q  => ntQP1
+        );  
+
+    device MUX2_P RSMUX
+        parameter map
+        (
+            SEL  => CP_RSMUX_SEL
+        )     
+        port map
+        (
+            DI1  => ntRSCI,
+            DI0  => ntRS_P,
+            DOUT   => ntRSCO
+        );
+
+    device MUX2_P CEMUX
+        parameter map
+        (
+            SEL  => CP_CEMUX_SEL
+        )     
+        port map
+        (
+            DI1  => ntCECI,
+            DI0  => ntCE_P,
+            DOUT   => ntCECO
+        );
+
+
+    device LRS_POLMUX LRSPOLMUX
+        parameter map
+        (
+            CP_LRS_EN   => CP_LRS_EN,
+            CP_LRS_POL  => CP_LRS_POL
+        )     
+        port map
+        (
+            IN  => ntRS,
+            Y   => ntRS_P
+        );
+
+    device LCE_POLMUX LCEPOLMUX
+        parameter map
+        (
+            CP_LCE_EN   => CP_LCE_EN,
+            CP_LCE_POL  => CP_LCE_POL
+        )     
+        port map
+        (
+            IN  => ntCE,
+            Y   => ntCE_P
+        );
+
+    device CLK_POLMUX CLKPOLMUX
+        parameter map
+        (
+            CP_CLK_POL  => CP_CLK_POL
+        )      
+        port map
+        (
+            IN  => ntCLK,
+            Y   => ntCLKR
+        );
+
+}; // end of structure netlist of devCDQ
+

@@ -1,0 +1,71 @@
+*******************************************************************
+
+  Operator    [gopCLKBUFGCE]
+
+  Abstract  []
+
+  Revision History:
+
+ ********************************************************************************/
+gate
+operator gopCLKBUFGCE
+{
+    parameter
+    (
+        string SOURCE_CLK = "CLK0",  // "CLK0", "CLK1";
+        bit DEFAULT_VALUE = 1'b0   //1'b0; 1'b1
+    );
+
+    port
+    (
+        input   CLK, 
+        input   CE,
+        output  CLKOUT
+    );
+};
+
+/**Implementation Body*******************************************************************
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_uscm of gopCLKBUFGCE
+{
+    string CP_USCM_MODE = "BUFCE_A_0";    // "BUFGCE"    "BUFGCEB"   "BUFGCE_H"  "BUFGCEB_H"
+
+    if( SOURCE_CLK == "CLK0")
+    {
+        if(DEFAULT_VALUE == 1'b0)
+        {
+            CP_USCM_MODE = "BUFCE_A_0";
+        }
+    }
+    else if( SOURCE_CLK == "CLK1")
+    {
+        if(DEFAULT_VALUE == 1'b0)
+        {
+            CP_USCM_MODE = "BUFCE_B_0";
+        }
+    }
+
+    device USCM uscm_inst
+        parameter map
+        (
+           CP_USCM_MODE => CP_USCM_MODE
+        )
+        port map
+        (
+            CLK_A    => (SOURCE_CLK == "CLK0")? CLK : 1'bx, 
+            CLK_B    => (SOURCE_CLK == "CLK1")? CLK : 1'bx,  
+            CE  => CE,
+            CLK_USCM => CLKOUT
+        );
+
+}; // end of implementation impl_uscm of gopCLKBUFGCE
+
+
+

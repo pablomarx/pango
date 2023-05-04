@@ -1,0 +1,90 @@
+tarted
+grid
+device PLLINMUXD
+{
+    // grid_property_def_start
+    // grid_property_def_end
+
+    parameter
+    (
+        config bit CP_CLKIN_STASEL = 1'b0,
+        config string CP_DYNSEL_ENABLE = "FALSE"
+    );
+    port
+    (
+// configuration_body_def_on
+
+
+    config input SC_CLKIN_STASEL = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_CLKIN_STASEL" */,
+
+    config input SC_DYNSEL_ENABLE = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_DYNSEL_ENABLE" */,
+
+// configuration_body_def_end
+
+        input CLK_IN[1:0] = 2'b11,
+        input DYNSEL_CLKIN = 1'b1,
+        output CLK_OUT
+    );
+};
+//grid device end
+
+//grid device structure netlist started
+structure netlist of PLLINMUXD
+{
+
+};
+//grid device structure netlist end
+
+
+//grid device configure body started
+
+configuration cfg of PLLINMUXD
+{
+
+ // assign config body begin
+    SC_CLKIN_STASEL  :=  CP_CLKIN_STASEL;
+// assign config body end
+
+//initial config body0 begin
+    if(CP_DYNSEL_ENABLE == "FALSE")
+    {
+        SC_DYNSEL_ENABLE  :=  1'b0;
+    }
+    else if(CP_DYNSEL_ENABLE == "TRUE")
+    {
+        SC_DYNSEL_ENABLE  :=  1'b1;
+    }
+    else
+    {
+        SC_DYNSEL_ENABLE  :=  1'bx;
+        error("illegal setting for CP_DYNSEL_ENABLE  :=  %s",CP_DYNSEL_ENABLE);
+    }
+
+//initial config body0 end
+
+};
+
+//grid device configure body end
+
+
+timing  pllinmuxd_tnl of PLLINMUXD
+{
+    wire nt_CLK_OUT_DYN;
+    if (CP_DYNSEL_ENABLE == "TRUE")
+    {
+        operator V_MUX2 PLLINMUX
+            port map
+            (
+                I0  => CLK_IN[0],
+                I1  => CLK_IN[1],
+                SEL => DYNSEL_CLKIN,
+                Z   => nt_CLK_OUT_DYN
+            );
+    }
+
+    CLK_OUT <= (CP_DYNSEL_ENABLE == "TRUE" ) ? nt_CLK_OUT_DYN :
+               (CP_DYNSEL_ENABLE != "FALSE") ? 1'bx      :
+               (CP_CLKIN_STASEL  == 1'b0   ) ? CLK_IN[0] : CLK_IN[1];
+};

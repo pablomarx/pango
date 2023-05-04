@@ -1,0 +1,171 @@
+*****************************************************************
+
+  Device    [MAINFF]
+
+  Author    [jblu]
+
+  Abstract  [The Prim Device Of CLMA or CLMS]
+
+  Revision History:
+
+********************************************************************************/
+prim
+device MAINFF
+{
+    parameter
+    (      
+        config string CP_LATCH_EN = "FALSE",
+        config string CP_RS_MODE  = "ASYNC",
+        config string CP_FF_RS    = "SET" ,
+        config string CP_GRS_EN   = "TRUE",
+        config bit CP_FF_INIT     = 1'b1 
+    );
+    port 
+    ( 
+        // Input Ports of MAINFF      
+        input  D,
+        input  CE,
+        input  CLK,
+        input  RS,       
+        
+        // Output Ports for MAINFF
+        output Q
+    );
+
+};
+
+/**Device***********************************************************************
+
+  Device    [MAINFF]
+
+  Abstract  [This specified how to propagate the input signal to the outputs based on
+             configuration]
+
+  Revision History:
+
+********************************************************************************/
+propagation pop of MAINFF
+{
+    propagate ( D   |-> Q );
+    propagate ( RS  |-> Q );
+    propagate ( CE  |-> Q );
+    propagate ( CLK  |-> Q );
+
+}; // end of propagation for MAINFF
+
+/**Device***********************************************************************
+
+  Device    [MAINFF]
+
+  Author    [kongbiao]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+
+timing ff_tnl of MAINFF
+{
+    if (CP_LATCH_EN == "FALSE")
+    {
+        if (CP_RS_MODE == "ASYNC")
+        {
+            operator V_FFASYN FF
+            parameter map 
+            (
+                GRS_EN    =>  CP_GRS_EN,
+                SET_RESET =>  CP_FF_RS,
+                //INIT      => (CP_FF_INIT == 1'b1) ? "HIGH" : "LOW",
+                LRS_EN    => "TRUE"
+            )
+            port map 
+            (
+               Q => Q,
+               D => D, 
+               SR => RS, 
+               CK => CLK, 
+               CE => CE
+            );
+        }
+        else if (CP_RS_MODE == "SYNC")
+        {
+            operator V_FFSYN FF
+            parameter map 
+            (
+                GRS_EN    =>  CP_GRS_EN,
+                SET_RESET =>  CP_FF_RS,
+                //INIT      => (CP_FF_INIT == 1'b1) ? "HIGH" : "LOW",
+                LRS_EN    => "TRUE"
+            )
+            port map 
+            (
+               Q => Q,
+               D => D, 
+               SR => RS, 
+               CK => CLK, 
+               CE => CE
+            );
+        }
+    }
+    else if (CP_LATCH_EN == "TRUE")
+    {
+        operator V_LAASYN FF
+        parameter map 
+        (
+            GRS_EN    =>  CP_GRS_EN,
+            SET_RESET =>  CP_FF_RS,
+            //INIT      => (CP_FF_INIT == 1'b1) ? "HIGH" : "LOW",
+            LRS_EN    => "TRUE",
+            CLK_POL   => "TRUE"
+        )
+        port map 
+        (
+           Q => Q,
+           D => D, 
+           SR => (CP_RS_MODE == "ASYNC") ? RS : 1'b0, 
+           CK => CLK, 
+           CE => CE
+        );
+    }
+//    if(CP_RS_MODE == "SYNC")
+//    {
+//        operator V_FFSYN MAINFF
+//            parameter map 
+//            (
+//                GRS_EN    => CP_GRS_EN,
+//                SET_RESET => CP_FF_RS,
+//                LRS_EN    => "TRUE"
+//            )
+//            port map 
+//            (
+//               Q => Q,
+//               D => D, 
+//               SR => RS, 
+//               CK => CLK, 
+//               CE => CE
+//            ); 
+//    }
+//    else if(CP_RS_MODE == "ASYNC")
+//    {
+//        operator V_FFASYN FF
+//            parameter map 
+//            (
+//                GRS_EN    => CP_GRS_EN,
+//                SET_RESET => CP_FF_RS,
+//                LRS_EN    => "TRUE"
+//            )
+//            port map 
+//            (
+//               Q => Q,
+//               D => D, 
+//               SR => RS, 
+//               CK => CLK, 
+//               CE => CE
+//            ); 
+//    } 
+//    else
+//    {
+//        error("Illegal configuration to generate timing model");
+//    }
+}; // End of timing netlist for MAINFF

@@ -1,0 +1,308 @@
+*********************************************************************
+
+  Operator    [gopRAM16X1SQ]
+  
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+ ********************************************************************************/
+gate
+operator gopRAM16X1SQ
+{
+    parameter
+    (
+        string GRS_EN       = "FALSE",           // "TRUE" "FALSE"
+        string LRS_EN       = "FALSE",            // "TRUE"   "FALSE"  
+        bit INIT[31:0]      = 32'h0000_0000,
+        string QXMUX_SEL    = "YX"  ,               // Q0: "YX" --> "Y0" "FF" --> "SHIFTIN" "MX" --> "M0"  
+                                                   // Q1: "YX" --> "Y1" "FF" -->   "FFAB"  "MX" --> "M2" 
+                                                   // Q2: "YX" --> "Y2" "FF" -->   "FF1"   "MX" --> "M1" 
+                                                   // Q3: "YX" --> "Y3" "FF" -->  "FFCD"   "MX" --> "M3"         
+        string CEMUX_SEL    = "CE",                 // "CE" "CEIN" 
+        string RSMUX_SEL    = "RS",                 // "RS" "RSIN"
+        bit    CLK_POS      = 1'b0,                // 1'b0: "CLK"; 1'b1: "CLK_B"
+        bit    CE_POS       = 1'b0,                // 1'b0: "CE";  1'b1: "CE_B"
+        bit    RS_POS       = 1'b1,                // 1'b0: "RS";  1'b1: "RS_B"
+        string CE_USED      = "USED",               // "USED"  "UNUSED"                        
+        string SYNC_MODE    = "SYNC",               // "SYNC" "ASYNC"
+        string FF_SET      = "RESET"               // "RESET" "SET"  
+    );
+
+    port
+    (
+        input  A0, A1, A2, A3, 
+        input  M0, M1, M2, M3,
+        input  D,       
+        input  WE /* pragma PAP_ARC_GOP_CTRL_PIN = RST*/,
+        input  WCLK /* pragma PAP_ARC_GOP_CTRL_PIN = "GCLK|RCLK"*/,
+        input  CE /* pragma PAP_ARC_GOP_CTRL_PIN = CE*/,    
+        output Z,
+        output Q
+    );
+};
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devARAM16X1SQ Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devARAM16X1SQ of gopRAM16X1SQ
+{
+    string MODE            = "RAM";   // "LUT5" "WMUX" "ARITH"    
+    string Q0MUX_SEL; 
+    
+    if (QXMUX_SEL == "YX")
+    {
+        Q0MUX_SEL = "Y0";
+    }
+    else if (QXMUX_SEL == "MX")
+    {
+        Q0MUX_SEL = "M0";
+    }
+    else
+    {
+        error("Illegal configuration value with gopRAM16X1SQ.");
+    }
+    device devARAM16X1SQ gatedev
+        parameter map 
+        ( 
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,
+            INITA       => INIT,      
+            FGA_MODE    => MODE,                                  // "LUT5" "ROM" "WMUX" "ARITH"
+            Q0MUX_SEL   => Q0MUX_SEL ,                            // "Y0" "SHIFTIN" "M0"        
+            CEMUX_SEL   => CEMUX_SEL,                             // "CE" "CEIN" 
+            RSMUX_SEL   => RSMUX_SEL,                             // "RS" "RSIN"
+            CLK_POS     => CLK_POS,                               // "CLK" "CLK_B"   
+            RS_POS      => RS_POS,                                // "RS"  "RS_B"  
+            CE_POS      => (CE_USED == "USED" ) ? CE_POS : 1'b0,      
+            SYNC_MODE   => SYNC_MODE,                              // "SYNC" "ASYNC"
+            FF0_SET     => FF_SET                                 // "RESET" "SET"                
+        )
+        port map 
+        (                            
+            A0    => A0, 
+            A1    => A1,
+            A2    => A2,
+            A3    => A3,
+                  
+            M0    => M0,  
+            M1    => M1,  
+            M2    => M2,  
+            M3    => M3,
+            
+            AD    => D,
+            
+            RS    => WE,
+            CE    => ( CE_USED == "USED" ) ? CE : 1'bz,
+            CLK   => WCLK,            
+            Y0    => Z,            
+            Q0    => Q
+        );
+}; // end of implementation impl_devARAM16X1SQ of gopRAM16X1SQ
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devBRAM16X1SQ Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devBRAM16X1SQ of gopRAM16X1SQ
+{
+    string MODE            = "RAM";   // "LUT5" "WMUX" "ARITH"    
+    string Q1MUX_SEL; 
+    
+    if (QXMUX_SEL == "YX")
+    {
+        Q1MUX_SEL = "Y1";
+    }
+    else if (QXMUX_SEL == "MX")
+    {
+        Q1MUX_SEL = "M2";
+    }
+    else
+    {
+        error("Illegal configuration value with gopRAM16X1SQ.");
+    }
+    device devBRAM16X1SQ gatedev
+        parameter map 
+        ( 
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,
+            INITB       => INIT,      
+            FGB_MODE    => MODE,                                  // "LUT5" "ROM" "WMUX" "ARITH"
+            Q1MUX_SEL   => Q1MUX_SEL,                             // "Y1"   "FFAB" "M2"        
+            CEMUX_SEL   => CEMUX_SEL,                             // "CE" "CEIN" 
+            RSMUX_SEL   => RSMUX_SEL,                             // "RS" "RSIN"
+            CLK_POS     => CLK_POS,                               // "CLK" "CLK_B"   
+            RS_POS      => RS_POS,                                // "RS"  "RS_B"  
+            CE_POS      => (CE_USED == "USED" ) ? CE_POS : 1'b0,      
+            SYNC_MODE   => SYNC_MODE,                              // "SYNC" "ASYNC"
+            FF1_SET     => FF_SET                                 // "RESET" "SET"                
+        )
+        port map 
+        (                            
+            B0    => A0, 
+            B1    => A1,
+            B2    => A2,
+            B3    => A3,
+                  
+            M0    => M0,  
+            M1    => M1,  
+            M2    => M2,  
+            M3    => M3,
+            
+            BD    => D,
+            
+            RS    => WE,
+            CE    => ( CE_USED == "USED" ) ? CE : 1'bz,
+            CLK   => WCLK,            
+            Y1    => Z,            
+            Q1    => Q
+        );
+}; // end of implementation impl_devBRAM16X1SQ of gopRAM16X1SQ
+
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devCRAM16X1SQ Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devCRAM16X1SQ of gopRAM16X1SQ
+{
+    string MODE            = "RAM";   // "LUT5" "WMUX" "ARITH"    
+    string Q2MUX_SEL; 
+    
+    if (QXMUX_SEL == "YX")
+    {
+        Q2MUX_SEL = "Y2";
+    }
+    else if (QXMUX_SEL == "MX")
+    {
+        Q2MUX_SEL = "M1";
+    }
+    else
+    {
+        error("Illegal configuration value with gopRAM16X1SQ.");
+    }    
+    device devCRAM16X1SQ gatedev
+        parameter map 
+        ( 
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,
+            INITC       => INIT,      
+            FGC_MODE    => MODE,                                  // "LUT5" "ROM" "WMUX" "ARITH"
+            Q2MUX_SEL   => Q2MUX_SEL,                             // "Y2"   "FF1" "M1"    
+            CEMUX_SEL   => CEMUX_SEL,                             // "CE" "CEIN" 
+            RSMUX_SEL   => RSMUX_SEL,                             // "RS" "RSIN"
+            CLK_POS     => CLK_POS,                               // "CLK" "CLK_B"   
+            RS_POS      => RS_POS,                                // "RS"  "RS_B"  
+            CE_POS      => (CE_USED == "USED" ) ? CE_POS : 1'b0,      
+            SYNC_MODE   => SYNC_MODE,                              // "SYNC" "ASYNC"
+            FF2_SET     => FF_SET                                 // "RESET" "SET"                
+        )
+        port map 
+        (                            
+            C0    => A0, 
+            C1    => A1,
+            C2    => A2,
+            C3    => A3,
+                  
+            M0    => M0,  
+            M1    => M1,  
+            M2    => M2,  
+            M3    => M3,
+            
+            CD    => D,
+            
+            RS    => WE,
+            CE    => ( CE_USED == "USED" ) ? CE : 1'bz,
+            CLK   => WCLK,            
+            Y2    => Z,            
+            Q2    => Q
+        );
+}; // end of implementation impl_devCRAM16X1SQ of gopRAM16X1SQ
+
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devDRAM16X1SQ Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devDRAM16X1SQ of gopRAM16X1SQ
+{
+    string MODE            = "RAM";   // "LUT5" "WMUX" "ARITH"    
+    string Q3MUX_SEL;     
+    if (QXMUX_SEL == "YX")
+    {
+        Q3MUX_SEL = "Y3";
+    }
+    else if (QXMUX_SEL == "MX")
+    {
+        Q3MUX_SEL = "M3";
+    }
+    else
+    {
+        error("Illegal configuration value with gopRAM16X1SQ.");
+    }  
+       
+    device devDRAM16X1SQ gatedev
+        parameter map 
+        ( 
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,
+            INITD       => INIT,      
+            FGD_MODE    => MODE,                                  // "LUT5" "ROM" "WMUX" "ARITH"
+            Q3MUX_SEL   => Q3MUX_SEL,                             // "Y3"  "FFCD" "M3"   
+            CEMUX_SEL   => CEMUX_SEL,                             // "CE" "CEIN" 
+            RSMUX_SEL   => RSMUX_SEL,                             // "RS" "RSIN"
+            CLK_POS     => CLK_POS,                               // "CLK" "CLK_B"   
+            RS_POS      => RS_POS,                                // "RS"  "RS_B"  
+            CE_POS      => (CE_USED == "USED" ) ? CE_POS : 1'b0,      
+            SYNC_MODE   => SYNC_MODE,                              // "SYNC" "ASYNC"
+            FF3_SET     => FF_SET                                 // "RESET" "SET"                
+        )
+        port map 
+        (                            
+            D0    => A0, 
+            D1    => A1,
+            D2    => A2,
+            D3    => A3,
+                  
+            M0    => M0,  
+            M1    => M1,  
+            M2    => M2,  
+            M3    => M3,
+            
+            DD    => D,
+            
+            RS    => WE,
+            CE    => ( CE_USED == "USED" ) ? CE : 1'bz,
+            CLK   => WCLK,            
+            Y3    => Z,            
+            Q3    => Q
+        );
+}; // end of implementation impl_devDRAM16X1SQ of gopRAM16X1SQ
+
+
+
+
+

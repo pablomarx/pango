@@ -1,0 +1,164 @@
+*******************************************************************
+
+  Device    [IOB_A]
+
+  Author    [tangqiang]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+symbol logsym of IOB_A // pragma PAP_ARC_COLOR="64:64:128"
+{
+    // The bounding box
+    generate ( 60 # 60 );
+
+    //
+    // Poloygon declaration
+    //
+    shape
+    [ 0, 0 ]  ->  [ , 60]  < 
+                             DIN  @[,10],
+                             DO   @[,30],
+                             TO   @[,50]
+
+                           >
+              ->  [60, ]   < 
+
+                             DIFFO_OUT @[10,],
+                             DIFFI_OUT @[30,],
+                             DIFFI_IN  @[50,]
+
+                           >
+              ->  [  ,0]  < 
+
+                             PAD  @[,30]
+
+                           >
+              ->  [ 0, ]    ;
+
+}; // symbol logsym of IOB_A
+
+/*******************************************************************************
+
+  Device    [IOB_A]
+
+  Author    [tangqiang]
+
+  Abstract  [The schematic for IOB_A]
+
+  Revision History:
+
+********************************************************************************/
+schematic schm of IOB_A
+{
+    // The bounding box
+      generate (176 # 128);
+
+    //
+    // Layout all symbols.
+    //
+    device IOB_INBUFA (symbol logsym) INBUFA
+        @[112,32];
+
+    device IOB_OBUFA (symbol logsym) OBUFA
+        @[32,48];
+
+    map (
+         <instance INBUFA>    => <instance INBUFA    of device IOB_A (structure netlist)> ,
+         <instance OBUFA>     => <instance OBUFA     of device IOB_A (structure netlist)>
+         );
+
+    //
+    // Layout all ports.
+    //
+    // Since ports drive or are driven by pins of symbol instance, derive the port
+    // location from those pins
+    //
+
+    port DIFFI_IN  @[16,40];
+    port DO        @[16,56];
+    port TO        @[16,66];
+    port DIFFO_OUT @[160,16];
+    port DIN       @[160,48];
+    port DIFFI_OUT @[160,80];
+    port PAD       @[96,95]; // pragma PAP_UI_ORIENTATION="NORTH"
+
+    //
+    // Layout all lines
+    //
+
+    line lnDIFFI_IN
+        <port DIFFI_IN> ->
+        <pin DIFFI_IN of <instance INBUFA>>;
+
+    line lnDO
+        <port DO> ->
+        <pin IN of <instance OBUFA>>;
+
+    line lnTO
+        <port TO> ->
+        [40,66] ->
+        <pin TS of <instance OBUFA>>;
+
+    line lnDIFFO_OUT
+        <pin DIFFO_OUT of <instance OBUFA>> ->
+        [40,16] ->
+        <port DIFFO_OUT>;
+
+    line lnPAD
+        <pin OUT of <instance OBUFA>> ->
+        [96,56] ->
+        <pin IN of <instance INBUFA>>,
+
+        [96,56] ->
+        [96,80] ->
+        <port PAD>,
+        
+        [96,80] ->
+        <port DIFFI_OUT>;
+
+    line lnDIN
+        <pin O of <instance INBUFA>> ->
+        <port DIN>;
+
+
+    map  (
+           <line lnDIFFI_IN>    => <wire ntDIFFI_IN     of device IOB_A (structure netlist)>,
+           <line lnDO>          => <wire ntDO           of device IOB_A (structure netlist)>,
+           <line lnTO>          => <wire ntTO           of device IOB_A (structure netlist)>,
+           <line lnDIFFO_OUT>   => <wire ntDIFFO_OUT    of device IOB_A (structure netlist)>,
+           <line lnPAD>         => <wire ntPAD          of device IOB_A (structure netlist)>,
+           <line lnDIN>         => <wire ntINBUF        of device IOB_A (structure netlist)>
+         );
+
+};// end of schematic schm of IOB_A
+
+/*******************************************************************************
+
+  Device    [IOB_A]
+
+  Author    [tangqiang]
+
+  Abstract  [The floorplan schematic for IOB_A]
+
+  Revision History:
+
+********************************************************************************/
+floorplan
+schematic floorplan_view of IOB_A // pragma PAP_ARC_SHOW_BOUNDING_BOX
+{
+    generate ( 20*8 # 20*8 );
+
+    device IOB_INBUFA (symbol fpsym)  INBUFA
+        @[8*8, 4*8];
+    device IOB_OBUFA (symbol fpsym) OBUFA
+        @[8*8,12*8];
+
+    map (
+         <instance INBUFA>     => <instance INBUFA    of device IOB_A (structure fp_struct)> ,
+         <instance OBUFA>      => <instance OBUFA     of device IOB_A (structure fp_struct)>
+         );
+};
+

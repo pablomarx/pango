@@ -1,0 +1,147 @@
+*****************************************************************
+
+  Device    [devBLC_S]
+
+  Author    []
+
+  Abstract  [THE DEVICE CAN BE USED FOR ADDIDTION.]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devBLC_S : device devB_S
+{
+    parameter
+    (
+        config bit INITB[31:0]       = 32'h0000_0000,
+        config string FGB_MODE       = "ARITH",              // "LUT5" "ROM" "WMUX" "ARITH"        
+        config string RAM_LUT_SEL    := "LUT",               // "RAM"  "LUT" 
+        config string Y1MUX_SEL      = "FG"                  // "L7"   "FG" "CY"
+    );
+    
+    port
+    (        
+               input    B0, B1, B2, B3, B4, BD,
+               output   Y1, 
+        logic  input    FGB_CIN,
+        logic  output   FGB_COUT
+
+    );
+}; // end of device devBLC_S
+
+
+/*******************************************************************************
+
+  Device    [devBLC_S]
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devBLC_S
+{
+    // Wires for input ports
+    wire ntB0, ntB1, ntB2, ntB3, ntB4, ntBD; 
+
+    // Wires connecting to output ports
+    wire ntY1MUX;
+    // Internal wires  
+    wire ntFGB_Z, ntCYB;
+    wire ntCYA;
+    //
+    // Connection to ports
+    //
+    ntB0      <= B0;
+    ntB1      <= B1;
+    ntB2      <= B2;
+    ntB3      <= B3;
+    ntB4      <= B4;
+    ntBD      <= BD;
+
+    ntCYA     <= FGB_CIN;
+
+    Y1        <= ntY1MUX;
+      
+    FGB_COUT  <= ntCYB;
+
+    //
+    // Instances. FGA section
+    //
+
+    device FGS FGB 
+        parameter map
+        (
+            INIT        => INITB,
+            MODE        => FGB_MODE,
+            RAM_LUT_SEL => RAM_LUT_SEL
+        )
+        port map 
+        (
+            A0   => ntB0, A1  => ntB1, A2  => ntB2, A3  => ntB3, A4  => ntB4,           
+            WD   => ntBD,
+            CIN  => ntCYA,
+            COUT => ntCYB,
+            Z    => ntFGB_Z 
+        );
+
+    device Y1MUX Y1MUX
+        parameter map
+        (
+            CFG  => Y1MUX_SEL
+        )    
+        port map
+        (
+            FG  => ntFGB_Z, CY => ntCYB,
+            Z   => ntY1MUX
+        );    
+}; // end of structure netlist of devBLC_S
+
+timing tnl of devBLC_S
+{
+    wire ntI0;
+    wire ntI1;
+    operator V_LUT5CARRY V_FGB
+        parameter map 
+        (
+            INIT        => INITB,
+            ID_TO_LUT   => (FGB_MODE == "ARITH4"  || FGB_MODE == "ARITH"   || FGB_MODE == "ARITH6"  || FGB_MODE == "CY01"    || FGB_MODE == "ARITH0" || FGB_MODE == "L5C01" || FGB_MODE == "LUT5"  || FGB_MODE == "ARITH3") ? "FALSE" : "TRUE",
+            CIN_TO_LUT  => (FGB_MODE == "WMUX"    || FGB_MODE == "ARITH9"  || FGB_MODE == "ARITH10" || FGB_MODE == "ARITH11" || FGB_MODE == "ARITH0" || FGB_MODE == "L5C01" || FGB_MODE == "LUT5"  || FGB_MODE == "ARITH3") ? "FALSE" : "TRUE",
+            I4_TO_CARRY => (FGB_MODE == "ARITH14" || FGB_MODE == "ARITH15" || FGB_MODE == "ARITH10" || FGB_MODE == "ARITH11" || FGB_MODE == "ARITH6" || FGB_MODE == "CY01"  || FGB_MODE == "LUT5"  || FGB_MODE == "ARITH3") ? "FALSE" : "TRUE",               
+            I4_TO_LUT   => (FGB_MODE == "ARITH13" || FGB_MODE == "ARITH15" || FGB_MODE == "ARITH9"  || FGB_MODE == "ARITH11" || FGB_MODE == "ARITH"  || FGB_MODE == "CY01"  || FGB_MODE == "L5C01" || FGB_MODE == "ARITH3") ? "FALSE" : "TRUE",
+            SECTION     => "B"
+        )
+        port map 
+        (
+           CIN  => FGB_CIN,
+           I0   => B0,
+           I1   => B1,
+           I2   => B2,
+           I3   => B3,
+           I4   => B4,
+           ID   => BD,
+           COUT => ntI0,
+           S    => ntI1
+        );
+        
+     FGB_COUT <= ntI0;
+        
+     if (Y1MUX_SEL != "FFAB")
+     {
+     operator V_MUX V_Y1MUX
+         parameter map
+         (
+             SEL  => (Y1MUX_SEL == "CY") ? "I0" : "I1",
+             SECTION  => "B"
+         )
+         port map
+         (
+             I0 => ntI0,
+             I1 => ntI1,
+             Y => Y1
+         );
+     }
+}

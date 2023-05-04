@@ -1,0 +1,91 @@
+*******************************************************************
+
+  Operator    [gopOBUFTIOLTQDEL]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+gate
+operator gopOBUFTIOLTQDEL
+{
+    parameter
+    (
+        string GRS_EN          = "FALSE",           // "TRUE" "FALSE"  
+        string DELAY_SEL       = "DEFAULT",
+        bit    IODLY_CTRL_EN   = 1'b0,
+        bit    IODLY_STEP[6:0] = 7'b000_0000, 
+        string TSFF_CE_EN      = "UNUSED",    //1'b0 => "UNUSED";     1'b1 => "USED"
+        string TSFF_LRS_EN     = "UNUSED",  //1'b0 => "UNUSED";   1'b1 => "USED"
+        string TSFF_SET        = "RESET",     //1'b0 => "RESET"; 1'b1 => "SET"
+        string TSFF_SYNC       = "ASYNC",     //1'b0 => "ASYNC";      1'b1 => "SYNC"    
+        bit    TSFF_LATCH     = 1'b0,      //1'b1 => latch; 1'b0 => flip flop
+
+        bit    CLK_O_INV      = 1'b0,
+        bit    CE_INV         = 1'b0,
+        bit    LRS_INV        = 1'b0
+    );
+    port
+    (
+        input   IN,
+        input   TS,
+
+        input   SYSCLK /* pragma PAP_ARC_GOP_CTRL_PIN = "GCLK|RCLK"*/,
+        input   CE /* pragma PAP_ARC_GOP_CTRL_PIN = CE*/,
+        input   LRS /* pragma PAP_ARC_GOP_CTRL_PIN = RST*/,
+
+        input   IODLY_CTRL[2:0],
+        output  IODLY_OV,
+
+        // from to IOB
+        output  T,
+        output  O,
+
+        output  DO_OUT,
+        output  TO_OUT
+    );
+};
+
+implementation impl of gopOBUFTIOLTQDEL
+{
+    device devOBUFTIOLTQDEL gate_obuftioltqdel
+        parameter map
+        (
+            GRS_EN        => (GRS_EN == "TRUE") ? 1'b1 : 1'b0,
+            DELAY_SEL       => DELAY_SEL,
+            IODLY_CTRL_EN   => IODLY_CTRL_EN,
+            IODLY_STEP      => IODLY_STEP,
+
+            TSFF_CE_EN    => (TSFF_CE_EN  == "USED")     ? 1'b1 : 1'b0,
+            TSFF_LRS_EN   => (TSFF_LRS_EN == "USED")  ? 1'b1 : 1'b0,
+            TSFF_SET      => (TSFF_SET    == "SET")    ? 1'b1 : 1'b0,
+            TSFF_SYNC     => (TSFF_SYNC   == "SYNC")     ? 1'b1 : 1'b0,
+
+            TSFF_LATCH   => TSFF_LATCH,
+
+            CLK_O_INV    =>  CLK_O_INV,
+            CE_INV       =>  CE_INV,
+            LRS_INV      =>  LRS_INV
+        )
+        port map
+        (
+            TX_DATA[5]   =>  IN,
+            TS_CTRL[0]   =>  TS,
+
+            SYSCLK         =>  SYSCLK,
+            CE           =>  CE,
+            LRS          =>  LRS,
+
+            IODLY_CTRL   =>  IODLY_CTRL,
+            IODLY_OV     =>  IODLY_OV,
+
+            TO            =>  T,
+            DO            =>  O,
+
+            DO_OUT       =>  DO_OUT,
+            TO_OUT       =>  TO_OUT
+        );
+};
+
+

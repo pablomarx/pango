@@ -1,0 +1,1906 @@
+use pgl_defs;
+
+package pgl200es_funcs_logic
+{
+/********************************************************************************/
+/********************************************************************************/
+function connect_SRB_input_v
+( 
+    unsigned int tx,
+    unsigned int index,
+    unsigned int l_srb_tile_y0[239:0],
+    unsigned int l_srb_tile_y1[104:0],
+    unsigned int l_srb_tile_y2[89:0],
+    unsigned int l_srb_tile_y3[224:0],
+    unsigned int l_srb_tile_y4[119:0],
+    unsigned int flag_ud,
+    unsigned int flag_y,
+    unsigned int flag_mode
+)
+{
+    unsigned int sx,ty,ty_skew,sy,sy_skew;
+    sx = tx * NUM_GRID_X ;
+    string strVar = "SRB_TILE" ;
+
+    ty = (flag_y == 0) ? l_srb_tile_y0[index] :
+         (flag_y == 1) ? l_srb_tile_y1[index] :
+         (flag_y == 2) ? l_srb_tile_y2[index] :
+         (flag_y == 3) ? l_srb_tile_y3[index] :
+                         l_srb_tile_y4[index] ; 
+
+    sy = ty * NUM_GRID_Y ;
+
+    int flag_blank_d = (flag_y==2&&ty==NUM_TILES_REGION*5) ? 1 :
+                       (flag_y==4&&ty==NUM_TILES_REGION*4) ? 1 :
+                       (ty==0) ? 1 : 0 ;
+
+
+
+    if(flag_mode==1)
+    {
+        if(index!=0)
+        {
+
+            ty_skew = (flag_y == 0) ? l_srb_tile_y0[index - 1] :
+                      (flag_y == 1) ? l_srb_tile_y1[index - 1] :
+                      (flag_y == 2) ? l_srb_tile_y2[index - 1] :
+                      (flag_y == 3) ? l_srb_tile_y3[index - 1] :
+                                      l_srb_tile_y4[index - 1] ;
+
+            sy_skew = ty_skew * NUM_GRID_Y ;
+
+            if(flag_ud==1)
+            {
+                connect
+                 (
+                    <pin ISN of <device *strVar @[sx,sy]>>  => <wire ZSN of <device *strVar @ [sx,sy_skew]>>
+                 );
+            }
+            else
+            {
+                connect(<pin ISS of <device *strVar @[sx,sy]>>    => <wire ZSS of <device *strVar @ [sx,sy_skew]>>);
+
+                if(flag_blank_d==1)
+                {
+                    connect
+                    (
+                        <pin IDS_5_NEXT of <device *strVar @[sx,sy]>>  => <wire ZDS[5] of <device *strVar @ [sx,sy]>>,
+                        <pin ISS_5_NEXT of <device *strVar @[sx,sy]>>  => <wire ZSS[4] of <device *strVar @ [sx,sy]>>
+                    );
+                }               
+                else
+                { 
+                    connect
+                    (
+                        <pin IDS_5_NEXT of <device *strVar @[sx,sy]>>  => <wire ZDS[5] of <device *strVar @ [sx,sy_skew]>>,
+                        <pin ISS_5_NEXT of <device *strVar @[sx,sy]>>  => <wire ZSS[5] of <device *strVar @ [sx,sy]>>
+                    );
+                }
+      
+             }
+        }
+        else
+        {
+            if(flag_ud==1)
+            {
+                connect
+                 (
+                    <pin ISN of <device *strVar @[sx,sy]>>  => <wire ZSS of <device *strVar @ [sx,sy]>>
+                 );
+            }
+            else
+            {
+                connect
+                (
+                   <pin ISS of <device *strVar @[sx,sy]>>    => <wire ZSN of <device *strVar @ [sx,sy]>>,
+                   <pin IDS_5_NEXT of <device *strVar @[sx,sy]>>  => <wire ZDN[5] of <device *strVar @ [sx,sy]>>,
+                   <pin ISS_5_NEXT of <device *strVar @[sx,sy]>>  => <wire ZSS[5] of <device *strVar @ [sx,sy]>>
+                );
+            }
+        }
+    }
+    
+    if(flag_mode==2)
+    {
+        if(index>1)
+        {
+
+            ty_skew = (flag_y == 0) ? l_srb_tile_y0[index - 2] :
+                      (flag_y == 1) ? l_srb_tile_y1[index - 2] :
+                      (flag_y == 2) ? l_srb_tile_y2[index - 2] :
+                      (flag_y == 3) ? l_srb_tile_y3[index - 2] :
+                                      l_srb_tile_y4[index - 2] ;
+
+            sy_skew = ty_skew * NUM_GRID_Y ;
+
+            if(flag_ud==1)
+            {
+                connect
+                 (
+                    <pin IDN of <device *strVar @[sx,sy]>>  => <wire ZDN of <device *strVar @ [sx,sy_skew]>>
+                 );
+            }
+            else
+            {
+                connect
+                 (
+                    <pin IDS of <device *strVar @[sx,sy]>>    => <wire ZDS of <device *strVar @ [sx,sy_skew]>>
+                 );            
+             }
+        }
+        else
+        {
+            ty_skew = (flag_y == 0) ? l_srb_tile_y0[1 - index] :
+                      (flag_y == 1) ? l_srb_tile_y1[1 - index] :
+                      (flag_y == 2) ? l_srb_tile_y2[1 - index] :
+                      (flag_y == 3) ? l_srb_tile_y3[1 - index] :
+                                      l_srb_tile_y4[1 - index] ;
+
+            sy_skew = ty_skew * NUM_GRID_Y ;
+
+            if(flag_ud==1)
+            {
+
+                connect
+                 (
+                    <pin IDN of <device *strVar @[sx,sy]>>  => <wire ZDS of <device *strVar @ [sx,sy_skew]>>
+                 );
+            }
+            else
+            {
+
+                connect
+                (
+                   <pin IDS of <device *strVar @[sx,sy]>>    => <wire ZDN of <device *strVar @ [sx,sy_skew]>>
+                );
+            }
+        }
+    }
+    if(flag_mode==3)
+    {
+        if(index>2)
+        {
+
+            ty_skew = (flag_y == 0) ? l_srb_tile_y0[index - 3] :
+                      (flag_y == 1) ? l_srb_tile_y1[index - 3] :
+                      (flag_y == 2) ? l_srb_tile_y2[index - 3] :
+                      (flag_y == 3) ? l_srb_tile_y3[index - 3] :
+                                      l_srb_tile_y4[index - 3] ;
+
+            sy_skew = ty_skew * NUM_GRID_Y ;
+
+            if(flag_ud==0)
+            {
+                if(flag_blank_d==1)
+                {
+                    connect(<pin IQS_5_NEXT of <device *strVar @[sx,sy]>>  => <wire ZQS[5] of <device *strVar @ [sx,sy]>>);
+                }
+                else
+                {
+                    connect(<pin IQS_5_NEXT of <device *strVar @[sx,sy]>>  => <wire ZQS[5] of <device *strVar @ [sx,sy_skew]>>);
+                }
+            }
+        }
+        else
+        {
+            ty_skew = (flag_y == 0) ? l_srb_tile_y0[2 - index] :
+                      (flag_y == 1) ? l_srb_tile_y1[2 - index] :
+                      (flag_y == 2) ? l_srb_tile_y2[2 - index] :
+                      (flag_y == 3) ? l_srb_tile_y3[2 - index] :
+                                      l_srb_tile_y4[2 - index] ;
+
+            sy_skew = ty_skew * NUM_GRID_Y ;
+
+            if(flag_ud==0)
+            {
+                connect
+                (
+                   <pin IQS_5_NEXT of <device *strVar @[sx,sy]>>    => <wire ZQN[5] of <device *strVar @ [sx,sy_skew]>>
+                );
+            }
+        }
+    }
+    if(flag_mode==4)
+    {
+        if(index>3)
+        {
+
+            ty_skew = (flag_y == 0) ? l_srb_tile_y0[index - 4] :
+                      (flag_y == 1) ? l_srb_tile_y1[index - 4] :
+                      (flag_y == 2) ? l_srb_tile_y2[index - 4] :
+                      (flag_y == 3) ? l_srb_tile_y3[index - 4] :
+                                      l_srb_tile_y4[index - 4] ;
+
+            sy_skew = ty_skew * NUM_GRID_Y ;
+
+            if(flag_ud==1)
+            {
+                connect
+                 (
+                    <pin IQN of <device *strVar @[sx,sy]>>  => <wire ZQN of <device *strVar @ [sx,sy_skew]>>
+                 );
+            }
+            else
+            {
+                connect
+                 (
+                    <pin IQS of <device *strVar @[sx,sy]>>    => <wire ZQS of <device *strVar @ [sx,sy_skew]>>
+                 );            
+             }
+        }
+        else
+        {
+            ty_skew = (flag_y == 0) ? l_srb_tile_y0[3 - index] :
+                      (flag_y == 1) ? l_srb_tile_y1[3 - index] :
+                      (flag_y == 2) ? l_srb_tile_y2[3 - index] :
+                      (flag_y == 3) ? l_srb_tile_y3[3 - index] :
+                                      l_srb_tile_y4[3 - index] ;
+
+            sy_skew = ty_skew * NUM_GRID_Y ;
+
+            if(flag_ud==1)
+            {
+                connect
+                 (
+                    <pin IQN of <device *strVar @[sx,sy]>>  => <wire ZQS of <device *strVar @ [sx,sy_skew]>>
+                 );
+            }
+            else
+            {
+                connect
+                (
+                   <pin IQS of <device *strVar @[sx,sy]>>    => <wire ZQN of <device *strVar @ [sx,sy_skew]>>
+                );
+            }
+        }
+    }
+    if(flag_mode==8)
+    {
+        if(index>7)
+        {
+
+            ty_skew = (flag_y == 0) ? l_srb_tile_y0[index - 8] :
+                      (flag_y == 1) ? l_srb_tile_y1[index - 8] :
+                      (flag_y == 2) ? l_srb_tile_y2[index - 8] :
+                      (flag_y == 3) ? l_srb_tile_y3[index - 8] :
+                                      l_srb_tile_y4[index - 8] ;
+
+            sy_skew = ty_skew * NUM_GRID_Y ;
+
+            if(flag_ud==1)
+            {
+                connect
+                 (
+                    <pin LV2 of <device *strVar @[sx,sy_skew]>>  => <wire LV1 of <device *strVar @ [sx,sy]>>
+                 );
+            }
+            else
+            {
+                connect
+                 (
+                    <pin LV0 of <device *strVar @[sx,sy_skew]>>    => <wire LV1 of <device *strVar @ [sx,sy]>>
+                 );            
+             }
+        }
+        else
+        {
+            ty_skew = (flag_y == 0) ? l_srb_tile_y0[7 - index] :
+                      (flag_y == 1) ? l_srb_tile_y1[7 - index] :
+                      (flag_y == 2) ? l_srb_tile_y2[7 - index] :
+                      (flag_y == 3) ? l_srb_tile_y3[7 - index] :
+                                      l_srb_tile_y4[7 - index] ;
+
+            sy_skew = ty_skew * NUM_GRID_Y ;
+
+            if(flag_ud==1)
+            {
+
+                connect
+                 (
+                    <pin LV0 of <device *strVar @[sx,sy_skew]>>  => <wire LV1 of <device *strVar @ [sx,sy]>>
+                 );
+            }
+            else
+            {
+
+                connect
+                (
+                   <pin LV2 of <device *strVar @[sx,sy_skew]>>  => <wire LV1 of <device *strVar @ [sx,sy]>>
+                );
+            }
+        }
+    }
+
+}// end of connect_SRB_input_v
+/********************************************************************************/
+/********************************************************************************/
+function connect_SRB_input_h
+( 
+    unsigned int index_y,
+    unsigned int index,
+    unsigned int tx_ccs,
+    unsigned int ty_ccs,
+    unsigned int tx_hsst,
+    unsigned int ty_hsst,
+    unsigned int tx_iol1,
+    unsigned int l_srb_tile_y[239:0],
+    unsigned int l_srb_tile_x0[157:0],
+    unsigned int l_srb_tile_x1[59:0],
+    unsigned int l_srb_tile_x2[88:0],
+    unsigned int l_srb_tile_x3[147:0],
+    unsigned int l_srb_tile_x4[67:0],
+    unsigned int l_srb_tile_x5[77:0],
+    unsigned int flag_ud,                       // for derection ; 1:tx_skew < tx
+    unsigned int flag_y, 
+    unsigned int flag_mode,
+    unsigned int flag_blank_h_d,
+    unsigned int flag_blank_h_u
+)
+{
+    unsigned int sx,tx,ty,tx_skew,sy,sx_skew,sy_skew;
+    ty = l_srb_tile_y[index_y];
+    sy = ty * NUM_GRID_X ;
+    string strVar = "SRB_TILE" ;
+
+    tx = (flag_y == 0) ? l_srb_tile_x0[index] :
+         (flag_y == 1) ? l_srb_tile_x1[index] :
+         (flag_y == 2) ? l_srb_tile_x2[index] :
+         (flag_y == 3) ? l_srb_tile_x3[index] :
+         (flag_y == 4) ? l_srb_tile_x4[index] :
+                         l_srb_tile_x5[index] ;
+
+    int flag_blank_u = (flag_blank_h_u==1) ? 1 :
+                       (tx>tx_ccs&&tx<tx_ccs+NUM_TILE_CCS_X&&ty==ty_ccs-2) ? 1 : 
+                       (tx>=tx_hsst&&tx<=tx_hsst+NUM_TILE_HSST_X&&ty==ty_hsst-2) ? 1 : 0 ;
+
+    int flag_blank_d = (flag_blank_h_d==1) ? 1 :
+                       (tx>=tx_hsst&&tx<=tx_hsst+NUM_TILE_HSST_X&&ty==ty_hsst+NUM_TILE_HSST_Y) ? 1 : 
+                       (tx>tx_iol1&&ty==NUM_TILES_REGION*4) ? 1 : 0 ;
+
+    int tx_sw = tx_ccs + 1 ;
+    int ty_sw = ty_ccs ;
+
+    int tx_se = tx_ccs + NUM_TILE_CCS_X-1;
+    int ty_se = ty_ccs ;
+
+    int tx_se2 = tx_hsst + NUM_TILE_HSST_X;
+    int ty_se2 = ty_hsst ;
+
+    int tx_ne2 = tx_hsst + NUM_TILE_HSST_X ;
+    int ty_ne2 = ty_hsst + NUM_TILE_HSST_Y-1 ;
+
+    int tx_nw3 = tx_iol1 + 1 ;
+    int ty_nw3 = NUM_TILES_REGION * 4 - 1 ;
+
+
+    sx = tx * NUM_GRID_Y ;
+
+    if(flag_mode==1)
+    {
+        if(index!=0)
+        {
+
+            tx_skew = (flag_y == 0) ? l_srb_tile_x0[index - 1] :
+                      (flag_y == 1) ? l_srb_tile_x1[index - 1] :
+                      (flag_y == 2) ? l_srb_tile_x2[index - 1] :
+                      (flag_y == 3) ? l_srb_tile_x3[index - 1] :
+                      (flag_y == 4) ? l_srb_tile_x4[index - 1] :
+                                      l_srb_tile_x5[index - 1] ;
+
+            sx_skew = tx_skew * NUM_GRID_Y ;
+
+            if(flag_ud==1)
+            {
+                connect(<pin ISE of <device *strVar @[sx,sy]>>  => <wire ZSE of <device *strVar @ [sx_skew,sy]>>);
+
+                if(flag_blank_d==0)
+                {
+
+                    sy_skew = l_srb_tile_y[index_y - 1] * NUM_GRID_Y ;
+
+                    if(!(tx-tx_ne2<2&&tx-tx_ne2>0&&ty==ty_ne2+1))
+                    {
+                        connect(<pin ISE_5_NEXT of <device *strVar @[sx,sy]>>  => <wire ZSE[5] of <device *strVar @ [sx_skew,sy_skew]>>);
+                    }
+
+                    if((tx-tx_se2<2&&tx-tx_se2>0&&ty==ty_se2-2)||(tx-tx_se<3&&tx-tx_se>0&&ty==ty_se-2))
+                    {
+                        sy_skew = l_srb_tile_y[index_y + 1] * NUM_GRID_Y ;
+
+                        connect(<pin ISE_5_NEXT of <device *strVar @[sx,sy_skew]>>  => <wire ZSE[5] of <device *strVar @ [sx_skew,sy]>>);
+                    }
+
+//special RURU 
+                    sy_skew = l_srb_tile_y[index_y - 1] * NUM_GRID_Y ;
+
+                    if(tx==tx_ne2 + 1&&ty==ty_ne2 + 1)
+                    {
+                        connect
+                        (
+                            <pin TSSW of <device *strVar @[sx_skew,sy]>>  => <wire ZSSW of <device *strVar @ [sx,sy]>>,
+                            <pin ISSE of <device *strVar @[sx,sy_skew]>>  => <wire ZSSW of <device *strVar @ [sx,sy]>>
+                        );
+                    }
+                    else
+                    {
+                        connect
+                        (
+                            <pin TSSW of <device *strVar @[sx_skew,sy]>>  => <wire ZSSW of <device *strVar @ [sx,sy]>>,
+                            <pin ISSW of <device *strVar @[sx_skew,sy_skew]>>  => <wire ZSSW of <device *strVar @ [sx,sy]>>
+                        );
+                    }
+                }
+                else
+                {
+
+                    connect(<pin ISE_5_NEXT of <device *strVar @[sx,sy]>>  => <wire ZSS[4] of <device *strVar @ [sx,sy]>>);
+//special LURU
+                    if(tx==tx_nw3&&ty==ty_nw3 + 1)
+                    {
+                        sy_skew = l_srb_tile_y[index_y - 1] * NUM_GRID_Y ;
+
+                        connect
+                        (
+                            <pin TSSW of <device *strVar @[sx_skew,sy]>>  => <wire ZSSW of <device *strVar @ [sx,sy]>>,
+                            <pin ISSW of <device *strVar @[sx_skew,sy_skew]>>  => <wire ZSSW of <device *strVar @ [sx,sy]>>
+                        );
+                    }
+                    else
+                    {
+                        connect
+                        (
+                            <pin TSSW of <device *strVar @[sx_skew,sy]>>  => <wire ZSSW of <device *strVar @ [sx,sy]>>,
+                            <pin ISNE of <device *strVar @[sx,sy]>>  => <wire ZSSW of <device *strVar @ [sx,sy]>>
+                        );
+                    }  
+                }
+            
+                if(flag_blank_u==0)
+                {
+
+//special RDRD
+                    sy_skew = l_srb_tile_y[index_y + 1] * NUM_GRID_Y ;
+
+                    if((tx==tx_se + 2&&ty==ty_se - 2)||(tx==tx_se2 + 1&&ty==ty_se2 - 2))
+                    {
+                        connect
+                        (
+                            <pin TSNW of <device *strVar @[sx,sy_skew]>>  => <wire ZSNW of <device *strVar @ [sx,sy]>>,
+                            <pin ISSW of <device *strVar @[sx_skew,sy]>>  => <wire ZSNW of <device *strVar @ [sx,sy]>>
+                        );
+                    }
+                    else
+                    {
+                        connect
+                        (
+                            <pin TSNW of <device *strVar @[sx,sy_skew]>>  => <wire ZSNW of <device *strVar @ [sx,sy]>>,
+                            <pin ISNW of <device *strVar @[sx_skew,sy_skew]>>  => <wire ZSNW of <device *strVar @ [sx,sy]>>
+                        );
+                    }
+                }
+
+                else
+                {
+
+//special LDRD
+                    if(tx==tx_sw&&ty==ty_sw - 2)
+                    {
+
+                        sy_skew = l_srb_tile_y[index_y + 1] * NUM_GRID_Y ;
+
+                        connect
+                        (
+                            <pin TSSW of <device *strVar @[sx_skew,sy_skew]>>  => <wire ZSNW of <device *strVar @ [sx,sy]>>,
+                            <pin ISSW of <device *strVar @[sx_skew,sy]>>  => <wire ZSNW of <device *strVar @ [sx,sy]>>
+                        );                    
+                    }
+                    else
+                    {
+                        connect
+                        (
+                            <pin TSSE of <device *strVar @[sx_skew,sy]>>  => <wire ZSNW of <device *strVar @ [sx,sy]>>,
+                            <pin ISSE of <device *strVar @[sx,sy]>>  => <wire ZSNW of <device *strVar @ [sx,sy]>>
+                        );
+                    }
+                }
+            }
+
+// tx_skew > tx
+
+            else
+            {
+                connect(<pin ISW of <device *strVar @[sx,sy]>>    => <wire ZSW of <device *strVar @ [sx_skew,sy]>>);
+
+                if(flag_blank_d==0)
+                {
+//special LULU
+                    sy_skew = l_srb_tile_y[index_y - 1] * NUM_GRID_Y ;
+
+                    if(!(tx_nw3-tx==1&&ty==ty_nw3+1))
+                    {
+                        connect(<pin ISW_5_NEXT of <device *strVar @[sx,sy]>>  => <wire ZSW[5] of <device *strVar @ [sx_skew,sy_skew]>>);
+                    }
+
+                    if(tx_sw-tx<2&&tx_sw-tx>0&&ty==ty_sw-2)
+                    {
+                        sy_skew = l_srb_tile_y[index_y + 1] * NUM_GRID_Y ;
+
+                        connect(<pin ISW_5_NEXT of <device *strVar @[sx,sy_skew]>>  => <wire ZSW[5] of <device *strVar @ [sx_skew,sy]>>);
+                    }
+
+                    sy_skew = l_srb_tile_y[index_y - 1] * NUM_GRID_Y ;
+
+                    if(tx==tx_nw3-1&&ty==ty_nw3+1)
+                    {
+                        connect
+                        (
+                            <pin TSSE of <device *strVar @[sx,sy_skew]>>  => <wire ZSSE of <device *strVar @ [sx,sy]>>,
+                            <pin ISNE of <device *strVar @[sx_skew,sy]>>  => <wire ZSSE of <device *strVar @ [sx,sy]>>
+                        );
+                    }
+                    else
+                    {
+                        connect
+                        (
+                            <pin TSSE of <device *strVar @[sx,sy_skew]>>  => <wire ZSSE of <device *strVar @ [sx,sy]>>,
+                            <pin ISSE of <device *strVar @[sx_skew,sy_skew]>>  => <wire ZSSE of <device *strVar @ [sx,sy]>>
+                        );
+                    }
+                }
+                else
+                {
+
+                    connect(<pin ISW_5_NEXT of <device *strVar @[sx,sy]>>  => <wire ZSS[1] of <device *strVar @ [sx,sy]>>);
+//special RULU
+                    if(tx==tx_ne2&&ty==ty_ne2 + 1)
+                    {
+
+                        sy_skew = l_srb_tile_y[index_y - 1] * NUM_GRID_Y ;
+
+                        connect
+                        (
+                            <pin TSNE of <device *strVar @[sx_skew,sy_skew]>>  => <wire ZSSE of <device *strVar @ [sx,sy]>>,
+                            <pin ISNE of <device *strVar @[sx_skew,sy]>>  => <wire ZSSE of <device *strVar @ [sx,sy]>>
+                        );
+                    }
+                    else
+                    {
+                        connect
+                        (
+                            <pin TSNW of <device *strVar @[sx_skew,sy]>>  => <wire ZSSE of <device *strVar @ [sx,sy]>>,
+                            <pin ISNW of <device *strVar @[sx,sy]>>  => <wire ZSSE of <device *strVar @ [sx,sy]>>
+                        );
+                    }                
+                }
+                if(flag_blank_u==0)
+                {
+//special LDLD
+
+                    sy_skew = l_srb_tile_y[index_y + 1] * NUM_GRID_Y ;                    
+
+                    if(tx==tx_sw - 1&&ty==ty_sw - 2)
+                    {
+                        connect
+                        (
+                            <pin TSNE of <device *strVar @[sx_skew,sy]>>  => <wire ZSNE of <device *strVar @ [sx,sy]>>,
+                            <pin ISNW of <device *strVar @[sx,sy_skew]>>  => <wire ZSNE of <device *strVar @ [sx,sy]>>
+                        );
+                    }
+
+                    else
+                    {
+                        connect
+                        (
+                            <pin TSNE of <device *strVar @[sx_skew,sy]>>  => <wire ZSNE of <device *strVar @ [sx,sy]>>,
+                            <pin ISNE of <device *strVar @[sx_skew,sy_skew]>>  => <wire ZSNE of <device *strVar @ [sx,sy]>>
+                        );
+                    }
+                }
+                else
+                {
+//special RLD
+
+                    if((tx==tx_se&&ty==ty_se - 2)||(tx==tx_se2&&ty==ty_se2 - 2))
+                    {
+
+                        sy_skew = l_srb_tile_y[index_y + 1] * NUM_GRID_Y ;
+
+                        connect
+                        (
+                            <pin TSNE of <device *strVar @[sx_skew,sy]>>  => <wire ZSNE of <device *strVar @ [sx,sy]>>,
+                            <pin ISNE of <device *strVar @[sx_skew,sy_skew]>>  => <wire ZSNE of <device *strVar @ [sx,sy]>>
+                        );
+                    }
+                    else
+                    {
+                        connect
+                        (
+                            <pin TSNE of <device *strVar @[sx_skew,sy]>>  => <wire ZSNE of <device *strVar @ [sx,sy]>>,
+                            <pin ISSW of <device *strVar @[sx,sy]>>  => <wire ZSNE of <device *strVar @ [sx,sy]>>
+                        );
+                    }
+                }
+            }
+        }
+
+// index==0,boundry,no sx_skew
+
+        else
+        {
+            if(flag_ud==1)
+            {
+                connect
+                (
+                    <pin ISE of <device *strVar @[sx,sy]>>  => <wire ZSW of <device *strVar @ [sx,sy]>>
+                );
+//RURU for S
+                if(ty==ty_ne2)
+                {
+                    sy_skew = l_srb_tile_y[index_y + 1] * NUM_GRID_Y ;
+
+                    connect
+                    (
+                        <pin ISE_5_NEXT of <device *strVar @[sx,sy_skew]>>  => <wire ZSW[5] of <device *strVar @ [sx,sy]>>
+                    );
+                }
+
+                if(flag_blank_d==0)
+                {
+
+                    sy_skew = l_srb_tile_y[index_y - 1] * NUM_GRID_Y ;
+
+                    if(!((tx-tx_se2<2&&tx-tx_se2>0&&ty==ty_se2)||(tx-tx_se<3&&tx-tx_se>0&&ty==ty_se)))
+                    {
+                        connect(<pin ISE_5_NEXT of <device *strVar @[sx,sy]>>  => <wire ZSW[5] of <device *strVar @ [sx,sy_skew]>>);
+                    }
+
+//special RDRU
+
+                    if(tx==tx_se + 2&&ty==ty_se)
+                    {
+                        connect
+                        (
+                            <pin TSSE of <device *strVar @[sx-2*NUM_GRID_X,sy_skew]>>  => <wire ZSSW of <device *strVar @ [sx,sy]>>,
+                            <pin ISSE of <device *strVar @[sx,sy_skew]>>  => <wire ZSSW of <device *strVar @ [sx,sy]>>
+                        );
+                    }
+                    else if(tx==tx_se2 + 1&&ty==ty_se2)
+                    {
+                        connect
+                        (
+                            <pin TSSE of <device *strVar @[sx-NUM_GRID_X,sy_skew]>>  => <wire ZSSW of <device *strVar @ [sx,sy]>>,
+                            <pin ISSE of <device *strVar @[sx,sy_skew]>>  => <wire ZSSW of <device *strVar @ [sx,sy]>>
+                        );
+                    }
+                    else
+                    {
+                        connect
+                        (
+                            <pin TSNE of <device *strVar @[sx,sy_skew]>>  => <wire ZSSW of <device *strVar @ [sx,sy]>>,
+                            <pin ISNE of <device *strVar @[sx,sy]>>  => <wire ZSSW of <device *strVar @ [sx,sy]>>
+                        );
+                    }
+                }
+                else
+                {
+
+                    connect
+                    (
+                        <pin ISE_5_NEXT of <device *strVar @[sx,sy]>>  => <wire ZSS[4] of <device *strVar @ [sx,sy]>>,
+                        <pin ISNE of <device *strVar @[sx,sy]>>  => <wire ZSSW of <device *strVar @ [sx,sy]>>,
+                        <pin TSNW of <device *strVar @[sx,sy]>>  => <wire ZSSW of <device *strVar @ [sx,sy]>>
+                    );                
+
+                }
+                if(flag_blank_u==0)
+                {
+                    sy_skew = l_srb_tile_y[index_y + 1] * NUM_GRID_Y ;
+//special RURD
+                    if(tx==tx_ne2+1&&ty==ty_ne2)
+                    {
+
+                        connect
+                        (
+                            <pin TSNW of <device *strVar @[sx,sy_skew]>>  => <wire ZSNW of <device *strVar @ [sx,sy]>>,
+                            <pin ISNW of <device *strVar @[sx-NUM_GRID_X,sy_skew]>>  => <wire ZSNW of <device *strVar @ [sx,sy]>>
+                        );
+                    }
+                    else
+                    {
+                        connect
+                        (
+                            <pin TSNW of <device *strVar @[sx,sy_skew]>>  => <wire ZSNW of <device *strVar @ [sx,sy]>>,
+                            <pin ISSE of <device *strVar @[sx,sy]>>  => <wire ZSNW of <device *strVar @ [sx,sy]>>
+                        );
+                    }
+                }
+                else
+                {
+                    connect
+                    (
+                        <pin TSNE of <device *strVar @[sx,sy]>>  => <wire ZSNW of <device *strVar @ [sx,sy]>>,
+                        <pin ISSE of <device *strVar @[sx,sy]>>  => <wire ZSNW of <device *strVar @ [sx,sy]>>
+                    ); 
+                }
+            }
+
+ // tx_skew > tx
+
+            else
+            {
+                connect(<pin ISW of <device *strVar @[sx,sy]>>    => <wire ZSE of <device *strVar @ [sx,sy]>>);
+//LULU for S
+                if(ty==ty_nw3)
+                {
+                    sy_skew = l_srb_tile_y[index_y + 1] * NUM_GRID_Y ;
+
+                    connect(<pin ISW_5_NEXT of <device *strVar @[sx,sy_skew]>>    => <wire ZSE[5] of <device *strVar @ [sx,sy]>>);
+                }
+                
+                if(flag_blank_d==0)
+                {
+
+                    sy_skew = l_srb_tile_y[index_y - 1] * NUM_GRID_Y ;
+
+                    if(!(tx_sw-tx<2&&tx_sw-tx>0&&ty==ty_sw))
+                    {
+                        connect(<pin ISW_5_NEXT of <device *strVar @[sx,sy]>>  => <wire ZSE[5] of <device *strVar @ [sx,sy_skew]>>);
+                    }
+
+//special LDLU
+
+                    if(tx==tx_sw - 1&&ty==ty_sw)
+                    {
+
+                        connect
+                        (
+                            <pin TSSE of <device *strVar @[sx,sy_skew]>>  => <wire ZSSE of <device *strVar @ [sx,sy]>>,
+                            <pin ISSE of <device *strVar @[sx+NUM_GRID_X,sy_skew]>>  => <wire ZSSE of <device *strVar @ [sx,sy]>>
+                        );
+                    }
+                    else
+                    { 
+                        connect
+                        (
+                            <pin TSSE of <device *strVar @[sx,sy_skew]>>  => <wire ZSSE of <device *strVar @ [sx,sy]>>,
+                            <pin ISNW of <device *strVar @[sx,sy]>>  => <wire ZSSE of <device *strVar @ [sx,sy]>>
+                        );
+                    }
+                }
+                else
+                {
+                    connect
+                    (
+                        <pin ISW_5_NEXT of <device *strVar @[sx,sy]>>  => <wire ZSS[1] of <device *strVar @ [sx,sy]>>,
+                        <pin TSSW of <device *strVar @[sx,sy]>>  => <wire ZSSE of <device *strVar @ [sx,sy]>>,
+                        <pin ISNW of <device *strVar @[sx,sy]>>  => <wire ZSSE of <device *strVar @ [sx,sy]>>
+                    );                
+                }
+                if(flag_blank_u==0)
+                {
+                    sy_skew = l_srb_tile_y[index_y + 1] * NUM_GRID_Y ;
+// special LULD                    
+                    if(tx==tx_nw3-1&&ty==ty_nw3)
+                    {
+                        connect
+                        (
+                            <pin TSNW of <device *strVar @[sx+NUM_GRID_X,sy_skew]>>  => <wire ZSNE of <device *strVar @ [sx,sy]>>,
+                            <pin ISNW of <device *strVar @[sx,sy_skew]>>  => <wire ZSNE of <device *strVar @ [sx,sy]>>
+                        );
+                    }     
+                    else
+                    {
+                        connect
+                        (
+                            <pin TSSW of <device *strVar @[sx,sy_skew]>>  => <wire ZSNE of <device *strVar @ [sx,sy]>>,
+                            <pin ISSW of <device *strVar @[sx,sy]>>  => <wire ZSNE of <device *strVar @ [sx,sy]>>
+                        );
+                    }
+                }
+                else
+                {
+                    connect
+                    (
+                        <pin TSSE of <device *strVar @[sx,sy]>>  => <wire ZSNE of <device *strVar @ [sx,sy]>>,
+                        <pin ISSW of <device *strVar @[sx,sy]>>  => <wire ZSNE of <device *strVar @ [sx,sy]>>
+                    );                
+                }
+            }
+        }
+    }
+    
+    if(flag_mode==2)
+    {
+        if(index>1)
+        {
+
+            tx_skew = (flag_y == 0) ? l_srb_tile_x0[index - 2] :
+                      (flag_y == 1) ? l_srb_tile_x1[index - 2] :
+                      (flag_y == 2) ? l_srb_tile_x2[index - 2] :
+                      (flag_y == 3) ? l_srb_tile_x3[index - 2] :
+                      (flag_y == 4) ? l_srb_tile_x4[index - 2] :
+                                      l_srb_tile_x5[index - 2] ;
+
+            sx_skew = tx_skew * NUM_GRID_Y ;
+
+            if(flag_ud==1)
+            {
+                connect
+                (
+                    <pin IDE of <device *strVar @[sx,sy]>>  => <wire ZDE of <device *strVar @ [sx_skew,sy]>>
+                );
+                if(flag_blank_d==0)
+                {
+                    if(!(tx-tx_ne2<3&&tx-tx_ne2>0&&ty==ty_ne2+1))
+                    {
+                        sy_skew = l_srb_tile_y[index_y - 1] * NUM_GRID_Y ;
+
+                        connect
+                        (
+                            <pin IDE_5_NEXT of <device *strVar @[sx,sy]>>  => <wire ZDE[5] of <device *strVar @ [sx_skew,sy_skew]>>
+                        );
+                    }
+                    if((tx-tx_se2<3&&tx-tx_se2>0&&ty==ty_se2-2)||(tx-tx_se<4&&tx-tx_se>0&&ty==ty_se-2))
+                    {
+                        sy_skew = l_srb_tile_y[index_y + 1] * NUM_GRID_Y ;
+
+                        connect
+                        (
+                            <pin IDE_5_NEXT of <device *strVar @[sx,sy_skew]>>  => <wire ZDE[5] of <device *strVar @ [sx_skew,sy]>>
+                        );
+                    }
+                }
+                else
+                {
+                    connect
+                    (
+                        <pin IDE_5_NEXT of <device *strVar @[sx,sy]>>  => <wire ZDS[4] of <device *strVar @ [sx,sy]>>
+                    );                
+                }
+            }
+            else
+            {
+                connect
+                (
+                    <pin IDW of <device *strVar @[sx,sy]>>    => <wire ZDW of <device *strVar @ [sx_skew,sy]>>
+                );            
+                if(flag_blank_d==0)
+                {
+                    if(!(tx_nw3-tx<3&&tx_nw3-tx>0&&ty==ty_nw3+1))
+                    {
+                        sy_skew = l_srb_tile_y[index_y - 1] * NUM_GRID_Y ;
+
+                        connect(<pin IDW_5_NEXT of <device *strVar @[sx,sy]>>  => <wire ZDW[5] of <device *strVar @ [sx_skew,sy_skew]>>);
+                    }
+                    if(tx_sw-tx<3&&tx_sw-tx>0&&ty==ty_sw-2)
+                    {
+                        sy_skew = l_srb_tile_y[index_y + 1] * NUM_GRID_Y ;
+
+                        connect(<pin IDW_5_NEXT of <device *strVar @[sx,sy_skew]>>  => <wire ZDW[5] of <device *strVar @ [sx_skew,sy]>>);
+                    }                    
+                }
+                else
+                {
+                    connect(<pin IDW_5_NEXT of <device *strVar @[sx,sy]>>  => <wire ZDS[3] of <device *strVar @ [sx,sy]>>);
+                }
+            }
+        }
+
+//boundry mode 2
+
+        else
+        {
+            tx_skew = (flag_y == 0) ? l_srb_tile_x0[1 - index] :
+                      (flag_y == 1) ? l_srb_tile_x1[1 - index] :
+                      (flag_y == 2) ? l_srb_tile_x2[1 - index] :
+                      (flag_y == 3) ? l_srb_tile_x3[1 - index] :
+                      (flag_y == 4) ? l_srb_tile_x4[1 - index] :
+                                      l_srb_tile_x5[1 - index] ;
+
+            sx_skew = tx_skew * NUM_GRID_Y ;
+
+            if(flag_ud==1)
+            {
+
+                connect
+                 (
+                    <pin IDE of <device *strVar @[sx,sy]>>  => <wire ZDW of <device *strVar @ [sx_skew,sy]>>
+                 );
+//RURU for D
+                if(ty==ty_ne2)
+                {
+                    sy_skew = l_srb_tile_y[index_y + 1] * NUM_GRID_Y ;
+
+                    connect
+                    (
+                        <pin IDE_5_NEXT of <device *strVar @[sx,sy_skew]>>  => <wire ZDW[5] of <device *strVar @ [sx_skew,sy]>>
+                    );
+                }
+
+                if(flag_blank_d==0)
+                {
+                    if(!((tx-tx_se2<3&&tx-tx_se2>0&&ty==ty_se2)||(tx-tx_se<4&&tx-tx_se>0&&ty==ty_se)))
+                    {
+                        sy_skew = l_srb_tile_y[index_y - 1] * NUM_GRID_Y ;
+
+                        connect
+                        (
+                            <pin IDE_5_NEXT of <device *strVar @[sx,sy]>>  => <wire ZDW[5] of <device *strVar @ [sx_skew,sy_skew]>>
+                        );
+                    }
+                }
+                else
+                {
+                    connect
+                    (
+                        <pin IDE_5_NEXT of <device *strVar @[sx,sy]>>  => <wire ZDS[4] of <device *strVar @ [sx,sy]>>
+                    );                
+                }
+            }
+            else
+            {
+                connect
+                (
+                   <pin IDW of <device *strVar @[sx,sy]>>    => <wire ZDE of <device *strVar @ [sx_skew,sy]>>
+                );
+//LULU for D
+                if(ty==ty_nw3)
+                {
+                    sy_skew = l_srb_tile_y[index_y + 1] * NUM_GRID_Y ;
+
+                    connect
+                    (
+                       <pin IDW_5_NEXT of <device *strVar @[sx,sy_skew]>>    => <wire ZDE[5] of <device *strVar @ [sx_skew,sy]>>
+                    );
+                }
+
+                if(flag_blank_d==0)
+                {
+                    if(!(ty==ty_sw&&tx_sw-tx<3&&tx_sw-tx>0))
+                    {
+                        sy_skew = l_srb_tile_y[index_y - 1] * NUM_GRID_Y ;
+
+                        connect(<pin IDW_5_NEXT of <device *strVar @[sx,sy]>>  => <wire ZDE[5] of <device *strVar @ [sx_skew,sy_skew]>>);
+                    }
+                }
+                else
+                {
+                    connect
+                    (
+                        <pin IDW_5_NEXT of <device *strVar @[sx,sy]>>  => <wire ZDS[3] of <device *strVar @ [sx,sy]>>
+                    );                
+                }
+            }
+        }
+    }
+
+    if(flag_mode==4)
+    {
+        if(index>3)
+        {
+
+            tx_skew = (flag_y == 0) ? l_srb_tile_x0[index - 4] :
+                      (flag_y == 1) ? l_srb_tile_x1[index - 4] :
+                      (flag_y == 2) ? l_srb_tile_x2[index - 4] :
+                      (flag_y == 3) ? l_srb_tile_x3[index - 4] :
+                      (flag_y == 4) ? l_srb_tile_x4[index - 4] :
+                                      l_srb_tile_x5[index - 4] ;
+
+            sx_skew = tx_skew * NUM_GRID_Y ;
+
+            if(flag_ud==1)
+            {
+                connect
+                (
+                    <pin IQE of <device *strVar @[sx,sy]>>  => <wire ZQE of <device *strVar @ [sx_skew,sy]>>
+                );
+                if(flag_blank_d==0)
+                {
+
+                    sy_skew = l_srb_tile_y[index_y - 1] * NUM_GRID_Y ;
+
+                    if(!(tx-tx_ne2<5&&tx-tx_ne2>0&&ty==ty_ne2+1))
+                    {
+                        connect(<pin IQE_5_NEXT of <device *strVar @[sx,sy]>>  => <wire ZQE[5] of <device *strVar @ [sx_skew,sy_skew]>>);
+                    }
+
+
+                    if((tx-tx_se2<5&&tx-tx_se2>0&&ty==ty_se2-2)||(tx-tx_se<6&&tx-tx_se>0&&ty==ty_se-2))
+                    {
+                        sy_skew = l_srb_tile_y[index_y + 1] * NUM_GRID_Y ;
+
+                        connect(<pin IQE_5_NEXT of <device *strVar @[sx,sy_skew]>>  => <wire ZQE[5] of <device *strVar @ [sx_skew,sy]>>);                     
+                    }
+                }
+                else
+                {
+                    connect
+                    (
+                        <pin IQE_5_NEXT of <device *strVar @[sx,sy]>>  => <wire ZQS[3] of <device *strVar @ [sx,sy]>>
+                    );                
+                }
+            }
+            else
+            {
+                connect
+                (
+                    <pin IQW of <device *strVar @[sx,sy]>>    => <wire ZQW of <device *strVar @ [sx_skew,sy]>>
+                );            
+                if(flag_blank_d==0)
+                {
+
+                    sy_skew = l_srb_tile_y[index_y - 1] * NUM_GRID_Y ;
+
+                    if(!(tx_nw3-tx<5&&tx_nw3-tx>0&&ty==ty_nw3+1))
+                    {
+                        connect(<pin IQW_5_NEXT of <device *strVar @[sx,sy]>>  => <wire ZQW[5] of <device *strVar @ [sx_skew,sy_skew]>>);
+                    }
+
+                    if(tx_sw-tx<5&&tx_sw-tx>0&&ty==ty_sw-2)
+                    {
+                        sy_skew = l_srb_tile_y[index_y + 1] * NUM_GRID_Y ;
+
+                        connect(<pin IQW_5_NEXT of <device *strVar @[sx,sy_skew]>>  => <wire ZQW[5] of <device *strVar @ [sx_skew,sy]>>);
+                    }
+                }
+                else
+                {
+                    connect
+                    (
+                        <pin IQW_5_NEXT of <device *strVar @[sx,sy]>>  => <wire ZQS[0] of <device *strVar @ [sx,sy]>>
+                    );                
+                }
+             }
+        }
+
+// boundry mode 4
+
+        else
+        {
+            tx_skew = (flag_y == 0) ? l_srb_tile_x0[3 - index] :
+                      (flag_y == 1) ? l_srb_tile_x1[3 - index] :
+                      (flag_y == 2) ? l_srb_tile_x2[3 - index] :
+                      (flag_y == 3) ? l_srb_tile_x3[3 - index] :
+                      (flag_y == 4) ? l_srb_tile_x4[3 - index] :
+                                      l_srb_tile_x5[3 - index] ;
+
+            sx_skew = tx_skew * NUM_GRID_Y ;
+
+            if(flag_ud==1)
+            {
+                connect
+                (
+                    <pin IQE of <device *strVar @[sx,sy]>>  => <wire ZQW of <device *strVar @ [sx_skew,sy]>>
+                );
+// RURU for Q
+                if(ty==ty_ne2)
+                {
+                    sy_skew = l_srb_tile_y[index_y + 1] * NUM_GRID_Y ;
+
+                    connect
+                     (
+                        <pin IQE_5_NEXT of <device *strVar @[sx,sy_skew]>>  => <wire ZQW[5] of <device *strVar @ [sx_skew,sy]>>
+                     );
+                }
+                if(flag_blank_d==0)
+                {
+                    if(!((tx-tx_se2<5&&tx-tx_se2>0&&ty==ty_se2)||(tx-tx_se<6&&tx-tx_se>0&&ty==ty_se)))
+                    {
+                        sy_skew = l_srb_tile_y[index_y - 1] * NUM_GRID_Y ;
+
+                        connect(<pin IQE_5_NEXT of <device *strVar @[sx,sy]>>  => <wire ZQW[5] of <device *strVar @ [sx_skew,sy_skew]>>);
+                    }
+                }
+                else
+                {
+                    connect
+                    (
+                        <pin IQE_5_NEXT of <device *strVar @[sx,sy]>>  => <wire ZQS[3] of <device *strVar @ [sx,sy]>>
+                    );                
+                }
+            }
+            else
+            {
+                connect
+                (
+                   <pin IQW of <device *strVar @[sx,sy]>>    => <wire ZQE of <device *strVar @ [sx_skew,sy]>>
+                );
+//LULU for Q
+                if(ty==ty_nw3)
+                {
+                    sy_skew = l_srb_tile_y[index_y + 1] * NUM_GRID_Y ;
+
+                    connect
+                    (
+                       <pin IQW_5_NEXT of <device *strVar @[sx,sy_skew]>>    => <wire ZQE[5] of <device *strVar @ [sx_skew,sy]>>
+                    );
+                }
+                if(flag_blank_d==0)
+                {
+                    if(!(ty==ty_sw&&tx_sw-tx<5&&tx_sw-tx>0))
+                    {
+                        sy_skew = l_srb_tile_y[index_y - 1] * NUM_GRID_Y ;
+
+                        connect(<pin IQW_5_NEXT of <device *strVar @[sx,sy]>>  => <wire ZQE[5] of <device *strVar @ [sx_skew,sy_skew]>>);
+                    }
+                }
+                else
+                {
+                    connect
+                    (
+                        <pin IQW_5_NEXT of <device *strVar @[sx,sy]>>  => <wire ZQS[0] of <device *strVar @ [sx,sy]>>
+                    );                
+                }
+            }
+        }
+    }
+    if(flag_mode==8)
+    {
+        if(index>7)
+        {
+
+            tx_skew = (flag_y == 0) ? l_srb_tile_x0[index - 8] :
+                      (flag_y == 1) ? l_srb_tile_x1[index - 8] :
+                      (flag_y == 2) ? l_srb_tile_x2[index - 8] :
+                      (flag_y == 3) ? l_srb_tile_x3[index - 8] :
+                      (flag_y == 4) ? l_srb_tile_x4[index - 8] :
+                                      l_srb_tile_x5[index - 8] ;
+
+            sx_skew = tx_skew * NUM_GRID_Y ;
+
+            if(flag_ud==1)
+            {
+                connect
+                 (
+                    <pin LH0 of <device *strVar @[sx_skew,sy]>>  => <wire LH1 of <device *strVar @ [sx,sy]>>
+                 );
+            }
+            else
+            {
+                connect
+                 (
+                    <pin LH2 of <device *strVar @[sx_skew,sy]>>    => <wire LH1 of <device *strVar @ [sx,sy]>>
+                 );            
+             }
+        }
+        else
+        {
+            tx_skew = (flag_y == 0) ? l_srb_tile_x0[7 - index] :
+                      (flag_y == 1) ? l_srb_tile_x1[7 - index] :
+                      (flag_y == 2) ? l_srb_tile_x2[7 - index] :
+                      (flag_y == 3) ? l_srb_tile_x3[7 - index] :
+                      (flag_y == 4) ? l_srb_tile_x4[7 - index] :
+                                      l_srb_tile_x5[7 - index] ;
+
+            sx_skew = tx_skew * NUM_GRID_Y ;
+
+            if(flag_ud==1)
+            {
+
+                connect
+                 (
+                    <pin LH2 of <device *strVar @[sx_skew,sy]>>  => <wire LH1 of <device *strVar @ [sx,sy]>>
+                 );
+            }
+            else
+            {
+                connect
+                (
+                   <pin LH0 of <device *strVar @[sx_skew,sy]>>    => <wire LH1 of <device *strVar @ [sx,sy]>>
+                );
+            }
+        }
+    }
+
+}// end of connect_SRB_input_h
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_CLM_input
+(
+    unsigned int tx,
+    unsigned int index,
+    unsigned int l_clm_tile_y0[239:0],
+    unsigned int l_clm_tile_y1[104:0],
+    unsigned int l_clm_tile_y2[89:0],
+    unsigned int l_clm_tile_y3[224:0],
+    unsigned int l_clm_tile_y4[118:0],
+    unsigned int l_clma_tile_y5[171:0],
+    unsigned int flag_sa,
+    unsigned int flag_ud,
+    unsigned int flag_y
+)
+{
+    unsigned int sx,ty,ty_skew,sy,sy_skew;
+    sx = tx * NUM_GRID_X + 2;
+    string strVar;
+    strVar =  (flag_sa==1) ? "CLMS_TILE" : "CLMA_TILE";
+
+
+    ty = (flag_y == 0) ? l_clm_tile_y0[index] :
+         (flag_y == 1) ? l_clm_tile_y1[index] :
+         (flag_y == 2) ? l_clm_tile_y2[index] :
+         (flag_y == 3) ? l_clm_tile_y3[index] :
+         (flag_y == 4) ? l_clm_tile_y4[index] :
+                         l_clma_tile_y5[index] ; 
+    sy = ty * NUM_GRID_Y ;
+
+    if(index!=0)
+    {
+
+        ty_skew = (flag_y == 0) ? l_clm_tile_y0[index - 1] :
+                  (flag_y == 1) ? l_clm_tile_y1[index - 1] :
+                  (flag_y == 2) ? l_clm_tile_y2[index - 1] :
+                  (flag_y == 3) ? l_clm_tile_y3[index - 1] :
+                  (flag_y == 4) ? l_clm_tile_y4[index - 1] :
+                                  l_clma_tile_y5[index - 1] ;
+
+        sy_skew = ty_skew * NUM_GRID_Y ;
+
+        if(flag_ud==1)
+        {
+            connect
+             (
+                <pin A_CECI of <device *strVar @[sx,sy]>>  => <wire A_CECO of <device *strVar @ [sx,sy_skew]>>,
+                <pin S_CECI of <device *strVar @[sx,sy]>>  => <wire S_CECO of <device *strVar @ [sx,sy_skew]>>,
+                <pin A_CIN of <device *strVar @[sx,sy]>>   => <wire A_COUT of <device *strVar @ [sx,sy_skew]>>,
+                <pin S_CIN of <device *strVar @[sx,sy]>>   => <wire S_COUT of <device *strVar @ [sx,sy_skew]>>,
+                <pin A_RSCI of <device *strVar @[sx,sy]>>  => <wire A_RSCO of <device *strVar @ [sx,sy_skew]>>,
+                <pin S_RSCI of <device *strVar @[sx,sy]>>  => <wire S_RSCO of <device *strVar @ [sx,sy_skew]>>,
+                <pin A_SRCI of <device *strVar @[sx,sy]>>  => <wire A_SRCO of <device *strVar @ [sx,sy_skew]>>,
+                <pin S_SRCI of <device *strVar @[sx,sy]>>  => <wire S_SRCO of <device *strVar @ [sx,sy_skew]>>
+             );
+        }
+        else
+        {
+            connect
+             (
+                <pin L7IN of <device *strVar @[sx,sy]>>    => <wire L7OUT of <device *strVar @ [sx,sy_skew]>>
+             );            
+         }
+    }
+    else
+    {
+        if(flag_ud==1)
+        {
+            connect
+             (
+                <pin A_CECI of <device *strVar @[sx,sy]>>  => <wire TIEHI of <device *strVar @ [sx,sy]>>,
+                <pin S_CECI of <device *strVar @[sx,sy]>>  => <wire TIEHI of <device *strVar @ [sx,sy]>>,
+                <pin A_CIN of <device *strVar @[sx,sy]>>   => <wire TIEHI of <device *strVar @ [sx,sy]>>,
+                <pin S_CIN of <device *strVar @[sx,sy]>>   => <wire TIEHI of <device *strVar @ [sx,sy]>>,
+                <pin A_RSCI of <device *strVar @[sx,sy]>>  => <wire TIEHI of <device *strVar @ [sx,sy]>>,
+                <pin S_RSCI of <device *strVar @[sx,sy]>>  => <wire TIEHI of <device *strVar @ [sx,sy]>>,
+                <pin A_SRCI of <device *strVar @[sx,sy]>>  => <wire TIEHI of <device *strVar @ [sx,sy]>>,
+                <pin S_SRCI of <device *strVar @[sx,sy]>>  => <wire TIEHI of <device *strVar @ [sx,sy]>>
+             );
+            }
+        else
+        {
+            connect
+            (
+               <pin L7IN of <device *strVar @[sx,sy]>>    => <wire TIEHI of <device *strVar @ [sx,sy]>>
+            );
+        }
+    } 
+  
+}//end of function connect_CLM_input
+/*******************************************************************
+********************************************************************/
+function connect_iob_tile
+(
+    unsigned int tx,
+    unsigned int ty,
+    unsigned int num_rx,
+    string dev_iob,
+    unsigned int flag_iol_lr,
+    unsigned int flag_half
+)
+{
+
+    unsigned int sx, sy; 
+    string iob = dev_iob ;
+
+    sx = tx * NUM_GRID_X;
+    sy = ty * NUM_GRID_Y;
+
+    unsigned int sx_iol;
+    sx_iol = (flag_iol_lr==0) ? sx-2 : sx+6;
+
+    int ty_iol19 = ty + 1;
+    int ty_iol18 = ty + 2;
+    int ty_iol17 = ty + 3;
+    int ty_iol16 = ty + 4;
+    int ty_iol15 = ty + 5;
+    int ty_iol14 = ty + 8;
+    int ty_iol13 = ty + 9;
+    int ty_iol12 = ty + 10;
+    int ty_iol11 = ty + 11;
+    int ty_iol10 = ty + 12;
+    int ty_iol9 = ty + 18;
+    int ty_iol8 = ty + 19;
+    int ty_iol7 = ty + 20;
+    int ty_iol6 = ty + 21;
+    int ty_iol5 = ty + 22;
+    int ty_iol4 = ty + 25;
+    int ty_iol3 = ty + 26;
+    int ty_iol2 = ty + 27;
+    int ty_iol1 = ty + 28;
+    int ty_iol0 = ty + 29;
+
+    string device_iol0  =  "IOL_TILE";
+    string device_iol1  =  "IOL_TILE";
+    string device_iol2  =  "IOL_TILE";
+    string device_iol3  =  "IOL_TILE";
+    string device_iol4  =  "IOL_TILE";
+    string device_iol5  =  "IOL_TILE";
+    string device_iol6  =  "IOL_TILE";
+    string device_iol7  =  "IOL_TILE";
+    string device_iol8  =  "IOL_TILE";
+    string device_iol9  =  "IOL_TILE";
+    string device_iol10 =  "IOL_TILE";
+    string device_iol11 =  "IOL_TILE";
+    string device_iol12 =  "IOL_TILE";
+    string device_iol13 =  "IOL_TILE";
+    string device_iol14 =  "IOL_TILE";
+    string device_iol15 =  "IOL_TILE";
+    string device_iol16 =  "IOL_TILE";
+    string device_iol17 =  "IOL_TILE";
+    string device_iol18 =  "IOL_TILE";
+    string device_iol19 =  "IOL_TILE";
+
+    if(flag_half==0)
+    {
+        connect
+        (
+             <pin S11_USR_DO[0] of <device *iob @[sx,sy]>>  => <wire DO_A of <device *device_iol0 @ [sx_iol,ty_iol0*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[0] of <device *iob @[sx,sy]>>  => <wire TO_A of <device *device_iol0 @ [sx_iol,ty_iol0*NUM_GRID_Y]>>,
+             <pin S11_USR_DO[1] of <device *iob @[sx,sy]>>  => <wire DO_B of <device *device_iol0 @ [sx_iol,ty_iol0*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[1] of <device *iob @[sx,sy]>>  => <wire TO_B of <device *device_iol0 @ [sx_iol,ty_iol0*NUM_GRID_Y]>>,
+             <pin S11_TERM90[0] of <device *iob @[sx,sy]>>  => <wire TERM_A of <device *device_iol0 @ [sx_iol,ty_iol0*NUM_GRID_Y]>>,
+             <pin S11_TERM90[1] of <device *iob @[sx,sy]>>  => <wire TERM_B of <device *device_iol0 @ [sx_iol,ty_iol0*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[0] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_A of <device *device_iol0 @ [sx_iol,ty_iol0*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[1] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_B of <device *device_iol0 @ [sx_iol,ty_iol0*NUM_GRID_Y]>>,
+
+             <pin S11_USR_DO[2] of <device *iob @[sx,sy]>>  => <wire DO_A of <device *device_iol1 @ [sx_iol,ty_iol1*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[2] of <device *iob @[sx,sy]>>  => <wire TO_A of <device *device_iol1 @ [sx_iol,ty_iol1*NUM_GRID_Y]>>,
+             <pin S11_USR_DO[3] of <device *iob @[sx,sy]>>  => <wire DO_B of <device *device_iol1 @ [sx_iol,ty_iol1*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[3] of <device *iob @[sx,sy]>>  => <wire TO_B of <device *device_iol1 @ [sx_iol,ty_iol1*NUM_GRID_Y]>>,
+             <pin S11_TERM90[2] of <device *iob @[sx,sy]>>  => <wire TERM_A of <device *device_iol1 @ [sx_iol,ty_iol1*NUM_GRID_Y]>>,
+             <pin S11_TERM90[3] of <device *iob @[sx,sy]>>  => <wire TERM_B of <device *device_iol1 @ [sx_iol,ty_iol1*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[2] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_A of <device *device_iol1 @ [sx_iol,ty_iol1*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[3] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_B of <device *device_iol1 @ [sx_iol,ty_iol1*NUM_GRID_Y]>>,
+
+             <pin S11_USR_DO[4] of <device *iob @[sx,sy]>>  => <wire DO_A of <device *device_iol2 @ [sx_iol,ty_iol2*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[4] of <device *iob @[sx,sy]>>  => <wire TO_A of <device *device_iol2 @ [sx_iol,ty_iol2*NUM_GRID_Y]>>,
+             <pin S11_USR_DO[5] of <device *iob @[sx,sy]>>  => <wire DO_B of <device *device_iol2 @ [sx_iol,ty_iol2*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[5] of <device *iob @[sx,sy]>>  => <wire TO_B of <device *device_iol2 @ [sx_iol,ty_iol2*NUM_GRID_Y]>>,
+             <pin S11_TERM90[4] of <device *iob @[sx,sy]>>  => <wire TERM_A of <device *device_iol2 @ [sx_iol,ty_iol2*NUM_GRID_Y]>>,
+             <pin S11_TERM90[5] of <device *iob @[sx,sy]>>  => <wire TERM_B of <device *device_iol2 @ [sx_iol,ty_iol2*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[4] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_A of <device *device_iol2 @ [sx_iol,ty_iol2*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[5] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_B of <device *device_iol2 @ [sx_iol,ty_iol2*NUM_GRID_Y]>>,
+
+             <pin S11_USR_DO[6] of <device *iob @[sx,sy]>>  => <wire DO_A of <device *device_iol3 @ [sx_iol,ty_iol3*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[6] of <device *iob @[sx,sy]>>  => <wire TO_A of <device *device_iol3 @ [sx_iol,ty_iol3*NUM_GRID_Y]>>,
+             <pin S11_USR_DO[7] of <device *iob @[sx,sy]>>  => <wire DO_B of <device *device_iol3 @ [sx_iol,ty_iol3*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[7] of <device *iob @[sx,sy]>>  => <wire TO_B of <device *device_iol3 @ [sx_iol,ty_iol3*NUM_GRID_Y]>>,
+             <pin S11_TERM90[6] of <device *iob @[sx,sy]>>  => <wire TERM_A of <device *device_iol3 @ [sx_iol,ty_iol3*NUM_GRID_Y]>>,
+             <pin S11_TERM90[7] of <device *iob @[sx,sy]>>  => <wire TERM_B of <device *device_iol3 @ [sx_iol,ty_iol3*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[6] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_A of <device *device_iol3 @ [sx_iol,ty_iol3*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[7] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_B of <device *device_iol3 @ [sx_iol,ty_iol3*NUM_GRID_Y]>>,
+
+             <pin S11_USR_DO[8] of <device *iob @[sx,sy]>>  => <wire DO_A of <device *device_iol4 @ [sx_iol,ty_iol4*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[8] of <device *iob @[sx,sy]>>  => <wire TO_A of <device *device_iol4 @ [sx_iol,ty_iol4*NUM_GRID_Y]>>,
+             <pin S11_USR_DO[9] of <device *iob @[sx,sy]>>  => <wire DO_B of <device *device_iol4 @ [sx_iol,ty_iol4*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[9] of <device *iob @[sx,sy]>>  => <wire TO_B of <device *device_iol4 @ [sx_iol,ty_iol4*NUM_GRID_Y]>>,
+             <pin S11_TERM90[8] of <device *iob @[sx,sy]>>  => <wire TERM_A of <device *device_iol4 @ [sx_iol,ty_iol4*NUM_GRID_Y]>>,
+             <pin S11_TERM90[9] of <device *iob @[sx,sy]>>  => <wire TERM_B of <device *device_iol4 @ [sx_iol,ty_iol4*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[8] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_A of <device *device_iol4 @ [sx_iol,ty_iol4*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[9] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_B of <device *device_iol4 @ [sx_iol,ty_iol4*NUM_GRID_Y]>>,
+
+             <pin S11_USR_DO[10] of <device *iob @[sx,sy]>>  => <wire DO_A of <device *device_iol5 @ [sx_iol,ty_iol5*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[10] of <device *iob @[sx,sy]>>  => <wire TO_A of <device *device_iol5 @ [sx_iol,ty_iol5*NUM_GRID_Y]>>,
+             <pin S11_USR_DO[11] of <device *iob @[sx,sy]>>  => <wire DO_B of <device *device_iol5 @ [sx_iol,ty_iol5*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[11] of <device *iob @[sx,sy]>>  => <wire TO_B of <device *device_iol5 @ [sx_iol,ty_iol5*NUM_GRID_Y]>>,
+             <pin S11_TERM90[10] of <device *iob @[sx,sy]>>  => <wire TERM_A of <device *device_iol5 @ [sx_iol,ty_iol5*NUM_GRID_Y]>>,
+             <pin S11_TERM90[11] of <device *iob @[sx,sy]>>  => <wire TERM_B of <device *device_iol5 @ [sx_iol,ty_iol5*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[10] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_A of <device *device_iol5 @ [sx_iol,ty_iol5*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[11] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_B of <device *device_iol5 @ [sx_iol,ty_iol5*NUM_GRID_Y]>>,
+
+             <pin S11_USR_DO[12] of <device *iob @[sx,sy]>>  => <wire DO_A of <device *device_iol6 @ [sx_iol,ty_iol6*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[12] of <device *iob @[sx,sy]>>  => <wire TO_A of <device *device_iol6 @ [sx_iol,ty_iol6*NUM_GRID_Y]>>,
+             <pin S11_USR_DO[13] of <device *iob @[sx,sy]>>  => <wire DO_B of <device *device_iol6 @ [sx_iol,ty_iol6*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[13] of <device *iob @[sx,sy]>>  => <wire TO_B of <device *device_iol6 @ [sx_iol,ty_iol6*NUM_GRID_Y]>>,
+             <pin S11_TERM90[12] of <device *iob @[sx,sy]>>  => <wire TERM_A of <device *device_iol6 @ [sx_iol,ty_iol6*NUM_GRID_Y]>>,
+             <pin S11_TERM90[13] of <device *iob @[sx,sy]>>  => <wire TERM_B of <device *device_iol6 @ [sx_iol,ty_iol6*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[12] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_A of <device *device_iol1 @ [sx_iol,ty_iol6*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[13] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_B of <device *device_iol1 @ [sx_iol,ty_iol6*NUM_GRID_Y]>>,
+
+             <pin S11_USR_DO[14] of <device *iob @[sx,sy]>>  => <wire DO_A of <device *device_iol7 @ [sx_iol,ty_iol7*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[14] of <device *iob @[sx,sy]>>  => <wire TO_A of <device *device_iol7 @ [sx_iol,ty_iol7*NUM_GRID_Y]>>,
+             <pin S11_USR_DO[15] of <device *iob @[sx,sy]>>  => <wire DO_B of <device *device_iol7 @ [sx_iol,ty_iol7*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[15] of <device *iob @[sx,sy]>>  => <wire TO_B of <device *device_iol7 @ [sx_iol,ty_iol7*NUM_GRID_Y]>>,
+             <pin S11_TERM90[14] of <device *iob @[sx,sy]>>  => <wire TERM_A of <device *device_iol7 @ [sx_iol,ty_iol7*NUM_GRID_Y]>>,
+             <pin S11_TERM90[15] of <device *iob @[sx,sy]>>  => <wire TERM_B of <device *device_iol7 @ [sx_iol,ty_iol7*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[14] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_A of <device *device_iol7 @ [sx_iol,ty_iol7*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[15] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_B of <device *device_iol7 @ [sx_iol,ty_iol7*NUM_GRID_Y]>>,
+
+             <pin S11_USR_DO[16] of <device *iob @[sx,sy]>>  => <wire DO_A of <device *device_iol8 @ [sx_iol,ty_iol8*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[16] of <device *iob @[sx,sy]>>  => <wire TO_A of <device *device_iol8 @ [sx_iol,ty_iol8*NUM_GRID_Y]>>,
+             <pin S11_USR_DO[17] of <device *iob @[sx,sy]>>  => <wire DO_B of <device *device_iol8 @ [sx_iol,ty_iol8*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[17] of <device *iob @[sx,sy]>>  => <wire TO_B of <device *device_iol8 @ [sx_iol,ty_iol8*NUM_GRID_Y]>>,
+             <pin S11_TERM90[16] of <device *iob @[sx,sy]>>  => <wire TERM_A of <device *device_iol8 @ [sx_iol,ty_iol8*NUM_GRID_Y]>>,
+             <pin S11_TERM90[17] of <device *iob @[sx,sy]>>  => <wire TERM_B of <device *device_iol8 @ [sx_iol,ty_iol8*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[16] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_A of <device *device_iol8 @ [sx_iol,ty_iol8*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[17] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_B of <device *device_iol8 @ [sx_iol,ty_iol8*NUM_GRID_Y]>>,
+
+             <pin S11_USR_DO[18] of <device *iob @[sx,sy]>>  => <wire DO_A of <device *device_iol9 @ [sx_iol,ty_iol9*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[18] of <device *iob @[sx,sy]>>  => <wire TO_A of <device *device_iol9 @ [sx_iol,ty_iol9*NUM_GRID_Y]>>,
+             <pin S11_USR_DO[19] of <device *iob @[sx,sy]>>  => <wire DO_B of <device *device_iol9 @ [sx_iol,ty_iol9*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[19] of <device *iob @[sx,sy]>>  => <wire TO_B of <device *device_iol9 @ [sx_iol,ty_iol9*NUM_GRID_Y]>>,
+             <pin S11_TERM90[18] of <device *iob @[sx,sy]>>  => <wire TERM_A of <device *device_iol9 @ [sx_iol,ty_iol9*NUM_GRID_Y]>>,
+             <pin S11_TERM90[19] of <device *iob @[sx,sy]>>  => <wire TERM_B of <device *device_iol9 @ [sx_iol,ty_iol9*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[18] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_A of <device *device_iol9 @ [sx_iol,ty_iol9*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[19] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_B of <device *device_iol9 @ [sx_iol,ty_iol9*NUM_GRID_Y]>>,
+
+             <pin S11_USR_DO[20] of <device *iob @[sx,sy]>>  => <wire DO_A of <device *device_iol10 @ [sx_iol,ty_iol10*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[20] of <device *iob @[sx,sy]>>  => <wire TO_A of <device *device_iol10 @ [sx_iol,ty_iol10*NUM_GRID_Y]>>,
+             <pin S11_USR_DO[21] of <device *iob @[sx,sy]>>  => <wire DO_B of <device *device_iol10 @ [sx_iol,ty_iol10*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[21] of <device *iob @[sx,sy]>>  => <wire TO_B of <device *device_iol10 @ [sx_iol,ty_iol10*NUM_GRID_Y]>>,
+             <pin S11_TERM90[20] of <device *iob @[sx,sy]>>  => <wire TERM_A of <device *device_iol10 @ [sx_iol,ty_iol10*NUM_GRID_Y]>>,
+             <pin S11_TERM90[21] of <device *iob @[sx,sy]>>  => <wire TERM_B of <device *device_iol10 @ [sx_iol,ty_iol10*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[20] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_A of <device *device_iol10 @ [sx_iol,ty_iol10*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[21] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_B of <device *device_iol10 @ [sx_iol,ty_iol10*NUM_GRID_Y]>>,
+
+             <pin S11_USR_DO[22] of <device *iob @[sx,sy]>>  => <wire DO_A of <device *device_iol11 @ [sx_iol,ty_iol11*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[22] of <device *iob @[sx,sy]>>  => <wire TO_A of <device *device_iol11 @ [sx_iol,ty_iol11*NUM_GRID_Y]>>,
+             <pin S11_USR_DO[23] of <device *iob @[sx,sy]>>  => <wire DO_B of <device *device_iol11 @ [sx_iol,ty_iol11*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[23] of <device *iob @[sx,sy]>>  => <wire TO_B of <device *device_iol11 @ [sx_iol,ty_iol11*NUM_GRID_Y]>>,
+             <pin S11_TERM90[22] of <device *iob @[sx,sy]>>  => <wire TERM_A of <device *device_iol11 @ [sx_iol,ty_iol11*NUM_GRID_Y]>>,
+             <pin S11_TERM90[23] of <device *iob @[sx,sy]>>  => <wire TERM_B of <device *device_iol11 @ [sx_iol,ty_iol11*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[22] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_A of <device *device_iol11 @ [sx_iol,ty_iol11*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[23] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_B of <device *device_iol11 @ [sx_iol,ty_iol11*NUM_GRID_Y]>>,
+
+             <pin S11_USR_DO[24] of <device *iob @[sx,sy]>>  => <wire DO_A of <device *device_iol12 @ [sx_iol,ty_iol12*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[24] of <device *iob @[sx,sy]>>  => <wire TO_A of <device *device_iol12 @ [sx_iol,ty_iol12*NUM_GRID_Y]>>,
+             <pin S11_USR_DO[25] of <device *iob @[sx,sy]>>  => <wire DO_B of <device *device_iol12 @ [sx_iol,ty_iol12*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[25] of <device *iob @[sx,sy]>>  => <wire TO_B of <device *device_iol12 @ [sx_iol,ty_iol12*NUM_GRID_Y]>>,
+             <pin S11_TERM90[24] of <device *iob @[sx,sy]>>  => <wire TERM_A of <device *device_iol12 @ [sx_iol,ty_iol12*NUM_GRID_Y]>>,
+             <pin S11_TERM90[25] of <device *iob @[sx,sy]>>  => <wire TERM_B of <device *device_iol12 @ [sx_iol,ty_iol12*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[24] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_A of <device *device_iol12 @ [sx_iol,ty_iol12*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[25] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_B of <device *device_iol12 @ [sx_iol,ty_iol12*NUM_GRID_Y]>>,
+
+             <pin S11_USR_DO[26] of <device *iob @[sx,sy]>>  => <wire DO_A of <device *device_iol13 @ [sx_iol,ty_iol13*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[26] of <device *iob @[sx,sy]>>  => <wire TO_A of <device *device_iol13 @ [sx_iol,ty_iol13*NUM_GRID_Y]>>,
+             <pin S11_USR_DO[27] of <device *iob @[sx,sy]>>  => <wire DO_B of <device *device_iol13 @ [sx_iol,ty_iol13*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[27] of <device *iob @[sx,sy]>>  => <wire TO_B of <device *device_iol13 @ [sx_iol,ty_iol13*NUM_GRID_Y]>>,
+             <pin S11_TERM90[26] of <device *iob @[sx,sy]>>  => <wire TERM_A of <device *device_iol13 @ [sx_iol,ty_iol13*NUM_GRID_Y]>>,
+             <pin S11_TERM90[27] of <device *iob @[sx,sy]>>  => <wire TERM_B of <device *device_iol13 @ [sx_iol,ty_iol13*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[26] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_A of <device *device_iol13 @ [sx_iol,ty_iol13*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[27] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_B of <device *device_iol13 @ [sx_iol,ty_iol13*NUM_GRID_Y]>>,
+
+             <pin S11_USR_DO[28] of <device *iob @[sx,sy]>>  => <wire DO_A of <device *device_iol14 @ [sx_iol,ty_iol14*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[28] of <device *iob @[sx,sy]>>  => <wire TO_A of <device *device_iol14 @ [sx_iol,ty_iol14*NUM_GRID_Y]>>,
+             <pin S11_USR_DO[29] of <device *iob @[sx,sy]>>  => <wire DO_B of <device *device_iol14 @ [sx_iol,ty_iol14*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[29] of <device *iob @[sx,sy]>>  => <wire TO_B of <device *device_iol14 @ [sx_iol,ty_iol14*NUM_GRID_Y]>>,
+             <pin S11_TERM90[28] of <device *iob @[sx,sy]>>  => <wire TERM_A of <device *device_iol14 @ [sx_iol,ty_iol14*NUM_GRID_Y]>>,
+             <pin S11_TERM90[29] of <device *iob @[sx,sy]>>  => <wire TERM_B of <device *device_iol14 @ [sx_iol,ty_iol14*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[28] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_A of <device *device_iol14 @ [sx_iol,ty_iol14*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[29] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_B of <device *device_iol14 @ [sx_iol,ty_iol14*NUM_GRID_Y]>>,
+
+             <pin S11_USR_DO[30] of <device *iob @[sx,sy]>>  => <wire DO_A of <device *device_iol15 @ [sx_iol,ty_iol15*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[30] of <device *iob @[sx,sy]>>  => <wire TO_A of <device *device_iol15 @ [sx_iol,ty_iol15*NUM_GRID_Y]>>,
+             <pin S11_USR_DO[31] of <device *iob @[sx,sy]>>  => <wire DO_B of <device *device_iol15 @ [sx_iol,ty_iol15*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[31] of <device *iob @[sx,sy]>>  => <wire TO_B of <device *device_iol15 @ [sx_iol,ty_iol15*NUM_GRID_Y]>>,
+             <pin S11_TERM90[30] of <device *iob @[sx,sy]>>  => <wire TERM_A of <device *device_iol15 @ [sx_iol,ty_iol15*NUM_GRID_Y]>>,
+             <pin S11_TERM90[31] of <device *iob @[sx,sy]>>  => <wire TERM_B of <device *device_iol15 @ [sx_iol,ty_iol15*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[30] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_A of <device *device_iol15 @ [sx_iol,ty_iol15*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[31] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_B of <device *device_iol15 @ [sx_iol,ty_iol15*NUM_GRID_Y]>>,
+
+             <pin S11_USR_DO[32] of <device *iob @[sx,sy]>>  => <wire DO_A of <device *device_iol16 @ [sx_iol,ty_iol16*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[32] of <device *iob @[sx,sy]>>  => <wire TO_A of <device *device_iol16 @ [sx_iol,ty_iol16*NUM_GRID_Y]>>,
+             <pin S11_USR_DO[33] of <device *iob @[sx,sy]>>  => <wire DO_B of <device *device_iol16 @ [sx_iol,ty_iol16*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[33] of <device *iob @[sx,sy]>>  => <wire TO_B of <device *device_iol16 @ [sx_iol,ty_iol16*NUM_GRID_Y]>>,
+             <pin S11_TERM90[32] of <device *iob @[sx,sy]>>  => <wire TERM_A of <device *device_iol16 @ [sx_iol,ty_iol16*NUM_GRID_Y]>>,
+             <pin S11_TERM90[33] of <device *iob @[sx,sy]>>  => <wire TERM_B of <device *device_iol16 @ [sx_iol,ty_iol16*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[32] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_A of <device *device_iol16 @ [sx_iol,ty_iol16*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[33] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_B of <device *device_iol16 @ [sx_iol,ty_iol16*NUM_GRID_Y]>>,
+
+             <pin S11_USR_DO[34] of <device *iob @[sx,sy]>>  => <wire DO_A of <device *device_iol17 @ [sx_iol,ty_iol17*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[34] of <device *iob @[sx,sy]>>  => <wire TO_A of <device *device_iol17 @ [sx_iol,ty_iol17*NUM_GRID_Y]>>,
+             <pin S11_USR_DO[35] of <device *iob @[sx,sy]>>  => <wire DO_B of <device *device_iol17 @ [sx_iol,ty_iol17*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[35] of <device *iob @[sx,sy]>>  => <wire TO_B of <device *device_iol17 @ [sx_iol,ty_iol17*NUM_GRID_Y]>>,
+             <pin S11_TERM90[34] of <device *iob @[sx,sy]>>  => <wire TERM_A of <device *device_iol17 @ [sx_iol,ty_iol17*NUM_GRID_Y]>>,
+             <pin S11_TERM90[35] of <device *iob @[sx,sy]>>  => <wire TERM_B of <device *device_iol17 @ [sx_iol,ty_iol17*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[34] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_A of <device *device_iol17 @ [sx_iol,ty_iol17*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[35] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_B of <device *device_iol17 @ [sx_iol,ty_iol17*NUM_GRID_Y]>>,
+
+             <pin S11_USR_DO[36] of <device *iob @[sx,sy]>>  => <wire DO_A of <device *device_iol18 @ [sx_iol,ty_iol18*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[36] of <device *iob @[sx,sy]>>  => <wire TO_A of <device *device_iol18 @ [sx_iol,ty_iol18*NUM_GRID_Y]>>,
+             <pin S11_USR_DO[37] of <device *iob @[sx,sy]>>  => <wire DO_B of <device *device_iol18 @ [sx_iol,ty_iol18*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[37] of <device *iob @[sx,sy]>>  => <wire TO_B of <device *device_iol18 @ [sx_iol,ty_iol18*NUM_GRID_Y]>>,
+             <pin S11_TERM90[36] of <device *iob @[sx,sy]>>  => <wire TERM_A of <device *device_iol18 @ [sx_iol,ty_iol18*NUM_GRID_Y]>>,
+             <pin S11_TERM90[37] of <device *iob @[sx,sy]>>  => <wire TERM_B of <device *device_iol18 @ [sx_iol,ty_iol18*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[36] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_A of <device *device_iol18 @ [sx_iol,ty_iol18*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[37] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_B of <device *device_iol18 @ [sx_iol,ty_iol18*NUM_GRID_Y]>>,
+
+             <pin S11_USR_DO[38] of <device *iob @[sx,sy]>>  => <wire DO_A of <device *device_iol19 @ [sx_iol,ty_iol19*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[38] of <device *iob @[sx,sy]>>  => <wire TO_A of <device *device_iol19 @ [sx_iol,ty_iol19*NUM_GRID_Y]>>,
+             <pin S11_USR_DO[39] of <device *iob @[sx,sy]>>  => <wire DO_B of <device *device_iol19 @ [sx_iol,ty_iol19*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[39] of <device *iob @[sx,sy]>>  => <wire TO_B of <device *device_iol19 @ [sx_iol,ty_iol19*NUM_GRID_Y]>>,
+             <pin S11_TERM90[38] of <device *iob @[sx,sy]>>  => <wire TERM_A of <device *device_iol19 @ [sx_iol,ty_iol19*NUM_GRID_Y]>>,
+             <pin S11_TERM90[39] of <device *iob @[sx,sy]>>  => <wire TERM_B of <device *device_iol19 @ [sx_iol,ty_iol19*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[38] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_A of <device *device_iol19 @ [sx_iol,ty_iol19*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[39] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_B of <device *device_iol19 @ [sx_iol,ty_iol19*NUM_GRID_Y]>>,
+
+             <pin DI_A of <device *device_iol0 @ [sx_iol,ty_iol0*NUM_GRID_Y]>>  => <wire DIN[0] of <device *iob @[sx,sy]>>,
+             <pin DI_B of <device *device_iol0 @ [sx_iol,ty_iol0*NUM_GRID_Y]>>  => <wire DIN[1] of <device *iob @[sx,sy]>>,
+             <pin DI_A of <device *device_iol1 @ [sx_iol,ty_iol1*NUM_GRID_Y]>>  => <wire DIN[2] of <device *iob @[sx,sy]>>,
+             <pin DI_B of <device *device_iol1 @ [sx_iol,ty_iol1*NUM_GRID_Y]>>  => <wire DIN[3] of <device *iob @[sx,sy]>>,
+             <pin DI_A of <device *device_iol2 @ [sx_iol,ty_iol2*NUM_GRID_Y]>>  => <wire DIN[4] of <device *iob @[sx,sy]>>,
+             <pin DI_B of <device *device_iol2 @ [sx_iol,ty_iol2*NUM_GRID_Y]>>  => <wire DIN[5] of <device *iob @[sx,sy]>>,
+             <pin DI_A of <device *device_iol3 @ [sx_iol,ty_iol3*NUM_GRID_Y]>>  => <wire DIN[6] of <device *iob @[sx,sy]>>,
+             <pin DI_B of <device *device_iol3 @ [sx_iol,ty_iol3*NUM_GRID_Y]>>  => <wire DIN[7] of <device *iob @[sx,sy]>>,
+             <pin DI_A of <device *device_iol4 @ [sx_iol,ty_iol4*NUM_GRID_Y]>>  => <wire DIN[8] of <device *iob @[sx,sy]>>,
+             <pin DI_B of <device *device_iol4 @ [sx_iol,ty_iol4*NUM_GRID_Y]>>  => <wire DIN[9] of <device *iob @[sx,sy]>>,
+             <pin DI_A of <device *device_iol5 @ [sx_iol,ty_iol5*NUM_GRID_Y]>>  => <wire DIN[10] of <device *iob @[sx,sy]>>,
+             <pin DI_B of <device *device_iol5 @ [sx_iol,ty_iol5*NUM_GRID_Y]>>  => <wire DIN[11] of <device *iob @[sx,sy]>>,
+             <pin DI_A of <device *device_iol6 @ [sx_iol,ty_iol6*NUM_GRID_Y]>>  => <wire DIN[12] of <device *iob @[sx,sy]>>,
+             <pin DI_B of <device *device_iol6 @ [sx_iol,ty_iol6*NUM_GRID_Y]>>  => <wire DIN[13] of <device *iob @[sx,sy]>>,
+             <pin DI_A of <device *device_iol7 @ [sx_iol,ty_iol7*NUM_GRID_Y]>>  => <wire DIN[14] of <device *iob @[sx,sy]>>,
+             <pin DI_B of <device *device_iol7 @ [sx_iol,ty_iol7*NUM_GRID_Y]>>  => <wire DIN[15] of <device *iob @[sx,sy]>>,
+             <pin DI_A of <device *device_iol8 @ [sx_iol,ty_iol8*NUM_GRID_Y]>>  => <wire DIN[16] of <device *iob @[sx,sy]>>,
+             <pin DI_B of <device *device_iol8 @ [sx_iol,ty_iol8*NUM_GRID_Y]>>  => <wire DIN[17] of <device *iob @[sx,sy]>>,
+             <pin DI_A of <device *device_iol9 @ [sx_iol,ty_iol9*NUM_GRID_Y]>>  => <wire DIN[18] of <device *iob @[sx,sy]>>,
+             <pin DI_B of <device *device_iol9 @ [sx_iol,ty_iol9*NUM_GRID_Y]>>  => <wire DIN[19] of <device *iob @[sx,sy]>>,
+             <pin DI_A of <device *device_iol10 @ [sx_iol,ty_iol10*NUM_GRID_Y]>>  => <wire DIN[20] of <device *iob @[sx,sy]>>,
+             <pin DI_B of <device *device_iol10 @ [sx_iol,ty_iol10*NUM_GRID_Y]>>  => <wire DIN[21] of <device *iob @[sx,sy]>>,
+             <pin DI_A of <device *device_iol11 @ [sx_iol,ty_iol11*NUM_GRID_Y]>>  => <wire DIN[22] of <device *iob @[sx,sy]>>,
+             <pin DI_B of <device *device_iol11 @ [sx_iol,ty_iol11*NUM_GRID_Y]>>  => <wire DIN[23] of <device *iob @[sx,sy]>>,
+             <pin DI_A of <device *device_iol12 @ [sx_iol,ty_iol12*NUM_GRID_Y]>>  => <wire DIN[24] of <device *iob @[sx,sy]>>,
+             <pin DI_B of <device *device_iol12 @ [sx_iol,ty_iol12*NUM_GRID_Y]>>  => <wire DIN[25] of <device *iob @[sx,sy]>>,
+             <pin DI_A of <device *device_iol13 @ [sx_iol,ty_iol13*NUM_GRID_Y]>>  => <wire DIN[26] of <device *iob @[sx,sy]>>,
+             <pin DI_B of <device *device_iol13 @ [sx_iol,ty_iol13*NUM_GRID_Y]>>  => <wire DIN[27] of <device *iob @[sx,sy]>>,
+             <pin DI_A of <device *device_iol14 @ [sx_iol,ty_iol14*NUM_GRID_Y]>>  => <wire DIN[28] of <device *iob @[sx,sy]>>,
+             <pin DI_B of <device *device_iol14 @ [sx_iol,ty_iol14*NUM_GRID_Y]>>  => <wire DIN[29] of <device *iob @[sx,sy]>>,
+             <pin DI_A of <device *device_iol15 @ [sx_iol,ty_iol15*NUM_GRID_Y]>>  => <wire DIN[30] of <device *iob @[sx,sy]>>,
+             <pin DI_B of <device *device_iol15 @ [sx_iol,ty_iol15*NUM_GRID_Y]>>  => <wire DIN[31] of <device *iob @[sx,sy]>>,
+             <pin DI_A of <device *device_iol16 @ [sx_iol,ty_iol16*NUM_GRID_Y]>>  => <wire DIN[32] of <device *iob @[sx,sy]>>,
+             <pin DI_B of <device *device_iol16 @ [sx_iol,ty_iol16*NUM_GRID_Y]>>  => <wire DIN[33] of <device *iob @[sx,sy]>>,
+             <pin DI_A of <device *device_iol17 @ [sx_iol,ty_iol17*NUM_GRID_Y]>>  => <wire DIN[34] of <device *iob @[sx,sy]>>,
+             <pin DI_B of <device *device_iol17 @ [sx_iol,ty_iol17*NUM_GRID_Y]>>  => <wire DIN[35] of <device *iob @[sx,sy]>>,
+             <pin DI_A of <device *device_iol18 @ [sx_iol,ty_iol18*NUM_GRID_Y]>>  => <wire DIN[36] of <device *iob @[sx,sy]>>,
+             <pin DI_B of <device *device_iol18 @ [sx_iol,ty_iol18*NUM_GRID_Y]>>  => <wire DIN[37] of <device *iob @[sx,sy]>>,
+             <pin DI_A of <device *device_iol19 @ [sx_iol,ty_iol19*NUM_GRID_Y]>>  => <wire DIN[38] of <device *iob @[sx,sy]>>,
+             <pin DI_B of <device *device_iol19 @ [sx_iol,ty_iol19*NUM_GRID_Y]>>  => <wire DIN[39] of <device *iob @[sx,sy]>>,
+
+             <pin S11_OPEN_DRAIN_EN of <device *iob @[sx,sy]>> => ((flag_iol_lr==1)&&(ty==(num_rx-1)*NUM_TILES_REGION)) ? <wire S11_TIHI_S[7] of <device *iob @[sx,sy]>>
+                                                                                                                   : <wire S11_TILO_S[7] of <device *iob @[sx,sy]>>
+        );
+    }
+    else
+    {
+        connect
+        (
+             <pin S11_USR_DO[0] of <device *iob @[sx,sy]>>  => <wire DO_A of <device *device_iol10 @ [sx_iol,ty_iol10*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[0] of <device *iob @[sx,sy]>>  => <wire TO_A of <device *device_iol10 @ [sx_iol,ty_iol10*NUM_GRID_Y]>>,
+             <pin S11_USR_DO[1] of <device *iob @[sx,sy]>>  => <wire DO_B of <device *device_iol10 @ [sx_iol,ty_iol10*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[1] of <device *iob @[sx,sy]>>  => <wire TO_B of <device *device_iol10 @ [sx_iol,ty_iol10*NUM_GRID_Y]>>,
+             <pin S11_TERM90[0] of <device *iob @[sx,sy]>>  => <wire TERM_A of <device *device_iol10 @ [sx_iol,ty_iol10*NUM_GRID_Y]>>,
+             <pin S11_TERM90[1] of <device *iob @[sx,sy]>>  => <wire TERM_B of <device *device_iol10 @ [sx_iol,ty_iol10*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[0] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_A of <device *device_iol10 @ [sx_iol,ty_iol10*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[1] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_B of <device *device_iol10 @ [sx_iol,ty_iol10*NUM_GRID_Y]>>,
+
+             <pin S11_USR_DO[2] of <device *iob @[sx,sy]>>  => <wire DO_A of <device *device_iol11 @ [sx_iol,ty_iol11*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[2] of <device *iob @[sx,sy]>>  => <wire TO_A of <device *device_iol11 @ [sx_iol,ty_iol11*NUM_GRID_Y]>>,
+             <pin S11_USR_DO[3] of <device *iob @[sx,sy]>>  => <wire DO_B of <device *device_iol11 @ [sx_iol,ty_iol11*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[3] of <device *iob @[sx,sy]>>  => <wire TO_B of <device *device_iol11 @ [sx_iol,ty_iol11*NUM_GRID_Y]>>,
+             <pin S11_TERM90[2] of <device *iob @[sx,sy]>>  => <wire TERM_A of <device *device_iol11 @ [sx_iol,ty_iol11*NUM_GRID_Y]>>,
+             <pin S11_TERM90[3] of <device *iob @[sx,sy]>>  => <wire TERM_B of <device *device_iol11 @ [sx_iol,ty_iol11*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[2] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_A of <device *device_iol11 @ [sx_iol,ty_iol11*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[3] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_B of <device *device_iol11 @ [sx_iol,ty_iol11*NUM_GRID_Y]>>,
+
+             <pin S11_USR_DO[4] of <device *iob @[sx,sy]>>  => <wire DO_A of <device *device_iol12 @ [sx_iol,ty_iol12*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[4] of <device *iob @[sx,sy]>>  => <wire TO_A of <device *device_iol12 @ [sx_iol,ty_iol12*NUM_GRID_Y]>>,
+             <pin S11_USR_DO[5] of <device *iob @[sx,sy]>>  => <wire DO_B of <device *device_iol12 @ [sx_iol,ty_iol12*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[5] of <device *iob @[sx,sy]>>  => <wire TO_B of <device *device_iol12 @ [sx_iol,ty_iol12*NUM_GRID_Y]>>,
+             <pin S11_TERM90[4] of <device *iob @[sx,sy]>>  => <wire TERM_A of <device *device_iol12 @ [sx_iol,ty_iol12*NUM_GRID_Y]>>,
+             <pin S11_TERM90[5] of <device *iob @[sx,sy]>>  => <wire TERM_B of <device *device_iol12 @ [sx_iol,ty_iol12*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[4] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_A of <device *device_iol12 @ [sx_iol,ty_iol12*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[5] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_B of <device *device_iol12 @ [sx_iol,ty_iol12*NUM_GRID_Y]>>,
+
+             <pin S11_USR_DO[6] of <device *iob @[sx,sy]>>  => <wire DO_A of <device *device_iol13 @ [sx_iol,ty_iol13*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[6] of <device *iob @[sx,sy]>>  => <wire TO_A of <device *device_iol13 @ [sx_iol,ty_iol13*NUM_GRID_Y]>>,
+             <pin S11_USR_DO[7] of <device *iob @[sx,sy]>>  => <wire DO_B of <device *device_iol13 @ [sx_iol,ty_iol13*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[7] of <device *iob @[sx,sy]>>  => <wire TO_B of <device *device_iol13 @ [sx_iol,ty_iol13*NUM_GRID_Y]>>,
+             <pin S11_TERM90[6] of <device *iob @[sx,sy]>>  => <wire TERM_A of <device *device_iol13 @ [sx_iol,ty_iol13*NUM_GRID_Y]>>,
+             <pin S11_TERM90[7] of <device *iob @[sx,sy]>>  => <wire TERM_B of <device *device_iol13 @ [sx_iol,ty_iol13*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[6] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_A of <device *device_iol13 @ [sx_iol,ty_iol13*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[7] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_B of <device *device_iol13 @ [sx_iol,ty_iol13*NUM_GRID_Y]>>,
+
+             <pin S11_USR_DO[8] of <device *iob @[sx,sy]>>  => <wire DO_A of <device *device_iol14 @ [sx_iol,ty_iol14*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[8] of <device *iob @[sx,sy]>>  => <wire TO_A of <device *device_iol14 @ [sx_iol,ty_iol14*NUM_GRID_Y]>>,
+             <pin S11_USR_DO[9] of <device *iob @[sx,sy]>>  => <wire DO_B of <device *device_iol14 @ [sx_iol,ty_iol14*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[9] of <device *iob @[sx,sy]>>  => <wire TO_B of <device *device_iol14 @ [sx_iol,ty_iol14*NUM_GRID_Y]>>,
+             <pin S11_TERM90[8] of <device *iob @[sx,sy]>>  => <wire TERM_A of <device *device_iol14 @ [sx_iol,ty_iol14*NUM_GRID_Y]>>,
+             <pin S11_TERM90[9] of <device *iob @[sx,sy]>>  => <wire TERM_B of <device *device_iol14 @ [sx_iol,ty_iol14*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[8] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_A of <device *device_iol14 @ [sx_iol,ty_iol14*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[9] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_B of <device *device_iol14 @ [sx_iol,ty_iol14*NUM_GRID_Y]>>,
+
+             <pin S11_USR_DO[10] of <device *iob @[sx,sy]>>  => <wire DO_A of <device *device_iol15 @ [sx_iol,ty_iol15*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[10] of <device *iob @[sx,sy]>>  => <wire TO_A of <device *device_iol15 @ [sx_iol,ty_iol15*NUM_GRID_Y]>>,
+             <pin S11_USR_DO[11] of <device *iob @[sx,sy]>>  => <wire DO_B of <device *device_iol15 @ [sx_iol,ty_iol15*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[11] of <device *iob @[sx,sy]>>  => <wire TO_B of <device *device_iol15 @ [sx_iol,ty_iol15*NUM_GRID_Y]>>,
+             <pin S11_TERM90[10] of <device *iob @[sx,sy]>>  => <wire TERM_A of <device *device_iol15 @ [sx_iol,ty_iol15*NUM_GRID_Y]>>,
+             <pin S11_TERM90[11] of <device *iob @[sx,sy]>>  => <wire TERM_B of <device *device_iol15 @ [sx_iol,ty_iol15*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[10] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_A of <device *device_iol15 @ [sx_iol,ty_iol15*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[11] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_B of <device *device_iol15 @ [sx_iol,ty_iol15*NUM_GRID_Y]>>,
+
+             <pin S11_USR_DO[12] of <device *iob @[sx,sy]>>  => <wire DO_A of <device *device_iol16 @ [sx_iol,ty_iol16*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[12] of <device *iob @[sx,sy]>>  => <wire TO_A of <device *device_iol16 @ [sx_iol,ty_iol16*NUM_GRID_Y]>>,
+             <pin S11_USR_DO[13] of <device *iob @[sx,sy]>>  => <wire DO_B of <device *device_iol16 @ [sx_iol,ty_iol16*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[13] of <device *iob @[sx,sy]>>  => <wire TO_B of <device *device_iol16 @ [sx_iol,ty_iol16*NUM_GRID_Y]>>,
+             <pin S11_TERM90[12] of <device *iob @[sx,sy]>>  => <wire TERM_A of <device *device_iol16 @ [sx_iol,ty_iol16*NUM_GRID_Y]>>,
+             <pin S11_TERM90[13] of <device *iob @[sx,sy]>>  => <wire TERM_B of <device *device_iol16 @ [sx_iol,ty_iol16*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[12] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_A of <device *device_iol16 @ [sx_iol,ty_iol16*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[13] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_B of <device *device_iol16 @ [sx_iol,ty_iol16*NUM_GRID_Y]>>,
+
+             <pin S11_USR_DO[14] of <device *iob @[sx,sy]>>  => <wire DO_A of <device *device_iol17 @ [sx_iol,ty_iol17*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[14] of <device *iob @[sx,sy]>>  => <wire TO_A of <device *device_iol17 @ [sx_iol,ty_iol17*NUM_GRID_Y]>>,
+             <pin S11_USR_DO[15] of <device *iob @[sx,sy]>>  => <wire DO_B of <device *device_iol17 @ [sx_iol,ty_iol17*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[15] of <device *iob @[sx,sy]>>  => <wire TO_B of <device *device_iol17 @ [sx_iol,ty_iol17*NUM_GRID_Y]>>,
+             <pin S11_TERM90[14] of <device *iob @[sx,sy]>>  => <wire TERM_A of <device *device_iol17 @ [sx_iol,ty_iol17*NUM_GRID_Y]>>,
+             <pin S11_TERM90[15] of <device *iob @[sx,sy]>>  => <wire TERM_B of <device *device_iol17 @ [sx_iol,ty_iol17*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[14] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_A of <device *device_iol17 @ [sx_iol,ty_iol17*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[15] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_B of <device *device_iol17 @ [sx_iol,ty_iol17*NUM_GRID_Y]>>,
+
+             <pin S11_USR_DO[16] of <device *iob @[sx,sy]>>  => <wire DO_A of <device *device_iol18 @ [sx_iol,ty_iol18*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[16] of <device *iob @[sx,sy]>>  => <wire TO_A of <device *device_iol18 @ [sx_iol,ty_iol18*NUM_GRID_Y]>>,
+             <pin S11_USR_DO[17] of <device *iob @[sx,sy]>>  => <wire DO_B of <device *device_iol18 @ [sx_iol,ty_iol18*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[17] of <device *iob @[sx,sy]>>  => <wire TO_B of <device *device_iol18 @ [sx_iol,ty_iol18*NUM_GRID_Y]>>,
+             <pin S11_TERM90[16] of <device *iob @[sx,sy]>>  => <wire TERM_A of <device *device_iol18 @ [sx_iol,ty_iol18*NUM_GRID_Y]>>,
+             <pin S11_TERM90[17] of <device *iob @[sx,sy]>>  => <wire TERM_B of <device *device_iol18 @ [sx_iol,ty_iol18*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[16] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_A of <device *device_iol18 @ [sx_iol,ty_iol18*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[17] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_B of <device *device_iol18 @ [sx_iol,ty_iol18*NUM_GRID_Y]>>,
+
+             <pin S11_USR_DO[18] of <device *iob @[sx,sy]>>  => <wire DO_A of <device *device_iol19 @ [sx_iol,ty_iol19*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[18] of <device *iob @[sx,sy]>>  => <wire TO_A of <device *device_iol19 @ [sx_iol,ty_iol19*NUM_GRID_Y]>>,
+             <pin S11_USR_DO[19] of <device *iob @[sx,sy]>>  => <wire DO_B of <device *device_iol19 @ [sx_iol,ty_iol19*NUM_GRID_Y]>>,
+             <pin S11_USR_TS[19] of <device *iob @[sx,sy]>>  => <wire TO_B of <device *device_iol19 @ [sx_iol,ty_iol19*NUM_GRID_Y]>>,
+             <pin S11_TERM90[18] of <device *iob @[sx,sy]>>  => <wire TERM_A of <device *device_iol19 @ [sx_iol,ty_iol19*NUM_GRID_Y]>>,
+             <pin S11_TERM90[19] of <device *iob @[sx,sy]>>  => <wire TERM_B of <device *device_iol19 @ [sx_iol,ty_iol19*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[18] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_A of <device *device_iol19 @ [sx_iol,ty_iol19*NUM_GRID_Y]>>,
+             <pin MIPI_SW_DYN[19] of <device *iob @[sx,sy]>> => <wire MIPI_SW_DYN_O_B of <device *device_iol19 @ [sx_iol,ty_iol19*NUM_GRID_Y]>>,
+
+             <pin DI_A of <device *device_iol10 @ [sx_iol,ty_iol10*NUM_GRID_Y]>>  => <wire DIN[0] of <device *iob @[sx,sy]>>,
+             <pin DI_B of <device *device_iol10 @ [sx_iol,ty_iol10*NUM_GRID_Y]>>  => <wire DIN[1] of <device *iob @[sx,sy]>>,
+             <pin DI_A of <device *device_iol11 @ [sx_iol,ty_iol11*NUM_GRID_Y]>>  => <wire DIN[2] of <device *iob @[sx,sy]>>,
+             <pin DI_B of <device *device_iol11 @ [sx_iol,ty_iol11*NUM_GRID_Y]>>  => <wire DIN[3] of <device *iob @[sx,sy]>>,
+             <pin DI_A of <device *device_iol12 @ [sx_iol,ty_iol12*NUM_GRID_Y]>>  => <wire DIN[4] of <device *iob @[sx,sy]>>,
+             <pin DI_B of <device *device_iol12 @ [sx_iol,ty_iol12*NUM_GRID_Y]>>  => <wire DIN[5] of <device *iob @[sx,sy]>>,
+             <pin DI_A of <device *device_iol13 @ [sx_iol,ty_iol13*NUM_GRID_Y]>>  => <wire DIN[6] of <device *iob @[sx,sy]>>,
+             <pin DI_B of <device *device_iol13 @ [sx_iol,ty_iol13*NUM_GRID_Y]>>  => <wire DIN[7] of <device *iob @[sx,sy]>>,
+             <pin DI_A of <device *device_iol14 @ [sx_iol,ty_iol14*NUM_GRID_Y]>>  => <wire DIN[8] of <device *iob @[sx,sy]>>,
+             <pin DI_B of <device *device_iol14 @ [sx_iol,ty_iol14*NUM_GRID_Y]>>  => <wire DIN[9] of <device *iob @[sx,sy]>>,
+             <pin DI_A of <device *device_iol15 @ [sx_iol,ty_iol15*NUM_GRID_Y]>>  => <wire DIN[10] of <device *iob @[sx,sy]>>,
+             <pin DI_B of <device *device_iol15 @ [sx_iol,ty_iol15*NUM_GRID_Y]>>  => <wire DIN[11] of <device *iob @[sx,sy]>>,
+             <pin DI_A of <device *device_iol16 @ [sx_iol,ty_iol16*NUM_GRID_Y]>>  => <wire DIN[12] of <device *iob @[sx,sy]>>,
+             <pin DI_B of <device *device_iol16 @ [sx_iol,ty_iol16*NUM_GRID_Y]>>  => <wire DIN[13] of <device *iob @[sx,sy]>>,
+             <pin DI_A of <device *device_iol17 @ [sx_iol,ty_iol17*NUM_GRID_Y]>>  => <wire DIN[14] of <device *iob @[sx,sy]>>,
+             <pin DI_B of <device *device_iol17 @ [sx_iol,ty_iol17*NUM_GRID_Y]>>  => <wire DIN[15] of <device *iob @[sx,sy]>>,
+             <pin DI_A of <device *device_iol18 @ [sx_iol,ty_iol18*NUM_GRID_Y]>>  => <wire DIN[16] of <device *iob @[sx,sy]>>,
+             <pin DI_B of <device *device_iol18 @ [sx_iol,ty_iol18*NUM_GRID_Y]>>  => <wire DIN[17] of <device *iob @[sx,sy]>>,
+             <pin DI_A of <device *device_iol19 @ [sx_iol,ty_iol19*NUM_GRID_Y]>>  => <wire DIN[18] of <device *iob @[sx,sy]>>,
+             <pin DI_B of <device *device_iol19 @ [sx_iol,ty_iol19*NUM_GRID_Y]>>  => <wire DIN[19] of <device *iob @[sx,sy]>>
+
+        );
+    }
+
+
+} //end of connect_iob_tile
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_bias_iob
+(
+    int tx_ccs,
+    int ty_ccs,
+    int tx0,
+    int tx1,
+    int tx2
+)
+{
+    int sx0 = tx0 *NUM_GRID_X;
+    int sx1 = tx1 *NUM_GRID_X;
+    int sx2 = tx2 *NUM_GRID_X;
+
+    int sy0 = 0;
+    int sy1 = 1*NUM_TILES_REGION*NUM_GRID_Y;
+    int sy2 = 2*NUM_TILES_REGION*NUM_GRID_Y;
+    int sy3 = 3*NUM_TILES_REGION*NUM_GRID_Y;
+    int sy4 = 4*NUM_TILES_REGION*NUM_GRID_Y;
+    int sy5 = 5*NUM_TILES_REGION*NUM_GRID_Y;
+    int sy6 = 6*NUM_TILES_REGION*NUM_GRID_Y;
+    int sy7 = 7*NUM_TILES_REGION*NUM_GRID_Y;
+
+    int sx_ccs = tx_ccs * NUM_GRID_X + 2;
+    int sy_ccs = ty_ccs * NUM_GRID_Y;
+
+    connect
+    (
+      <pin ICC10U of <device IOB_TILE@[sx0,sy0]>> => <wire ICONST10U[3] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+      <pin ICC10U of <device IOB_TILE@[sx0,sy1]>> => <wire ICONST10U[4] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+      <pin ICC10U of <device IOB_TILE@[sx0,sy2]>> => <wire ICONST10U[5] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+      <pin ICC10U of <device IOB_TILE_HALF@[sx0,sy3]>> => <wire ICONST10U[6] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+      <pin ICC10U of <device IOB_TILE@[sx0,sy5]>> => <wire ICONST10U[7] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+      <pin ICC10U of <device IOB_TILE@[sx0,sy6]>> => <wire ICONST10U[8] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+      <pin ICC10U of <device IOB_TILE@[sx0,sy7]>> => <wire ICONST10U[12] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+      <pin ICC10U of <device IOB_TILE@[sx1,sy0]>> => <wire ICONST10U[13] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+      <pin ICC10U of <device IOB_TILE@[sx1,sy1]>> => <wire ICONST10U[14] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+      <pin ICC10U of <device IOB_TILE@[sx2,sy4]>> => <wire ICONST10U[15] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+      <pin ICC10U of <device IOB_TILE@[sx2,sy5]>> => <wire ICONST10U[16] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+      <pin ICC10U of <device IOB_TILE@[sx2,sy6]>> => <wire ICONST10U[17] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+      <pin ICC10U of <device IOB_TILE@[sx2,sy7]>> => <wire ICONST10U[18] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+
+      <pin IPO10U of <device IOB_TILE@[sx0,sy0]>> => <wire IPOLY10U[1] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+      <pin IPO10U of <device IOB_TILE@[sx0,sy1]>> => <wire IPOLY10U[2] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+      <pin IPO10U of <device IOB_TILE@[sx0,sy2]>> => <wire IPOLY10U[3] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+      <pin IPO10U of <device IOB_TILE_HALF@[sx0,sy3]>> => <wire IPOLY10U[4] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+      <pin IPO10U of <device IOB_TILE@[sx0,sy5]>> => <wire IPOLY10U[5] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+      <pin IPO10U of <device IOB_TILE@[sx0,sy6]>> => <wire IPOLY10U[6] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+      <pin IPO10U of <device IOB_TILE@[sx0,sy7]>> => <wire IPOLY10U[24] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+      <pin IPO10U of <device IOB_TILE@[sx1,sy0]>> => <wire IPOLY10U[25] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+      <pin IPO10U of <device IOB_TILE@[sx1,sy1]>> => <wire IPOLY10U[26] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+      <pin IPO10U of <device IOB_TILE@[sx2,sy4]>> => <wire IPOLY10U[27] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+      <pin IPO10U of <device IOB_TILE@[sx2,sy5]>> => <wire IPOLY10U[28] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+      <pin IPO10U of <device IOB_TILE@[sx2,sy6]>> => <wire IPOLY10U[29] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+      <pin IPO10U of <device IOB_TILE@[sx2,sy7]>> => <wire IPOLY10U[30] of <device CCS_TILE @[sx_ccs,sy_ccs]>>
+    );
+}
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_bias_pll
+(
+    int tx_ccs,
+    int ty_ccs,
+    int tx,
+    int ty_pll0,
+    int ty_pll1
+)
+{
+    int sx_ccs = tx_ccs * NUM_GRID_X + 2;
+    int sy_ccs = ty_ccs * NUM_GRID_Y;
+
+    int sx = tx * NUM_GRID_X + 2 ;
+
+    int sy_pll0 =  ty_pll0 * NUM_GRID_Y;
+    int sy_pll1 =  ty_pll1 * NUM_GRID_Y;
+    int sy_pll2 =  sy_pll0 + 1 * NUM_TILES_REGION * NUM_GRID_Y;
+    int sy_pll3 =  sy_pll1 + 1 * NUM_TILES_REGION * NUM_GRID_Y;
+    int sy_pll4 =  sy_pll0 + 2 * NUM_TILES_REGION * NUM_GRID_Y ;
+    int sy_pll5 =  sy_pll1 + 2 * NUM_TILES_REGION * NUM_GRID_Y ;
+    int sy_pll6 =  sy_pll0 + 3 * NUM_TILES_REGION * NUM_GRID_Y ;
+    int sy_pll7 =  sy_pll1 + 3 * NUM_TILES_REGION * NUM_GRID_Y ;
+    int sy_pll8 =  sy_pll0 + 4 * NUM_TILES_REGION * NUM_GRID_Y ;
+    int sy_pll9 =  sy_pll1 + 4 * NUM_TILES_REGION * NUM_GRID_Y ;
+    int sy_pll10 = sy_pll0 + 5 * NUM_TILES_REGION * NUM_GRID_Y ;
+    int sy_pll11 = sy_pll1 + 5 * NUM_TILES_REGION * NUM_GRID_Y ;
+    int sy_pll12 = sy_pll0 + 6 * NUM_TILES_REGION * NUM_GRID_Y ;
+    int sy_pll13 = sy_pll1 + 6 * NUM_TILES_REGION * NUM_GRID_Y ;
+    int sy_pll14 = sy_pll0 + 7 * NUM_TILES_REGION * NUM_GRID_Y ;
+    int sy_pll15 = sy_pll1 + 7 * NUM_TILES_REGION * NUM_GRID_Y ;
+
+    connect
+      (
+        <pin IPOLY_LDO of <device PLL_TILE @[sx,sy_pll0]>>  => <wire IPOLY10U[7] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+        <pin IPOLY_LDO of <device PLL_TILE @[sx,sy_pll1]>>  => <wire IPOLY10U[8] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+        <pin IPOLY_LDO of <device PLL_TILE @[sx,sy_pll2]>>  => <wire IPOLY10U[9] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+        <pin IPOLY_LDO of <device PLL_TILE @[sx,sy_pll3]>>  => <wire IPOLY10U[10] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+        <pin IPOLY_LDO of <device PLL_TILE @[sx,sy_pll4]>>  => <wire IPOLY10U[11] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+        <pin IPOLY_LDO of <device PLL_TILE @[sx,sy_pll5]>>  => <wire IPOLY10U[12] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+        <pin IPOLY_LDO of <device PLL_TILE @[sx,sy_pll6]>>  => <wire IPOLY10U[14] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+        <pin IPOLY_LDO of <device PLL_TILE @[sx,sy_pll7]>>  => <wire IPOLY10U[15] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+        <pin IPOLY_LDO of <device PLL_TILE @[sx,sy_pll8]>>  => <wire IPOLY10U[16] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+        <pin IPOLY_LDO of <device PLL_TILE @[sx,sy_pll9]>>  => <wire IPOLY10U[17] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+        <pin IPOLY_LDO of <device PLL_TILE @[sx,sy_pll10]>> => <wire IPOLY10U[18] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+        <pin IPOLY_LDO of <device PLL_TILE @[sx,sy_pll11]>> => <wire IPOLY10U[19] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+        <pin IPOLY_LDO of <device PLL_TILE @[sx,sy_pll12]>> => <wire IPOLY10U[20] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+        <pin IPOLY_LDO of <device PLL_TILE @[sx,sy_pll13]>> => <wire IPOLY10U[21] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+        <pin IPOLY_LDO of <device PLL_TILE @[sx,sy_pll14]>> => <wire IPOLY10U[22] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+        <pin IPOLY_LDO of <device PLL_TILE @[sx,sy_pll15]>> => <wire IPOLY10U[23] of <device CCS_TILE @[sx_ccs,sy_ccs]>>
+      );
+}
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_hsst_input
+(
+    int tx,
+    int ty,
+    int tx_iock,
+    int ty_iock,
+    string dev_hsst,
+    string dev_iock
+)
+{
+    int sx, sy, sx_iock, sy_iock ;
+
+    string hsst = dev_hsst ;
+    string iock = dev_iock ;
+
+    sx = tx * NUM_GRID_X ;
+    sy = ty * NUM_GRID_Y ;
+    sx_iock = tx_iock * NUM_GRID_X + 2;
+    sy_iock = ty_iock * NUM_GRID_Y ;
+
+    connect
+    (
+        <pin IBM_IN[0]  of <device *hsst @[sx,sy]>>  => <wire SIG_IBM_1_OUT[0]  of <device *iock @[sx_iock,sy_iock]>>,        
+        <pin IBM_IN[1]  of <device *hsst @[sx,sy]>>  => <wire SIG_IBM_1_OUT[1]  of <device *iock @[sx_iock,sy_iock]>>,        
+        <pin IBM_IN[2]  of <device *hsst @[sx,sy]>>  => <wire SIG_IBM_1_OUT[2]  of <device *iock @[sx_iock,sy_iock]>>,        
+        <pin IBM_IN[3]  of <device *hsst @[sx,sy]>>  => <wire SIG_IBM_1_OUT[3]  of <device *iock @[sx_iock,sy_iock]>>,        
+        <pin IBM_IN[4]  of <device *hsst @[sx,sy]>>  => <wire SIG_IBM_1_OUT[4]  of <device *iock @[sx_iock,sy_iock]>>,        
+        <pin IBM_IN[5]  of <device *hsst @[sx,sy]>>  => <wire SIG_IBM_1_OUT[5]  of <device *iock @[sx_iock,sy_iock]>>,        
+        <pin IBM_IN[6]  of <device *hsst @[sx,sy]>>  => <wire SIG_IBM_1_OUT[6]  of <device *iock @[sx_iock,sy_iock]>>,        
+        <pin IBM_IN[7]  of <device *hsst @[sx,sy]>>  => <wire SIG_IBM_1_OUT[7]  of <device *iock @[sx_iock,sy_iock]>>,        
+        <pin IBM_IN[8]  of <device *hsst @[sx,sy]>>  => <wire SIG_IBM_1_OUT[8]  of <device *iock @[sx_iock,sy_iock]>>,        
+        <pin IBM_IN[9]  of <device *hsst @[sx,sy]>>  => <wire SIG_IBM_1_OUT[9]  of <device *iock @[sx_iock,sy_iock]>>,        
+        <pin IBM_IN[10] of <device *hsst @[sx,sy]>>  => <wire SIG_IBM_1_OUT[12] of <device *iock @[sx_iock,sy_iock]>>,        
+        <pin IBM_IN[11] of <device *hsst @[sx,sy]>>  => <wire SIG_IBM_1_OUT[13] of <device *iock @[sx_iock,sy_iock]>>,        
+        <pin IBM_IN[12] of <device *hsst @[sx,sy]>>  => <wire SIG_IBM_1_OUT[14] of <device *iock @[sx_iock,sy_iock]>>,        
+        <pin IBM_IN[13] of <device *hsst @[sx,sy]>>  => <wire SIG_IBM_1_OUT[15] of <device *iock @[sx_iock,sy_iock]>>,        
+        <pin IBM_IN[14] of <device *hsst @[sx,sy]>>  => <wire SIG_IBM_1_OUT[17] of <device *iock @[sx_iock,sy_iock]>>,       
+        <pin IBM_IN[15] of <device *hsst @[sx,sy]>>  => <wire IOCKDLY_COUT_P_0 of <device *iock @[sx_iock,sy_iock]>>,       
+        <pin IBM_IN[16] of <device *hsst @[sx,sy]>>  => <wire IOCKDLY_COUT_N_0 of <device *iock @[sx_iock,sy_iock]>>       
+    );
+
+
+}
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_cramsl2_ip_input
+(
+    int tx,
+    int ty,
+    int tx_cgra,
+    int ty_cgra,
+    string dev_cram,
+    string dev_cgra
+)
+{
+    int sx, sy, sx_cgra, sy_cgra ;
+
+    string cgra = dev_cgra ;
+    string cramsl = dev_cram ;
+
+    sx = tx * NUM_GRID_X + 2;
+    sy = ty * NUM_GRID_Y ;
+    sx_cgra = tx_cgra * NUM_GRID_X ;
+    sy_cgra = ty_cgra * NUM_GRID_Y ;
+
+        connect
+        (
+            <pin IN[0]  of <device *cramsl @[sx,sy]>>  => <wire TIEHI  of <device *cgra @[sx_cgra,sy_cgra]>>,
+            <pin IN[1]  of <device *cramsl @[sx,sy]>>  => <wire TIEHI  of <device *cgra @[sx_cgra,sy_cgra]>>,
+            <pin IN[2]  of <device *cramsl @[sx,sy]>>  => <wire TIEHI  of <device *cgra @[sx_cgra,sy_cgra]>>,
+            <pin IN[3]  of <device *cramsl @[sx,sy]>>  => <wire TIEHI  of <device *cgra @[sx_cgra,sy_cgra]>>,
+            <pin IN[4]  of <device *cramsl @[sx,sy]>>  => <wire TIEHI  of <device *cgra @[sx_cgra,sy_cgra]>>,
+            <pin IN[5]  of <device *cramsl @[sx,sy]>>  => <wire TIEHI  of <device *cgra @[sx_cgra,sy_cgra]>>,
+            <pin IN[6]  of <device *cramsl @[sx,sy]>>  => <wire TIEHI  of <device *cgra @[sx_cgra,sy_cgra]>>,
+            <pin IN[7]  of <device *cramsl @[sx,sy]>>  => <wire TIEHI  of <device *cgra @[sx_cgra,sy_cgra]>>,
+            <pin IN[8]  of <device *cramsl @[sx,sy]>>  => <wire TIEHI  of <device *cgra @[sx_cgra,sy_cgra]>>,
+            <pin IN[9]  of <device *cramsl @[sx,sy]>>  => <wire TIEHI  of <device *cgra @[sx_cgra,sy_cgra]>>,
+            <pin IN[10] of <device *cramsl @[sx,sy]>>  => <wire TIEHI  of <device *cgra @[sx_cgra,sy_cgra]>>,
+            <pin IN[11] of <device *cramsl @[sx,sy]>>  => <wire TIEHI  of <device *cgra @[sx_cgra,sy_cgra]>>,
+            <pin IN[12] of <device *cramsl @[sx,sy]>>  => <wire TIEHI  of <device *cgra @[sx_cgra,sy_cgra]>>,
+            <pin IN[13] of <device *cramsl @[sx,sy]>>  => <wire TIEHI  of <device *cgra @[sx_cgra,sy_cgra]>>,
+            <pin IN[14] of <device *cramsl @[sx,sy]>>  => <wire TIEHI  of <device *cgra @[sx_cgra,sy_cgra]>>,
+            <pin IN[15] of <device *cramsl @[sx,sy]>>  => <wire TIEHI  of <device *cgra @[sx_cgra,sy_cgra]>>,
+            <pin IN[16] of <device *cramsl @[sx,sy]>>  => <wire TIEHI  of <device *cgra @[sx_cgra,sy_cgra]>>,
+            <pin IN[17] of <device *cramsl @[sx,sy]>>  => <wire TIEHI  of <device *cgra @[sx_cgra,sy_cgra]>>,
+            <pin IN[18] of <device *cramsl @[sx,sy]>>  => <wire TIEHI  of <device *cgra @[sx_cgra,sy_cgra]>>,
+            <pin IN[19] of <device *cramsl @[sx,sy]>>  => <wire TIEHI  of <device *cgra @[sx_cgra,sy_cgra]>>
+        );
+
+
+}
+
+} // end of package pgl200es_funcs_logic
+

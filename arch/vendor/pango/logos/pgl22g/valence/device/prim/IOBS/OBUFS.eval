@@ -1,0 +1,103 @@
+*****************************************************************
+
+  Device    [OBUFS]
+
+  Author    [yqtan]
+
+  Abstract  [The Prim Device For OBUFS]
+
+  Revision History:
+
+********************************************************************************/
+prim
+device OBUFS
+{
+    parameter
+    (
+        config string CP_IO_STANDARD  = "SLVS",   //IO standard: lvcmos18 lvcmos15 lvcmos12
+        config string CP_OPENDRAIN    = "OFF",
+        config string CP_IOB_MODE     = "OBUFHR"      //"OBUFHP" "OBUFHR_P" "IOBUFHP"
+    );
+    port
+    (
+       input   DO, 
+       input   TS,
+       input   MIPI_SW_DYN,
+       output  OUT  
+    );
+
+}// end of device OBUFS
+
+/**Device***********************************************************************
+
+  Device    [OBUFS]
+
+  Abstract  [This specified how to propagate the input signal to the outputs based on
+             configuration]
+
+  Revision History:
+
+********************************************************************************/
+propagation pop of OBUFS
+{
+    if (CP_IO_STANDARD == "SLVS")
+    {
+        propagate ( DO |-> OUT );
+        propagate ( TS |-> OUT );
+        propagate ( MIPI_SW_DYN |-> OUT );
+    }
+    else if (CP_IOB_MODE == "OBUFHR")
+    {
+        propagate ( DO --> OUT );
+    }
+    else if (CP_IOB_MODE == "OBUFHR_T" || CP_IOB_MODE == "IOBUFHR")
+    {
+        propagate ( DO |-> OUT );
+        propagate ( TS |-> OUT );
+    }
+}; // end of propagation for OBUFS
+
+timing tnl of OBUFS
+{
+    if (CP_IO_STANDARD == "SLVS")
+    {
+        operator V_OBUFT obuft
+            parameter map
+            (
+                IOSTANDARD => CP_IO_STANDARD
+            )
+            port map
+            (
+                I => DO,
+                T => TS,
+                O => OUT
+            );
+    }
+    else if (CP_IOB_MODE == "OBUFHR")
+    {
+        operator V_OBUF obuf
+            parameter map
+            (
+                IOSTANDARD => CP_IO_STANDARD
+            )
+            port map
+            (
+                I => DO,
+                O => OUT
+            );
+    }
+    else if (CP_IOB_MODE == "OBUFHR_T" || CP_IOB_MODE == "IOBUFHR")
+    {
+        operator V_OBUFT obuft
+            parameter map
+            (
+                IOSTANDARD => CP_IO_STANDARD
+            )
+            port map
+            (
+                I => DO,
+                T => TS,
+                O => OUT
+            );
+    }
+};

@@ -1,0 +1,603 @@
+*****************************************************************
+
+  Device    [devIOL]
+
+  Author    [yqtan]
+
+  Abstract  [device base on IOL, used as inout path through to IOB ]
+
+  Revision History:
+
+********************************************************************************/
+
+gate
+device devIOL : device IOL
+{
+    parameter
+    (
+        config string CP_IREG_SET = "SET",
+        config string CP_OREG_SET = "SET",
+        config string CP_TSREG_SET = "SET",
+        config string CP_CLK_POL = "FALSE",
+        config string CP_SR_POL = "FALSE",
+        config string CP_REG_SYNC = "ASYNC",
+        config string CP_ILATCH_EN = "DISABLE",
+        config string CP_Y_SEL = "STA",
+        config string CP_DDR_EN = "DISABLE",
+        config string CP_DIN_POL = "FALSE",
+        config string CP_IREG_SEL = "FALSE",
+        config bit CP_DQMODE[1:0] = 2'b00,
+        config string CP_D0_POL = "FALSE",
+        config string CP_D1_POL = "FALSE",
+        config string CP_TQMODE = "DD",
+        config string CP_TD0_POL = "FALSE",
+        config string CP_TD1_POL = "FALSE",
+        config string CP_GRS_DIS = "FALSE",
+        config string CP_ICLK_EN = "DISABLE",
+        config string CP_OCLK_EN = "DISABLE",
+        config string CP_SCLK_EN = "DISABLE",
+        config string CP_ISR_EN = "DISABLE",
+        config string CP_OSR_EN = "DISABLE",
+        config string CP_TSR_EN = "DISABLE",
+        config string CP_TEST_EN0 = "DISABLE",
+        config string CP_TEST_EN1 = "DISABLE",
+        config string CP_MIPI_EN = "DISABLE",
+        config string CP_IN0_SEL = "FALSE",
+        config string CP_PDIFF = "DISABLE",
+        config string CP_OUTDLY_EN = "DISABLE"
+    );
+    port
+    (
+        input CE_IREG = 1'b1,
+        input CE_OREG = 1'b1,
+        input CE_TSREG = 1'b1,
+        input DIN = 1'b1,
+        input DIN_MIPI = 1'b1,
+        input D0 = 1'b1,
+        input D1 = 1'b1,
+        input DO_IN = 1'b1,
+        input DQ_CAS_IN = 1'b1,
+        input TD0 = 1'b1,
+        input TD1 = 1'b1,
+        input TQ_CAS_IN = 1'b1,
+        input CLK = 1'b1,
+        input SR = 1'b1,
+        input MIPI_SW_DYN_I = 1'b1,
+        input INBUF_DYN_DIS_N_I = 1'b1,
+        input DQ_DLY_IN = 1'b1,
+        output Y,
+        output Q0,
+        output Q1,
+        output DQ,
+        output DQ_CAS_OUT,
+        output TQ,
+        output TQ_CAS_OUT,
+        output SR_O,
+        output CLK_SYS_SERDES,
+        output MIPI_SW_DYN_O,
+        output INBUF_DYN_DIS_N_O,
+        output DIN_ISERDES,
+        output DQ_OUT
+    );
+
+}// end of device devIOL
+
+/*******************************************************************************
+
+  Device    [devIOL]
+
+  Author    [yqtan]
+
+  Abstract  [The structure netlist of devIOL is described in the similar fashion
+             as in HDL. In unit instantiation statement, the formal pin may be
+             connected to net which is declared explicitly.
+
+             In Valence, the connection can also be made from formal pin to other
+             pin or port, in which case Valence compiler shall create the net to
+             fulfil the connection. The built-in naming convention is kicked in
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devIOL
+{
+    // Internal wires
+    wire ntCLK_O;
+    wire ntDIN_O;
+    wire ntDIN_MIPI;
+    wire ntD0_O;
+    wire ntD1_O;
+    wire ntTD0_O;
+    wire ntTD1_O;
+    wire ntISR;
+    wire ntOSR;
+    wire ntTSR;
+    wire ntICLK;
+    wire ntOCLK;
+    wire ntDYN_CTRL0;
+    wire ntDYN_CTRL1;
+    wire ntDYN_MUX0_O;
+    wire ntDYN_MUX1_O;
+    wire ntDQ_SDR;
+    wire ntDQ_DDR;
+    wire ntTQ_SDR;
+    wire ntTQ_DDR;
+    wire ntSTA_SEL[1:0];
+    wire ntSEL[1:0];
+    wire ntDQ_IN0;
+    
+
+    // Wires connecting to input ports
+    wire ntSR;
+    wire ntCLK;
+    wire ntDIN;
+    wire ntD0;
+    wire ntD1;
+    wire ntTD0;
+    wire ntTD1;
+    wire ntCE_IREG;
+    wire ntCE_OREG;
+    wire ntCE_TSREG;
+    wire ntMIPI_SW_DYN_I;
+    wire ntDO_IN;
+    wire ntDQ_CAS_IN;
+    wire ntTQ_CAS_IN;
+    wire ntDIN_SEL;
+    wire ntINBUF_DYN_DIS_N;
+    wire ntDQ_DLY_IN;   
+
+    
+    ntSR <= SR;
+    ntCLK <= CLK;
+    ntDIN <= DIN;
+    ntDIN_MIPI  <= DIN_MIPI;
+    ntD0 <= D0;
+    ntD1 <= D1;
+    ntTD0 <= TD0;
+    ntTD1 <= TD1;
+    ntCE_IREG <= CE_IREG;
+    ntCE_OREG <= CE_OREG;
+    ntCE_TSREG <= CE_TSREG;
+    ntMIPI_SW_DYN_I <= MIPI_SW_DYN_I;
+    ntDO_IN <= DO_IN;
+    
+    ntINBUF_DYN_DIS_N <= INBUF_DYN_DIS_N_I;
+    ntDQ_CAS_IN       <= DQ_CAS_IN;
+    ntTQ_CAS_IN       <= TQ_CAS_IN;
+    ntDQ_DLY_IN       <= DQ_DLY_IN;
+    
+    // Wires connecting to output ports
+    wire ntSR_O;
+    wire ntCLK_SYS_SERDES;
+    wire ntTQ;
+    wire ntDQ;
+    wire ntDIN_ISERDES;
+    wire ntQ0;
+    wire ntQ1;
+    wire ntY;
+    wire ntTQ_CAS_OUT;
+    wire ntDQ_CAS_OUT;
+    wire ntDQ_OUT;
+    
+    SR_O <= ntSR_O;
+    CLK_SYS_SERDES <= ntCLK_SYS_SERDES;
+    TQ <= ntTQ;
+    DQ <= ntDQ;
+    DIN_ISERDES <= ntDIN_ISERDES;
+    Q0 <= ntQ0;
+    Q1 <= ntQ1;
+    
+    INBUF_DYN_DIS_N_O <= ntINBUF_DYN_DIS_N;
+    Y <= ntY;
+    TQ_CAS_OUT  <= ntTQ_CAS_OUT;
+    DQ_CAS_OUT  <= ntDQ_CAS_OUT;
+    
+    MIPI_SW_DYN_O <= ntMIPI_SW_DYN_I;
+    DQ_OUT <= ntDQ_OUT;
+    
+    
+    device POLMUX SR_POL_MUX
+        parameter map
+        (
+            CP_X_POL => CP_SR_POL
+        )
+        port map
+        (
+            X => ntSR,
+            Y => ntSR_O
+        );
+    
+    device POLMUX CLK_POL_MUX
+        parameter map
+        (
+            CP_X_POL => CP_CLK_POL
+        )
+        port map
+        (
+            X => ntCLK,
+            Y => ntCLK_O
+        );
+    
+    device POLMUX DIN_POL_MUX
+        parameter map
+        (
+            CP_X_POL => CP_DIN_POL
+        )
+        port map
+        (
+            X => ntDIN,
+            Y => ntDIN_O
+        );
+    
+    device POLMUX D0_POL_MUX
+        parameter map
+        (
+            CP_X_POL => CP_D0_POL
+        )
+        port map
+        (
+            X => ntD0,
+            Y => ntD0_O
+        );
+    
+    device POLMUX D1_POL_MUX
+        parameter map
+        (
+            CP_X_POL => CP_D1_POL
+        )
+        port map
+        (
+            X => ntD1,
+            Y => ntD1_O
+        );
+    
+    device POLMUX TD0_POL_MUX
+        parameter map
+        (
+            CP_X_POL => CP_TD0_POL
+        )
+        port map
+        (
+            X => ntTD0,
+            Y => ntTD0_O
+        );
+    
+    device POLMUX TD1_POL_MUX
+        parameter map
+        (
+            CP_X_POL => CP_TD1_POL
+        )
+        port map
+        (
+            X => ntTD1,
+            Y => ntTD1_O
+        );
+    
+    device X_EN ISR_EN_MUX
+        parameter map
+        (
+            CP_A_EN => CP_ISR_EN
+        )
+        port map
+        (
+            A => ntSR_O,
+            Y => ntISR
+        );
+    
+    device X_EN OSR_EN_MUX
+        parameter map
+        (
+            CP_A_EN => CP_OSR_EN
+        )
+        port map
+        (
+            A => ntSR_O,
+            Y => ntOSR
+        );
+    
+    device X_EN TSR_EN_MUX
+        parameter map
+        (
+            CP_A_EN => CP_TSR_EN
+        )
+        port map
+        (
+            A => ntSR_O,
+            Y => ntTSR
+        );
+    
+    device X_EN ICLK_EN_MUX
+        parameter map
+        (
+            CP_A_EN => CP_ICLK_EN
+        )
+        port map
+        (
+            A => ntCLK_O,
+            Y => ntICLK
+        );
+    
+    device X_EN OCLK_EN_MUX
+        parameter map
+        (
+            CP_A_EN => CP_OCLK_EN
+        )
+        port map
+        (
+            A => ntCLK_O,
+            Y => ntOCLK
+        );
+    
+    device X_EN SCLK_EN_MUX
+        parameter map
+        (
+            CP_A_EN => CP_SCLK_EN
+        )
+        port map
+        (
+            A => ntCLK_O,
+            Y => ntCLK_SYS_SERDES
+        );
+    
+    device ENMUX21 DYN_CTRL0_SEL
+        parameter map
+        (
+            CP_SEL => CP_TEST_EN0
+        )
+        port map
+        (
+            X0 => 1'b0,
+            X1 => ntTQ,
+            Y => ntDYN_CTRL0
+        );
+    
+    device ENMUX21 DYN_CTRL1_SEL
+        parameter map
+        (
+            CP_SEL => CP_TEST_EN1
+        )
+        port map
+        (
+            X0 => 1'b0,
+            X1 => ntTQ,
+            Y  => ntDYN_CTRL1
+        );
+    
+    device DYN_MUX21 DYN_CTRL0_MUX
+        port map
+        (
+            X0  => ntDIN_O,
+            X1  => ntDQ,
+            SEL => ntDYN_CTRL0,
+            Y   => ntDYN_MUX0_O
+        );
+    
+    device DYN_MUX21 DYN_CTRL1_MUX
+        port map
+        (
+            X0  => ntDIN_O,
+            X1  => ntDQ,
+            SEL => ntDYN_CTRL1,
+            Y   => ntDYN_MUX1_O
+        );
+    
+    device MUX21 IREG_IN_MUX
+        parameter map
+        (
+            CP_SEL => CP_IREG_SEL
+        )
+        port map
+        (
+            X0  => ntDIN_O,
+            X1  => ntDYN_MUX1_O,
+            Y   => ntDIN_ISERDES
+        );
+    
+    device IREG IREG
+        parameter map
+        (
+            CP_GRS_DIS   => CP_GRS_DIS,
+            CP_IREG_SET  => CP_IREG_SET,
+            CP_REG_SYNC  => CP_REG_SYNC,
+            CP_DDR_EN    => CP_DDR_EN,
+            CP_ILATCH_EN => CP_ILATCH_EN
+        )
+        port map
+        (
+            D    => ntDIN_ISERDES,
+            CLK  => ntICLK,
+            CE   => ntCE_IREG,
+            SR   => ntISR,
+            Q0   => ntQ0,
+            Q1   => ntQ1
+        );
+    
+    device OREG OREG
+        parameter map
+        (
+            CP_GRS_DIS   => CP_GRS_DIS,
+            CP_OREG_SET  => CP_OREG_SET,
+            CP_REG_SYNC  => CP_REG_SYNC
+        )
+        port map
+        (
+            D0    => ntD0_O,
+            D1    => ntD1_O,
+            CLK  => ntOCLK,
+            CE   => ntCE_OREG,
+            SR   => ntOSR,
+            DQ_SDR   => ntDQ_SDR,
+            DQ_DDR   => ntDQ_DDR
+        );
+    
+    device TSREG TSREG
+        parameter map
+        (
+            CP_GRS_DIS   => CP_GRS_DIS,
+            CP_TSREG_SET  => CP_TSREG_SET,
+            CP_REG_SYNC  => CP_REG_SYNC
+        )
+        port map
+        (
+            TD0    => ntTD0_O,
+            TD1    => ntTD1_O,
+            CLK  => ntOCLK,
+            CE   => ntCE_TSREG,
+            SR   => ntTSR,
+            TQ_SDR   => ntTQ_SDR,
+            TQ_DDR   => ntTQ_DDR
+        );
+        
+    device ENMUX21 DIN_SEL_MUX
+        parameter map
+        (
+            CP_SEL  => CP_MIPI_EN
+        )
+        port map
+        (
+            X0  => ntDIN_O,
+            X1  => ntDIN_MIPI,
+            Y   => ntDIN_SEL
+        );
+    
+    device Y_MUX41 Y0_MUX
+        parameter map
+        (
+            CP_SEL  => CP_Y_SEL
+        )
+        port map
+        (
+            X0    => ntDIN_SEL,
+            X1    => ntDYN_MUX0_O,
+            X2    => ntDQ,
+            X3    => ntTQ,
+            Y     => ntY
+        );
+    
+    device TQ_MUX41 TQ_MUX
+        parameter map
+        (
+            CP_SEL  => CP_TQMODE
+        )
+        port map
+        (
+            X0    => ntTD0_O,
+            X1    => ntTQ_SDR,
+            X2    => ntTQ_DDR,
+            X3    => 1'b0,
+            Y     => ntTQ_CAS_OUT
+        );
+    
+    device ENMUX21 TQ_PDIFF_MUX
+        parameter map
+        (
+            CP_SEL => CP_PDIFF
+        )
+        port map
+        (
+            X0 => ntTQ_CAS_OUT,
+            X1 => ntTQ_CAS_IN,
+            Y  => ntTQ
+        );
+        
+    device MUX21 IN0_MUX0
+        parameter map
+        (
+            CP_SEL  => CP_IN0_SEL
+        )
+        port map
+        (
+            X0    => ntD0_O,
+            X1    => ntDQ_SDR,
+            Y     => ntDQ_IN0
+        );
+    
+    device MUX21_1 DQMODE_MUX0
+        parameter map
+        (
+            CP_SEL  => CP_DQMODE[0]
+        )
+        port map
+        (
+            X0    => 1'b0,
+            X1    => 1'b1,
+            Y     => ntSTA_SEL[0]
+        );
+    
+    device MUX21_1 DQMODE_MUX1
+        parameter map
+        (
+            CP_SEL  => CP_DQMODE[1]
+        )
+        port map
+        (
+            X0    => 1'b0,
+            X1    => 1'b1,
+            Y     => ntSTA_SEL[1]
+        );
+    
+    device ENMUX21 DQ_SEL_MUX0
+        parameter map
+        (
+            CP_SEL  => CP_MIPI_EN
+        )
+        port map
+        (
+            X0    => ntSTA_SEL[0],
+            X1    => ntMIPI_SW_DYN_I,
+            Y     => ntSEL[0]
+        );
+    
+    device ENMUX21 DQ_SEL_MUX1
+        parameter map
+        (
+            CP_SEL  => CP_MIPI_EN
+        )
+        port map
+        (
+            X0    => ntSTA_SEL[1],
+            X1    => ntMIPI_SW_DYN_I,
+            Y     => ntSEL[1]
+        );
+    
+    device DQ_MUX41 DQ_MUX
+        port map
+        (
+            X0    => ntDQ_IN0,
+            X1    => ntDQ_SDR,
+            X2    => ntDQ_DDR,
+            X3    => ntDO_IN,
+            SEL   => ntSEL[1:0],
+            Y     => ntDQ_OUT
+        );
+        
+    device ENMUX21 DQ_ODLY_MUX
+        parameter map
+        (
+            CP_SEL  => CP_OUTDLY_EN
+        )
+        port map
+        (
+            X0      => ntDQ_OUT,
+            X1      => ntDQ_DLY_IN,
+            Y       => ntDQ_CAS_OUT
+        );
+      
+    device ENMUX21 DQ_PDIFF_MUX
+        parameter map
+        (
+            CP_SEL => CP_PDIFF
+        )
+        port map
+        (
+            X0 => ntDQ_CAS_OUT,
+            X1 => ntDQ_CAS_IN,
+            Y  => ntDQ
+        );
+}; // end of structure netlist of devIOL
+
+

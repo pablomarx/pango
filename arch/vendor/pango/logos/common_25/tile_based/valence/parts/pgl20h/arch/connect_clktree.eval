@@ -1,0 +1,252 @@
+*************************************************************************
+****************************************************************************************/
+library work;
+use pgl_defs,pgl20h_defs;
+use pgl_funcs_connect_clk,pgl20h_funcs_connect_clk;
+
+
+structure arch_nl connect_CLKTREE of PGL20H
+{
+
+    int rx,tx, ty,tx_wlsr1  ;
+   
+    connect_PLL_input("PLL_TILE");
+    connect_USCM_input();
+   connect_IOCKGATEDLL_input(); //connect with rescal ; which del
+
+   connect_CLKMUX_input();
+
+    connect_WLSR2_input();
+
+    int L_REGIONS[] = {[0:1]};
+
+    int tx_wlsr1_l = WLSR1_TILE_X_L;
+    int tx_wlsr1_r = WLSR1_TILE_X_R;
+
+    int region_index, flag_lr;
+
+    foreach flag_lr( {[0:1]})
+    {
+        int tx_wlsr = (flag_lr==1) ? tx_wlsr1_l : tx_wlsr1_r;
+        string iob = (flag_lr==1) ?  "IOB3_TILE" : "IOB1_TILE" ;
+
+        foreach region_index( L_REGIONS )
+        {
+
+            int ty_iol0 = (region_index==0) ? 29 : 34 ;
+            int ty_iol1 = (region_index==0) ? 28 : 33 ;
+
+            connect_IOCLK_input(region_index, tx_wlsr, ty_iol0, ty_iol1, NUM_TILE_X, 2, iob, flag_lr);
+        }
+    }
+
+    int tx_pll = PLL_TILE_X;
+    int tx_dll_l = IOL_TILE_X_L;
+    int tx_dll_r = IOL_TILE_X_R;
+    int tx_wlsr2 = PLL_TILE_X;
+
+    foreach ty( L_WLSR_TILES_Y )
+    {
+        string pll_u = (ty<NUM_TILES_REGION) ? "PLL_TILE" : "CLKMUX_TILE" ;
+
+        string pll_d = "PLL_TILE" ;
+
+        int flag_ud = (ty > NUM_TILES_REGION) ? 1 : 0 ;
+        
+        connect_CLKBUF_input(ty, tx_wlsr1_l, tx_wlsr1_r, tx_pll, tx_dll_l, tx_dll_r, HSST_TILE_X,HSST_TILE_Y,pll_u,pll_d,"HSST_TILE",flag_ud);
+    }
+
+  
+
+    foreach ty( L_WLSR_TILES_Y )
+    {
+        foreach tx ( L_WLSR_TILES_X )
+        {
+            tx_wlsr1 = (tx<=tx_wlsr2) ? tx_wlsr1_l : tx_wlsr1_r;
+            flag_lr = ((tx<=tx_wlsr1_l)||((tx>tx_wlsr2)&&(tx<=tx_wlsr1_r))) ? 1 : 0;
+            connect_CLKEB_input( tx, ty, flag_lr, tx_wlsr1, "WLSR_TILE");
+        }  
+        foreach tx ( L_WLSR1_TILES_X )
+        {
+            tx_wlsr1 = (tx<=tx_wlsr2) ? tx_wlsr1_l : tx_wlsr1_r;
+            flag_lr = ((tx<=tx_wlsr1_l)||((tx>tx_wlsr2)&&(tx<=tx_wlsr1_r))) ? 1 : 0;
+            connect_CLKEB_input( tx, ty, flag_lr, tx_wlsr1, "WLSR1_TILE");
+        } 
+        foreach tx ( {WLSR2_TILE_X} )
+        {
+            tx_wlsr1 = (tx<=tx_wlsr2) ? tx_wlsr1_l : tx_wlsr1_r;
+            flag_lr = ((tx<=tx_wlsr1_l)||((tx>tx_wlsr2)&&(tx<=tx_wlsr1_r))) ? 1 : 0;
+            connect_CLKEB_input( tx, ty, flag_lr, tx_wlsr1, "WLSR2_TILE");
+        } 
+        foreach tx ( {IOL_TILE_X_L,IOL_TILE_X_R} )
+        {
+
+            tx_wlsr1 = (tx<=tx_wlsr2) ? tx_wlsr1_l : tx_wlsr1_r;
+            flag_lr = ((tx<=tx_wlsr1_l)||((tx>tx_wlsr2)&&(tx<=tx_wlsr1_r))) ? 1 : 0;
+            connect_CLKEB_input( tx, ty, flag_lr, tx_wlsr1, "IOCKGATEDLL_TILE");     
+        }
+        foreach tx ( L_WLSRA_TILES_X )
+        {
+            tx_wlsr1 = (tx<=tx_wlsr2) ? tx_wlsr1_l : tx_wlsr1_r;
+            flag_lr = ((tx<=tx_wlsr1_l)||((tx>tx_wlsr2)&&(tx<=tx_wlsr1_r))) ? 1 : 0;
+            connect_CLKEB_input( tx, ty, flag_lr, tx_wlsr1, "WLSRA_TILE"); 
+        }
+        foreach tx ( L_WLSRD_TILES_X )
+        {
+            tx_wlsr1 = (tx<=tx_wlsr2) ? tx_wlsr1_l : tx_wlsr1_r;
+            flag_lr = ((tx<=tx_wlsr1_l)||((tx>tx_wlsr2)&&(tx<=tx_wlsr1_r))) ? 1 : 0;
+            connect_CLKEB_input( tx, ty, flag_lr, tx_wlsr1, "WLSRD_TILE"); 
+        }
+    }
+
+// for srb clk connect
+
+    foreach rx({[0:1]})
+    {
+        foreach ty( {[1:15,17:31]} )
+        {
+            int ty_wlsr =  MID_TILE_REGION ;       
+
+            foreach tx ( L_WLSR_TILES_X )
+            {
+                if(!(rx==1&&tx>BLSR_TILE_X_L&&tx<BLSR_TILE_X_R&&ty>22))
+                {
+                    connect_SRB_CLK_input( rx, tx, ty, ty_wlsr, "WLSR_TILE");
+                }
+            }  
+            foreach tx ( L_WLSR1_TILES_X )
+            {
+                if(!(rx==1&&tx>BLSR_TILE_X_L&&tx<BLSR_TILE_X_R&&ty>22))
+                {
+                    connect_SRB_CLK_input( rx, tx, ty, ty_wlsr, "WLSR1_TILE");
+                }
+            } 
+            foreach tx ( {WLSR2_TILE_X} )
+            {
+                if(!(rx==1&&tx>BLSR_TILE_X_L&&tx<BLSR_TILE_X_R&&ty>22))
+                {
+                    connect_SRB_CLK_input( rx, tx, ty, ty_wlsr, "WLSR2_TILE");
+                }
+            } 
+            foreach tx ( {IOL_TILE_X_L,IOL_TILE_X_R} )
+            {
+                if(!(rx==1&&tx>BLSR_TILE_X_L&&tx<BLSR_TILE_X_R&&ty>22))
+                {
+                    connect_SRB_CLK_input( rx, tx, ty, ty_wlsr, "IOCKGATEDLL_TILE");  
+                }   
+            }
+            foreach tx ( L_WLSRA_TILES_X )
+            {
+                if(!(rx==1&&tx>BLSR_TILE_X_L&&tx<BLSR_TILE_X_R&&ty>22))
+                {
+                    connect_SRB_CLK_input( rx, tx, ty, ty_wlsr, "WLSRA_TILE"); 
+                }
+            }
+            foreach tx ( L_WLSRD_TILES_X )
+            {
+                if(!(rx==1&&tx>BLSR_TILE_X_L&&tx<BLSR_TILE_X_R&&ty>22))
+                {
+                    connect_SRB_CLK_input( rx, tx, ty, ty_wlsr, "WLSRD_TILE"); 
+                }
+            }
+        }
+    }
+
+};//end of structure arch_nl connect_CLKTREE of PGL20H
+/***************************************************************************************
+****************************************************************************************/
+library work;
+use pgl_defs,pgl20h_defs,pgl_funcs_connect_clk;
+structure arch_nl connect_rlybufs_tile of PGL20H
+{
+    int tx, ty;
+    foreach tx( {IOL_TILE_X_L,IOL_TILE_X_R} )
+    {
+      foreach ty( {RLYBUFS5_TILE_Y} )
+      {
+        connect_rlybufs5_tile(tx, ty, "IOCKGATEDLL_TILE");
+      }
+    }
+
+};//end of structure arch_nl connect_rlybufs_tile of PGL20H
+/***************************************************************************************
+****************************************************************************************/
+library work;
+use pgl_defs,pgl20h_defs,pgl_funcs_connect_clk;
+structure arch_nl connect_IOL_PADCLK_input_h of PGL20H
+{
+    int tx ;
+
+    connect_PADCLK_input_h(BLSR_TILE_X_L,IOCKDLL_TILE_LOC_Y_U,IOB0_TILE_X,IOB0_TILE_Y,11,12,IOL_TILE_Y_U, "IOLTB_TILE","IOB0_TILE", "IOCKDLL_TILE",1,1);
+                                                                                           
+    connect_PADCLK_input_h(BLSR_TILE_X_R,IOCKDLL_TILE_LOC_Y_U,IOB0_TILE_X,IOB0_TILE_Y,48,49,IOL_TILE_Y_U, "IOLTB_TILE","IOB0_TILE", "IOCKDLL_TILE",0,1);
+
+    connect_PADCLK_input_h(BLSR_TILE_X_L,IOCKDLL_TILE_LOC_Y_D,IOB2_TILE_X,IOB2_TILE_Y, 32,33,IOL_TILE_Y_D, "IOLTB_TILE","IOB2_TILE", "IOCKDLL_TILE",1,0);
+
+    connect_PADCLK_input_h(BLSR_TILE_X_R,IOCKDLL_TILE_LOC_Y_D,IOB2_TILE_X,IOB2_TILE_Y, 36,37,IOL_TILE_Y_D, "IOLTB_TILE","IOB2_TILE", "IOCKDLL_TILE",0,0);
+
+    foreach tx(L_IOL_TILES_X_D)
+    {
+        if(tx<=PLL_TILE_X)
+        {
+            connect_IOCLK_input_h(tx, IOL_TILE_Y_D, BLSR_TILE_X_L, IOCKDLL_TILE_LOC_Y_D, 9,17,23,PLL_TILE_X,"IOLTB_TILE", "IOCKDLL_TILE",0);
+        }
+        else
+        {
+            connect_IOCLK_input_h(tx, IOL_TILE_Y_D, BLSR_TILE_X_R, IOCKDLL_TILE_LOC_Y_D, 36, 44,49,PLL_TILE_X,"IOLTB_TILE", "IOCKDLL_TILE",0);            
+        }
+    }
+
+    foreach tx(L_IOL_TILES_X_U)
+    {
+        if(tx<=PLL_TILE_X)
+        {
+            connect_IOCLK_input_h(tx, IOL_TILE_Y_U, BLSR_TILE_X_L, IOCKDLL_TILE_LOC_Y_U,6, 17, 9 ,6,"IOLTB_TILE", "IOCKDLL_TILE",1);
+        }
+        else
+        {
+            connect_IOCLK_input_h(tx, IOL_TILE_Y_U, BLSR_TILE_X_R, IOCKDLL_TILE_LOC_Y_U, 50, 52,53 ,50,"IOLTB_TILE", "IOCKDLL_TILE",1);            
+        }
+    }
+
+};//end of structure arch_nl connect_PADCLK_input_h of PGL20H
+/***************************************************************************************
+****************************************************************************************/
+library work;
+use pgl_defs,pgl20h_defs,pgl_funcs_connect_clk;
+structure arch_nl connect_clk_user of PGL20H
+{
+    connect_clk_user(IOL_TILE_X_L,MID_TILE_REGION-1,MID_TILE_REGION-1, ANALOG_TILE_X, ANALOG_TILE_Y, BLSR_TILE_X_L, 0, PLL_TILE_X, MID_TILE_REGION, "ANALOG_PGL25G_TILE" , "IOCKGATEDLL_TILE","BLSR2_TILE","WLSR2_TILE");
+
+};//end of structure arch_nl connect_clk_user of PGL20H
+/***************************************************************************************
+****************************************************************************************/
+library work;
+use pgl_defs,pgl20h_defs,pgl_funcs_connect_clk,pgl20h_funcs_connect_clk;
+structure arch_nl connect_iockdll_input of PGL20H
+{
+
+    int tx ,ty ;
+
+    foreach ty({IOCKDLL_TILE_LOC_Y_D,IOCKDLL_TILE_LOC_Y_U})
+    {
+        foreach tx({BLSR_TILE_X_L,BLSR_TILE_X_R})
+        {
+            int ty_pll = (ty>NUM_TILES_REGION) ? MID_TILE_REGION+NUM_TILES_REGION+NUM_GRID_Y : PLL0_TILE_Y ;
+            int flag_hsst = (ty>NUM_TILES_REGION) ? 1 : 0 ;
+            int ty_wlsr2 = (ty>NUM_TILES_REGION) ? MID_TILE_REGION+NUM_TILES_REGION : MID_TILE_REGION ;
+            int flag_lr = (tx<PLL_TILE_X) ? 1 : 0 ;
+
+            connect_iockdll_input(tx,ty,PLL_TILE_X,ty_pll,ty_wlsr2,"PLL_TILE",flag_hsst);
+        }
+    }
+
+    foreach tx({BLSR_TILE_X_L,BLSR_TILE_X_R})
+    {
+        int flag_lr = (tx<PLL_TILE_X) ? 1 : 0 ;
+
+        connect_iockdll_input_pgl20h(tx,IOCKDLL_TILE_LOC_Y_U,HSST_TILE_X,HSST_TILE_Y,flag_lr);
+    }
+
+};//end of structure arch_nl connect_iockdll_input of PGL20H
+

@@ -1,0 +1,94 @@
+*****************************************************************
+
+  Device    [devBMUX]
+
+  Author    [liujiao]
+
+  Abstract  [THE DEVICE CAN BE USED FOR WMUX.]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devBMUX : device devB
+{
+    parameter
+    (
+        config bit CP_INITB[31:0]        = 32'h0000_0000,
+        config string CP_MODEB           = "WMUX",                // "LUT5" "ROM" "WMUX" "ARITH"        
+        config string CP_Y1MUX_SEL      := "FX"                   //"FX":F1 "CYX":CYB "MF":L7
+    );
+    
+    port
+    (      
+        input    B0, B1, B2, B3, B4, BD,
+        output   Y1
+    );
+}; // end of device devBMUX
+
+
+/*******************************************************************************
+
+  Device    [devBMUX]
+
+  Author    [liujiao]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devBMUX
+{
+    // Wires for input ports
+    wire ntB0, ntB1, ntB2, ntB3, ntB4, ntBD; 
+
+    // Wires connecting to output ports
+    wire ntY1;
+    // Internal wires  
+    wire ntL5B;
+    //
+    // Connection to ports
+    //
+ 
+    ntB0      <= B0;
+    ntB1      <= B1;
+    ntB2      <= B2;
+    ntB3      <= B3;
+    ntB4      <= B4;
+    ntBD      <= BD;
+    Y1        <= ntY1;
+    //
+    // Instances. FGA section
+    //
+
+    device FYC FYB 
+        parameter map
+        (
+            CP_INIT => CP_INITB,
+            CP_MODE => CP_MODEB
+        )
+        port map 
+        (
+            A0  => ntB0,
+            A1  => ntB1,
+            A2  => ntB2,
+            A3  => ntB3,
+            A4  => ntB4,
+            AD  => ntBD,           
+            L5    => ntL5B 
+        );
+
+    device YMUX Y1MUX
+        parameter map
+        (
+            CP_OUT_SEL  => CP_Y1MUX_SEL
+        )       
+        port map
+        (
+            FX  => ntL5B,
+            Y   => ntY1
+        );
+}; // end of structure netlist of devBMUX
+
+                

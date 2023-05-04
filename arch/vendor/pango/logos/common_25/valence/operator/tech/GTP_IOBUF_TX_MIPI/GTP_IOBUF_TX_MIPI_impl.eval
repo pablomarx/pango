@@ -1,0 +1,115 @@
+*****************************************************************
+
+Copyright (c) 2014 by SHENZHEN PANGO MICROSYSTEMS CO.,LTD
+ALL RIGHTS RESERVED.
+
+THE SOURCE CODE CONTAINED HEREIN IS PROPRIETARY TO PANGO MICROSYSTEMS, INC.
+IT SHALL NOT BE REPRODUCED OR DISCLOSED IN WHOLE OR IN PART OR USED BY
+PARTIES WITHOUT WRITTEN AUTHORIZATION FROM THE OWNER.
+
+  Operator  [GTP_IOBUF_TX_MIPI]
+
+  Author    [liu jiao]
+
+  Abstract  []
+
+  Revision History:
+
+  IMPORTANT [SCRIPT GENERATED, DO NOT EDIT MANUALLY!]
+
+*******************************************************************************/
+
+fabric
+implementation impl of GTP_IOBUF_TX_MIPI @ (2,0 # 2,0)
+{
+    wire ntI1, ntO1, ntT1;
+    wire ntI2, ntO2, ntT2;
+    wire ntM1, ntM2;
+    wire ntDIFFIN;
+    wire ntDIFFO;
+    wire ntDIFF1;
+    
+    operator gopIOMIPIB
+        parameter map
+        (
+            IOSTANDARD     => IOSTANDARD == "DEFAULT" ? "SLVS" : IOSTANDARD,
+            //MIPI_MODE      => "TRUE",
+            DIFF_IN_TERM_MODE  => TERM_DIFF,
+            SLEW_MODE      => (SLEW_RATE == "SLOW") ? "S" : "F",
+            DRV_CURR_VAL   => DRIVE_STRENGTH,
+            IOB_MODE       => "IOBUFHR"
+        )     
+        port map
+        (
+            I        => ntO2,
+            T        => ntT2,
+            O        => ntI2,
+            MI       => ntM2,
+            IO       => IOB,
+            DIFFO_IN   => ntDIFFO,
+            DIFFI_OUT  => ntDIFFIN,
+            DIFFI_IN   => ntDIFF1
+        )@[1,1];
+    
+    operator gopIOMIPIA
+        parameter map
+        (
+            IOSTANDARD      => IOSTANDARD == "DEFAULT" ? "SLVS" : IOSTANDARD,
+            //MIPI_MODE       => "TRUE",
+            DIFF_IN_TERM_MODE   => TERM_DIFF,
+            SLEW_MODE       => (SLEW_RATE == "SLOW") ? "S" : "F",
+            DRV_CURR_VAL    => DRIVE_STRENGTH,
+            IOB_MODE        => "OBUFHS_IOLP"
+        )     
+        port map
+        (
+            I            => ntO1,
+            T            => ntT1,
+            DIN_MIPI_LP  => ntI1,
+            MI           => ntM1,
+            IO           => IO,
+            DIFFO_OUT    => ntDIFFO,
+            DIFFI_OUT    => ntDIFF1,
+            DIFFI_IN     => ntDIFFIN
+        )@[1,0];
+        
+    operator gopIOBUFIOL
+        parameter map
+        (
+            MIPI_MODE   => "FALSE"
+        )
+        port map
+        (
+            IN    =>  IB_LP,
+            TS    =>  TB,
+            OUT   =>  OB_LP,
+            MI    =>  M,
+            MO    => ntM2,
+
+            T     =>  ntT2,
+            I     =>  ntI2,
+            O     =>  ntO2
+        )@[0,1];
+        
+    operator gopIOBUFIOL
+        parameter map
+        (
+            MIPI_MODE   => "TRUE"
+        )
+        port map
+        (
+            IN       =>  I_LP,
+            MIPI_IN  =>  I_HS,
+            TS       =>  T,
+            OUT      =>  O_LP,
+            MI       =>  M,
+            MO       => ntM1,
+                     
+            T        =>  ntT1,
+            DI_MIPI  =>  ntI1,
+            O        =>  ntO1
+        )@[0,0];
+
+};
+
+

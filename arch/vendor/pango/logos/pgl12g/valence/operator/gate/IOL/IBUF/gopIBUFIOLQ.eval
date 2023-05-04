@@ -1,0 +1,77 @@
+*******************************************************************
+
+  Operator    [gopIBUFIOLQ]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+gate
+operator gopIBUFIOLQ
+{
+    parameter
+    (
+        string GRS_EN         = "FALSE",           // "TRUE" "FALSE" 
+        string IFF_CE_EN      = "UNUSED",    //1'b0 => "UNUSED";     1'b1 => "USED"
+        string IFF_LRS_EN     = "UNUSED",  //1'b0 => "UNUSED";   1'b1 => "USED"
+        string IFF_SET        = "RESET",     //1'b0 => "RESET"; 1'b1 => "SET"
+        string IFF_SYNC       = "ASYNC",     //1'b0 => "ASYNC";      1'b1 => "SYNC"    
+        string IFF_LATCH      = "FF",        //1'b1 => latch;        1'b0 => flip flop
+        string  CLK_I_INV      = "FALSE",
+        string  CE_INV         = "FALSE",
+        string  LRS_INV        = "FALSE",
+        string  MIPI_MODE      = "FALSE"
+    );
+    port
+    (
+        output  OUT,
+        output  Z,
+        output  T,
+
+        input   SYSCLK /*pragma PAP_ARC_GOP_CTRL_PIN="GCLK|RCLK|COLCLK"*/,
+        input   CE /*pragma PAP_ARC_GOP_CTRL_PIN="CE"*/,
+        input   LRS /*pragma PAP_ARC_GOP_CTRL_PIN="RST"*/,
+        output  INCK,
+
+        // from to IOB
+        input   MI,
+        output  MO,
+        input   I
+    );
+};
+
+implementation impl of gopIBUFIOLQ
+{
+    device devIBUFIOLQ gate_ibufiolq
+        parameter map
+        (
+            CP_GRS_DIS     => GRS_EN == "FALSE" ? "TRUE" : "FALSE",
+            CP_INCE_EN     => IFF_CE_EN == "USED" ? "ENABLE" : "DISABLE",
+            CP_INLRS_EN    => IFF_LRS_EN == "USED" ? "ENABLE" : "DISABLE",
+            CP_IFF_SET     => IFF_SET,
+            CP_FF_SYNC     => IFF_SYNC,
+            CP_IFF_LATCH   => IFF_LATCH,
+
+            CP_INCLK_POL    =>  CLK_I_INV,
+            CP_CE_POL       =>  CE_INV,
+            CP_LRS_POL      =>  LRS_INV,
+            CP_MIPI_EN      =>  MIPI_MODE == "TRUE" ? "ENABLE" : "DISABLE"
+        )
+        port map 
+        (
+            RX_DATA[0]   =>  OUT,
+            RX_DATA_DD   =>  Z,
+
+            CLK_SYS      =>  SYSCLK,
+            CE           =>  CE,
+            LRS          =>  LRS,
+            TO           =>  T,
+            INCK         =>  INCK,
+            DI           =>  I,
+            
+            MIPI_SW_DYN_O =>  MO,
+            MIPI_SW_DYN_I =>  MI
+        );
+};        
+

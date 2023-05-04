@@ -1,0 +1,313 @@
+
+use pango_defs, pango_schm_funcs, pg30_defs;
+
+schematic schm_view draw_logic_resource of device devPGT30G
+{
+   
+    // Tile index variable
+    unsigned int tx, ty;
+    
+    // CLM indication (CLMS + CLMA) clm_flag = 1, (CLMA + CLMA) clm_flag = 0
+    unsigned int clm_flag;
+    
+    // Regulate area
+    const unsigned int CLM_tile_y[] = { [1:19, 21:40, 41:60, 62:80] };
+    const unsigned int CLM_tile_x[] = { [1:4, 6:13, 15:22, 25:32, 34:41, 43:46] };
+    
+    clm_flag = 1;
+    
+    foreach tx ( CLM_tile_x )
+    {
+        foreach ty ( CLM_tile_y )
+        {
+            if(clm_flag == 1)
+            {
+                draw_logic_aa_tile (tx, ty);
+            }
+            else
+            {
+                draw_logic_sa_tile (tx, ty);
+            }
+        }
+        
+        clm_flag = (clm_flag == 1) ? 0 : 1;
+    }
+    
+
+    //APM tile
+    
+    const unsigned int APM_tile_x[] = { 14, 33 };
+    const unsigned int APM_tile_y[] = { [8:19, 21:40, 41:60, 62:73 +:4] };   
+   
+    draw_apm_tile(APM_tile_x, APM_tile_y);
+   
+    //DRM tile
+       
+    const unsigned int DRM_tile_x0[] = { 5, 42 };
+    const unsigned int DRM_tile_y0[] = { [0:19, 21:60, 62:81 +:5] };   
+   
+    draw_drm_tile(DRM_tile_x0, DRM_tile_y0);   
+   
+    const unsigned int DRM_tile_x1[] = { 23 };
+    const unsigned int DRM_tile_y1[] = { [0:19, 21:35, 46:60, 62:81 +:5] };  
+   
+    draw_drm_tile(DRM_tile_x1, DRM_tile_y1);  
+    
+    const unsigned int DRM_tile_x2[] = { 23};
+    const unsigned int DRM_tile_y2[] = { [36:45] };
+
+    foreach tx ( DRM_tile_x2 )
+    {
+        foreach ty ( DRM_tile_y2 )
+        {
+            draw_base_tile (tx, ty);
+        }
+    }    
+   
+    draw_drm0_tile(23, 36);
+    
+    draw_drm1_tile(23, 41); 
+
+
+    // Site index variable
+    unsigned int sx, sy;  
+
+    //------------------------------//
+    //   place io_n and io_s tiles  //
+    //------------------------------//
+
+    sy = NUM_TILE_Y - 1;
+
+    const unsigned int io_tile_x0[] = { 6, 15, 25, 34};
+    const unsigned int io_tile_y0[] = { 0, sy };                                    
+
+    foreach ty ( io_tile_y0 )              
+    {                                     
+        foreach tx ( io_tile_x0 )          
+        {                                 
+            draw_io_8cim_h_tile (tx, ty);
+        }                                 
+    }                                     
+
+    const unsigned int io_tile_x1[] = { 1 };
+    const unsigned int io_tile_y1[] = { 0, sy };                         
+                                                                        
+    foreach ty ( io_tile_y1 )                                            
+    {                                                                   
+        foreach tx ( io_tile_x1 )                                        
+        {                                                               
+            draw_io_4cim_6io_ttfftt_h_tile (tx, ty);                          
+        }                                                               
+    }                                                                   
+
+    const unsigned int io_tile_x2[] = { 43 };
+    const unsigned int io_tile_y2[] = { 0, sy };                         
+                                                                        
+    foreach ty ( io_tile_y2 )                                            
+    {                                                                   
+        foreach tx ( io_tile_x2 )                                        
+        {                                                               
+            draw_io_4cim_6io_ffttff_h_tile (tx, ty);                          
+        }                                                               
+    }               
+
+    //------------------------------//
+    //     place io_w tiles         //
+    //------------------------------//
+    const unsigned int base_tile_y[] = { [81:74] };
+    
+    foreach ty ( base_tile_y )
+    {
+        draw_base_tile (0, ty);
+    }
+
+    draw_io_l_3cim_4io_v_u_tile (0, 72);
+    draw_io_l_b_2cim_v_tile(0, 73);    
+
+    const unsigned int io_l_tile_x3[] = { 0 };
+    const unsigned int io_l_tile_y3[] = { [69:62, 60:21, 19:4 -:4] }; 
+
+    foreach tx ( io_l_tile_x3 )
+    {
+        foreach ty ( io_l_tile_y3 )
+        {
+            draw_io_l_4cim_6io_v_tile (tx, ty);
+        }
+    }
+
+    draw_io_l_3cim_4io_v_d_tile (0, 3);
+    draw_base_tile (0, 0);
+ 
+    //------------------------------//
+    //     place io_e tiles         //
+    //------------------------------//   
+    sx = NUM_TILE_X-1;
+
+    draw_io_9cim_v_u_tile(47, 80);
+
+    const unsigned int io_tile_x4[] = { 47 };
+    const unsigned int io_tile_y4[] = { 71, 60, 50, 40, 30, 19 };
+    
+    unsigned int cnt = 0;
+    
+    foreach ty ( io_tile_y4 )
+    {
+        foreach tx ( io_tile_x4 )
+        {
+            if(cnt %2 == 0)
+            {
+                draw_io_10cim_v_tile (tx, ty, 0);                    
+            }            
+            else
+            {
+                draw_io_10cim_v_tile (tx, ty, 1);                   
+            }
+            cnt = cnt + 1;
+        }
+    }
+
+    draw_io_9cim_v_d_tile(47, 9); 
+  
+    //------------------------------//
+    // draw clk_delay tiles (E, W) //
+    //------------------------------//   
+    const unsigned int clk_delay_tile_x0[] = { 47 };
+    const unsigned int clk_delay_tile_y0[] = { 62, 60, 21, 19 };
+    
+    foreach tx ( clk_delay_tile_x0 )
+    {
+        foreach ty ( clk_delay_tile_y0 )
+        {
+            draw_clk_delay_tile (tx, ty);
+        }
+    }   
+ 
+    //------------------------------//
+    // draw clk_delay tiles (T, B) //
+    //------------------------------//   
+    const unsigned int clk_delay_tile_x1[] = { 22, 25 };
+    const unsigned int clk_delay_tile_y1[] = { 0, 81 };
+    
+    foreach ty ( clk_delay_tile_y1 )
+    {
+        foreach tx ( clk_delay_tile_x1 )
+        {
+            draw_clk_delay_tile (tx, ty);
+        }
+    }     
+    
+   
+    //DLL tile
+
+    draw_dll_tile(DLL_TILE_X0, DLL_TILE_Y0);    
+      
+    draw_dll_tile(DLL_TILE_X1, DLL_TILE_Y1);  
+    
+    //PLL tile 
+    
+    draw_pll_tile(PLL_TILE_X0, PLL_TILE_Y0, -1);   //North 
+    
+    draw_pll_tile(PLL_TILE_X1, PLL_TILE_Y1, -1); 
+             
+    draw_pll_tile(PLL_TILE_X2, PLL_TILE_Y2, 1);    //Sourth   
+      
+    draw_pll_tile(PLL_TILE_X3, PLL_TILE_Y3, 1);     
+   
+       
+} 
+
+
+library work;
+use pango_defs, pango_schm_funcs, pg30_defs;
+
+schematic schm_view draw_clock_resource of device devPGT30G
+{
+    //Global clk  
+    draw_pre_gmux_l_tile(PRE_GMUX_CLK_L_TILE_X, PRE_GMUX_CLK_L_TILE_Y);  //LEFT
+    draw_pre_gmux_r_tile(PRE_GMUX_CLK_R_TILE_X, PRE_GMUX_CLK_R_TILE_Y);  //RIGHT
+    
+    draw_pre_gmux_tb_tile(PRE_GMUX_CLK_B_TILE_X, PRE_GMUX_CLK_B_TILE_Y, PRE_GMUX_CLK_T_TILE_X, PRE_GMUX_CLK_T_TILE_Y);//TOP&BOTTOM
+    draw_post_gmux_tile(POST_GMUX_CLK_TILE_X, POST_GMUX_CLK_TILE_Y);
+    
+    //USCM        
+    const unsigned int USCM_tile_x[] = { 24};
+    
+    const unsigned int USCM_tile_y_e[] = { 37,42 };  
+      
+    unsigned int tx, ty; 
+    
+    foreach tx ( USCM_tile_x )
+    {
+        foreach ty ( USCM_tile_y_e )
+        {
+            draw_uscm_e_tile (tx, ty);   //USCM
+        }
+    } 
+    
+    const unsigned int USCM_tile_y_w[] = { 39,44 };       
+    
+     foreach tx ( USCM_tile_x )
+    {
+        foreach ty ( USCM_tile_y_w )
+        {
+            draw_uscm_w_tile (tx, ty);   //USCM
+        }
+    }     
+      
+
+    //Regional clk
+    draw_reg_hmux_tile(REG_HMUX03_CLK_TILE_X, REG_HMUX03_CLK_TILE_Y);
+    
+    draw_reg_hmux_tile(REG_HMUX12_CLK_TILE_X, REG_HMUX12_CLK_TILE_Y);
+
+    draw_reg_vmux_e_tile(REG_VMUX0_CLK_TILE_X,REG_VMUX0_CLK_TILE_Y);
+
+    draw_reg_vmux_e_tile(REG_VMUX1_CLK_TILE_X,REG_VMUX1_CLK_TILE_Y);
+    
+    draw_reg_vmux_w_tile(REG_VMUX2_CLK_TILE_X,REG_VMUX2_CLK_TILE_Y);
+
+    draw_reg_vmux_w_tile(REG_VMUX3_CLK_TILE_X,REG_VMUX3_CLK_TILE_Y);
+
+
+    draw_ioclkgen_s_tile(IOCLKGEN_T_TILE_X, IOCLKGEN_T_TILE_Y);//TOP IOCLKGEN
+
+    draw_ioclkgen_n_tile(IOCLKGEN_B_TILE_X, IOCLKGEN_B_TILE_Y);//BOTTOM IOCLKGEN
+    
+    draw_ioclkgen_w_tile(IOCLKGEN_R_TILE_X, IOCLKGEN_R_TILE_Y);//RIGHT IOCLKGEN
+    
+    draw_ioclk_bridge_tile(IO_CLK_BRIDGE_X, IO_CLK_BRIDGE_Y);//IO CLK BRIDGE
+    
+    
+    //clk buf
+    const unsigned int clk_buf_tile_x[] = { [0:23] , [25:47] };
+    const unsigned int clk_buf_tile_y[] = { 20, 61 };
+    
+    foreach ty ( clk_buf_tile_y )
+    {
+        foreach tx ( clk_buf_tile_x )
+        {
+            draw_clk_buf_tile(tx, ty);
+        }
+    }    
+       
+    
+    draw_start_tile(START_X, START_Y);
+    
+    draw_grs_tile(START_X, START_Y);
+    
+    draw_osc_tile(OSC_X, OSC_Y);    
+    
+    draw_efusecode_tile(EFUSECODE_X, EFUSECODE_Y);
+    
+    draw_scanchain1_tile(SCANCHAIN1_X, SCANCHAIN1_Y);
+    
+    draw_scanchain0_tile(SCANCHAIN0_X, SCANCHAIN0_Y);
+    
+    draw_ipal_tile(IPAL_X, IPAL_Y);    
+    
+    
+    
+        
+} 
+
+

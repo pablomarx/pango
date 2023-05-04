@@ -1,0 +1,241 @@
+*******************************************************************
+
+  Device    [IOBS]
+
+  Author    [clwang]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+
+
+symbol logsym of IOBS // pragma PAP_ARC_COLOR="64:64:128"
+{
+    // The bounding box
+    generate ( 60 # 60 );
+
+    //
+    // Poloygon declaration
+    //
+    shape
+    [ 0, 0 ]  ->  [ , 60]
+              ->  [60, ]  < 
+                                DIFFO_IN            @[30, ],
+                                DIFFI_OUT           @[32, ],  
+                                
+                                DIN                 @[36, ],                             
+                                IN_DYN_EN           @[38, ],                               
+                                DO                  @[40, ],
+                                DO_NDRV             @[42, ],
+                                ADC_IN              @[44, ]
+                           >
+              ->  [  ,0]  < 
+
+                                PAD                 @[,30]
+
+                           >
+              ->  [ 0, ];
+
+}; // symbol logsym of IOBS
+/*******************************************************************************
+
+  Device    [IOBS]
+
+  Author    [clwang]
+
+  Abstract  [The schematic for IOBS]
+
+  Revision History:
+
+********************************************************************************/
+schematic schm of IOBS
+{
+    // The bounding box
+    unsigned int BOX_X = 144;
+    unsigned int BOX_Y = 90;  
+        
+    generate (BOX_X # BOX_Y); 
+
+    //
+    // Layout all symbols.
+    //
+    unsigned int SHIFT_X = BOX_X / 4;
+    unsigned int SHIFT_Y = BOX_Y / 3;
+    
+    unsigned int IBUFR_X = SHIFT_X * 3 - 16;
+    unsigned int IBUFR_Y = SHIFT_Y;  
+    
+    device IBUFS (symbol logsym) IBUFR
+        @[IBUFR_X, IBUFR_Y - 2];
+        
+    unsigned int OBUFR_X = SHIFT_X - 8;
+    unsigned int OBUFR_Y = IBUFR_Y;      
+
+    device OBUFS (symbol logsym) OBUFR
+        @[OBUFR_X, OBUFR_Y + 5];
+
+    unsigned int DIFFOSMUX_X = SHIFT_X * 2 - 16;        
+    device DIFFOSMUX (symbol logsym) DIFFOSMUX
+        @[DIFFOSMUX_X, OBUFR_Y + 3];  
+        
+    map (
+       <instance IBUFR>     => <instance IBUFR         of device IOBS (structure netlist)>,
+       <instance OBUFR>     => <instance OBUFR         of device IOBS (structure netlist)>,
+       <instance DIFFOSMUX> => <instance DIFFOSMUX     of device IOBS (structure netlist)>
+       );        
+
+
+    //
+    // Layout all ports.
+    //
+    // Since ports drive or are driven by pins of symbol instance, derive the port
+    // location from those pins
+    //
+     
+    unsigned int PORT_LEFT = 10;  
+    unsigned int PORT_BUTTOM = 10;
+    unsigned int PORT_TOP = BOX_Y - 10;  
+    unsigned int PORT_RIGHT = BOX_X - 10;     
+    
+
+    port DO            @[PORT_LEFT, <pin DO           of <instance OBUFR>>#-];
+    port DO_NDRV       @[PORT_LEFT, <pin DO_NDRV      of <instance OBUFR>>#-];
+    
+    //port MIPI_SW_DYN   @[PORT_LEFT, <pin MIPI_SW_DYN  of <instance DIFFOSMUX>>#- + 8];                       
+    port DIFFO_IN      @[<pin DIFFO_IN     of <instance DIFFOSMUX>>#| - 3, PORT_BUTTOM]; // pragma PAP_UI_ORIENTATION="SOUTH"
+     
+    port DIN           @[PORT_RIGHT, <pin OUT of <instance IBUFR>>#-]; 
+    
+    unsigned int DIFFI_OUT_Y = (<pin IN  of <instance IBUFR>>#- + PORT_TOP) / 2;      
+    //port DIFFI_OUT     @[PORT_RIGHT, DIFFI_OUT_Y]; // pragma PAP_UI_ORIENTATION="EAST"
+        
+    unsigned int PAD_X = (<pin OUT  of <instance DIFFOSMUX>>#| + <pin IN  of <instance IBUFR>>#|) / 2;  
+    port PAD           @[PAD_X, PORT_TOP]; // pragma PAP_UI_ORIENTATION="NORTH"
+    
+    port IN_DYN_EN     @[<pin IN_DYN_EN  of <instance IBUFR>>#| - 6, PORT_BUTTOM]; // pragma PAP_UI_ORIENTATION="SOUTH"
+
+    port DIFFI_OUT      @[<pin DIFFI_OUT   of <instance OBUFR>>#| + 8, PORT_TOP]; // pragma PAP_UI_ORIENTATION="NORTH" 
+    //
+    // Layout all lines
+    //    
+
+   line lnDIFFI_OUT       
+      <pin DIFFI_OUT of <instance OBUFR>> ->
+      [<pin DIFFI_OUT of <instance OBUFR>>#| + 8, ] ->
+      <port DIFFI_OUT>;  
+
+
+   line lnDO                        
+      <port DO> ->      
+      [<pin DO of <instance OBUFR>>#| - 3, ] ->           
+      <pin DO of <instance OBUFR>>,
+      [<pin DO of <instance OBUFR>>#| - 3, <port DO>#-] ->
+      [ , <port DO>#- - 8] ->
+      [ <pin DO of <instance DIFFOSMUX>>#| - 6, ] ->
+      [ ,  <pin DO of <instance DIFFOSMUX>>#-] ->
+      <pin DO of <instance DIFFOSMUX>>;
+
+   line lnDO_NDRV                        
+      <port DO_NDRV> -> 
+      [<pin DO_NDRV of <instance OBUFR>>#| - 3, ] ->                      
+      <pin DO_NDRV of <instance OBUFR>>,
+      
+      [<pin DO_NDRV of <instance OBUFR>>#| - 3, <port DO_NDRV>#-] ->
+      [ , <port DO_NDRV>#- + 8] ->
+      [ <pin DO_NDRV of <instance DIFFOSMUX>>#| - 6, ] ->
+      [ ,  <pin DO_NDRV of <instance DIFFOSMUX>>#-] ->
+      <pin DO_NDRV of <instance DIFFOSMUX>>;
+      
+ 
+   line lnDIFFO_IN
+      <port DIFFO_IN> ->
+      [, <pin DIFFO_IN of <instance DIFFOSMUX>>#-] ->
+      <pin DIFFO_IN of <instance DIFFOSMUX>>;    
+      
+//   line lnMIPI_SW_DYN
+//      <port MIPI_SW_DYN> ->
+//      [<pin MIPI_SW_DYN of <instance OBUFR>>#| - 4, ] ->    
+//      [, <pin MIPI_SW_DYN of <instance OBUFR>>#-] ->
+//      <pin MIPI_SW_DYN of <instance OBUFR>>,
+//    
+//      [<pin MIPI_SW_DYN of <instance OBUFR>>#| - 4, <port MIPI_SW_DYN>#-] ->  
+//      [<pin MIPI_SW_DYN of <instance DIFFOSMUX>>#| - 4, <port MIPI_SW_DYN>#-] ->
+//      [ , <pin MIPI_SW_DYN of <instance DIFFOSMUX>>#-] ->    
+//      <pin MIPI_SW_DYN of <instance DIFFOSMUX>>;
+      
+   line lnPAD
+       <pin OUT of <instance DIFFOSMUX>> ->
+       [<port PAD>#|, ] ->
+       [ , <pin IN of <instance DIFFOSMUX>>#- + 20] ->
+       [<pin IN of <instance DIFFOSMUX>>#| -2 , ] ->
+       [ , <pin IN of <instance DIFFOSMUX>>#-] ->
+       <pin IN of <instance DIFFOSMUX>>,
+       
+       [<port PAD>#| , <pin IN of <instance DIFFOSMUX>>#- + 20] ->
+       <port PAD>,        
+       
+       [<port PAD>#|, <pin OUT of <instance DIFFOSMUX>>#-] ->
+       <pin IN of <instance IBUFR>>;
+       
+   line lnIN_DYN_EN
+        <port IN_DYN_EN> ->
+        [ , <pin IN_DYN_EN of <instance IBUFR>>#-] ->
+        <pin IN_DYN_EN of <instance IBUFR>>;
+        
+           
+
+   line lnIBUFS
+        <pin OUT of <instance IBUFR>> ->
+        <port DIN>;
+        
+   line lnOBUFS
+        <pin OUT of <instance OBUFR>> ->
+        [ <pin OBUFO_IN of <instance DIFFOSMUX>>#| - 3, ] ->
+        //[ , <pin OBUFO_IN of <instance DIFFOSMUX>>#-] ->
+        <pin OBUFO_IN of <instance DIFFOSMUX>>;
+          
+    map  (
+           <line lnDIFFI_OUT>    => <wire ntDIFFI_OUT   of device IOBS (structure netlist)>,
+           <line lnDO      >     => <wire ntDO          of device IOBS (structure netlist)>,
+           <line lnDO_NDRV >     => <wire ntDO_NDRV     of device IOBS (structure netlist)>,
+           <line lnDIFFO_IN>     => <wire ntDIFFO_IN    of device IOBS (structure netlist)>,        
+
+           <line lnOBUFS>       => <wire ntOBUFS       of device IOBS (structure netlist)>,
+           <line lnPAD>         => <wire ntPAD         of device IOBS (structure netlist)>,
+           <line lnIBUFS>       => <wire ntIBUFS       of device IOBS (structure netlist)>//,
+        //   <line lnMIPI_SW_DYN> => <wire ntMIPI_SW_DYN of device IOBS (structure netlist)>
+         );
+
+};// end of schematic schm of IOBS
+
+/*******************************************************************************
+
+  Device    [IOBS]
+
+  Author    [rjliu]
+
+  Abstract  [The floorplan schematic for IOBS]
+
+  Revision History:
+
+********************************************************************************/
+floorplan
+schematic floorplan_view of IOBS // pragma PAP_ARC_SHOW_BOUNDING_BOX PAP_ARC_COLOR="160:164:160"
+{
+    generate ( 20*8 # 20*8 );
+
+    device IBUFS (symbol fpsym)  IBUFS
+        @[5*8, 4*8];
+    device OBUFS (symbol fpsym) OBUFS
+        @[5*8,12*8];
+    device DIFFOSMUX (symbol fpsym) DIFFOSMUX
+        @[13*8, 8*8-4];
+        
+    map (
+         <instance IBUFS>     => <instance IBUFS    of device IOBS (structure fp_struct)> ,
+         <instance OBUFS>     => <instance OBUFS    of device IOBS (structure fp_struct)> ,
+         <instance DIFFOSMUX> => <instance DIFFOSMUX    of device IOBS (structure fp_struct)>
+         );
+};

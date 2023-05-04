@@ -1,0 +1,98 @@
+*****************************************************************
+
+  Device    [devIBUFIOL]
+
+  Author    [yqtan]
+
+  Abstract  [device base on IOL, used as inout path through to IOB ]
+
+  Revision History:
+
+********************************************************************************/
+
+gate
+device devIBUFIOL : device IOL
+{
+    parameter
+    (
+        config bit CP_DELAY_SETTING[1:0]   := 2'b00,    //2'd0 => neither input nor output use delay unit; 2'd1 => delay unit for output; 
+                                                       //2'd2 => delay unit for input; 2'd3 => illegal setting
+    
+        config string CP_MIPI_EN            = "DISABLE" //"DISABLE", "ENABLE"
+    );
+    port
+    (
+        input   DI,
+        //input   DI_MIPI,
+        input   MIPI_SW_DYN_I,
+
+        output  RX_DATA_DD,
+        // from/to IOB
+        output   TO,
+        output   MIPI_SW_DYN_O,
+        output   INCK,
+  logic output   RX_DATA_MIPI
+        
+    );
+
+}// end of device devIBUFIOL
+
+/*******************************************************************************
+
+  Device    [devIBUFIOL]
+
+  Author    [yqtan]
+
+  Abstract  [The structure netlist of devIBUFIOL is described in the similar fashion
+             as in HDL. In unit instantiation statement, the formal pin may be
+             connected to net which is declared explicitly.
+
+             In Valence, the connection can also be made from formal pin to other
+             pin or port, in which case Valence compiler shall create the net to
+             fulfil the connection. The built-in naming convention is kicked in
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devIBUFIOL
+{
+    wire ntDI;
+    wire ntMIPI_SW_DYN_I;
+    wire ntRX_DATA_DD;
+    wire ntMIPI_SW_DYN_O;
+    
+    ntDI                 <= DI;
+    ntMIPI_SW_DYN_I      <= MIPI_SW_DYN_I;
+    RX_DATA_DD           <= ntRX_DATA_DD ;
+    MIPI_SW_DYN_O        <= ntMIPI_SW_DYN_O;
+    INCK                 <= ntDI;
+    
+    device MUX21_EN MIPI_EN_MUX
+        parameter map
+        (
+            CP_SEL => CP_MIPI_EN
+        )
+        port map
+        (
+            X0 => ntMIPI_SW_DYN_I,
+            X1 => 1'b0,
+            Y  => ntMIPI_SW_DYN_O
+        );
+        
+    device MUX21  IN_DELSEL_MUX
+        parameter map
+        (
+            CP_SEL => CP_DELAY_SETTING[1]
+        )
+        port map
+        (
+            X0   => ntDI,
+            Y    => ntRX_DATA_DD
+        );
+}; // end of structure netlist of devIBUFIOL
+
+

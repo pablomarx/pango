@@ -1,0 +1,91 @@
+*****************************************************************
+
+  Device    [devCGND_S]
+
+  Author    []
+
+  Abstract  [THE DEVICE CAN BE USED FOR LUT.]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devCGND_S : device devC_S
+{
+    parameter
+    (
+        config bit INITC[31:0]     := 32'h0000_0000,        
+        config string FGC_MODE     := "LUT5",               // "LUT5" "ROM" "WMUX" "ARITH"
+        config string RAM_LUT_SEL  := "LUT",               // "RAM"  "LUT" 
+        config string Y2MUX_SEL    := "FG"                 // "FFCD" "FG" "CY" 
+    );
+    
+    port
+    ( 
+        output   Y2
+    );
+}; // end of device devCGND_S
+
+
+/*******************************************************************************
+
+  Device    [devCGND_S]
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devCGND_S
+{
+    // Wires connecting to output ports
+    wire ntY2MUX;
+    // Internal wires
+    wire ntFGC_Z;
+    //
+    // Connection to ports
+    //
+
+    Y2        <= ntY2MUX;
+    //
+    // Instances. FGA section
+    //
+
+    device FGS FGC 
+        parameter map
+        (
+            INIT        => INITC,
+            MODE        => FGC_MODE,
+            RAM_LUT_SEL => RAM_LUT_SEL
+        )
+        port map 
+        (       
+            Z    => ntFGC_Z 
+        );
+
+    device Y2MUX Y2MUX
+        parameter map
+        (
+            CFG  => Y2MUX_SEL
+        )       
+        port map
+        (
+            FG  => ntFGC_Z, 
+            Z   => ntY2MUX
+        );
+}; // end of structure netlist of devCGND_S
+
+timing tnl of devCGND_S
+{   
+   operator V_ZERO V_FGC
+       parameter map
+       (
+           SECTION  => "C"
+       )
+       port map 
+       (
+          Z => Y2
+       );
+}

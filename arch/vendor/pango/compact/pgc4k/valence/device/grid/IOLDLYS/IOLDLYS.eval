@@ -1,0 +1,124 @@
+tarted
+grid
+device IOLDLYS
+{
+    // grid_property_def_start
+    // grid_property_def_end
+
+    parameter
+    (
+        config string CP_IDLY_EN = "FALSE",
+        config string CP_ODLY_EN = "FALSE",
+        config bit CP_DEL_SET[4:0] = 5'b00000
+    );
+    port
+    (
+// configuration_body_def_on
+
+
+    config input SC_IDLY_EN = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_IDLY_EN" */,
+
+    config input SC_ODLY_EN = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_ODLY_EN" */,
+
+    config input SC_DEL_SET[4:0] = 5'h0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_DEL_SET[4],SC_DEL_SET[3],SC_DEL_SET[2],SC_DEL_SET[1],SC_DEL_SET[0]" */,
+
+// configuration_body_def_end
+
+        input A = 1'b1,
+        input B = 1'b1,
+        output Z,
+        output Z1
+    );
+};
+//grid device end
+
+//grid device structure netlist started
+structure netlist of IOLDLYS
+{
+
+};
+//grid device structure netlist end
+
+//grid device configure body started
+
+configuration cfg of IOLDLYS
+{
+
+ // assign config body begin
+    SC_DEL_SET  :=  CP_DEL_SET;
+// assign config body end
+
+//initial config body0 begin
+    if(CP_ODLY_EN == "FALSE")
+    {
+        SC_ODLY_EN  :=  1'b0;
+    }
+    else if(CP_ODLY_EN == "TRUE")
+    {
+        SC_ODLY_EN  :=  1'b1;
+    }
+    else
+    {
+        SC_ODLY_EN  :=  1'bx;
+        error("illegal setting for CP_ODLY_EN  :=  %s", CP_ODLY_EN);
+    }
+
+//initial config body0 end
+
+
+//initial config body1 begin
+    if(CP_IDLY_EN == "FALSE")
+    {
+        SC_IDLY_EN  :=  1'b0;
+    }
+    else if(CP_IDLY_EN == "TRUE")
+    {
+        SC_IDLY_EN  :=  1'b1;
+    }
+    else
+    {
+        SC_IDLY_EN  :=  1'bx;
+        error("illegal setting for CP_IDLY_EN  :=  %s", CP_IDLY_EN);
+    }
+
+//initial config body1 end
+
+};
+
+//grid device configure body end
+
+
+timing ioldlys_tnl of IOLDLYS
+{
+    if (CP_ODLY_EN == "TRUE" || CP_IDLY_EN == "TRUE")
+    {
+        operator V_IODELAY_E1 V_IODELAY_E1
+            parameter map
+            (
+                DELAY_STEP_VALUE  =>  CP_DEL_SET,
+                DELAY_STEP_SEL    => "PARAMETER"
+            )
+            port map
+            (
+                DI         => (CP_ODLY_EN == "TRUE") ? B : A,
+                DO         => Z1
+            );
+    }
+    
+    if (CP_IDLY_EN == "TRUE")
+    {
+        Z <= Z1;
+    }
+    else if (CP_IDLY_EN == "FALSE" )
+    {
+        operator V_BUF V_BUF
+            port map
+            (
+                I         => A,
+                Z         => Z
+            );
+    }
+};

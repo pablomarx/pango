@@ -1,0 +1,144 @@
+*******************************************************************************
+
+  Vendor    [Titan2]
+
+  Author    [XIAWEI]
+
+  Abstract  [This defines all chips supported in family 'Titan2']
+
+  Revision History:
+
+********************************************************************************************/
+
+family Titan2 of pango
+{
+    string pango_path = "/arch/vendor/pango/";
+
+    file ( "technology operator library" ) // pragma PAP_ARC_LOAD_ON_DEMAND="tech_operator_lib"
+    {
+        ( "/arch/vendor/pango/titan2/common/lib/gtp_lib.v -format verilog -library tech_operator_lib" ),
+        ( "/arch/lib/bms/verilog/bmsPrim.v -format verilog -library behav_operator_lib" )
+    }
+
+    file ( "technology operator (valence) library" ) // pragma PAP_ARC_LOAD_ON_DEMAND="valence_tech_operator"
+    {
+        ( *pango_path + "titan2/common/list/gtps_decl_list.eval -e -format tcl" )
+    }
+
+
+    // The PG2T330H architecture
+    device ( PG2T330H )
+    {
+        string titan2_path = "/arch/vendor/pango/titan2/";
+        string pg2t330h_path  = "/arch/vendor/pango/titan2/pg2t330h/";
+        string pg2t_tile_based_path = "/arch/vendor/pango/titan2/common/tile_based/";
+
+
+        file ( "operator packing rules" ) // pragma PAP_ARC_LOAD_ON_DEMAND="packing_rules"
+        {
+            ( *pg2t330h_path + "data/rules/packingrules.txt -format packing_rule" )
+        }
+
+        file ( "common defs" )
+        {
+            ( *titan2_path + "common/valence/pg_defs.eval -e -format valence" ),
+            ( *pg2t_tile_based_path + "valence/common/pkgs/pg2l_defs.eval -e -format valence" ),
+            ( *pg2t_tile_based_path + "valence/common/site/stARCH/stARCH.eval -e -format valence" )
+        } // file ( "common defs" )
+
+
+        file ( "prim grid devices" ) // pragma PAP_ARC_LOAD_ON_DEMAND="prim_grid_device"
+        {
+            ( *pg2t330h_path + "valence/list/prim_grid_devices_list.eval -e -format tcl" )
+        }
+        
+        file ( "prim grid device symbols" ) // pragma PAP_ARC_LOAD_ON_DEMAND="prim_grid_device_symbol"
+        {
+            ( *pg2t330h_path + "valence/list/prim_grid_devices_symbol_list.eval -e -format tcl" )
+        }
+        
+        file ( "gate devices" ) // pragma PAP_ARC_LOAD_ON_DEMAND="gate_device"
+        {
+            ( *pg2t330h_path + "valence/list/gate_devices_list.eval -e -format tcl" )
+        }
+        
+        file ( "gate operators" ) // pragma PAP_ARC_LOAD_ON_DEMAND="gate_operator"
+        {
+            ( *pg2t330h_path + "valence/list/gops_list.eval -e -format tcl" )
+        }
+        
+        file ( "tech operator impls" ) // pragma PAP_ARC_LOAD_ON_DEMAND="tech_operator_impl"
+        {
+            ( *pg2t330h_path + "valence/list/gtps_impl_list.eval -e -format tcl" )
+        }
+
+
+        file
+        {
+            ( *pg2t_tile_based_path + "valence/parts/pg2t330h/pkgs/pg2t330h_defs.eval -e -format valence" ),
+            ( *pg2t_tile_based_path + "valence/parts/pg2t330h/arch/generate_grid.eval -e -format valence" ),
+            ( *pg2t330h_path + "valence/netlist/schm_funcs.eval -e -format valence" ),
+            ( *pg2t330h_path + "valence/netlist/floorplan_funcs.eval -e -format valence" ),
+            ( *pg2t330h_path + "valence/netlist/floorplan.eval -e -format valence" ),
+            ( *pg2t330h_path + "valence/netlist/logic_view.eval -e -format valence" ),
+            ( *pg2t330h_path + "valence/netlist/floorplan_view.eval -e -format valence" ),
+
+            // 1) arch
+            ( *pg2t330h_path + "db/arch_lp.eadf -e -format adif -model_layer logic_device_layout" ),
+            ( *pg2t330h_path + "db/arch_nt.eadf -e -format adif -model_layer logic_device_net" ),
+
+            // 2) arch view
+            //( *pg2t330h_path + "valence/netlist/logic_schm_layout.eval -e -format valence" ),
+            ( *pg2t330h_path + "db/arch_schm.eadf -e -format adif -model_layer logic_schematic" ),
+
+            // 3) floorplan
+           // ( *pg2t330h_path + "valence/netlist/layout_fp.eval -e -format valence" ),
+            ( *pg2t330h_path + "db/fp_arch_lp.eadf -e -format adif -model_layer fp_device_layout" ),
+
+            // 4) floorplan view
+            // ( *pg2t330h_path + "valence/netlist/fp_schm_layout.eval -e -format valence" ),
+            ( *pg2t330h_path + "db/fp_arch_schm.eadf -e -format adif -model_layer fp_schematic" ),
+
+            
+            // 5) others
+            ( *pg2t330h_path + "data/paramanager.txt -format param_manager" )
+        }
+
+        packaging ( FFBG676 )
+        {
+           file
+            {
+                ( *pg2t_tile_based_path + "valence/parts/pg2t330h/pkgs/pg2t330h_ffbg676_spec.eval -e -format valence -package" ),
+                ( *pg2t330h_path + "package/ffbg676.eval -e -format valence" )
+            }
+        }
+
+        packaging ( FFBG900 )
+        {
+           file
+            {
+                ( *pg2t_tile_based_path + "valence/parts/pg2t330h/pkgs/pg2t330h_ffbg900_spec.eval -e -format valence -package" ),
+                ( *pg2t330h_path + "package/ffbg900.eval -e -format valence" )
+            }
+        }
+
+    } // end of PG2T330H
+
+
+    // Speedgrade,common to all device in the family
+    speedgrade ( sg5 ) /* pragma display_name="-5" oem_name="-5" */
+    {
+    }
+
+    default speedgrade ( sg6 ) /* pragma display_name="-6" oem_name="-6" */
+    {
+    }
+
+    speedgrade ( sg7 ) /* pragma display_name="-7" oem_name="-7" */
+    {
+    }
+
+
+} // family Titan2
+
+

@@ -1,0 +1,82 @@
+*****************************************************************
+
+  Device    [CEPOLMUX]
+
+  Author    [clwang]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+prim
+device CEPOLMUX
+{
+    parameter
+    (
+        config bit CFG  = 1'b0 // 1'b0: "CE"; 1'b1 : "CE_B"
+    );
+    port 
+    ( 
+        input  CE, CE_B,
+        output Y
+    );
+
+}; // end of device CEPOLMUX
+
+
+/**Device***********************************************************************
+
+  Device    [CEPOLMUX]
+
+  Abstract  [This specified how to propagate the input signal to the outputs based on
+             configuration]
+
+  Revision History:
+
+********************************************************************************/
+propagation pop of CEPOLMUX
+{
+    if (CFG == 1'b1)
+    {
+        propagate ( CE_B ~-> Y );
+    }
+    else
+    {
+        propagate ( CE --> Y );
+    }
+
+}; // end of propagation for CEPOLMUX
+
+
+/**Device***********************************************************************
+
+  Device    [CEPOLMUX]
+  
+  Author    []
+
+  Abstract  [This specified the timing model under specific configuration]
+
+  Revision History:
+
+********************************************************************************/
+timing  cepolmux_tnl of CEPOLMUX
+{
+    if (CFG == 1'b1)
+    {
+       operator V_INV V_INV
+           port map
+           (
+               I => CE_B,
+               Z => Y
+           );
+    }
+    else if (CFG == 1'b0)
+    {
+        Y <= CE;
+    }
+    else
+    {
+        Y <= 1'b0;
+    }
+};

@@ -1,0 +1,242 @@
+*******************************************************************
+
+  Device    [IOBS]
+
+  Author    [rjliu]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+symbol logsym_d of IOBS // pragma PAP_ARC_COLOR="64:64:128"
+{
+    // The bounding box
+    generate ( 60 # 60 );
+
+    //
+    // Poloygon declaration
+    //
+    shape
+    [ 0, 0 ]  ->  [ , 60]  < 
+                             MIPI_SW_DYN  @[ ,10],
+                             DO   @[,30],
+                             DIN  @[,40],
+                             TS   @[,50]
+
+                           >
+              ->  [60, ]   < 
+
+                             DIFFO_IN  @[10,],
+                             DIFFI_IN  @[30,],
+                             DIFFI_OUT @[50,]
+
+                           >
+              ->  [  ,0]  < 
+
+                             PAD  @[,30]
+
+                           >
+              ->  [ 0, ]    ;
+
+}; // symbol logsym_d of IOBS
+
+symbol logsym_u of IOBS // pragma PAP_ARC_COLOR="64:64:128"
+{
+    // The bounding box
+    generate ( 60 # 60 );
+
+    //
+    // Poloygon declaration
+    //
+    shape
+    [ 0, 0 ]  ->  [ , 60]  < 
+                             MIPI_SW_DYN  @[ ,10],
+                             DO   @[,30],
+                             DIN  @[,40],
+                             TS   @[,50]
+
+                           >
+              ->  [60, ]
+              ->  [  ,0]  < 
+
+                             PAD  @[,30]
+
+                           >
+              ->  [ 0, ]  < 
+
+                             DIFFO_IN  @[10,],
+                             DIFFI_OUT @[30,],
+                             DIFFI_IN  @[50,]
+
+                           >;
+
+}; // symbol logsym_u of IOBS
+
+/*******************************************************************************
+
+  Device    [IOBS]
+
+  Author    [rjliu]
+
+  Abstract  [The schematic for IOBS]
+
+  Revision History:
+
+********************************************************************************/
+schematic schm of IOBS
+{
+    // The bounding box
+      generate (176 # 128);
+      
+    //unsigned int DO_PDIFF_MUX_X = 280;
+    //unsigned int DO_PDIFF_MUX_Y = 255;      
+
+    //
+    // Layout all symbols.
+    //
+    device IBUFS (symbol logsym) IBUFS
+        @[112,32];
+
+    device OBUFS (symbol logsym) OBUFS
+        @[32,48];
+        
+    device DIFFOSMUX (symbol logsym) DIFFOSMUX
+        @[62,48];    
+    
+    device MIPIMUX (symbol logsym) MIPIMUX
+        @[32,90];
+        
+    "0" @ [(<pin X1 of <instance MIPIMUX>>#|) - 3, <pin X1 of <instance MIPIMUX>>#-];
+
+    map (
+         <instance IBUFS>     => <instance IBUFS         of device IOBS (structure netlist)>,
+         <instance OBUFS>     => <instance OBUFS         of device IOBS (structure netlist)>,
+         <instance DIFFOSMUX> => <instance DIFFOSMUX     of device IOBS (structure netlist)>,
+         <instance MIPIMUX>   => <instance MIPIMUX       of device IOBS (structure netlist)>
+         );
+
+    //
+    // Layout all ports.
+    //
+    // Since ports drive or are driven by pins of symbol instance, derive the port
+    // location from those pins
+    //
+
+    port DIFFI_IN      @[10, <pin DIFFI_IN of <instance IBUFS>>#-]; 
+    port DO            @[10, <pin DO of <instance OBUFS>>#-]; 
+    port TS            @[10, <pin TS of <instance OBUFS>>#-];   
+                       
+    port DIFFO_IN      @[10, <pin DIFFO_IN of <instance DIFFOSMUX>>#-];  
+    port DIN           @[160, <pin OUT of <instance IBUFS>>#-]; 
+    port DIFFI_OUT     @[160,80];
+    port PAD           @[96,95]; // pragma PAP_UI_ORIENTATION="NORTH"
+    port MIPI_SW_DYN   @[10, <pin X0 of <instance MIPIMUX>>#-];
+
+    //
+    // Layout all lines
+    //
+
+  line lnDIFFI_IN
+      <port DIFFI_IN> ->
+      <pin DIFFI_IN of <instance IBUFS>>;
+      
+  line lnDIFFO_IN
+      <port DIFFO_IN> ->
+      <pin DIFFO_IN of <instance DIFFOSMUX>>;    
+
+  line lnDO
+      <port DO> ->
+      <pin DO of <instance OBUFS>>;
+
+  line lnTS
+      <port TS> ->
+      <pin TS of <instance OBUFS>>;
+
+  line lnOBUFO_IN
+      <pin OUT of <instance OBUFS>> ->
+      <pin OBUFO_IN of <instance DIFFOSMUX>>;
+
+  line lnPAD
+      <pin OUT of <instance DIFFOSMUX>> ->
+      [96,] ->
+      [,<pin IN of <instance IBUFS>>#-] ->
+      <pin IN of <instance IBUFS>>,
+
+      [96,<pin OUT of <instance DIFFOSMUX>>#-] ->
+      [96,80] ->
+      <port PAD>,
+      
+      [96,80] ->
+      <port DIFFI_OUT>;
+
+  line lnDIN
+      <pin OUT of <instance IBUFS>> ->
+      <port DIN>;
+      
+  line lnMIPI_SW_DYN
+      <port MIPI_SW_DYN> ->
+      [(<port MIPI_SW_DYN>#|)+4, ] ->
+      <pin X0 of <instance MIPIMUX>>,
+      
+      [(<port MIPI_SW_DYN>#|)+4, <port MIPI_SW_DYN>#-]->
+      [ , <pin MIPI_SW_DYN of <instance OBUFS>>#-]->
+      <pin MIPI_SW_DYN of <instance OBUFS>>,
+
+     [(<port MIPI_SW_DYN>#|)+4, <pin MIPI_SW_DYN of <instance OBUFS>>#-]->
+     [ , <pin MIPI_SW_DYN of <instance IBUFS>>#-]->
+     <pin MIPI_SW_DYN of <instance IBUFS>>;
+  
+  line lnMIPIMUX
+        <pin Y of <instance MIPIMUX>> ->
+        [(<pin Y of <instance MIPIMUX>>#|)+4, ] ->
+        [ , <pin MIPI_SW_DYN of <instance DIFFOSMUX>>#-] ->
+        <pin MIPI_SW_DYN of <instance DIFFOSMUX>>;
+  
+   line lnMIPIMUX_1
+        [(<instance MIPIMUX>#|)-2, <pin X1 of <instance MIPIMUX>>#-] -> 
+        <pin X1  of <instance MIPIMUX>>; 
+          
+  map  (
+         <line lnDIFFI_IN>    => <wire ntDIFFI_IN    of device IOBS (structure netlist)>,
+         <line lnDIFFO_IN>    => <wire ntDIFFO_IN    of device IOBS (structure netlist)>,
+         <line lnDO>          => <wire ntDO          of device IOBS (structure netlist)>,
+         <line lnTS>          => <wire ntTS          of device IOBS (structure netlist)>,
+         <line lnOBUFO_IN>    => <wire ntOBUFO_IN    of device IOBS (structure netlist)>,
+         <line lnPAD>         => <wire ntPAD         of device IOBS (structure netlist)>,
+         <line lnDIN>         => <wire ntDIN         of device IOBS (structure netlist)>,
+         <line lnMIPI_SW_DYN> => <wire ntMIPI_SW_DYN of device IOBS (structure netlist)>,
+         <line lnMIPIMUX>     => <wire ntMIPIMUX     of device IOBS (structure netlist)>
+       );
+
+};// end of schematic schm of IOBS
+
+/*******************************************************************************
+
+  Device    [IOBS]
+
+  Author    [rjliu]
+
+  Abstract  [The floorplan schematic for IOBS]
+
+  Revision History:
+
+********************************************************************************/
+floorplan
+schematic floorplan_view of IOBS // pragma PAP_ARC_SHOW_BOUNDING_BOX
+{
+    generate ( 20*8 # 20*8 );
+
+    device IBUFS (symbol fpsym)  IBUFS
+        @[8*8, 4*8];
+    device OBUFS (symbol fpsym) OBUFS
+        @[8*8,12*8];
+    device DIFFOSMUX (symbol fpsym) DIFFOSMUX
+        @[14*8, 8*8-4];
+        
+    map (
+         <instance IBUFS>     => <instance IBUFS    of device IOBS (structure fp_struct)> ,
+         <instance OBUFS>     => <instance OBUFS    of device IOBS (structure fp_struct)> ,
+         <instance DIFFOSMUX> => <instance DIFFOSMUX    of device IOBS (structure fp_struct)>
+         );
+};

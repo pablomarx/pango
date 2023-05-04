@@ -1,0 +1,2495 @@
+tarted
+grid
+device IOBS
+{
+    // grid_property_def_start
+    property
+    (
+        //DONT_USE means this iob unbond, and EMPTY means the layout dont have this iob ;NAME will assign PAD name later
+        bool   DONT_USE = false,
+        bool   EMPTY = false,
+        string PAD_NAME = "",
+        string PIN_NAME = "",
+        string LOCATION = "",
+        string HARDWARE_NAME = "",
+        string IO_TYPE  = "",
+        bool   SHARED_IO = false,
+        bool   CLK_PAD   = false,
+        string PLL_PAD   = "",        
+        string DIFF_PAIR   = ""
+    );
+    // grid_property_def_end
+
+    parameter
+    (
+        config string CP_IOB_MODE = "UNUSED",
+        config string CP_PORT_STATUS = "PULLDW",
+        config string CP_IO_STANDARD = "DEFAULT",
+        config string CP_W_VOLT_R_IN = "NOHYS",
+        config string CP_DRV_STRENGTH = "8",
+        config string CP_SLEW_MODE = "F",
+        config string CP_HOT_SOCKET = "ON",
+        config string CP_OPENDRAIN = "OFF",
+        config string CP_VCCIO = "3.3",
+        config string CP_LP_EN = "OFF"
+    );
+    port
+    (
+// configuration_body_def_on
+
+
+    config input SC_PU = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_PU" */,
+
+    config input SC_PD_N = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_PD_N" */,
+
+    config input SC_CLAMP = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_CLAMP" */,
+
+    config input SC_SIGEND_EN_N = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_SIGEND_EN_N" */,
+
+    config input SC_DIFFIN_EN = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_DIFFIN_EN" */,
+
+    config input SC_VREF_EN = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_VREF_EN" */,
+
+    config input SC_OUT_EN = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_OUT_EN" */,
+
+    config input SC_MIXSIG_IN2 = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_MIXSIG_IN2" */,
+
+    config input SC_MIXSIG_IN1 = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_MIXSIG_IN1" */,
+
+    config input SC_RES_EN = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_RES_EN" */,
+
+    config input SC_SLEW_N = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_SLEW_N" */,
+
+    config input SC_SRC1 = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_SRC1" */,
+
+    config input SC_SRC2 = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_SRC2" */,
+
+    config input SC_SRC3 = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_SRC3" */,
+
+    config input SC_SINK1 = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_SINK1" */,
+
+    config input SC_SINK2 = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_SINK2" */,
+
+    config input SC_SINK3 = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_SINK3" */,
+
+    config input SC_MIPI_EN = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_MIPI_EN" */,
+
+    config input SC_INBUF_DYN_DIS = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_INBUF_DYN_DIS" */,
+
+// configuration_body_def_end
+
+        input TS = 1'b1,
+        input DO = 1'b1,
+        input DIFFI_IN = 1'b1,
+        input DIFFO_IN = 1'b1,
+        input MIPI_SW_DYN = 1'b1,
+        input INBUF_DYN_DIS_N = 1'b1,
+        output DIN,
+        output DIFFI_OUT,
+        inout PAD
+    );
+};
+//grid device end
+
+//grid device structure netlist started
+structure netlist of IOBS
+{
+    wire ntTS;
+    wire ntDO;
+    wire ntDIFFI_IN;
+    wire ntDIFFO_IN;
+    wire ntMIPI_SW_DYN;
+    wire ntINBUF_DYN_DIS_N;
+    wire ntDIN;
+
+    // the interior net
+    wire ntOBUFO_IN;
+    wire ntMIPIMUX;
+    wire ntPAD;
+    
+    // the connection of all input
+    ntTS          <=  TS;
+    ntDO          <=  DO;
+    ntDIFFI_IN    <=  DIFFI_IN;
+    ntDIFFO_IN    <=  DIFFO_IN;
+    ntMIPI_SW_DYN  <=  MIPI_SW_DYN;
+    ntINBUF_DYN_DIS_N  <=  INBUF_DYN_DIS_N;
+
+    // the connection of all output
+    DIN         <=  ntDIN;
+    DIFFI_OUT   <=  ntPAD;
+    PAD         <=  ntPAD;
+    
+    device IBUFS IBUFS
+        parameter map
+        (
+            CP_IOB_MODE  =>  CP_IOB_MODE,
+            CP_IO_STANDARD  =>  CP_IO_STANDARD,
+            CP_LP_EN    =>  CP_LP_EN
+        )
+        port map
+       (
+            OUT       =>  ntDIN,
+            IN        =>  ntPAD,
+            INBUF_DYN_DIS_N  =>  ntINBUF_DYN_DIS_N,
+            DIFFI_IN  =>  ntDIFFI_IN,
+            MIPI_SW_DYN  =>  ntMIPI_SW_DYN
+       );
+
+    device OBUFS OBUFS
+        parameter map
+        (
+            CP_IOB_MODE  =>  CP_IOB_MODE,
+            CP_OPENDRAIN  =>  CP_OPENDRAIN,
+            CP_IO_STANDARD  =>  CP_IO_STANDARD
+        )
+        port map
+       (
+            OUT       =>  ntOBUFO_IN,
+            DO        =>  ntDO,
+            TS        =>  ntTS,
+            MIPI_SW_DYN  =>  ntMIPI_SW_DYN
+       );
+
+    device DIFFOSMUX DIFFOSMUX
+        parameter map
+        (
+            CP_IOB_MODE  =>  CP_IOB_MODE
+        )
+        port map
+       (
+            OUT       =>  ntPAD,
+            DIFFO_IN  =>  ntDIFFO_IN,
+            OBUFO_IN  =>  ntOBUFO_IN,
+            MIPI_SW_DYN  =>  ntMIPIMUX
+       );
+
+    device MIPIMUX MIPIMUX
+        parameter map
+        (
+            CP_IO_STANDARD => CP_IO_STANDARD
+        )
+        port map
+        (
+            X0 => ntMIPI_SW_DYN,
+            X1 => 1'b0,
+            Y  => ntMIPIMUX
+        );
+        
+};
+//grid device structure netlist end
+
+//grid device configure body started
+
+configuration cfg of IOBS
+{
+
+//initial config body0 begin
+    if(CP_PORT_STATUS == "PULLUP") //PULL-UP
+    {
+        SC_PU := 1'b1;
+        SC_PD_N := 1'b1;
+    }
+    else if(CP_PORT_STATUS == "PULLDW")  //PULL_DOWN
+    {
+        SC_PU := 1'b0;
+        SC_PD_N := 1'b0;
+    }
+    else if(CP_PORT_STATUS == "HOLD") //BUS_KPR
+    {
+        SC_PU := 1'b1;
+        SC_PD_N := 1'b0;
+    }
+    else if(CP_PORT_STATUS == "NONE") // FLOATING
+    {
+        SC_PU := 1'b0;
+        SC_PD_N := 1'b1;
+    }
+    else if(CP_PORT_STATUS == "PU_I2C_3P3K")
+    {
+        SC_PU := 1'b1;
+        SC_PD_N := 1'b1;
+    }
+    else
+    {
+        error("illegal setting for CP_PORT_STATUS := %s",CP_PORT_STATUS);
+    }
+    if(CP_HOT_SOCKET == "ON")
+    {
+        SC_CLAMP  :=  1'b0;
+    }
+    else if(CP_HOT_SOCKET == "OFF")
+    {
+        SC_CLAMP  :=  1'b1;
+    }
+    else
+    {
+        error("illegal setting for CP_HOT_SOCKET := %s", CP_HOT_SOCKET);
+    }
+    if(CP_OPENDRAIN == "ON")
+    {
+        SC_SRC1 := 1'b0;
+        SC_SRC2 := 1'b1;
+        SC_SRC3 := 1'b0;
+    }
+    else if(CP_OPENDRAIN == "OFF")
+    {
+
+    }
+    else
+    {
+        error("open-drain : illegal setting");
+    }
+    if(CP_IOB_MODE == "IVREF")
+    {
+        SC_SRC1  :=  1'b0;
+        SC_SRC2  :=  1'b0;
+        SC_SRC3  :=  1'b0;
+        SC_SINK1  :=  1'b0;
+        SC_SINK2  :=  1'b0;
+        SC_SINK3  :=  1'b0;
+        SC_SLEW_N  :=  1'b0;
+        SC_PU  :=  1'b0;
+        SC_PD_N  :=  1'b1;
+        SC_MIXSIG_IN1  :=  1'b0;
+        SC_MIXSIG_IN2  :=  1'b1;
+        SC_SIGEND_EN_N  :=  1'b1;
+        SC_DIFFIN_EN  :=  1'b0;
+        SC_VREF_EN  :=  1'b1;
+        SC_CLAMP  :=  1'b0;
+        SC_RES_EN  :=  1'b0;
+        SC_OUT_EN  :=  1'b0;
+        SC_MIPI_EN  :=  1'b0;
+        SC_INBUF_DYN_DIS  :=  1'b0;
+    }
+    if(CP_IOB_MODE == "UNUSED")
+    {
+        SC_SRC1  :=  1'b0;
+        SC_SRC2  :=  1'b1;
+        SC_SRC3  :=  1'b0;
+        SC_SINK1  :=  1'b0;
+        SC_SINK2  :=  1'b1;
+        SC_SINK3  :=  1'b0;
+        SC_SLEW_N  :=  1'b0;
+        SC_PU  :=  1'b0;
+        SC_PD_N  :=  1'b1;
+        SC_MIXSIG_IN1  :=  1'b0;
+        SC_MIXSIG_IN2  :=  1'b0;
+        SC_SIGEND_EN_N  :=  1'b1;
+        SC_DIFFIN_EN  :=  1'b0;
+        SC_VREF_EN  :=  1'b0;
+        SC_CLAMP  :=  1'b0;
+        SC_RES_EN  :=  1'b0;
+        SC_OUT_EN  :=  1'b0;
+        SC_MIPI_EN  :=  1'b0;
+        SC_INBUF_DYN_DIS  :=  1'b0;
+    }
+    if(CP_IOB_MODE == "IBUF" && (CP_IO_STANDARD == "LVCMOS33" || CP_IO_STANDARD == "LVCMOS25"
+      ||CP_IO_STANDARD == "LVCMOS18"||CP_IO_STANDARD == "LVCMOS15"||CP_IO_STANDARD == "LVCMOS12"
+      ||CP_IO_STANDARD == "LVTTL33"||CP_IO_STANDARD == "PCI33" ||CP_IO_STANDARD =="MIPI" || CP_IO_STANDARD =="DEFAULT"))
+    {
+        SC_SIGEND_EN_N  :=  1'b0;
+        SC_OUT_EN  :=  1'b0;
+        SC_DIFFIN_EN := 1'b0;
+        SC_MIPI_EN := 1'b0;
+        SC_SLEW_N := 1'b0;
+        SC_SRC1 := 1'b0;
+        SC_SRC2 := 1'b0;
+        SC_SRC3 := 1'b0;
+        SC_SINK1 := 1'b0;
+        SC_SINK2 := 1'b0;
+        SC_SINK3 := 1'b0;
+        SC_SLEW_N  :=  1'b0;
+        if(CP_LP_EN == "ON")
+        {
+            SC_INBUF_DYN_DIS  :=  1'b1;
+        }
+        else
+        {
+            SC_INBUF_DYN_DIS  :=  1'b0;
+        }
+        if(CP_W_VOLT_R_IN == "NOHYS")
+        {
+            SC_MIXSIG_IN1 := 1'b0;
+            SC_MIXSIG_IN2 := 1'b0;
+            SC_VREF_EN := 1'b0;
+            SC_RES_EN := 1'b0;
+        }
+        else if(CP_W_VOLT_R_IN == "HYS")
+        {
+            SC_MIXSIG_IN1 := 1'b0;
+            SC_MIXSIG_IN2 := 1'b0;
+            SC_VREF_EN := 1'b1;
+            SC_RES_EN := 1'b1;
+        }
+        else if(CP_W_VOLT_R_IN == "UD")
+        {
+            SC_MIXSIG_IN1 := 1'b1;
+            SC_MIXSIG_IN2 := 1'b1;
+            SC_VREF_EN := 1'b0;
+            SC_RES_EN := 1'b1;
+        }
+        else if(CP_W_VOLT_R_IN == "OD")
+        {
+            SC_MIXSIG_IN1 := 1'b1;
+            SC_MIXSIG_IN2 := 1'b1;
+            SC_VREF_EN := 1'b0;
+            SC_RES_EN := 1'b0;
+        }
+        else
+        {
+            error("illegal setting for CP_W_VOLT_R_IN := %s",CP_W_VOLT_R_IN);
+        }
+
+    }
+    else if(CP_IOB_MODE == "IBUF" && (CP_IO_STANDARD == "SSTL25_I"||CP_IO_STANDARD == "SSTL25_II"
+      ||CP_IO_STANDARD == "SSTL18_I"||CP_IO_STANDARD == "SSTL18_II"||CP_IO_STANDARD == "SSTL15_I"
+      ||CP_IO_STANDARD == "SSTL15_II"||CP_IO_STANDARD == "HSTL18_I"||CP_IO_STANDARD == "HSTL18_II"
+      ||CP_IO_STANDARD == "HSTL15_I"||CP_IO_STANDARD == "HSTL15_II"))
+    {
+        SC_SIGEND_EN_N  :=  1'b1;
+        SC_DIFFIN_EN  :=  1'b1;
+        SC_MIXSIG_IN1 := 1'b0;
+        SC_OUT_EN  :=  1'b0;
+        SC_MIPI_EN  :=  1'b0;
+        SC_MIXSIG_IN2  :=  1'b0;
+        SC_SLEW_N := 1'b0;
+        SC_VREF_EN  :=  1'b0;
+        SC_SRC1 := 1'b0;
+        SC_SRC2 := 1'b0;
+        SC_SRC3 := 1'b0;
+        SC_SINK1 := 1'b0;
+        SC_SINK2 := 1'b0;
+        SC_SINK3 := 1'b0;
+        SC_RES_EN := 1'b0;
+        if(CP_LP_EN == "ON")
+        {
+            SC_INBUF_DYN_DIS  :=  1'b1;
+        }
+        else
+        {
+            SC_INBUF_DYN_DIS  :=  1'b0;
+        }
+
+    }
+    else if(CP_IOB_MODE == "IBUF_DS" && (CP_IO_STANDARD == "LVDS"||CP_IO_STANDARD == "MLVDS25"
+      ||CP_IO_STANDARD == "BLVDS25" || CP_IO_STANDARD == "LVPECL33" || CP_IO_STANDARD == "MIPI"
+      ||CP_IO_STANDARD == "LVCMOS33D" || CP_IO_STANDARD == "LVCMOS25D" || CP_IO_STANDARD == "LVTTL33D"))
+    {
+        SC_SIGEND_EN_N := 1'b1;
+        SC_DIFFIN_EN := 1'b1;
+        SC_MIXSIG_IN1 := 1'b1;
+        SC_OUT_EN := 1'b0;
+        SC_MIXSIG_IN2 := 1'b0;
+        SC_SLEW_N := 1'b0;
+        SC_VREF_EN := 1'b0;
+        SC_SRC1 := 1'b0;
+        SC_SRC2 := 1'b0;
+        SC_SRC3 := 1'b0;
+        SC_SINK1 := 1'b0;
+        SC_SINK2 := 1'b0;
+        SC_SINK3 := 1'b0;
+        SC_RES_EN  :=  1'b0;
+        if(CP_IO_STANDARD == "MIPI")
+        {
+            SC_MIPI_EN  :=  1'b1;
+        }
+        else
+        {
+            SC_MIPI_EN  :=  1'b0;
+        }
+        if(CP_LP_EN == "ON")
+        {
+            SC_INBUF_DYN_DIS  :=  1'b1;
+        }
+        else
+        {
+            SC_INBUF_DYN_DIS  :=  1'b0;
+        }
+
+    }
+    else if(CP_IOB_MODE == "IBUF_DS" && ( CP_IO_STANDARD == "SSTL25D_I"||CP_IO_STANDARD == "SSTL25D_II"
+      ||CP_IO_STANDARD == "SSTL18D_I" ||CP_IO_STANDARD == "SSTL18D_II"||CP_IO_STANDARD == "SSTL15D_I"
+      ||CP_IO_STANDARD == "SSTL15D_II" ||CP_IO_STANDARD == "HSTL18D_I"||CP_IO_STANDARD == "HSTL18D_II"
+      ||CP_IO_STANDARD == "HSTL15D_I"))
+    {
+        SC_SIGEND_EN_N := 1'b1;
+        SC_DIFFIN_EN := 1'b1;
+        SC_MIXSIG_IN1 := 1'b1;
+        SC_OUT_EN := 1'b0;
+        SC_SRC1  := 1'b0;
+        SC_SRC2  := 1'b0;
+        SC_SRC3  := 1'b0;
+        SC_SINK1  := 1'b0;
+        SC_SINK2  := 1'b0;
+        SC_SINK3  := 1'b0;
+        SC_MIXSIG_IN2  :=  1'b0;
+        SC_VREF_EN  :=  1'b0;
+        SC_MIPI_EN  :=  1'b0;
+        SC_SLEW_N := 1'b0;
+        SC_RES_EN := 1'b0;
+        if(CP_LP_EN == "ON")
+        {
+            SC_INBUF_DYN_DIS  :=  1'b1;
+        }
+        else
+        {
+            SC_INBUF_DYN_DIS  :=  1'b0;
+        }
+
+    }
+    else if(CP_IOB_MODE == "OBUF" || CP_IOB_MODE == "OBUF_T")
+    {
+        SC_SIGEND_EN_N := 1'b1;
+        SC_DIFFIN_EN := 1'b0;
+        SC_VREF_EN := 1'b0;
+        SC_OUT_EN  :=  1'b1;
+        SC_MIXSIG_IN1 := 1'b0;
+        SC_MIXSIG_IN2 := 1'b0;
+        SC_RES_EN := 1'b0;
+        SC_INBUF_DYN_DIS := 1'b0;
+        if(CP_IO_STANDARD == "MIPI")
+        {
+            SC_MIPI_EN  :=  1'b1;
+            if(CP_DRV_STRENGTH == "2")
+            {
+                SC_SRC1  := 1'b0;
+                SC_SRC2  := 1'b0;
+                SC_SRC3  := 1'b0;
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b0;
+            }
+            else if(CP_DRV_STRENGTH == "6")
+            {
+                SC_SRC1  := 1'b1;
+                SC_SRC2  := 1'b0;
+                SC_SRC3  := 1'b1;
+                SC_SINK1 := 1'b1;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b1;
+            }
+            else
+            {
+                SC_SRC1  := 1'b0;
+                SC_SRC2  := 1'b0;
+                SC_SRC3  := 1'b0;
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b0;
+            }
+            if(CP_SLEW_MODE=="S")
+            {
+                SC_SLEW_N := 1'b0;
+            }
+            else if(CP_SLEW_MODE=="F")
+            {
+                SC_SLEW_N := 1'b1;
+            }
+            else
+            {
+                error("illegal setting CP_SLEW_MODE  := %s", CP_SLEW_MODE);
+            }
+
+        }
+        else if(CP_IO_STANDARD == "LVCMOS33"||CP_IO_STANDARD == "LVTTL33"|| CP_IO_STANDARD == "LVTTL33D"
+        ||CP_IO_STANDARD == "DEFAULT" || CP_IO_STANDARD == "LVCMOS33D")
+        {
+            SC_MIPI_EN  :=  1'b0;
+            if(CP_DRV_STRENGTH == "4" && CP_OPENDRAIN == "OFF")
+            {
+                SC_SRC1  := 1'b1;
+                SC_SRC2 := 1'b1;
+                SC_SRC3 := 1'b0;
+                SC_SINK1 := 1'b1;
+                SC_SINK2 := 1'b1;
+                SC_SINK3 := 1'b0;
+            }
+            else if(CP_DRV_STRENGTH == "8" && CP_OPENDRAIN == "OFF")
+            {
+                SC_SRC1  := 1'b0;
+                SC_SRC2 := 1'b0;
+                SC_SRC3 := 1'b0;
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b0;
+            }
+            else if(CP_DRV_STRENGTH == "12" && CP_OPENDRAIN == "OFF")
+            {
+                SC_SRC1  := 1'b0;
+                SC_SRC2 := 1'b1;
+                SC_SRC3 := 1'b1;
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b1;
+                SC_SINK3 := 1'b1;
+            }
+            else if(CP_DRV_STRENGTH == "16" && CP_OPENDRAIN == "OFF")
+            {
+                SC_SRC1  := 1'b1;
+                SC_SRC2 := 1'b1;
+                SC_SRC3 := 1'b1;
+                SC_SINK1 := 1'b1;
+                SC_SINK2 := 1'b1;
+                SC_SINK3 := 1'b1;
+            }
+            else if(CP_DRV_STRENGTH == "4" && CP_OPENDRAIN == "ON")
+            {
+                SC_SINK1 := 1'b1;
+                SC_SINK2 := 1'b1;
+                SC_SINK3 := 1'b0;
+            }
+            else if(CP_DRV_STRENGTH == "8" && CP_OPENDRAIN == "ON")
+            {
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b0;
+            }
+            else if(CP_DRV_STRENGTH == "12" && CP_OPENDRAIN == "ON")
+            {
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b1;
+                SC_SINK3 := 1'b1;
+            }
+            else if(CP_DRV_STRENGTH == "16" && CP_OPENDRAIN == "ON")
+            {
+                SC_SINK1 := 1'b1;
+                SC_SINK2 := 1'b1;
+                SC_SINK3 := 1'b1;
+            }
+            else
+            {
+                SC_SRC1  := 1'b0;
+                SC_SRC2 := 1'b0;
+                SC_SRC3 := 1'b0;
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b0;
+            }
+            if(CP_SLEW_MODE=="S")
+            {
+                SC_SLEW_N := 1'b0;
+            }
+            else if(CP_SLEW_MODE=="F")
+            {
+                SC_SLEW_N := 1'b1;
+            }
+            else
+            {
+                error("illegal setting CP_SLEW_MODE  := %s", CP_SLEW_MODE);
+            }
+
+        }
+        else if(CP_IO_STANDARD == "LVCMOS25" || CP_IO_STANDARD == "LVCMOS25D")
+        {
+            SC_MIPI_EN  :=  1'b0;
+            if(CP_DRV_STRENGTH == "4" && CP_OPENDRAIN == "OFF")
+            {
+                SC_SRC1  := 1'b0;
+                SC_SRC2 := 1'b0;
+                SC_SRC3 := 1'b0;
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b0;
+            }
+            else if(CP_DRV_STRENGTH == "8" && CP_OPENDRAIN == "OFF")
+            {
+                SC_SRC1  := 1'b0;
+                SC_SRC2 := 1'b1;
+                SC_SRC3 := 1'b1;
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b1;
+                SC_SINK3 := 1'b1;
+            }
+            else if(CP_DRV_STRENGTH == "12" && CP_OPENDRAIN == "OFF")
+            {
+                SC_SRC1  := 1'b1;
+                SC_SRC2 := 1'b1;
+                SC_SRC3 := 1'b1;
+                SC_SINK1 := 1'b1;
+                SC_SINK2 := 1'b1;
+                SC_SINK3 := 1'b1;
+            }
+            else if(CP_DRV_STRENGTH == "16" && CP_OPENDRAIN == "OFF")
+            {
+                SC_SRC1  := 1'b0;
+                SC_SRC2 := 1'b0;
+                SC_SRC3 := 1'b1;
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b1;
+            }
+            else if(CP_DRV_STRENGTH == "4" && CP_OPENDRAIN == "ON")
+            {
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b0;
+            }
+            else if(CP_DRV_STRENGTH == "8" && CP_OPENDRAIN == "ON")
+            {
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b1;
+                SC_SINK3 := 1'b1;
+            }
+            else if(CP_DRV_STRENGTH == "12" && CP_OPENDRAIN == "ON")
+            {
+                SC_SINK1 := 1'b1;
+                SC_SINK2 := 1'b1;
+                SC_SINK3 := 1'b1;
+            }
+            else if(CP_DRV_STRENGTH == "16" && CP_OPENDRAIN == "ON")
+            {
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b1;
+            }
+            else
+            {
+                SC_SRC1  := 1'b0;
+                SC_SRC2 := 1'b0;
+                SC_SRC3 := 1'b0;
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b0;
+            }
+            if(CP_SLEW_MODE=="S")
+            {
+                SC_SLEW_N := 1'b0;
+            }
+            else if(CP_SLEW_MODE=="F")
+            {
+                SC_SLEW_N := 1'b1;
+            }
+            else
+            {
+                error("illegal setting CP_SLEW_MODE  := %s", CP_SLEW_MODE);
+            }
+
+        }
+        else if(CP_IO_STANDARD == "LVPECL33")
+        {
+            SC_MIPI_EN  :=  1'b0;
+            SC_SRC1  := 1'b1;
+            SC_SRC2 := 1'b1;
+            SC_SRC3 := 1'b1;
+            SC_SINK1 := 1'b1;
+            SC_SINK2 := 1'b1;
+            SC_SINK3 := 1'b1;
+            if(CP_SLEW_MODE=="S")
+            {
+                SC_SLEW_N := 1'b0;
+            }
+            else if(CP_SLEW_MODE=="F")
+            {
+                SC_SLEW_N := 1'b1;
+            }
+            else
+            {
+                error("illegal setting CP_SLEW_MODE  := %s", CP_SLEW_MODE);
+            }
+
+        }
+        else if(CP_IO_STANDARD == "MLVDS25" || CP_IO_STANDARD == "BLVDS25" )
+        {
+            SC_MIPI_EN  :=  1'b0;
+            SC_SRC1  := 1'b0;
+            SC_SRC2 := 1'b0;
+            SC_SRC3 := 1'b1;
+            SC_SINK1 := 1'b0;
+            SC_SINK2 := 1'b0;
+            SC_SINK3 := 1'b1;
+            if(CP_SLEW_MODE=="S")
+            {
+                SC_SLEW_N := 1'b0;
+            }
+            else if(CP_SLEW_MODE=="F")
+            {
+                SC_SLEW_N := 1'b1;
+            }
+            else
+            {
+                error("illegal setting CP_SLEW_MODE  := %s", CP_SLEW_MODE);
+            }
+
+        }
+        else if(CP_IO_STANDARD == "MIPIE" || CP_IO_STANDARD == "LVDS25E")
+        {
+            SC_MIPI_EN  :=  1'b0;
+            SC_SRC1  := 1'b0;
+            SC_SRC2 := 1'b1;
+            SC_SRC3 := 1'b1;
+            SC_SINK1 := 1'b0;
+            SC_SINK2 := 1'b1;
+            SC_SINK3 := 1'b1;
+            if(CP_SLEW_MODE=="S")
+            {
+                SC_SLEW_N := 1'b0;
+            }
+            else if(CP_SLEW_MODE=="F")
+            {
+                SC_SLEW_N := 1'b1;
+            }
+            else
+            {
+                error("illegal setting CP_SLEW_MODE  := %s", CP_SLEW_MODE);
+            }
+
+        }
+        else if(CP_IO_STANDARD == "LVCMOS18")
+        {
+            SC_MIPI_EN  :=  1'b0;
+            if(CP_DRV_STRENGTH == "4" && CP_OPENDRAIN == "OFF")
+            {
+                SC_SRC1  := 1'b0;
+                SC_SRC2 := 1'b0;
+                SC_SRC3 := 1'b0;
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b0;
+            }
+            else if(CP_DRV_STRENGTH == "8" && CP_OPENDRAIN == "OFF")
+            {
+                SC_SRC1  := 1'b0;
+                SC_SRC2 := 1'b1;
+                SC_SRC3 := 1'b1;
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b1;
+                SC_SINK3 := 1'b1;
+            }
+            else if(CP_DRV_STRENGTH == "12" && CP_OPENDRAIN == "OFF")
+            {
+                SC_SRC1  := 1'b0;
+                SC_SRC2 := 1'b0;
+                SC_SRC3 := 1'b1;
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b1;
+            }
+            else if(CP_DRV_STRENGTH == "16" && CP_OPENDRAIN == "OFF")
+            {
+                SC_SRC1  := 1'b1;
+                SC_SRC2 := 1'b0;
+                SC_SRC3 := 1'b1;
+                SC_SINK1 := 1'b1;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b1;
+            }
+            else if(CP_DRV_STRENGTH == "4" && CP_OPENDRAIN == "ON")
+            {
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b0;
+            }
+            else if(CP_DRV_STRENGTH == "8" && CP_OPENDRAIN == "ON")
+            {
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b1;
+                SC_SINK3 := 1'b1;
+            }
+            else if(CP_DRV_STRENGTH == "12" && CP_OPENDRAIN == "ON")
+            {
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b1;
+            }
+            else if(CP_DRV_STRENGTH == "16" && CP_OPENDRAIN == "ON")
+            {
+                SC_SINK1 := 1'b1;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b1;
+            }
+            else
+            {
+                SC_SRC1  := 1'b0;
+                SC_SRC2 := 1'b0;
+                SC_SRC3 := 1'b0;
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b0;
+            }
+            if(CP_SLEW_MODE=="S")
+            {
+                SC_SLEW_N := 1'b0;
+            }
+            else if(CP_SLEW_MODE=="F")
+            {
+                SC_SLEW_N := 1'b1;
+            }
+            else
+            {
+                error("illegal setting CP_SLEW_MODE  := %s", CP_SLEW_MODE);
+            }
+
+        }
+        else if(CP_IO_STANDARD == "LVCMOS15")
+        {
+            SC_MIPI_EN  :=  1'b0;
+            if(CP_DRV_STRENGTH == "4" && CP_OPENDRAIN == "OFF")
+            {
+                SC_SRC1  := 1'b0;
+                SC_SRC2 := 1'b1;
+                SC_SRC3 := 1'b1;
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b1;
+                SC_SINK3 := 1'b1;
+            }
+            else if(CP_DRV_STRENGTH == "8" && CP_OPENDRAIN == "OFF")
+            {
+                SC_SRC1  := 1'b0;
+                SC_SRC2 := 1'b0;
+                SC_SRC3 := 1'b1;
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b1;
+            }
+            else if(CP_DRV_STRENGTH == "12" && CP_OPENDRAIN == "OFF")
+            {
+                SC_SRC1  := 1'b1;
+                SC_SRC2 := 1'b0;
+                SC_SRC3 := 1'b1;
+                SC_SINK1 := 1'b1;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b1;
+            }
+            else if(CP_DRV_STRENGTH == "4" && CP_OPENDRAIN == "ON")
+            {
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b1;
+                SC_SINK3 := 1'b1;
+            }
+            else if(CP_DRV_STRENGTH == "8" && CP_OPENDRAIN == "ON")
+            {
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b1;
+            }
+            else if(CP_DRV_STRENGTH == "12" && CP_OPENDRAIN == "ON")
+            {
+                SC_SINK1 := 1'b1;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b1;
+            }
+            else
+            {
+                SC_SRC1  := 1'b0;
+                SC_SRC2 := 1'b1;
+                SC_SRC3 := 1'b1;
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b1;
+                SC_SINK3 := 1'b1;
+            }
+            if(CP_SLEW_MODE=="S")
+            {
+                SC_SLEW_N := 1'b0;
+            }
+            else if(CP_SLEW_MODE=="F")
+            {
+                SC_SLEW_N := 1'b1;
+            }
+            else
+            {
+                error("illegal setting CP_SLEW_MODE  := %s", CP_SLEW_MODE);
+            }
+
+        }
+        else if(CP_IO_STANDARD == "LVCMOS12")
+        {
+            SC_MIPI_EN  :=  1'b0;
+            if(CP_DRV_STRENGTH == "2" && CP_OPENDRAIN == "OFF")
+            {
+                SC_SRC1  := 1'b0;
+                SC_SRC2 := 1'b0;
+                SC_SRC3 := 1'b0;
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b0;
+            }
+            else if(CP_DRV_STRENGTH == "6" && CP_OPENDRAIN == "OFF")
+            {
+                SC_SRC1  := 1'b1;
+                SC_SRC2 := 1'b0;
+                SC_SRC3 := 1'b1;
+                SC_SINK1 := 1'b1;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b1;
+            }
+            else if(CP_DRV_STRENGTH == "2" && CP_OPENDRAIN == "ON")
+            {
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b0;
+            }
+            else if(CP_DRV_STRENGTH == "6" && CP_OPENDRAIN == "ON")
+            {
+                SC_SINK1 := 1'b1;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b1;
+            }
+            else
+            {
+                SC_SRC1  := 1'b0;
+                SC_SRC2 := 1'b0;
+                SC_SRC3 := 1'b0;
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b0;
+            }
+            if(CP_SLEW_MODE=="S")
+            {
+                SC_SLEW_N := 1'b0;
+            }
+            else if(CP_SLEW_MODE=="F")
+            {
+                SC_SLEW_N := 1'b1;
+            }
+            else
+            {
+                error("illegal setting CP_SLEW_MODE  := %s", CP_SLEW_MODE);
+            }
+
+        }
+        else if(CP_IO_STANDARD == "PCI33")
+        {
+            SC_MIPI_EN  :=  1'b0;
+            if(CP_DRV_STRENGTH == "4")
+            {
+                SC_SRC1  := 1'b1;
+                SC_SRC2 := 1'b1;
+                SC_SRC3 := 1'b0;
+                SC_SINK1 := 1'b1;
+                SC_SINK2 := 1'b1;
+                SC_SINK3 := 1'b0;
+            }
+            else
+            {
+                SC_SRC1  := 1'b1;
+                SC_SRC2 := 1'b1;
+                SC_SRC3 := 1'b0;
+                SC_SINK1 := 1'b1;
+                SC_SINK2 := 1'b1;
+                SC_SINK3 := 1'b0;
+            }
+            if(CP_SLEW_MODE=="S")
+            {
+                SC_SLEW_N := 1'b0;
+            }
+            else if(CP_SLEW_MODE=="F")
+            {
+                SC_SLEW_N := 1'b1;
+            }
+            else
+            {
+                error("illegal setting CP_SLEW_MODE  := %s", CP_SLEW_MODE);
+            }
+
+        }
+        else if(CP_IO_STANDARD == "SSTL25_I" || CP_IO_STANDARD == "SSTL25_II"
+        ||CP_IO_STANDARD == "SSTL25D_I" || CP_IO_STANDARD == "SSTL25D_II" )
+        {
+            SC_MIPI_EN  :=  1'b0;
+            if(CP_DRV_STRENGTH == "8.1")
+            {
+                SC_SRC1  := 1'b0;
+                SC_SRC2 := 1'b0;
+                SC_SRC3 := 1'b0;
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b0;
+            }
+            else if(CP_DRV_STRENGTH == "16.2")
+            {
+                SC_SRC1  := 1'b1;
+                SC_SRC2 := 1'b0;
+                SC_SRC3 := 1'b1;
+                SC_SINK1 := 1'b1;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b1;
+            }
+            else
+            {
+                SC_SRC1  := 1'b0;
+                SC_SRC2 := 1'b0;
+                SC_SRC3 := 1'b0;
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b0;
+            }
+            if(CP_SLEW_MODE=="S")
+            {
+                SC_SLEW_N := 1'b0;
+            }
+            else if(CP_SLEW_MODE=="F")
+            {
+                SC_SLEW_N := 1'b1;
+            }
+            else
+            {
+                error("illegal setting CP_SLEW_MODE  := %s", CP_SLEW_MODE);
+            }
+
+        }
+        else if(CP_IO_STANDARD == "SSTL18_I" || CP_IO_STANDARD == "SSTL18_II"  
+        ||CP_IO_STANDARD == "SSTL18D_I" || CP_IO_STANDARD == "SSTL18D_II"
+        ||CP_IO_STANDARD == "HSTL18_I"  || CP_IO_STANDARD == "HSTL18_II"
+        ||CP_IO_STANDARD == "HSTL18D_I" || CP_IO_STANDARD == "HSTL18D_II")
+        {
+            SC_MIPI_EN  :=  1'b0;
+            if(CP_DRV_STRENGTH == "6.7")
+            {
+                SC_SRC1  := 1'b0;
+                SC_SRC2 := 1'b1;
+                SC_SRC3 := 1'b1;
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b1;
+                SC_SINK3 := 1'b1;
+            }
+            else if(CP_DRV_STRENGTH == "8")
+            {
+                SC_SRC1  := 1'b0;
+                SC_SRC2 := 1'b1;
+                SC_SRC3 := 1'b1;
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b1;
+                SC_SINK3 := 1'b1;
+            }
+            else if(CP_DRV_STRENGTH == "13.4")
+            {
+                SC_SRC1  := 1'b1;
+                SC_SRC2 := 1'b0;
+                SC_SRC3 := 1'b1;
+                SC_SINK1 := 1'b1;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b1;
+            }
+            else if(CP_DRV_STRENGTH == "16")
+            {
+                SC_SRC1  := 1'b1;
+                SC_SRC2 := 1'b0;
+                SC_SRC3 := 1'b1;
+                SC_SINK1 := 1'b1;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b1;
+            }
+            else
+            {
+                SC_SRC1  := 1'b0;
+                SC_SRC2 := 1'b1;
+                SC_SRC3 := 1'b1;
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b1;
+                SC_SINK3 := 1'b1;
+            }
+            if(CP_SLEW_MODE=="S")
+            {
+                SC_SLEW_N := 1'b0;
+            }
+            else if(CP_SLEW_MODE=="F")
+            {
+                SC_SLEW_N := 1'b1;
+            }
+            else
+            {
+                error("illegal setting CP_SLEW_MODE  := %s", CP_SLEW_MODE);
+            }
+
+        }
+        else if(CP_IO_STANDARD == "SSTL15_I" || CP_IO_STANDARD == "SSTL15_II"
+        ||CP_IO_STANDARD == "SSTL15D_I" || CP_IO_STANDARD == "SSTL15D_II" 
+        ||CP_IO_STANDARD == "HSTL15_I"  || CP_IO_STANDARD == "HSTL15D_I")
+        {
+            SC_MIPI_EN  :=  1'b0;
+            if(CP_DRV_STRENGTH == "7.5")
+            {
+                SC_SRC1  := 1'b0;
+                SC_SRC2 := 1'b0;
+                SC_SRC3 := 1'b1;
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b1;
+            }
+            else if(CP_DRV_STRENGTH == "8")
+            {
+                SC_SRC1  := 1'b0;
+                SC_SRC2 := 1'b0;
+                SC_SRC3 := 1'b1;
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b1;
+            }
+            else if(CP_DRV_STRENGTH == "8.8")
+            {
+                SC_SRC1  := 1'b1;
+                SC_SRC2 := 1'b0;
+                SC_SRC3 := 1'b1;
+                SC_SINK1 := 1'b1;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b1;
+            }
+            else if(CP_DRV_STRENGTH == "16")
+            {
+                SC_SRC1  := 1'b1;
+                SC_SRC2 := 1'b0;
+                SC_SRC3 := 1'b1;
+                SC_SINK1 := 1'b1;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b1;
+            }
+            else
+            {
+                SC_SRC1  := 1'b0;
+                SC_SRC2 := 1'b0;
+                SC_SRC3 := 1'b1;
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b1;
+            }
+            if(CP_SLEW_MODE=="S")
+            {
+                SC_SLEW_N := 1'b0;
+            }
+            else if(CP_SLEW_MODE=="F")
+            {
+                SC_SLEW_N := 1'b1;
+            }
+            else
+            {
+                error("illegal setting CP_SLEW_MODE  := %s", CP_SLEW_MODE);
+            }
+
+        }
+
+    }
+    else if(CP_IOB_MODE == "IOBUF" && (CP_IO_STANDARD == "LVTTL33" || CP_IO_STANDARD == "DEFAULT"
+      ||CP_IO_STANDARD == "LVCMOS33"||CP_IO_STANDARD == "LVCMOS25"||CP_IO_STANDARD == "LVCMOS15"
+      ||CP_IO_STANDARD == "LVCMOS12"||CP_IO_STANDARD == "PCI33" ||CP_IO_STANDARD == "LVCMOS18" || CP_IO_STANDARD=="MIPI"))
+    {
+        SC_SIGEND_EN_N  :=  1'b0;
+        SC_DIFFIN_EN  :=  1'b0;
+        SC_OUT_EN  :=  1'b1;
+        SC_MIPI_EN  :=  1'b0;
+        if(CP_LP_EN == "ON")
+        {
+            SC_INBUF_DYN_DIS  :=  1'b1;
+        }
+        else
+        {
+            SC_INBUF_DYN_DIS  :=  1'b0;
+        }
+        if(CP_W_VOLT_R_IN == "NOHYS")
+        {
+            SC_MIXSIG_IN1 := 1'b0;
+            SC_MIXSIG_IN2 := 1'b0;
+            SC_VREF_EN := 1'b0;
+            SC_RES_EN := 1'b0;
+        }
+        else if(CP_W_VOLT_R_IN == "HYS")
+        {
+            SC_MIXSIG_IN1 := 1'b0;
+            SC_MIXSIG_IN2 := 1'b0;
+            SC_VREF_EN := 1'b1;
+            SC_RES_EN := 1'b1;
+        }
+        else if(CP_W_VOLT_R_IN == "UD")
+        {
+            SC_MIXSIG_IN1 := 1'b1;
+            SC_MIXSIG_IN2 := 1'b1;
+            SC_VREF_EN := 1'b0;
+            SC_RES_EN := 1'b1;
+        }
+        else if(CP_W_VOLT_R_IN == "OD")
+        {
+            SC_MIXSIG_IN1 := 1'b1;
+            SC_MIXSIG_IN2 := 1'b1;
+            SC_VREF_EN := 1'b0;
+            SC_RES_EN := 1'b0;
+        }
+        else
+        {
+            error("illegal setting for CP_W_VOLT_R_IN := %s",CP_W_VOLT_R_IN);
+        }
+        if(CP_IO_STANDARD == "LVTTL33" || CP_IO_STANDARD == "DEFAULT" || CP_IO_STANDARD == "LVCMOS33")
+        {
+            if(CP_DRV_STRENGTH == "4" && CP_OPENDRAIN == "OFF")
+            {
+                SC_SRC1  := 1'b1;
+                SC_SRC2 := 1'b1;
+                SC_SRC3 := 1'b0;
+                SC_SINK1 := 1'b1;
+                SC_SINK2 := 1'b1;
+                SC_SINK3 := 1'b0;
+            }
+            else if(CP_DRV_STRENGTH == "8" && CP_OPENDRAIN == "OFF")
+            {
+                SC_SRC1  := 1'b0;
+                SC_SRC2 := 1'b0;
+                SC_SRC3 := 1'b0;
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b0;
+            }
+            else if(CP_DRV_STRENGTH == "12" && CP_OPENDRAIN == "OFF")
+            {
+                SC_SRC1  := 1'b0;
+                SC_SRC2 := 1'b1;
+                SC_SRC3 := 1'b1;
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b1;
+                SC_SINK3 := 1'b1;
+            }
+            else if(CP_DRV_STRENGTH == "16" && CP_OPENDRAIN == "OFF")
+            {
+                SC_SRC1  := 1'b1;
+                SC_SRC2 := 1'b1;
+                SC_SRC3 := 1'b1;
+                SC_SINK1 := 1'b1;
+                SC_SINK2 := 1'b1;
+                SC_SINK3 := 1'b1;
+            }
+            else if(CP_DRV_STRENGTH == "24" && CP_OPENDRAIN == "OFF")
+            {
+                SC_SRC1  := 1'b1;
+                SC_SRC2 := 1'b0;
+                SC_SRC3 := 1'b1;
+                SC_SINK1 := 1'b1;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b1;
+            }
+            else if(CP_DRV_STRENGTH == "4" && CP_OPENDRAIN == "ON")
+            {
+                SC_SINK1 := 1'b1;
+                SC_SINK2 := 1'b1;
+                SC_SINK3 := 1'b0;
+            }
+            else if(CP_DRV_STRENGTH == "8" && CP_OPENDRAIN == "ON")
+            {
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b0;
+            }
+            else if(CP_DRV_STRENGTH == "12" && CP_OPENDRAIN == "ON")
+            {
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b1;
+                SC_SINK3 := 1'b1;
+            }
+            else if(CP_DRV_STRENGTH == "16" && CP_OPENDRAIN == "ON")
+            {
+                SC_SINK1 := 1'b1;
+                SC_SINK2 := 1'b1;
+                SC_SINK3 := 1'b1;
+            }
+            else if(CP_DRV_STRENGTH == "24" && CP_OPENDRAIN == "ON")
+            {
+                SC_SINK1 := 1'b1;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b1;
+            }
+            else
+            {
+                SC_SRC1  := 1'b0;
+                SC_SRC2 := 1'b0;
+                SC_SRC3 := 1'b0;
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b0;
+            }
+            if(CP_SLEW_MODE=="S")
+            {
+                SC_SLEW_N := 1'b0;
+            }
+            else if(CP_SLEW_MODE=="F")
+            {
+                SC_SLEW_N := 1'b1;
+            }
+            else
+            {
+                error("illegal setting CP_SLEW_MODE  := %s", CP_SLEW_MODE);
+            }
+
+        }
+        else if(CP_IO_STANDARD == "LVCMOS25")
+        {
+            if(CP_DRV_STRENGTH == "4" && CP_OPENDRAIN == "OFF")
+            {
+                SC_SRC1  := 1'b0;
+                SC_SRC2 := 1'b0;
+                SC_SRC3 := 1'b0;
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b0;
+            }
+            else if(CP_DRV_STRENGTH == "8" && CP_OPENDRAIN == "OFF")
+            {
+                SC_SRC1  := 1'b0;
+                SC_SRC2 := 1'b1;
+                SC_SRC3 := 1'b1;
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b1;
+                SC_SINK3 := 1'b1;
+            }
+            else if(CP_DRV_STRENGTH == "12" && CP_OPENDRAIN == "OFF")
+            {
+                SC_SRC1  := 1'b1;
+                SC_SRC2 := 1'b1;
+                SC_SRC3 := 1'b1;
+                SC_SINK1 := 1'b1;
+                SC_SINK2 := 1'b1;
+                SC_SINK3 := 1'b1;
+            }
+            else if(CP_DRV_STRENGTH == "16" && CP_OPENDRAIN == "OFF")
+            {
+                SC_SRC1  := 1'b0;
+                SC_SRC2 := 1'b0;
+                SC_SRC3 := 1'b1;
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b1;
+            }
+            else if(CP_DRV_STRENGTH == "4" && CP_OPENDRAIN == "ON")
+            {
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b0;
+            }
+            else if(CP_DRV_STRENGTH == "8" && CP_OPENDRAIN == "ON")
+            {
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b1;
+                SC_SINK3 := 1'b1;
+            }
+            else if(CP_DRV_STRENGTH == "12" && CP_OPENDRAIN == "ON")
+            {
+                SC_SINK1 := 1'b1;
+                SC_SINK2 := 1'b1;
+                SC_SINK3 := 1'b1;
+            }
+            else if(CP_DRV_STRENGTH == "16" && CP_OPENDRAIN == "ON")
+            {
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b1;
+            }
+            else
+            {
+                SC_SRC1  := 1'b0;
+                SC_SRC2 := 1'b0;
+                SC_SRC3 := 1'b0;
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b0;
+            }
+            if(CP_SLEW_MODE=="S")
+            {
+                SC_SLEW_N := 1'b0;
+            }
+            else if(CP_SLEW_MODE=="F")
+            {
+                SC_SLEW_N := 1'b1;
+            }
+            else
+            {
+                error("illegal setting CP_SLEW_MODE  := %s", CP_SLEW_MODE);
+            }
+
+        }
+        else if(CP_IO_STANDARD == "LVCMOS18")
+        {
+            if(CP_DRV_STRENGTH == "4" && CP_OPENDRAIN == "OFF")
+            {
+                SC_SRC1  := 1'b0;
+                SC_SRC2 := 1'b0;
+                SC_SRC3 := 1'b0;
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b0;
+            }
+            else if(CP_DRV_STRENGTH == "8" && CP_OPENDRAIN == "OFF")
+            {
+                SC_SRC1  := 1'b0;
+                SC_SRC2 := 1'b1;
+                SC_SRC3 := 1'b1;
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b1;
+                SC_SINK3 := 1'b1;
+            }
+            else if(CP_DRV_STRENGTH == "12" && CP_OPENDRAIN == "OFF")
+            {
+                SC_SRC1  := 1'b0;
+                SC_SRC2 := 1'b0;
+                SC_SRC3 := 1'b1;
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b1;
+            }
+            else if(CP_DRV_STRENGTH == "16" && CP_OPENDRAIN == "OFF")
+            {
+                SC_SRC1  := 1'b1;
+                SC_SRC2 := 1'b0;
+                SC_SRC3 := 1'b1;
+                SC_SINK1 := 1'b1;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b1;
+            }
+            else if(CP_DRV_STRENGTH == "4" && CP_OPENDRAIN == "ON")
+            {
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b0;
+            }
+            else if(CP_DRV_STRENGTH == "8" && CP_OPENDRAIN == "ON")
+            {
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b1;
+                SC_SINK3 := 1'b1;
+            }
+            else if(CP_DRV_STRENGTH == "12" && CP_OPENDRAIN == "ON")
+            {
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b1;
+            }
+            else if(CP_DRV_STRENGTH == "16" && CP_OPENDRAIN == "ON")
+            {
+                SC_SINK1 := 1'b1;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b1;
+            }
+            else
+            {
+                SC_SRC1  := 1'b0;
+                SC_SRC2 := 1'b0;
+                SC_SRC3 := 1'b0;
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b0;
+            }
+            if(CP_SLEW_MODE=="S")
+            {
+                SC_SLEW_N := 1'b0;
+            }
+            else if(CP_SLEW_MODE=="F")
+            {
+                SC_SLEW_N := 1'b1;
+            }
+            else
+            {
+                error("illegal setting CP_SLEW_MODE  := %s", CP_SLEW_MODE);
+            }
+
+        }
+        else if(CP_IO_STANDARD == "LVCMOS15")
+        {
+            if(CP_DRV_STRENGTH == "4" && CP_OPENDRAIN == "OFF")
+            {
+                SC_SRC1  := 1'b0;
+                SC_SRC2 := 1'b1;
+                SC_SRC3 := 1'b1;
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b1;
+                SC_SINK3 := 1'b1;
+            }
+            else if(CP_DRV_STRENGTH == "8" && CP_OPENDRAIN == "OFF")
+            {
+                SC_SRC1  := 1'b0;
+                SC_SRC2 := 1'b0;
+                SC_SRC3 := 1'b1;
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b1;
+            }
+            else if(CP_DRV_STRENGTH == "12" && CP_OPENDRAIN == "OFF")
+            {
+                SC_SRC1  := 1'b1;
+                SC_SRC2 := 1'b0;
+                SC_SRC3 := 1'b1;
+                SC_SINK1 := 1'b1;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b1;
+            }
+            else if(CP_DRV_STRENGTH == "4" && CP_OPENDRAIN == "ON")
+            {
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b1;
+                SC_SINK3 := 1'b1;
+            }
+            else if(CP_DRV_STRENGTH == "8" && CP_OPENDRAIN == "ON")
+            {
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b1;
+            }
+            else if(CP_DRV_STRENGTH == "12" && CP_OPENDRAIN == "ON")
+            {
+                SC_SINK1 := 1'b1;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b1;
+            }
+            else
+            {
+                SC_SRC1  := 1'b0;
+                SC_SRC2 := 1'b1;
+                SC_SRC3 := 1'b1;
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b1;
+                SC_SINK3 := 1'b1;
+            }
+            if(CP_SLEW_MODE=="S")
+            {
+                SC_SLEW_N := 1'b0;
+            }
+            else if(CP_SLEW_MODE=="F")
+            {
+                SC_SLEW_N := 1'b1;
+            }
+            else
+            {
+                error("illegal setting CP_SLEW_MODE  := %s", CP_SLEW_MODE);
+            }
+
+        }
+        else if(CP_IO_STANDARD == "LVCMOS12" || CP_IO_STANDARD == "MIPI")
+        {
+            if(CP_DRV_STRENGTH == "2" && CP_OPENDRAIN == "OFF")
+            {
+                SC_SRC1  := 1'b0;
+                SC_SRC2 := 1'b0;
+                SC_SRC3 := 1'b0;
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b0;
+            }
+            else if(CP_DRV_STRENGTH == "6" && CP_OPENDRAIN == "OFF")
+            {
+                SC_SRC1  := 1'b1;
+                SC_SRC2 := 1'b0;
+                SC_SRC3 := 1'b1;
+                SC_SINK1 := 1'b1;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b1;
+            }
+            else if(CP_DRV_STRENGTH == "2" && CP_OPENDRAIN == "ON")
+            {
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b0;
+            }
+            else if(CP_DRV_STRENGTH == "6" && CP_OPENDRAIN == "ON")
+            {
+                SC_SINK1 := 1'b1;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b1;
+            }
+            else
+            {
+                SC_SRC1  := 1'b0;
+                SC_SRC2 := 1'b0;
+                SC_SRC3 := 1'b0;
+                SC_SINK1 := 1'b0;
+                SC_SINK2 := 1'b0;
+                SC_SINK3 := 1'b0;
+            }
+            if(CP_SLEW_MODE=="S")
+            {
+                SC_SLEW_N := 1'b0;
+            }
+            else if(CP_SLEW_MODE=="F")
+            {
+                SC_SLEW_N := 1'b1;
+            }
+            else
+            {
+                error("illegal setting CP_SLEW_MODE  := %s", CP_SLEW_MODE);
+            }
+
+        }
+        else if(CP_IO_STANDARD == "PCI33")
+        {
+            if(CP_DRV_STRENGTH == "4")
+            {
+                SC_SRC1  := 1'b1;
+                SC_SRC2 := 1'b1;
+                SC_SRC3 := 1'b0;
+                SC_SINK1 := 1'b1;
+                SC_SINK2 := 1'b1;
+                SC_SINK3 := 1'b0;
+            }
+            else
+            {
+                SC_SRC1  := 1'b1;
+                SC_SRC2 := 1'b1;
+                SC_SRC3 := 1'b0;
+                SC_SINK1 := 1'b1;
+                SC_SINK2 := 1'b1;
+                SC_SINK3 := 1'b0;
+            }
+            if(CP_SLEW_MODE=="S")
+            {
+                SC_SLEW_N := 1'b0;
+            }
+            else if(CP_SLEW_MODE=="F")
+            {
+                SC_SLEW_N := 1'b1;
+            }
+            else
+            {
+                error("illegal setting CP_SLEW_MODE  := %s", CP_SLEW_MODE);
+            }
+
+        }
+
+    }
+    else if(CP_IOB_MODE == "IOBUF" && (CP_IO_STANDARD == "SSTL25_I" || CP_IO_STANDARD == "SSTL25_II"))
+    {
+        SC_SIGEND_EN_N  :=  1'b1;
+        SC_DIFFIN_EN  :=  1'b1;
+        SC_MIXSIG_IN1  :=  1'b0;
+        SC_OUT_EN  :=  1'b1;
+        SC_MIXSIG_IN2  :=  1'b0;
+        SC_VREF_EN  :=  1'b0;
+        SC_MIPI_EN  :=  1'b0;
+        SC_RES_EN  :=  1'b0;
+        if(CP_LP_EN == "ON")
+        {
+            SC_INBUF_DYN_DIS  :=  1'b1;
+        }
+        else
+        {
+            SC_INBUF_DYN_DIS  :=  1'b0;
+        }
+        if(CP_DRV_STRENGTH == "8.1")
+        {
+            SC_SRC1  := 1'b0;
+            SC_SRC2 := 1'b0;
+            SC_SRC3 := 1'b0;
+            SC_SINK1 := 1'b0;
+            SC_SINK2 := 1'b0;
+            SC_SINK3 := 1'b0;
+        }
+        else if(CP_DRV_STRENGTH == "16.2")
+        {
+            SC_SRC1  := 1'b1;
+            SC_SRC2 := 1'b0;
+            SC_SRC3 := 1'b1;
+            SC_SINK1 := 1'b1;
+            SC_SINK2 := 1'b0;
+            SC_SINK3 := 1'b1;
+        }
+        else
+        {
+            SC_SRC1  := 1'b0;
+            SC_SRC2 := 1'b0;
+            SC_SRC3 := 1'b0;
+            SC_SINK1 := 1'b0;
+            SC_SINK2 := 1'b0;
+            SC_SINK3 := 1'b0;
+        }
+        if(CP_SLEW_MODE=="S")
+        {
+            SC_SLEW_N := 1'b0;
+        }
+        else if(CP_SLEW_MODE=="F")
+        {
+            SC_SLEW_N := 1'b1;
+        }
+        else
+        {
+            error("illegal setting CP_SLEW_MODE  := %s", CP_SLEW_MODE);
+        }
+
+    }
+    if(CP_IOB_MODE == "IOBUF" && ( CP_IO_STANDARD == "SSTL18_I" || CP_IO_STANDARD == "SSTL18_II"
+      ||CP_IO_STANDARD == "HSTL18_I" || CP_IO_STANDARD == "HSTL18_II"))
+    {
+        SC_SIGEND_EN_N  :=  1'b1;
+        SC_DIFFIN_EN  :=  1'b1;
+        SC_MIXSIG_IN1 := 1'b0;
+        SC_OUT_EN := 1'b1;
+        SC_MIXSIG_IN2  :=  1'b0;
+        SC_VREF_EN  :=  1'b0;
+        SC_MIPI_EN  :=  1'b0;
+        SC_RES_EN  :=  1'b0;
+        if(CP_LP_EN == "ON")
+        {
+            SC_INBUF_DYN_DIS  :=  1'b1;
+        }
+        else
+        {
+            SC_INBUF_DYN_DIS  :=  1'b0;
+        }
+        if(CP_DRV_STRENGTH == "6.7")
+        {
+            SC_SRC1  := 1'b0;
+            SC_SRC2 := 1'b1;
+            SC_SRC3 := 1'b1;
+            SC_SINK1 := 1'b0;
+            SC_SINK2 := 1'b1;
+            SC_SINK3 := 1'b1;
+        }
+        else if(CP_DRV_STRENGTH == "8")
+        {
+            SC_SRC1  := 1'b0;
+            SC_SRC2 := 1'b1;
+            SC_SRC3 := 1'b1;
+            SC_SINK1 := 1'b0;
+            SC_SINK2 := 1'b1;
+            SC_SINK3 := 1'b1;
+        }
+        else if(CP_DRV_STRENGTH == "13.4")
+        {
+            SC_SRC1  := 1'b1;
+            SC_SRC2 := 1'b0;
+            SC_SRC3 := 1'b1;
+            SC_SINK1 := 1'b1;
+            SC_SINK2 := 1'b0;
+            SC_SINK3 := 1'b1;
+        }
+        else if(CP_DRV_STRENGTH == "16")
+        {
+            SC_SRC1  := 1'b1;
+            SC_SRC2 := 1'b0;
+            SC_SRC3 := 1'b1;
+            SC_SINK1 := 1'b1;
+            SC_SINK2 := 1'b0;
+            SC_SINK3 := 1'b1;
+        }
+        else
+        {
+            SC_SRC1  := 1'b0;
+            SC_SRC2 := 1'b1;
+            SC_SRC3 := 1'b1;
+            SC_SINK1 := 1'b0;
+            SC_SINK2 := 1'b1;
+            SC_SINK3 := 1'b1;
+        }
+        if(CP_SLEW_MODE=="S")
+        {
+            SC_SLEW_N := 1'b0;
+        }
+        else if(CP_SLEW_MODE=="F")
+        {
+            SC_SLEW_N := 1'b1;
+        }
+        else
+        {
+            error("illegal setting CP_SLEW_MODE  := %s", CP_SLEW_MODE);
+        }
+
+    }
+    else if(CP_IOB_MODE == "IOBUF" && ( CP_IO_STANDARD == "SSTL15_I" || CP_IO_STANDARD == "SSTL15_II"
+      ||CP_IO_STANDARD == "HSTL15_I" ))
+    {
+        SC_SIGEND_EN_N  :=  1'b1;
+        SC_DIFFIN_EN  :=  1'b1;
+        SC_MIXSIG_IN1 := 1'b0;
+        SC_OUT_EN  :=  1'b1;
+        SC_RES_EN  :=  1'b0;
+        SC_MIXSIG_IN2  :=  1'b0;
+        SC_VREF_EN  :=  1'b0;
+        SC_MIPI_EN  :=  1'b0;
+        if(CP_LP_EN == "ON")
+        {
+            SC_INBUF_DYN_DIS  :=  1'b1;
+        }
+        else
+        {
+            SC_INBUF_DYN_DIS  :=  1'b0;
+        }
+        if(CP_DRV_STRENGTH == "7.5")
+        {
+            SC_SRC1  := 1'b0;
+            SC_SRC2 := 1'b0;
+            SC_SRC3 := 1'b1;
+            SC_SINK1 := 1'b0;
+            SC_SINK2 := 1'b0;
+            SC_SINK3 := 1'b1;
+        }
+        else if(CP_DRV_STRENGTH == "8")
+        {
+            SC_SRC1  := 1'b0;
+            SC_SRC2 := 1'b0;
+            SC_SRC3 := 1'b1;
+            SC_SINK1 := 1'b0;
+            SC_SINK2 := 1'b0;
+            SC_SINK3 := 1'b1;
+        }
+        else if(CP_DRV_STRENGTH == "8.8")
+        {
+            SC_SRC1  := 1'b1;
+            SC_SRC2 := 1'b0;
+            SC_SRC3 := 1'b1;
+            SC_SINK1 := 1'b1;
+            SC_SINK2 := 1'b0;
+            SC_SINK3 := 1'b1;
+        }
+        else if(CP_DRV_STRENGTH == "16")
+        {
+            SC_SRC1  := 1'b1;
+            SC_SRC2 := 1'b0;
+            SC_SRC3 := 1'b1;
+            SC_SINK1 := 1'b1;
+            SC_SINK2 := 1'b0;
+            SC_SINK3 := 1'b1;
+        }
+        else
+        {
+            SC_SRC1  := 1'b0;
+            SC_SRC2 := 1'b0;
+            SC_SRC3 := 1'b1;
+            SC_SINK1 := 1'b0;
+            SC_SINK2 := 1'b0;
+            SC_SINK3 := 1'b1;
+        }
+        if(CP_SLEW_MODE=="S")
+        {
+            SC_SLEW_N := 1'b0;
+        }
+        else if(CP_SLEW_MODE=="F")
+        {
+            SC_SLEW_N := 1'b1;
+        }
+        else
+        {
+            error("illegal setting CP_SLEW_MODE  := %s", CP_SLEW_MODE);
+        }
+
+    }
+    else if(CP_IOB_MODE == "IOBUF_MIPI" && CP_IO_STANDARD == "MIPI")
+    {
+        SC_SIGEND_EN_N  :=  1'b1;
+        SC_DIFFIN_EN  :=  1'b0;
+        SC_MIXSIG_IN1 := 1'b0;
+        SC_OUT_EN  :=  1'b1;
+        SC_MIPI_EN  :=  1'b1;
+        SC_MIXSIG_IN2  :=  1'b0;
+        SC_VREF_EN  :=  1'b0;
+        SC_SLEW_N  :=  1'b0;
+        SC_RES_EN  :=  1'b0;
+        if(CP_LP_EN == "ON")
+        {
+            SC_INBUF_DYN_DIS  :=  1'b1;
+        }
+        else
+        {
+            SC_INBUF_DYN_DIS  :=  1'b0;
+        }
+        if(CP_DRV_STRENGTH == "2")
+        {
+            SC_SRC1  := 1'b0;
+            SC_SRC2 := 1'b0;
+            SC_SRC3 := 1'b0;
+            SC_SINK1 := 1'b0;
+            SC_SINK2 := 1'b0;
+            SC_SINK3 := 1'b0;
+        }
+        else if(CP_DRV_STRENGTH == "6")
+        {
+            SC_SRC1  := 1'b1;
+            SC_SRC2 := 1'b0;
+            SC_SRC3 := 1'b1;
+            SC_SINK1 := 1'b1;
+            SC_SINK2 := 1'b0;
+            SC_SINK3 := 1'b1;
+        }
+        else
+        {
+            error("illegal setting CP_DRV_STRENGTH  := %s", CP_DRV_STRENGTH);
+        }
+
+    }
+    else if(CP_IOB_MODE == "IOBUF_DS" && CP_IO_STANDARD == "LVPECL33" )
+    {
+        SC_SIGEND_EN_N := 1'b1;
+        SC_DIFFIN_EN := 1'b1;
+        SC_MIXSIG_IN1 := 1'b1;
+        SC_OUT_EN := 1'b1;
+        SC_MIXSIG_IN2  :=  1'b0;
+        SC_VREF_EN  :=  1'b0;
+        SC_MIPI_EN  :=  1'b0;
+        SC_RES_EN  :=  1'b1;
+        if(CP_LP_EN == "ON")
+        {
+            SC_INBUF_DYN_DIS  :=  1'b1;
+        }
+        else
+        {
+            SC_INBUF_DYN_DIS  :=  1'b0;
+        }
+        SC_SRC1  := 1'b1;
+        SC_SRC2 := 1'b1;
+        SC_SRC3 := 1'b0;
+        SC_SINK1 := 1'b1;
+        SC_SINK2 := 1'b1;
+        SC_SINK3 := 1'b0;
+        if(CP_SLEW_MODE=="S")
+        {
+            SC_SLEW_N := 1'b0;
+        }
+        else if(CP_SLEW_MODE=="F")
+        {
+            SC_SLEW_N := 1'b1;
+        }
+        else
+        {
+            error("illegal setting CP_SLEW_MODE  := %s", CP_SLEW_MODE);
+        }
+
+    }
+    else if(CP_IOB_MODE == "IOBUF_DS" && (CP_IO_STANDARD == "LVCMOS33D"|| CP_IO_STANDARD == "LVTTL33D"))
+    {
+        SC_SIGEND_EN_N := 1'b1;
+        SC_DIFFIN_EN := 1'b1;
+        SC_MIXSIG_IN1 := 1'b1;
+        SC_OUT_EN := 1'b1;
+        SC_MIXSIG_IN2  :=  1'b0;
+        SC_VREF_EN  :=  1'b0;
+        SC_MIPI_EN  :=  1'b0;
+        SC_RES_EN  :=  1'b1;
+        if(CP_LP_EN == "ON")
+        {
+            SC_INBUF_DYN_DIS  :=  1'b1;
+        }
+        else
+        {
+            SC_INBUF_DYN_DIS  :=  1'b0;
+        }
+        if(CP_DRV_STRENGTH == "4")
+        {
+            SC_SRC1  := 1'b1;
+            SC_SRC2 := 1'b1;
+            SC_SRC3 := 1'b0;
+            SC_SINK1 := 1'b1;
+            SC_SINK2 := 1'b1;
+            SC_SINK3 := 1'b0;
+        }
+        else if(CP_DRV_STRENGTH == "8")
+        {
+            SC_SRC1  := 1'b0;
+            SC_SRC2 := 1'b0;
+            SC_SRC3 := 1'b0;
+            SC_SINK1 := 1'b0;
+            SC_SINK2 := 1'b0;
+            SC_SINK3 := 1'b0;
+        }
+        else if(CP_DRV_STRENGTH == "12")
+        {
+            SC_SRC1  := 1'b0;
+            SC_SRC2 := 1'b1;
+            SC_SRC3 := 1'b1;
+            SC_SINK1 := 1'b0;
+            SC_SINK2 := 1'b1;
+            SC_SINK3 := 1'b1;
+        }
+        else if(CP_DRV_STRENGTH == "16")
+        {
+            SC_SRC1  := 1'b1;
+            SC_SRC2 := 1'b1;
+            SC_SRC3 := 1'b1;
+            SC_SINK1 := 1'b1;
+            SC_SINK2 := 1'b1;
+            SC_SINK3 := 1'b1;
+        }
+        else if(CP_DRV_STRENGTH == "24")
+        {
+            SC_SRC1  := 1'b1;
+            SC_SRC2 := 1'b0;
+            SC_SRC3 := 1'b1;
+            SC_SINK1 := 1'b1;
+            SC_SINK2 := 1'b0;
+            SC_SINK3 := 1'b1;
+        }
+        else
+        {
+            SC_SRC1  := 1'b0;
+            SC_SRC2 := 1'b0;
+            SC_SRC3 := 1'b0;
+            SC_SINK1 := 1'b0;
+            SC_SINK2 := 1'b0;
+            SC_SINK3 := 1'b0;
+        }
+        if(CP_SLEW_MODE=="S")
+        {
+            SC_SLEW_N := 1'b0;
+        }
+        else if(CP_SLEW_MODE=="F")
+        {
+            SC_SLEW_N := 1'b1;
+        }
+        else
+        {
+            error("illegal setting CP_SLEW_MODE  := %s", CP_SLEW_MODE);
+        }
+
+    }
+    else if(CP_IOB_MODE == "IOBUF_DS" && (CP_IO_STANDARD == "LVDS25E" || CP_IO_STANDARD == "LVCMOS25D"))
+    {
+        SC_SIGEND_EN_N  :=  1'b1;
+        SC_DIFFIN_EN  :=  1'b1;
+        SC_MIXSIG_IN1 := 1'b1;
+        SC_OUT_EN  :=  1'b1;
+        SC_MIXSIG_IN2  :=  1'b0;
+        SC_VREF_EN  :=  1'b0;
+        SC_MIPI_EN  :=  1'b0;
+        SC_RES_EN  :=  1'b1;
+        if(CP_LP_EN == "ON")
+        {
+            SC_INBUF_DYN_DIS  :=  1'b1;
+        }
+        else
+        {
+            SC_INBUF_DYN_DIS  :=  1'b0;
+        }
+        SC_SRC1  := 1'b0;
+        SC_SRC2 := 1'b1;
+        SC_SRC3 := 1'b1;
+        SC_SINK1 := 1'b0;
+        SC_SINK2 := 1'b1;
+        SC_SINK3 := 1'b1;
+        if(CP_SLEW_MODE=="S")
+        {
+            SC_SLEW_N := 1'b0;
+        }
+        else if(CP_SLEW_MODE=="F")
+        {
+            SC_SLEW_N := 1'b1;
+        }
+        else
+        {
+            error("illegal setting CP_SLEW_MODE  := %s", CP_SLEW_MODE);
+        }
+
+    }
+    else if((CP_IOB_MODE == "IOBUF_DS") && (CP_IO_STANDARD == "BLVDS25" || CP_IO_STANDARD == "MLVDS25"))
+    {
+        SC_SIGEND_EN_N  :=  1'b1;
+        SC_DIFFIN_EN  :=  1'b1;
+        SC_MIXSIG_IN1 := 1'b1;
+        SC_OUT_EN  :=  1'b1;
+        SC_MIXSIG_IN2  :=  1'b0;
+        SC_VREF_EN  :=  1'b0;
+        SC_MIPI_EN  :=  1'b0;
+        SC_RES_EN  :=  1'b1;
+        if(CP_LP_EN == "ON")
+        {
+            SC_INBUF_DYN_DIS  :=  1'b1;
+        }
+        else
+        {
+            SC_INBUF_DYN_DIS  :=  1'b0;
+        }
+        SC_SRC1  := 1'b1;
+        SC_SRC2 := 1'b1;
+        SC_SRC3 := 1'b1;
+        SC_SINK1 := 1'b1;
+        SC_SINK2 := 1'b1;
+        SC_SINK3 := 1'b1;
+        if(CP_SLEW_MODE=="S")
+        {
+            SC_SLEW_N := 1'b0;
+        }
+        else if(CP_SLEW_MODE=="F")
+        {
+            SC_SLEW_N := 1'b1;
+        }
+        else
+        {
+            error("illegal setting CP_SLEW_MODE  := %s", CP_SLEW_MODE);
+        }
+
+    }
+    else if(CP_IOB_MODE == "IOBUF_DS" && (CP_IO_STANDARD == "SSTL25D_I"||CP_IO_STANDARD == "SSTL25D_II"))
+    {
+        SC_SIGEND_EN_N  :=  1'b1;
+        SC_DIFFIN_EN  :=  1'b1;
+        SC_MIXSIG_IN1 := 1'b1;
+        SC_OUT_EN  :=  1'b1;
+        SC_MIXSIG_IN2  :=  1'b0;
+        SC_VREF_EN := 1'b0;
+        SC_MIPI_EN := 1'b0;
+        SC_RES_EN := 1'b0;
+        if(CP_LP_EN == "ON")
+        {
+            SC_INBUF_DYN_DIS  :=  1'b1;
+        }
+        else
+        {
+            SC_INBUF_DYN_DIS  :=  1'b0;
+        }
+        if(CP_DRV_STRENGTH == "8.1")
+        {
+            SC_SRC1  := 1'b0;
+            SC_SRC2 := 1'b0;
+            SC_SRC3 := 1'b0;
+            SC_SINK1 := 1'b0;
+            SC_SINK2 := 1'b0;
+            SC_SINK3 := 1'b0;
+        }
+        else if(CP_DRV_STRENGTH == "16.2")
+        {
+            SC_SRC1  := 1'b1;
+            SC_SRC2 := 1'b0;
+            SC_SRC3 := 1'b1;
+            SC_SINK1 := 1'b1;
+            SC_SINK2 := 1'b0;
+            SC_SINK3 := 1'b1;
+        }
+        else
+        {
+            SC_SRC1  := 1'b0;
+            SC_SRC2 := 1'b0;
+            SC_SRC3 := 1'b0;
+            SC_SINK1 := 1'b0;
+            SC_SINK2 := 1'b0;
+            SC_SINK3 := 1'b0;
+        }
+        if(CP_SLEW_MODE=="S")
+        {
+            SC_SLEW_N := 1'b0;
+        }
+        else if(CP_SLEW_MODE=="F")
+        {
+            SC_SLEW_N := 1'b1;
+        }
+        else
+        {
+            error("illegal setting CP_SLEW_MODE  := %s", CP_SLEW_MODE);
+        }
+
+    }
+    else if(CP_IOB_MODE == "IOBUF_DS" && (CP_IO_STANDARD == "SSTL18D_I"||CP_IO_STANDARD == "SSTL18D_II"
+      ||CP_IO_STANDARD == "HSTL18D_I" || CP_IO_STANDARD == "HSTL18D_II"))
+    {
+        SC_SIGEND_EN_N  :=  1'b1;
+        SC_DIFFIN_EN  :=  1'b1;
+        SC_MIXSIG_IN1 := 1'b1;
+        SC_OUT_EN  :=  1'b1;
+        SC_MIXSIG_IN2  :=  1'b0;
+        SC_VREF_EN  :=  1'b0;
+        SC_MIPI_EN  :=  1'b0;
+        SC_RES_EN  :=  1'b0;
+        if(CP_LP_EN == "ON")
+        {
+            SC_INBUF_DYN_DIS  :=  1'b1;
+        }
+        else
+        {
+            SC_INBUF_DYN_DIS  :=  1'b0;
+        }
+        if(CP_DRV_STRENGTH == "6.7")
+        {
+            SC_SRC1  := 1'b0;
+            SC_SRC2 := 1'b1;
+            SC_SRC3 := 1'b1;
+            SC_SINK1 := 1'b0;
+            SC_SINK2 := 1'b1;
+            SC_SINK3 := 1'b1;
+        }
+        else if(CP_DRV_STRENGTH == "8")
+        {
+            SC_SRC1  := 1'b0;
+            SC_SRC2 := 1'b1;
+            SC_SRC3 := 1'b1;
+            SC_SINK1 := 1'b0;
+            SC_SINK2 := 1'b1;
+            SC_SINK3 := 1'b1;
+        }
+        else if(CP_DRV_STRENGTH == "13.4")
+        {
+            SC_SRC1  := 1'b1;
+            SC_SRC2 := 1'b0;
+            SC_SRC3 := 1'b1;
+            SC_SINK1 := 1'b1;
+            SC_SINK2 := 1'b0;
+            SC_SINK3 := 1'b1;
+        }
+        else if(CP_DRV_STRENGTH == "16")
+        {
+            SC_SRC1  := 1'b1;
+            SC_SRC2 := 1'b0;
+            SC_SRC3 := 1'b1;
+            SC_SINK1 := 1'b1;
+            SC_SINK2 := 1'b0;
+            SC_SINK3 := 1'b1;
+        }
+        else
+        {
+            SC_SRC1  := 1'b0;
+            SC_SRC2 := 1'b1;
+            SC_SRC3 := 1'b1;
+            SC_SINK1 := 1'b0;
+            SC_SINK2 := 1'b1;
+            SC_SINK3 := 1'b1;
+        }
+        if(CP_SLEW_MODE=="S")
+        {
+            SC_SLEW_N := 1'b0;
+        }
+        else if(CP_SLEW_MODE=="F")
+        {
+            SC_SLEW_N := 1'b1;
+        }
+        else
+        {
+            error("illegal setting CP_SLEW_MODE  := %s", CP_SLEW_MODE);
+        }
+
+    }
+    else if(CP_IOB_MODE == "IOBUF_DS" && (CP_IO_STANDARD == "SSTL15D_I"||CP_IO_STANDARD == "SSTL15D_II"
+      ||CP_IO_STANDARD == "HSTL15D_I"))
+    {
+        SC_SIGEND_EN_N  :=  1'b1;
+        SC_DIFFIN_EN  :=  1'b1;
+        SC_MIXSIG_IN1 := 1'b1;
+        SC_OUT_EN  :=  1'b1;
+        SC_MIXSIG_IN2 := 1'b0;
+        SC_VREF_EN := 1'b0;
+        SC_MIPI_EN := 1'b0;
+        SC_RES_EN  :=  1'b0;
+        if(CP_LP_EN == "ON")
+        {
+            SC_INBUF_DYN_DIS  :=  1'b1;
+        }
+        else
+        {
+            SC_INBUF_DYN_DIS  :=  1'b0;
+        }
+        if(CP_DRV_STRENGTH == "7.5")
+        {
+            SC_SRC1  := 1'b0;
+            SC_SRC2 := 1'b0;
+            SC_SRC3 := 1'b1;
+            SC_SINK1 := 1'b0;
+            SC_SINK2 := 1'b0;
+            SC_SINK3 := 1'b1;
+        }
+        else if(CP_DRV_STRENGTH == "8")
+        {
+            SC_SRC1  := 1'b0;
+            SC_SRC2 := 1'b0;
+            SC_SRC3 := 1'b1;
+            SC_SINK1 := 1'b0;
+            SC_SINK2 := 1'b0;
+            SC_SINK3 := 1'b1;
+        }
+        else if(CP_DRV_STRENGTH == "8.8")
+        {
+            SC_SRC1  := 1'b1;
+            SC_SRC2 := 1'b0;
+            SC_SRC3 := 1'b1;
+            SC_SINK1 := 1'b1;
+            SC_SINK2 := 1'b0;
+            SC_SINK3 := 1'b1;
+        }
+        else if(CP_DRV_STRENGTH == "16")
+        {
+            SC_SRC1  := 1'b1;
+            SC_SRC2 := 1'b0;
+            SC_SRC3 := 1'b1;
+            SC_SINK1 := 1'b1;
+            SC_SINK2 := 1'b0;
+            SC_SINK3 := 1'b1;
+        }
+        else
+        {
+            SC_SRC1  := 1'b0;
+            SC_SRC2 := 1'b0;
+            SC_SRC3 := 1'b1;
+            SC_SINK1 := 1'b0;
+            SC_SINK2 := 1'b0;
+            SC_SINK3 := 1'b1;
+        }
+        if(CP_SLEW_MODE=="S")
+        {
+            SC_SLEW_N := 1'b0;
+        }
+        else if(CP_SLEW_MODE=="F")
+        {
+            SC_SLEW_N := 1'b1;
+        }
+        else
+        {
+            error("illegal setting CP_SLEW_MODE  := %s", CP_SLEW_MODE);
+        }
+
+    }
+
+//initial config body0 end
+
+};
+
+//grid device configure body end
+
+
+timing iobs_tnl of IOBS
+{
+    operator V_BUF V_BUF
+        port map
+        (
+            I         => PAD,
+            Z         => DIFFI_OUT
+        );
+
+////////////////////////////////////////////////////////////
+////////////////////////IBUFS///////////////////////////////
+////////////////////////////////////////////////////////////
+    wire ntDI;
+    if (CP_IO_STANDARD == "SLVS" || CP_IO_STANDARD == "MIPI")
+    {
+        if (CP_IOB_MODE == "IOBUF") // IO RX OB_LP
+        {
+            operator V_MUX2 ibfmipi_lp 
+                port map
+                (
+                    I0  => PAD,
+                    I1  => DIFFI_IN,
+                    SEL => TS,
+                    Z   => ntDI
+                );
+        }
+        else if (CP_IOB_MODE == "IOBUF_MIPI" || // IO TX OB_LP
+                 CP_IOB_MODE == "IBUF")         // IN RX OB_LP
+        {
+             ntDI <= DIFFI_IN;
+        }
+    }
+    else if (CP_LP_EN == "OFF")
+    {
+        if (CP_IOB_MODE == "IBUF" || CP_IOB_MODE == "IOBUF")
+        {
+            operator V_IBUF ibuf
+                parameter map
+                (
+                    IOSTANDARD => CP_IO_STANDARD
+                )
+                port map
+                (
+                    I => PAD,
+                    O => ntDI
+                );
+        }
+        else if (CP_IOB_MODE == "IBUF_DS" || CP_IOB_MODE == "IOBUF_DS")
+        {
+            operator V_IBUFDS ibufds
+                parameter map
+                (
+                    IOSTANDARD => CP_IO_STANDARD
+                )
+                port map
+                (
+                    I  => PAD,
+                    IB => DIFFI_IN,
+                    O  => ntDI
+                );
+        }
+    }
+    else
+    {
+        if (CP_IOB_MODE == "IBUF" || CP_IOB_MODE == "IOBUF")
+        {
+            operator V_INBUFE V_INBUFE
+                parameter map
+                (
+                    IOSTANDARD => CP_IO_STANDARD
+                )
+                port map
+                (
+                    I       => PAD,
+                    EN      => INBUF_DYN_DIS_N,
+                    O       => ntDI
+                );
+        }
+        else if (CP_IOB_MODE == "IBUF_DS" || CP_IOB_MODE == "IOBUF_DS")
+        {
+            operator V_INBUFEDS V_INBUFEDS
+                parameter map
+                (
+                    IOSTANDARD => CP_IO_STANDARD
+                )
+                port map
+                (
+                    I       => PAD,
+                    IB      => DIFFI_IN,
+                    EN      => INBUF_DYN_DIS_N,
+                    O       => ntDI
+                );
+        }
+    }
+
+    DIN <= ((CP_IO_STANDARD == "SLVS" || CP_IO_STANDARD == "MIPI") && (CP_IOB_MODE == "IOBUF_MIPI" || CP_IOB_MODE == "IBUF" || CP_IOB_MODE == "IOBUF")) ? ntDI :
+            (CP_IO_STANDARD == "SLVS" || CP_IO_STANDARD == "MIPI") ? 1'b1 :
+            (CP_IOB_MODE == "IBUF_DS" || CP_IOB_MODE == "IOBUF_DS" || CP_IOB_MODE == "IBUF" || CP_IOB_MODE == "IOBUF") ? ntDI : 1'b1;
+
+////////////////////////////////////////////////////////////
+////////////////////////OBUFS AND OBUFSMUX//////////////////
+////////////////////////////////////////////////////////////
+    wire ntOBFOUT;
+    if(CP_IO_STANDARD == "SLVS" || CP_IO_STANDARD == "MIPI")
+    {
+        //if (CP_IOB_MODE == "IOBUF" || CP_IOB_MODE == "OBUF_DS" || CP_IOB_MODE == "OBUF_T" || CP_IOB_MODE == "OBUF" || CP_IOB_MODE == "UNUSED" || CP_IOB_MODE == "IOBUF_MIPI")
+        if (CP_IOB_MODE == "IOBUF" || CP_IOB_MODE == "IOBUF_MIPI")
+        {
+            operator V_OUTBUFT_MIPI_SLAVE RX_TX_IB_LP
+                parameter map
+                (
+                    IOSTANDARD => "SLVS"
+                )
+                port map
+                (
+                    IB =>  DO,
+                    I  => (CP_IOB_MODE == "IOBUF_MIPI") ? DIFFO_IN : // TX
+                                                          1'bz,      // RX
+                    TB =>  TS,
+                    M  =>  MIPI_SW_DYN,
+                    OB =>  PAD
+                );
+        }
+    }
+    else if (CP_IOB_MODE == "OBUF")
+    {
+        operator V_OBUF obuf
+            parameter map
+            (
+                IOSTANDARD => CP_IO_STANDARD
+            )
+            port map
+            (
+                I => DO,
+                O => PAD
+            );
+    }
+    else if (CP_IOB_MODE == "OBUF_T" || CP_IOB_MODE == "IOBUF" || CP_IOB_MODE == "IOBUF_DS")
+    {
+        operator V_OBUFT obuft
+            parameter map
+            (
+                IOSTANDARD => CP_IO_STANDARD
+            )
+            port map
+            (
+                I => DO,
+                T => TS,
+                O => PAD
+            );
+    }
+    else if (CP_IOB_MODE == "UNUSED")
+    {
+        PAD <= DIFFO_IN;
+    }
+};

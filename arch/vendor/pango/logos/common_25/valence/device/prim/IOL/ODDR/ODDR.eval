@@ -1,0 +1,117 @@
+*****************************************************************
+
+  Device    [ODDR]
+
+  Author    [guoxi]
+
+  Abstract  [The Prim Device Of ODDR]
+
+  Revision History:
+
+********************************************************************************/
+prim
+device ODDR
+{
+    parameter
+    (
+        config string CP_GRS_DIS = "FALSE",
+        config string CP_ODDR_MODE       = "DISABLE",   //"DISABLE","OGDDR", "OGSER4", "OGSER7", "OGSER8",
+                                                        //"OMDDR", "OMSER4", "OMSER8"
+        config string CP_TSDDR_SR = "RESET",      //"RESET", "SET"
+        config string CP_ODDR_DQS        = "FALSE",
+        config string CP_WL_EXT          = "FALSE",
+        config string CP_ISI_EN          = "DISABLE",
+        config bit    CP_ISI_DELSEL[1:0] = 2'b00
+    );
+    port 
+    (
+        input LRS,
+        input TX_DATA[7:0],  
+        input TS_CTRL[3:0],
+        input OCLK,
+        input CLK_SYS,
+        input SERCLK,
+     
+        //for cascaded parts
+        output  TX_DO,
+        output  TS_TERM,
+        output  TS_TO 
+    );
+
+}; // end of device ODDR
+
+/**Device***********************************************************************
+
+  Device    [ODDR]
+
+  Abstract  [This specified how to propagate the input signal to the outputs based on
+             configuration]
+
+  Revision History:
+
+********************************************************************************/
+propagation prop of ODDR
+{
+    propagate ( TX_DATA |-> TX_DO );
+    propagate ( TS_CTRL |-> TS_TO );
+    
+    propagate ( LRS |-> TX_DO );
+    propagate ( LRS |-> TS_TO );
+    
+    propagate ( OCLK |-> TX_DO );
+    propagate ( OCLK |-> TS_TO );
+    
+    propagate ( CLK_SYS |-> TX_DO );
+    propagate ( CLK_SYS |-> TS_TO );
+    
+    propagate ( SERCLK |-> TX_DO );
+    propagate ( SERCLK |-> TS_TO );
+};
+
+/**Device***********************************************************************                  
+                                                                                                  
+  Device    [ODDR]                                                                                
+                                                                                                  
+  Author    [kongbiao]                                                                               
+                                                                                                  
+  Abstract  [This specified the timing model under specific configuration]                        
+                                                                                                  
+  Revision History:                                                                               
+                                                                                                  
+********************************************************************************/                 
+                                                                                                  
+timing  oddr_tnl of ODDR  
+{
+    if (CP_ODDR_MODE != "DISABLE")
+    {
+        operator V_OSERDES V_OSERDES
+            parameter map
+            (
+                OSERDES_MODE => (CP_ODDR_MODE == "OGDDR")  ? "ODDR"  :
+                                (CP_ODDR_MODE == "OGSER4") ? "OSER4" :
+                                (CP_ODDR_MODE == "OGSER7") ? "OSER7" :
+                                (CP_ODDR_MODE == "OGSER8") ? "OSER8" :
+                                 CP_ODDR_MODE,
+                WL_EXTEND    => CP_WL_EXT,
+                TSDDR_INIT   => (CP_TSDDR_SR == "SET") ? 1'b1 : 1'b0,
+                LRS_EN       => "TRUE",
+                GRS_EN       => (CP_GRS_DIS == "FALSE") ? "TRUE" : "FALSE"
+            )
+            port map
+            (
+                RST      => LRS,
+                OCLK     => OCLK,
+                SERCLK   => SERCLK,
+                RCLK     => CLK_SYS,
+                DI       => TX_DATA,
+                TI       => TS_CTRL,
+        
+                DO       => TX_DO,
+                TO       => TS_TO
+            );
+    }
+
+    TS_TERM <= 1'b0; // FIXED ME.
+};
+
+

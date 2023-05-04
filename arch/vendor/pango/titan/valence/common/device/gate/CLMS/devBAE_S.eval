@@ -1,0 +1,127 @@
+*****************************************************************
+
+  Device    [devBAE_S]
+
+  Author    []
+
+  Abstract  [THE DEVICE MODELLED FOR THE END OF CARRY CHAIN. FOR THE OUTPUT PORT 
+             HAD BEEN USED BY SUM OF CARRY CHAIN, SIGNAL OF THE PORT COUT CAN NOT
+             PASS TO IT DERECTLY.]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devBAE_S : device devB_S
+{
+    parameter
+    (
+        config bit INITB[31:0]       = 32'h0000_ffff,
+        config string FGB_MODE       = "CYE",                // "LUT5" "ROM" "WMUX" "ARITH" "CYE"        
+        config string RAM_LUT_SEL    := "LUT",               // "RAM"  "LUT"
+        config string Y1MUX_SEL      := "CY"                 // "L7"   "FG" "CY"
+    );
+    
+    port
+    (        
+               output   Y1, 
+        logic  input    FGB_CIN
+    );
+}; // end of device devBAE_S
+
+
+/*******************************************************************************
+
+  Device    [devBAE_S]
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devBAE_S
+{
+
+    // Wires connecting to output ports
+    wire ntY1MUX;
+    // Internal wires  
+    wire ntCYB;
+    wire ntCYA;
+    //
+    // Connection to ports
+    //
+    ntCYA     <= FGB_CIN;
+    Y1        <= ntY1MUX;
+
+    //
+    // Instances. FGA section
+    //
+
+    device FGS FGB 
+        parameter map
+        (
+            INIT        => INITB,
+            MODE        => FGB_MODE,
+            RAM_LUT_SEL => RAM_LUT_SEL
+        )
+        port map 
+        (
+            CIN  => ntCYA,
+            COUT => ntCYB
+        );
+
+    device Y1MUX Y1MUX
+        parameter map
+        (
+            CFG  => Y1MUX_SEL
+        )    
+        port map
+        (
+            CY => ntCYB,
+            Z   => ntY1MUX
+        );    
+}; // end of structure netlist of devBAE_S
+
+timing tnl of devBAE_S
+{
+    wire ntI0;
+    operator V_LUT5CARRY V_FGB
+        parameter map      
+        (
+            INIT        => INITB,
+            ID_TO_LUT   => "FALSE",
+            CIN_TO_LUT  => (FGB_MODE == "L5C01") ? "FALSE" : "TRUE",
+            I4_TO_CARRY => (FGB_MODE == "CY01")  ? "FALSE" : "TRUE",
+            SECTION  => "B"
+        )                  
+       
+        port map 
+        (
+            I0  => 1'b0,  
+            I1  => 1'b0,
+            I2  => 1'b0,
+            I3  => 1'b0,
+            I4  => 1'b0,
+            ID  => 1'b0,
+            CIN => FGB_CIN,
+            COUT => ntI0
+        );    
+        
+     if (Y1MUX_SEL != "FFAB")
+     {     
+     operator V_MUX V_Y1MUX
+         parameter map
+         (
+             SEL  => (Y1MUX_SEL == "CY") ? "I0" : "I1",
+             SECTION  => "B"
+         )
+         port map
+         (
+             I0 => ntI0,
+             I1 => 1'B0,
+             Y => Y1
+         ); 
+     }
+}

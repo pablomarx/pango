@@ -1,0 +1,295 @@
+*****************************************************************
+
+  Device    [DQS]
+
+  Author    [clwang]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+grid
+device DQS
+{
+
+    parameter
+    (
+        // These are the config parameters that are used to enable formal flow. They
+        // should be present in the declaration only if a MACRO is set. In normal
+        // implementation flow they should be turned off.
+        config string APP_MODE               = "DDC",          // "DDC" ; "DCC" 
+        config string GRS_EN                 = "TRUE",          // "TRUE" ; "FALSE" 
+        config string CLK_GATE_EN            = "TRUE",          // "TRUE" ; "FALSE" 
+        config bit    LRS_POL                = 1'b1,            // 1'b0: noinv; 1'b1: inv
+        config string READ_EN                = "TRUE",          // "TRUE" ; "FALSE"
+        config string DQS_MODE               = "FULL_RATE",     // "FULL_RATE" "HALF_RATE" "QUAD_RATE"                                                                
+        config string CDR_EN                 = "TRUE",          // "TRUE" ; "FALSE"
+        //config string CLK90_SEL            = "IOCLK0",        // "IOCLK0" "IOCLK1" "IOCLK2" "IOCLK3"
+        //config string CLK_SEL              = "IOCLK0",        // "IOCLK0" "IOCLK1" "IOCLK2" "IOCLK3"
+        config string WL_CTRL_EN             = "FALSE",         // "TRUE" ; "FALSE"
+        config bit    CLK_DELAY_STEP[8:0]    = 9'b0_0000_0000,  // 
+        config string CLK_EN                 = "TRUE",          // "TRUE" ; "FALSE"
+        config string CLKDIV_FACTOR          = "2",             // "2", "3.5", "4", "5" 
+        config string DQS_DEL_EN             = "TRUE",          // "TRUE" ; "FALSE" 
+        config string RDEL_CTRL_EN           = "TRUE",          // "TRUE" ; "FALSE" 
+        config bit    DQS_DELAY_STEP[8:0]    = 9'b0_0000_0000,  // "DEFAULT"
+        config string DQS_DLL_IN_EN          = "TRUE",          // "TRUE" ; "FALSE"  
+        config bit    MARGIN                 = 1'b0,            
+        config string FIFO_EN                = "TRUE",          // "TRUE" ; "FALSE"   
+        config string FIFO_MODE              = "MDDR",          // "MDDR" : DDR MEM; "GDDR" : GENERIC DDR
+        config bit    FIF0_ADDR_INIT[2:0]    = 3'b000,               
+        config bit    FIFOMODE_SEL           = 1'b0,
+        config string DQSI_SEL               = "DQSI0"//,         // "DQSI0" "DQSI1"
+        //config int    CLK_DELAY_STEP_INT     = 0,
+        //config int    DQS_DELAY_STEP_INT     = 0
+    );
+    port
+    (
+        // These are the config ports.
+        config input SC_DIS_GRS             = 1'b0            /*pragma PAP_CFG_BIT_NAME = "SC_DIS_GRS" */,
+        config input SC_HOLD_EN             = 1'b0            /*pragma PAP_CFG_BIT_NAME = "SC_HOLD_EN" */,  
+        config input SC_DQS_RST_POL         = 1'b0            /*pragma PAP_CFG_BIT_NAME = "SC_DQS_RST_POL" */,
+        config input SC_READ_DIS            = 1'b0            /*pragma PAP_CFG_BIT_NAME = "SC_READ_DIS" */,
+        config input SC_DQS_MODE[2:0]       = 3'b000          /*pragma PAP_CFG_BIT_NAME = "SC_DQS_MODE<2>, SC_DQS_MODE<1>, SC_DQS_MODE<0>" */,
+        config input SC_CDR_EN              = 1'b0            /*pragma PAP_CFG_BIT_NAME = "SC_CDR_EN" */,
+        config input SC_MRG_EN_W            = 1'b0            /*pragma PAP_CFG_BIT_NAME = "SC_MRG_EN_W" */,
+        config input SC_CLK_DELAY_STEP[8:0] = 9'b0_0000_0000  /*pragma PAP_CFG_BIT_NAME = "SC_SIGN_W, SC_SETTING_W<7>, SC_SETTING_W<6>, SC_SETTING_W<5>, SC_SETTING_W<4>, SC_SETTING_W<3>, SC_SETTING_W<2>, SC_SETTING_W<1>, SC_SETTING_W<0>" */,
+        config input SC_EN_W                = 1'b0            /*pragma PAP_CFG_BIT_NAME = "SC_EN_W" */,
+        config input SC_CDR_DIVMOD[2:0]     = 3'b000          /*pragma PAP_CFG_BIT_NAME = "SC_CDR_DIVMOD<2>, SC_CDR_DIVMOD<1>, SC_CDR_DIVMOD<0>" */,
+        config input SC_DELAY_EN_R          = 1'b0            /*pragma PAP_CFG_BIT_NAME = "SC_DELAY_EN_R" */,
+        config input SC_MRG_EN_R            = 1'b0            /*pragma PAP_CFG_BIT_NAME = "SC_MRG_EN_R" */,
+        config input SC_DQS_DELAY_STEP[8:0] = 9'b0_0000_0000  /*pragma PAP_CFG_BIT_NAME = "SC_SIGN_R, SC_S_R<7>, SC_S_R<6>, SC_S_R<5>, SC_S_R<4>, SC_S_R<3>, SC_S_R<2>, SC_S_R<1>, SC_S_R<0>" */,
+        config input SC_CENTERED_R          = 1'b0            /*pragma PAP_CFG_BIT_NAME = "SC_CENTERED_R" */,
+        config input SC_UPDATEQU            = 1'b0            /*pragma PAP_CFG_BIT_NAME = "SC_UPDATEQU" */,
+        config input SC_EN_DQSFIFO          = 1'b0            /*pragma PAP_CFG_BIT_NAME = "SC_EN_DQSFIFO" */,
+        config input SC_COU_EN              = 1'b0            /*pragma PAP_CFG_BIT_NAME = "SC_COU_EN" */,
+        config input SC_PNTR_FIFO[2:0]      = 3'b000          /*pragma PAP_CFG_BIT_NAME = "SC_PNTR_FIFO<2>, SC_PNTR_FIFO<1>, SC_PNTR_FIFO<0>" */,
+        config input SC_FIFOMODE_SEL        = 1'b0            /*pragma PAP_CFG_BIT_NAME = "SC_FIFOMODE_SEL" */,
+        config input SC_DQSI_SEL            = 1'b0            /*pragma PAP_CFG_BIT_NAME = "SC_DQSI_SEL" */,
+        
+        // FIXME
+        input  CE_DQS    = 1'b1,
+        input  DQSI[1:0] = 2'b11,
+        input  WCLK_TREE = 1'b1,
+        input  WCLK_DEL_TREE = 1'b1,
+        input  DQSI_DEL_TREE = 1'b1,
+
+        input  DCC_CLK_CTRL[2:0] = 3'b111,
+        input  SAMPLE_CLK_SLIP   = 1'b1,
+        input  IOCLK_SEL[3:0]    = 4'b1111,
+        input  WL_STEP[7:0]      = 8'hff,
+        input  CLK1_STEP[7:0]    = 8'hff,
+        input  CLKGATE           = 1'b1,
+        input  WL_CTRL[2:0]      = 3'b111,
+        output WL_OV,
+
+        input  DQS_GATE_CTRL[3:0] = 4'b1111,
+        input  READ_CLK_CTRL[2:0] = 3'b111,
+        output DQS_GATE_TRAINING_STATUS,
+        output READ_VALID,
+        input  RDEL_CTRL[2:0] = 3'b111,
+        output RDEL_OV,
+
+        input   RST    = 1'b1,
+        input   SYSCLK = 1'b1,
+        input   DLL_CODE[7:0] = 8'hff,
+               
+        input   IOCLK[1:0] = 2'b11,
+        output  SAMPLE_CLK,
+        output  PROBE_CLK,
+        output  SAMPLE_CLK_DIV,
+        output  WCLK,
+        output  WCLK_DEL,
+        output  DQSI_DEL,
+        output  IFIFO_RADDR[2:0],
+        output  IFIFO_WADDR[2:0]
+    );
+
+}// end of device DQS
+
+/*******************************************************************************
+
+  Device    [DQS]
+
+  Author    []
+
+  Abstract  [The structure netlist of DQS DDC is described in the similar fashion
+             as in HDL. In unit instantiation statement, the formal pin may be
+             connected to net which is declared explicitly.
+
+             In Valence, the connection can also be made from formal pin to other
+             pin or port, in which case Valence compiler shall create the net to
+             fulfil the connection. The built-in naming convention is kicked in
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of DQS
+{
+    device DQS_INST DQS_INST
+        parameter map
+        (
+            APP_MODE               =>   APP_MODE,
+            GRS_EN                 =>   GRS_EN             ,
+            CLK_GATE_EN            =>   CLK_GATE_EN        ,
+            LRS_POL                =>   LRS_POL            ,
+            READ_EN                =>   READ_EN            ,
+            DQS_MODE               =>   DQS_MODE           ,                                                        
+            CDR_EN                 =>   CDR_EN             ,
+            WL_CTRL_EN             =>   WL_CTRL_EN         ,
+            CLK_DELAY_STEP         =>   CLK_DELAY_STEP,
+            CLK_EN                 =>   CLK_EN             ,
+            CLKDIV_FACTOR          =>   CLKDIV_FACTOR      ,
+            DQS_DEL_EN             =>   DQS_DEL_EN         ,
+            RDEL_CTRL_EN           =>   RDEL_CTRL_EN       ,
+            DQS_DELAY_STEP         =>   DQS_DELAY_STEP     ,
+            DQS_DLL_IN_EN          =>   DQS_DLL_IN_EN      ,
+            MARGIN                 =>   MARGIN             ,
+            FIFO_EN                =>   FIFO_EN            ,
+            FIFO_MODE              =>   FIFO_MODE          ,
+            FIF0_ADDR_INIT         =>   FIF0_ADDR_INIT     ,
+            FIFOMODE_SEL           =>   FIFOMODE_SEL       ,
+            DQSI_SEL               =>   DQSI_SEL           //,
+            //CLK_DELAY_STEP_INT     =>   CLK_DELAY_STEP_INT ,
+            //DQS_DELAY_STEP_INT     =>   DQS_DELAY_STEP_INT 
+        )
+        port map
+        (
+            CE_DQS                    =>   CE_DQS,
+            DQSI                      =>   DQSI,
+            WCLK_TREE                 =>   WCLK_TREE,
+            WCLK_DEL_TREE             =>   WCLK_DEL_TREE,
+            DQSI_DEL_TREE             =>   DQSI_DEL_TREE,
+
+            DCC_CLK_CTRL              =>   DCC_CLK_CTRL,
+            SAMPLE_CLK_SLIP           =>   SAMPLE_CLK_SLIP,
+            IOCLK_SEL                 =>   IOCLK_SEL,
+            WL_STEP                   =>   WL_STEP,
+            CLK1_STEP                 =>   CLK1_STEP,
+            CLKGATE                   =>   CLKGATE,
+            WL_CTRL                   =>   WL_CTRL,
+            WL_OV                     =>   WL_OV,
+
+            DQS_GATE_CTRL             =>   DQS_GATE_CTRL,
+            READ_CLK_CTRL             =>   READ_CLK_CTRL,
+            DQS_GATE_TRAINING_STATUS  =>   DQS_GATE_TRAINING_STATUS,
+            READ_VALID                =>   READ_VALID,
+            RDEL_CTRL                 =>   RDEL_CTRL,
+            RDEL_OV                   =>   RDEL_OV,
+
+            RST                       =>   RST,
+            SYSCLK                    =>   SYSCLK,
+
+            DLL_CODE                  =>   DLL_CODE,
+
+            IOCLK                     =>   IOCLK,
+            SAMPLE_CLK                =>   SAMPLE_CLK,
+            PROBE_CLK                 =>   PROBE_CLK,
+            SAMPLE_CLK_DIV            =>   SAMPLE_CLK_DIV,
+            WCLK                      =>   WCLK,
+            WCLK_DEL                  =>   WCLK_DEL,
+            DQSI_DEL                  =>   DQSI_DEL,
+            IFIFO_RADDR               =>   IFIFO_RADDR,
+            IFIFO_WADDR               =>   IFIFO_WADDR 
+        );
+
+}; // end of structure netlist of DQS
+
+/*******************************************************************************
+
+  Device    [DQS]
+
+  Author    []
+
+  Abstract  [Configure the configuration bits based on the value of config parameter]
+
+  Revision History:
+
+********************************************************************************/
+configuration cfg of DQS
+{
+    SC_DIS_GRS             := (GRS_EN   == "TRUE") ? 1'b0 : 1'b1  ;
+    SC_HOLD_EN             := (CLK_GATE_EN == "TRUE") ? 1'b1 : 1'b0  ;
+    SC_DQS_RST_POL         := (LRS_POL == 1'b1)    ? 1'b0 : 1'b1  ;
+    SC_READ_DIS            := (READ_EN  == "TRUE") ? 1'b0 : 1'b1  ;   
+
+
+    if (DQS_MODE == "HALF_RATE")
+    {
+        SC_DQS_MODE       := 3'b010          ;
+    }
+    else if (DQS_MODE == "QUAD_RATE")
+    {
+        SC_DQS_MODE       := 3'b111          ;
+    }    
+    else //if (DQS_MODE == "FULL_RATE")
+    {
+        SC_DQS_MODE       := 3'b000          ;
+    }        
+    
+    SC_CDR_EN              := (CDR_EN == "TRUE") ? 1'b1 : 1'b0   ;
+    
+    SC_MRG_EN_W       := (WL_CTRL_EN == "TRUE") ? 1'b1 : 1'b0  ;
+    
+    SC_CLK_DELAY_STEP := CLK_DELAY_STEP  ;
+    
+    SC_EN_W           := (CLK_EN == "TRUE") ? 1'b1 : 1'b0  ;
+    
+    if (CLKDIV_FACTOR == "2")
+    {
+        SC_CDR_DIVMOD     := 3'b001          ;
+    }
+    else if (CLKDIV_FACTOR == "3.5")
+    {
+        SC_CDR_DIVMOD     := 3'b010          ;
+    }
+    else if (CLKDIV_FACTOR == "4")
+    {
+        SC_CDR_DIVMOD     := 3'b011          ;
+    }
+    else if (CLKDIV_FACTOR == "5")
+    {
+        SC_CDR_DIVMOD     := 3'b100          ;
+    }
+    else //if (CLKDIV_FACTOR == "DEFAULT")
+    {
+        SC_CDR_DIVMOD     := 3'b000          ;
+    }
+    
+    
+    SC_DELAY_EN_R          := (DQS_DEL_EN == "TRUE") ? 1'b1 : 1'b0  ;
+    SC_MRG_EN_R            := (RDEL_CTRL_EN == "TRUE") ? 1'b1 : 1'b0  ;    
+
+    SC_DQS_DELAY_STEP      := DQS_DELAY_STEP  ; 
+    
+    SC_CENTERED_R          := (DQS_DLL_IN_EN == "TRUE") ? 1'b0 : 1'b1  ;
+    
+    SC_UPDATEQU            := MARGIN          ;
+    SC_EN_DQSFIFO          := (FIFO_EN == "TRUE") ? 1'b1 : 1'b0  ;
+    
+    if (FIFO_MODE == "MDDR")
+    {
+        SC_COU_EN          := 1'b0;
+    }
+    else // if(FIFO_MODE ==  "GDDR")
+    {
+        SC_COU_EN          := 1'b1;
+    }
+    
+    SC_PNTR_FIFO := FIF0_ADDR_INIT;
+        
+    SC_FIFOMODE_SEL := FIFOMODE_SEL;    
+   
+    SC_DQSI_SEL := (DQSI_SEL == "DQSI0") ? 1'b0 : 1'b1;
+                                                                 
+}; // end of configuration cfg of DQS
+
+
+
+
+

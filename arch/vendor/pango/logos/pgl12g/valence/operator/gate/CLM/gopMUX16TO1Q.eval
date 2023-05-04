@@ -1,0 +1,213 @@
+*******************************************************************
+
+  Operator    [gopMUX16TO1Q]
+  
+  Author    [liujiao]
+
+  Abstract  []
+
+  Revision History:
+
+ ********************************************************************************/
+gate
+operator gopMUX16TO1Q
+{
+    parameter
+    (
+        string GRS_EN      = "FALSE",           // "TRUE" "FALSE"
+        string LRS_EN      = "TRUE",            // "TRUE"   "FALSE"    
+        bit    INITA[31:0] = 32'hAAF0_CCAA,
+        bit    INITB[31:0] = 32'hAAF0_CCAA,
+        bit    INITC[31:0] = 32'hAAF0_CCAA,
+        bit    INITD[31:0] = 32'hAAF0_CCAA,
+        string CEMUX_SEL  = "LOCAL",                // "CE" "CEIN"
+        string RSMUX_SEL  = "LOCAL",                // "RS" "RSIN"
+        string CLK_POS    = "FALSE",                // 1'b0: "CLK"; 1'b1: "CLK_B  
+        string CE_POS     = "FALSE",                // 1'b0: "CE";  1'b1: "CE_B"  
+        string RS_POS     = "FALSE",                // 1'b0: "RS";  1'b1: "RS_B"  
+        string CE_USED    = "UNUSED",              // "USED"  "UNUSED"
+        string RS_USED    = "UNUSED",              // "USED"  "UNUSED"
+        string SYNC_MODE  = "SYNC",              // "SYNC" "ASYNC"
+        string FF_SET     = "RESET",              // "RESET" "SET"
+        string MODEA      = "MUX4",               // "LUT5" "MUX4" "ARITH"
+        string MODEB      = "MUX4",               // "LUT5" "MUX4" "ARITH"
+        string MODEC      = "MUX4",               // "LUT5" "MUX4" "ARITH"
+        string MODED      = "MUX4"                // "LUT5" "MUX4" "ARITH"
+    );
+
+    port
+    (
+        input  I0, I1, I2, I3, I4, I5, I6, I7, 
+        input  I8, I9, I10, I11, I12, I13, I14, I15, 
+        input  S00, S01, S02, S03,S10,S11,S12,S13,S20,S21,S3,
+        input  CLK /*pragma PAP_ARC_GOP_CTRL_PIN="GCLK|RCLK|COLCLK"*/,
+        input  CE /*pragma PAP_ARC_GOP_CTRL_PIN="CE"*/,
+        input  RS /*pragma PAP_ARC_GOP_CTRL_PIN="RST"*/,
+        output CEOUT, RSOUT,
+        output L6OUTA,L6OUTB,
+        output F, Fother, Q
+    );
+};
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Implement this using gate device devL7Q_S]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devL7Q_S of gopMUX16TO1Q
+{  
+    device devL7Q_S gatedev
+        parameter map 
+        ( 
+            CP_GRS_EN    => GRS_EN,
+            CP_LRS_EN    => RS_USED == "USED" ? "TRUE" : "FALSE",
+            CP_LCE_EN    => CE_USED == "USED" ? "TRUE" : "FALSE",
+            CP_INITA     => INITA,
+            CP_INITB     => INITB,
+            CP_INITC     => INITC,
+            CP_INITD     => INITD,
+            CP_MODEA     => MODEA == "WMUX" ? "MUX4" : MODEA,
+            CP_MODEB     => MODEB == "WMUX" ? "MUX4" : MODEB,
+            CP_MODEC     => MODEC == "WMUX" ? "MUX4" : MODEC,
+            CP_MODED     => MODED == "WMUX" ? "MUX4" : MODED,
+            CP_CEMUX_SEL => CEMUX_SEL,
+            CP_RSMUX_SEL => RSMUX_SEL,
+            CP_CLK_POL   => CLK_POS,                             // "CLK" "CLK_B"
+            CP_LCE_POL   => (CE_USED == "USED") ? CE_POS : "FALSE", 
+            CP_LRS_POL   => (RS_USED == "USED") ? RS_POS : "TRUE",   
+            CP_RS_MODE   => SYNC_MODE,                           // "SYNC" "ASYNC"
+            CP_FF1_RS    => FF_SET                               // "RESET" "SET"            
+        )
+        port map 
+        (                            
+            AD   => I0,                          
+            A4   => S01,
+            A3   => S00,
+            A2   => I2,
+            A1   => I1,
+            A0   => I3,      
+            BD   => I4,                          
+            B4   => S03,                          
+            B3   => S02,                          
+            B2   => I6,                          
+            B1   => I5,                                          
+            B0   => I7,                                      
+            M0   => S20,  
+            
+            CD   => I8,                          
+            C4   => S11,
+            C3   => S10,
+            C2   => I10,
+            C1   => I9,
+            C0   => I11,      
+            DD   => I12,                          
+            D4   => S13,                          
+            D3   => S12,                          
+            D2   => I14,                          
+            D1   => I13,                                          
+            D0   => I15,     
+            M1   => S21,
+
+            M2    => S3,  
+             
+            RS    => (RSMUX_SEL == "LOCAL")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE    => (CEMUX_SEL == "LOCAL")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx,
+            CLK   => CLK, 
+            
+            L7OUT => Fother,  
+            RSCI  => (RSMUX_SEL == "LOCAL")  ? 1'bx : RS,         
+            RSCO  => RSOUT,       
+            CECI  => (CEMUX_SEL == "LOCAL")  ? 1'bx : CE,        
+            CECO  => CEOUT,
+            Y6AB  => L6OUTA,
+            Y6CD  => L6OUTB,
+            Y1    => F,
+            Q1    => Q
+            
+        );
+}; // end of implementation impl_devL7Q_S of gopMUX16TO1Q
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Implement this using gate device devL7Q]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devL7Q of gopMUX16TO1Q
+{   
+    device devL7Q gatedev
+        parameter map 
+        ( 
+            CP_GRS_EN    => GRS_EN,
+            CP_LRS_EN    => RS_USED == "USED" ? "TRUE" : "FALSE",
+            CP_LCE_EN    => CE_USED == "USED" ? "TRUE" : "FALSE",
+            CP_INITA     => INITA,
+            CP_INITB     => INITB,
+            CP_INITC     => INITC,
+            CP_INITD     => INITD,
+            CP_MODEA     => MODEA == "WMUX" ? "MUX4" : MODEA,
+            CP_MODEB     => MODEB == "WMUX" ? "MUX4" : MODEB,
+            CP_MODEC     => MODEC == "WMUX" ? "MUX4" : MODEC,
+            CP_MODED     => MODED == "WMUX" ? "MUX4" : MODED,
+            CP_CEMUX_SEL => CEMUX_SEL,
+            CP_RSMUX_SEL => RSMUX_SEL,
+            CP_CLK_POL   => CLK_POS,                             // "CLK" "CLK_B"
+            CP_LCE_POL   => (CE_USED == "USED") ? CE_POS : "FALSE",
+            CP_LRS_POL   => (RS_USED == "USED") ? RS_POS : "TRUE", 
+            CP_RS_MODE   => SYNC_MODE,                           // "SYNC" "ASYNC"
+            CP_FF1_RS    => FF_SET                               // "RESET" "SET"            
+        )
+        port map 
+        (                            
+            AD   => I0,                          
+            A4   => S01,
+            A3   => S00,
+            A2   => I2,
+            A1   => I1,
+            A0   => I3,      
+            BD   => I4,                          
+            B4   => S03,                          
+            B3   => S02,                          
+            B2   => I6,                          
+            B1   => I5,                                          
+            B0   => I7,                                      
+            M0   => S20,  
+            
+            CD   => I8,                          
+            C4   => S11,
+            C3   => S10,
+            C2   => I10,
+            C1   => I9,
+            C0   => I11,      
+            DD   => I12,                          
+            D4   => S13,                          
+            D3   => S12,                          
+            D2   => I14,                          
+            D1   => I13,                                          
+            D0   => I15,     
+            M1   => S21,
+            M2    => S3,
+                           
+            RS    => (RSMUX_SEL == "LOCAL")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE    => (CEMUX_SEL == "LOCAL")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx,
+            CLK   => CLK, 
+            
+            L7OUT => Fother,  
+            RSCI  => (RSMUX_SEL == "LOCAL")  ? 1'bx : RS,         
+            RSCO  => RSOUT,       
+            CECI  => (CEMUX_SEL == "LOCAL")  ? 1'bx : CE,        
+            CECO  => CEOUT,
+            Y6AB  => L6OUTA,
+            Y6CD  => L6OUTB,
+            Y1    => F,
+            Q1    => Q
+            
+        );
+}; // end of implementation impl_devL7Q of gopMUX16TO1Q

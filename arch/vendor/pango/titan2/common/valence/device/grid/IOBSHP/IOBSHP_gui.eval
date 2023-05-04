@@ -1,0 +1,229 @@
+*****************************************************************
+
+    Device    [IOBSHP]
+
+    Author    [wxcao]
+
+    Abstract  []
+
+    Abstract  []
+
+    Revision History:
+
+********************************************************************************/
+symbol logsym of IOBSHP // pragma PAP_ARC_COLOR="64:64:128"
+{
+    generate ( 20 # 20 );
+    shape
+    [ 0, 0 ]  ->  [ , 20 ]
+                            <
+                                S11_ENINR_DYN                           @[ ,4],
+                                DIFFO_IN                                @[ ,8],
+                                S11_USR_DO_P                            @[ ,12],
+                                S11_USR_DO_N                            @[ ,16]
+                            >
+              ->  [ 20, ]
+              ->  [ ,0 ]
+                            <
+                                DIN                                     @[ ,4],
+                                DIFFI_OUT                               @[ ,8]
+                            >
+              ->  [ 0, ];
+};// symbol logsym of IOBSHP
+
+/*******************************************************************************
+
+  Device    [IOBSHP]
+
+  Author    [liqiang]
+
+  Abstract  [The schematic for IOBSHP]
+
+  Revision History:
+
+********************************************************************************/
+schematic schm of IOBSHP
+{
+    // The bounding box
+    unsigned int BOX_X = 144;
+    unsigned int BOX_Y = 90;
+
+    generate (BOX_X # BOX_Y);
+
+    //
+    // Layout all symbols.
+    //
+    unsigned int SHIFT_X = BOX_X / 4;
+    unsigned int SHIFT_Y = BOX_Y / 3;
+
+    unsigned int IOBHP_IBUFS_X = SHIFT_X * 3 - 16 ;
+    unsigned int IOBHP_IBUFS_Y = SHIFT_Y - 2;
+    unsigned int IOBHP_OBUFS_X = SHIFT_X - 8;
+    unsigned int IOBHP_OBUFS_Y = SHIFT_Y + 5;
+    unsigned int IOBHP_DIFFOSMUX_X = SHIFT_X * 2 - 16;
+    unsigned int IOBHP_DIFFOSMUX_Y = SHIFT_Y + 3;
+
+
+    device IOBHP_IBUFS (symbol logsym) IOBHP_IBUFS
+        @[IOBHP_IBUFS_X, IOBHP_IBUFS_Y];
+
+    device IOBHP_OBUFS (symbol logsym) IOBHP_OBUFS
+        @[IOBHP_OBUFS_X, IOBHP_OBUFS_Y];
+
+    device IOBHP_DIFFOSMUX (symbol logsym) IOBHP_DIFFOSMUX
+        @[IOBHP_DIFFOSMUX_X, IOBHP_DIFFOSMUX_Y];
+
+
+    map (
+       <instance IOBHP_IBUFS>      => <instance IOBHP_IBUFS     of device IOBSHP (structure netlist)>,
+       <instance IOBHP_OBUFS>      => <instance IOBHP_OBUFS     of device IOBSHP (structure netlist)>,
+       <instance IOBHP_DIFFOSMUX>  => <instance IOBHP_DIFFOSMUX of device IOBSHP (structure netlist)>
+       );
+
+    //
+    // Layout all ports.
+    //
+    // Since ports drive or are driven by pins of symbol instance, derive the port
+    // location from those pins
+    //
+
+    unsigned int PORT_LEFT = 10;
+    unsigned int PORT_BUTTOM = 10;
+    unsigned int PORT_TOP = BOX_Y - 10;
+    unsigned int PORT_RIGHT = BOX_X - 10;
+
+    // PG2T
+
+    port S11_ENINR_DYN  @[<pin IN_DYN_EN  of <instance IOBHP_IBUFS>>#| - 6, PORT_BUTTOM]; // pragma PAP_UI_ORIENTATION="SOUTH"
+    port S11_USR_DO_P   @[PORT_LEFT, <pin DO_P        of <instance IOBHP_OBUFS>>#-];
+    port S11_USR_DO_N   @[PORT_LEFT, <pin DO_N        of <instance IOBHP_OBUFS>>#-];
+    port DIFFO_IN       @[<pin DIFFO_IN of <instance IOBHP_DIFFOSMUX>>#| - 3, PORT_BUTTOM]; // pragma PAP_UI_ORIENTATION="SOUTH"
+
+    port DIN            @[PORT_RIGHT, <pin OUT        of <instance IOBHP_IBUFS>>#-];
+
+    unsigned int PAD_X = (<pin OUT  of <instance IOBHP_DIFFOSMUX>>#| + <pin IN  of <instance IOBHP_IBUFS>>#|) / 2;
+    port PAD            @[PAD_X,    PORT_TOP];// pragma PAP_UI_ORIENTATION="NORTH"
+
+    port DIFFI_OUT      @[<pin DIFFI_OUT of <instance IOBHP_IBUFS>>#| + 8, PORT_TOP]; // pragma PAP_UI_ORIENTATION="NORTH"
+
+    //
+    // Layout all lines
+    //
+
+    line lnOBUFO_IN
+         <pin OUT of <instance IOBHP_OBUFS>> ->
+         [ <pin OBUFO_IN of <instance IOBHP_DIFFOSMUX>>#| - 3, ] ->
+         <pin OBUFO_IN of <instance IOBHP_DIFFOSMUX>>;
+
+    line  lnS11_ENINR_DYN
+        <port S11_ENINR_DYN> ->
+        [ , <pin IN_DYN_EN of <instance IOBHP_IBUFS>>#-] ->
+        <pin IN_DYN_EN of <instance IOBHP_IBUFS>>;
+
+    line lnDIFFO_IN
+        <port DIFFO_IN> ->
+        [, <pin DIFFO_IN of <instance IOBHP_DIFFOSMUX>>#-] ->
+        <pin DIFFO_IN of <instance IOBHP_DIFFOSMUX>>;
+
+    line lnS11_USR_DO_P
+        <port S11_USR_DO_P> ->
+        [<pin DO_P of <instance IOBHP_OBUFS>>#| - 6, ] ->
+        <pin DO_P  of <instance IOBHP_OBUFS>>,
+
+        [<pin DO_P of <instance IOBHP_OBUFS>>#| - 6, <port S11_USR_DO_P>#-] ->
+        [ , <port S11_USR_DO_P>#- - 8] ->
+        [ <pin DO_P of <instance IOBHP_DIFFOSMUX>>#| - 6, ] ->
+        [ ,  <pin DO_P of <instance IOBHP_DIFFOSMUX>>#-] ->
+        <pin DO_P  of <instance IOBHP_DIFFOSMUX>>;
+
+    line lnS11_USR_DO_N
+        <port S11_USR_DO_N> ->
+        [<pin DO_N of <instance IOBHP_OBUFS>>#| - 6, ] ->
+        <pin DO_N  of <instance IOBHP_OBUFS>>,
+
+        [<pin DO_N of <instance IOBHP_OBUFS>>#| - 6, <port S11_USR_DO_N>#-] ->
+        [ , <port S11_USR_DO_N>#- + 14] ->
+        [ <pin DO_N of <instance IOBHP_DIFFOSMUX>>#| - 6, ] ->
+        [ ,  <pin DO_N of <instance IOBHP_DIFFOSMUX>>#-] ->
+        <pin DO_N  of <instance IOBHP_DIFFOSMUX>>;
+
+
+    line lnDIN
+        <pin OUT of <instance IOBHP_IBUFS>> ->
+        <port DIN>;
+
+   line lnDIFFI_OUT
+      <pin DIFFI_OUT of <instance IOBHP_IBUFS>> ->
+      [<pin DIFFI_OUT of <instance IOBHP_IBUFS>>#| + 8, ] ->
+      <port DIFFI_OUT> ;
+
+
+   line lnPAD
+       <pin OUT  of <instance IOBHP_DIFFOSMUX>> ->
+       [<port PAD>#|, ] ->
+       [<port PAD>#|, <pin IN  of <instance IOBHP_DIFFOSMUX>>#- + 20] ->
+       [<pin IN of <instance IOBHP_DIFFOSMUX>>#| -2 , ] ->
+       [ , <pin IN of <instance IOBHP_DIFFOSMUX>>#-] ->
+       <pin IN of <instance IOBHP_DIFFOSMUX>>,
+
+       [<port PAD>#| , <pin IN of <instance IOBHP_DIFFOSMUX>>#- + 20] ->
+       <port PAD>,
+
+       [<pin IN of <instance IOBHP_DIFFOSMUX>>#| -2 , <pin IN  of <instance IOBHP_DIFFOSMUX>>#- + 20] ->
+       [<pin PAD of <instance IOBHP_OBUFS>>#| - 3, ] ->
+       [ , <pin PAD of <instance IOBHP_OBUFS>>#-] ->
+       <pin PAD of <instance IOBHP_OBUFS>>,
+
+       [<pin PAD of <instance IOBHP_OBUFS>>#| - 3, <pin PAD of <instance IOBHP_OBUFS>>#-] ->
+       [<pin PAD of <instance IOBHP_OBUFS>>#| - 3, <pin IN of <instance IOBHP_OBUFS>>#-] ->
+       <pin IN of <instance IOBHP_OBUFS>>,
+
+       [<port PAD>#|, <pin OUT of <instance IOBHP_DIFFOSMUX>>#-] ->
+       <pin IN of <instance IOBHP_IBUFS>>;
+
+
+    map  (
+           <line lnOBUFO_IN>       => <wire ntOBUFO_IN      of device IOBSHP (structure netlist)>,
+           <line lnS11_ENINR_DYN>  => <wire ntS11_ENINR_DYN of device IOBSHP (structure netlist)>,
+           <line lnS11_USR_DO_P>   => <wire ntS11_USR_DO_P  of device IOBSHP (structure netlist)>,
+           <line lnS11_USR_DO_N>   => <wire ntS11_USR_DO_N  of device IOBSHP (structure netlist)>,
+           <line lnDIFFO_IN >      => <wire ntDIFFO_IN      of device IOBSHP (structure netlist)>,
+           <line lnDIFFI_OUT >     => <wire ntDIFFI_OUT     of device IOBSHP (structure netlist)>,
+           <line lnDIN>            => <wire ntDIN           of device IOBSHP (structure netlist)>,
+           <line lnPAD>            => <wire ntPAD           of device IOBSHP (structure netlist)>
+         );
+
+}; // end of schematic schm of IOBSHP
+
+/*******************************************************************************
+
+  Device    [IOBSHP]
+
+  Author    []
+
+  Abstract  [The floorplan schematic for IOBS]
+
+  Revision History:
+
+********************************************************************************/
+floorplan
+schematic floorplan_view of IOBSHP // pragma PAP_ARC_SHOW_BOUNDING_BOX PAP_ARC_COLOR="160:164:160"
+{
+    generate ( 20*8 # 20*8 );
+
+    device IBUFS (symbol fpsym)  IBUFS
+        @[5*8, 4*8];
+    device OBUFS (symbol fpsym) OBUFS
+        @[5*8,12*8];
+    device DIFFOSMUX (symbol fpsym) DIFFOSMUX
+        @[13*8, 8*8-4];
+
+    map (
+         <instance IBUFS>     => <instance IBUFS    of device IOBS (structure fp_struct)> ,
+         <instance OBUFS>     => <instance OBUFS    of device IOBS (structure fp_struct)> ,
+         <instance DIFFOSMUX> => <instance DIFFOSMUX    of device IOBS (structure fp_struct)>
+         );
+};
+
+
+

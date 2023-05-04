@@ -1,0 +1,79 @@
+*****************************************************************
+
+  Device    [CLK_POLMUX]
+
+  Author    [yqtan]
+
+  Abstract  [The Prim Device Of CLMA or CLMS]
+
+  Revision History:
+
+********************************************************************************/
+prim
+device CLK_POLMUX
+{
+    parameter
+    (
+        config string CP_CLK_POL = "FALSE"    //"TRUE" "FALSE"
+    );
+    port 
+    ( 
+        // Input Ports of CLK_POLMUX
+        input IN,
+        
+        // Output Ports for CLK_POLMUX
+        output Y
+    );
+
+};
+
+/**Device***********************************************************************
+
+  Device    [CLK_POLMUX]
+
+  Abstract  [This specified how to propagate the input signal to the outputs based on
+             configuration]
+
+  Revision History:
+
+********************************************************************************/
+propagation pop of CLK_POLMUX
+{
+    if (CP_CLK_POL == "FALSE")
+    {
+        propagate ( IN --> Y );
+    }
+    else
+    {
+        propagate ( IN ~-> Y );
+    }
+}; // end of propagation for CLK_POLMUX
+
+
+/**Device***********************************************************************
+
+  Device    [CLK_POLMUX]
+  
+  Author    []
+
+  Abstract  [This specified the timing model under specific configuration]
+
+  Revision History:
+
+********************************************************************************/
+timing  clk_polmux_tnl of CLK_POLMUX
+{
+    if (CP_CLK_POL == "FALSE")
+    {
+        Y <= IN;
+    }
+    else
+    {
+        operator V_INV V_INV
+            port map
+            (
+                I => IN,
+                Z => Y
+            );
+    }
+};

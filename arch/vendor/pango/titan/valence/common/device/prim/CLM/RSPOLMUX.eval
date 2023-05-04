@@ -1,0 +1,70 @@
+*****************************************************************
+
+  Device    [RSPOLMUX]
+
+  Author    [clwang]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+prim
+device RSPOLMUX
+{
+    parameter
+    (
+        config bit CFG  = 1'b0     // 1'b0 "RS" ; 1'b1 "RS_B"
+    );
+    port 
+    ( 
+        input  RS, RS_B,
+        output Y
+    );
+
+}; // end of device RSPOLMUX
+
+propagation prop_rs of RSPOLMUX
+{
+
+    if (CFG == 1'b1)
+    {
+        propagate ( RS_B ~-> Y );
+    }
+    else
+    {
+        propagate ( RS --> Y );
+    }
+};
+
+/**Device***********************************************************************
+
+  Device    [RSPOLMUX]
+  
+  Author    []
+
+  Abstract  [This specified the timing model under specific configuration]
+
+  Revision History:
+
+********************************************************************************/
+timing  rspolmux_tnl of RSPOLMUX
+{
+    if (CFG == 1'b1)
+    {
+       operator V_INV V_INV
+           port map
+           (
+               I => RS_B,
+               Z => Y
+           );
+    }
+    else if (CFG == 1'b0)
+    {
+        Y <= RS;
+    }
+    else
+    {
+        Y <= 1'b0;
+    }
+};

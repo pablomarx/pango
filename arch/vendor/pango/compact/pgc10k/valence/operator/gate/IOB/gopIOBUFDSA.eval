@@ -1,0 +1,234 @@
+*******************************************************************
+
+  Operator    [gopIOBUFDSA]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+
+gate
+operator gopIOBUFDSA
+{
+    parameter
+    (
+        string TERMINATED         = "PULLDW",    /* "NONE" , "PULLUP" , "PULLDW" , "KEEPER" */
+        string HOT_SOCKET         = "ON",        // ON: 1'b0; OFF: 1'b1
+        string POWER_MODE         = "ON",        // ON: 1'b0; OFF: 1'b1 ON--> POWER GUARD
+        string VCCIO              = "3.3",       // "3.3" "2.5" "1.8" "1.5" "1.2"
+
+        string HYS_DRIVE_MODE     = "NOHYS" ,    // "NOHYS","SMHYS_I","SMHYS_II","LGHYS","OD","UD" 
+        string VREF_MODE          = "IN"    ,    // "IN": VREF_IN; "OUT": VREF_OUT
+        string VREF_IN_MODE       = "OFF",       // "OFF" "0.45" "0.50" "0.55"
+        string VREF_PIN_LOC       = "NA"    ,    // "NA" "VREF1" "VREF2" "VREF3",
+                                                 // This Parameter is used for PCE and report.
+        string DDR_TERM_MODE      = "OFF",       // "TERM": "ON" "OFF"     
+        string VREF_OUT_MODE      = "VREF",  // "VREF"          
+        string DIFF_IN_TERM_MODE  = "OFF",       // "ON" "OFF" 
+
+        string SLEW_MODE          = "F",         // "F" "S"
+        string DRV_CURR_VAL       = "8",
+        string IOSTANDARD         = "LVDS33",
+        string CP_DIFFIN_DYN_EN   = "FALSE",
+        string CP_DIFFOUT_DYN_EN  = "FALSE",
+        string IOB_MODE           = "IOBUF_DS",
+        string OPENDRAIN          = "OFF"
+    );
+    port
+    (
+        input  I, 
+        input  T,
+        input  DIFFI_IN,
+        output O,
+        inout  IO,
+        output DIFFO_OUT
+    );
+};
+
+
+implementation impl_d of gopIOBUFDSA
+{
+    string IOSTANDARD_MID = IOSTANDARD;
+    if (IOSTANDARD == "LVDS33" || IOSTANDARD == "LVDS25")
+    {
+        IOSTANDARD_MID = "LVDS";
+    }
+    
+    if (!strncmp(IOSTANDARD_MID, "LVDS" , 4) && strncmp(IOSTANDARD_MID, "LVDS25E" , 7))
+    {
+        device devIOBD gate_iobufds_d
+        parameter map
+        (
+            CP_PORT_STATUS       =>  TERMINATED,
+            CP_HOT_SOCKET        =>  HOT_SOCKET,
+            CP_VCCIO             =>  VCCIO,
+            CP_IOB_MODE          =>  IOB_MODE,
+            CP_W_VOLT_R_IN       =>  HYS_DRIVE_MODE,
+         
+            CP_SLEW_MODE         =>  SLEW_MODE,
+            CP_DRV_STRENGTH      =>  DRV_CURR_VAL,
+            CP_IO_STANDARD       =>  IOSTANDARD_MID,
+            CP_OPENDRAIN         =>  OPENDRAIN
+        )
+        port map
+        (
+            DO          => I,
+            TS          => T,
+            DIFFI_IN    => DIFFI_IN,
+            DIN         => O,
+            PAD         => IO,
+            DIFFO_OUT   => DIFFO_OUT
+        );
+    }
+    else
+    {
+        device devIOBD gate_iobufds_d
+        parameter map
+        (
+            CP_PORT_STATUS       =>  TERMINATED,
+            CP_HOT_SOCKET        =>  HOT_SOCKET,
+            CP_VCCIO             =>  VCCIO,
+            CP_IOB_MODE          =>  IOB_MODE,
+            CP_W_VOLT_R_IN       =>  HYS_DRIVE_MODE,
+         
+            CP_SLEW_MODE         =>  SLEW_MODE,
+            CP_DRV_STRENGTH      =>  DRV_CURR_VAL,
+            CP_IO_STANDARD       =>  IOSTANDARD_MID,
+            CP_OPENDRAIN         =>  OPENDRAIN
+        )
+        port map
+        (
+            DO          => I,
+            TS          => T,
+            DIFFI_IN    => DIFFI_IN,
+            DIN         => O,
+            PAD         => IO
+        );
+    }
+};
+
+implementation impl_s of gopIOBUFDSA
+{
+    string IOSTANDARD_MID = IOSTANDARD;
+    if (IOSTANDARD == "LVDS33" || IOSTANDARD == "LVDS25")
+    {
+        IOSTANDARD_MID = "LVDS";
+    }
+    
+    if (!strncmp(IOSTANDARD_MID, "LVDS" , 4) && strncmp(IOSTANDARD_MID, "LVDS25E" , 7))
+    {
+        device devIOBD gate_iobufds_d
+        parameter map
+        (
+            CP_PORT_STATUS       =>  TERMINATED,
+            CP_HOT_SOCKET        =>  HOT_SOCKET,
+            CP_VCCIO             =>  VCCIO,
+            CP_IOB_MODE          =>  IOB_MODE,
+            CP_W_VOLT_R_IN       =>  HYS_DRIVE_MODE,
+         
+            CP_SLEW_MODE         =>  SLEW_MODE,
+            CP_DRV_STRENGTH      =>  DRV_CURR_VAL,
+            CP_IO_STANDARD       =>  IOSTANDARD_MID,
+            CP_OPENDRAIN         =>  OPENDRAIN
+        )
+        port map
+        (
+            DO          => I,
+            TS          => T,
+            DIFFI_IN    => DIFFI_IN,
+            DIN         => O,
+            PAD         => IO,
+            DIFFO_OUT   => DIFFO_OUT
+        );
+    }
+    else
+    {
+        device devIOBS gate_iobufds_s
+        parameter map
+        (
+            CP_PORT_STATUS       =>  TERMINATED,
+            CP_HOT_SOCKET        =>  HOT_SOCKET,
+            CP_VCCIO             =>  VCCIO,
+            CP_IOB_MODE          =>  IOB_MODE,
+            CP_W_VOLT_R_IN       =>  HYS_DRIVE_MODE,
+         
+            CP_SLEW_MODE         =>  SLEW_MODE,
+            CP_DRV_STRENGTH      =>  DRV_CURR_VAL,
+            CP_IO_STANDARD       =>  IOSTANDARD_MID,
+            CP_OPENDRAIN         =>  OPENDRAIN
+        )
+        port map
+        (
+            DO          => I,
+            TS          => T,
+            DIFFI_IN    => DIFFI_IN,
+            DIN         => O,
+            PAD         => IO
+        );
+    }
+
+};
+
+implementation impl_r of gopIOBUFDSA
+{
+    string IOSTANDARD_MID = IOSTANDARD;
+    if (IOSTANDARD == "LVDS33" || IOSTANDARD == "LVDS25")
+    {
+        IOSTANDARD_MID = "LVDS";
+    }
+    
+    if (!strncmp(IOSTANDARD_MID, "LVDS" , 4) && strncmp(IOSTANDARD_MID, "LVDS25E" , 7))
+    {
+        device devIOBD gate_iobufds_d
+        parameter map
+        (
+            CP_PORT_STATUS       =>  TERMINATED,
+            CP_HOT_SOCKET        =>  HOT_SOCKET,
+            CP_VCCIO             =>  VCCIO,
+            CP_IOB_MODE          =>  IOB_MODE,
+            CP_W_VOLT_R_IN       =>  HYS_DRIVE_MODE,
+         
+            CP_SLEW_MODE         =>  SLEW_MODE,
+            CP_DRV_STRENGTH      =>  DRV_CURR_VAL,
+            CP_IO_STANDARD       =>  IOSTANDARD_MID,
+            CP_OPENDRAIN         =>  OPENDRAIN
+        )
+        port map
+        (
+            DO          => I,
+            TS          => T,
+            DIFFI_IN    => DIFFI_IN,
+            DIN         => O,
+            PAD         => IO,
+            DIFFO_OUT   => DIFFO_OUT
+        );
+    }
+    else
+    {
+        device devIOBR gate_iobufds_r
+        parameter map
+        (
+            CP_PORT_STATUS       =>  TERMINATED,
+            CP_HOT_SOCKET        =>  HOT_SOCKET,
+            CP_VCCIO             =>  VCCIO,
+            CP_IOB_MODE          =>  IOB_MODE,
+            CP_W_VOLT_R_IN       =>  HYS_DRIVE_MODE,
+            CP_DIFFIN_TERM       =>  DIFF_IN_TERM_MODE,
+         
+            CP_SLEW_MODE         =>  SLEW_MODE,
+            CP_DRV_STRENGTH      =>  DRV_CURR_VAL,
+            CP_IO_STANDARD       =>  IOSTANDARD_MID,
+            CP_OPENDRAIN         =>  OPENDRAIN
+        )
+        port map
+        (
+            DO          => I,
+            TS          => T,
+            DIFFI_IN    => DIFFI_IN,
+            DIN         => O,
+            PAD         => IO
+        ); 
+    }
+
+};

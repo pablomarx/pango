@@ -1,0 +1,105 @@
+*****************************************************************
+
+  Device    [MUX4TO1_P]
+
+  Author    [clwang]
+
+  Abstract  [The Prim Device Of MUX4TO1_P]
+
+  Revision History:
+
+********************************************************************************/
+prim
+device MUX4TO1_P
+{
+    parameter
+    (
+        config bit       CP_DQMODE[1:0]  = 2'b00,
+        config string    CP_MIPI_EN      = "FALSE"
+    );
+    port 
+    (
+        input             MIPI_I,
+        input             DIN0,
+        input             DIN1,
+        input             DIN2,
+        input             DIN3,
+        output            DOUT
+    );
+
+}; // end of device MUX4TO1_P
+
+/**Device***********************************************************************
+
+  Device    [MUX4TO1_P]
+  
+  Author    [kongbiao]  
+
+  Abstract  [This specified how to propagate the input signal to the outputs based on
+             configuration]
+
+  Revision History:
+
+********************************************************************************/
+propagation pop of MUX4TO1_P
+{
+    if (CP_MIPI_EN == "FALSE")
+    {
+        if (CP_DQMODE == 2'b00)
+        {
+            propagate ( DIN0 --> DOUT );
+        }
+        else if (CP_DQMODE == 2'b01)
+        {
+            propagate ( DIN1 --> DOUT );
+        }
+        else if (CP_DQMODE == 2'b10)
+        {
+            propagate ( DIN2 --> DOUT );
+        }
+        else if (CP_DQMODE == 2'b11)
+        {
+            propagate ( DIN3 --> DOUT );
+        }
+    }
+    else if (CP_MIPI_EN == "TRUE")
+    {
+        propagate ( DIN0 |-> DOUT );
+        propagate ( DIN2 |-> DOUT );
+        propagate ( MIPI_I |-> DOUT );
+    }
+}; // end of propagation for MUX4TO1_P
+
+/**Device***********************************************************************                  
+                                                                                                  
+  Device    [MUX4TO1_P]                                                                                
+                                                                                                  
+  Author    [kongbiao]                                                                               
+                                                                                                  
+  Abstract  [This specified the timing model under specific configuration]                        
+                                                                                                  
+  Revision History:                                                                               
+                                                                                                  
+********************************************************************************/                 
+                                                                                                  
+timing  mux21_tnl of MUX4TO1_P  
+{
+    if (CP_MIPI_EN == "FALSE")
+    {
+        DOUT <= (CP_DQMODE == 2'b00) ? DIN0 :
+                (CP_DQMODE == 2'b01) ? DIN1 :
+                (CP_DQMODE == 2'b10) ? DIN2 :
+                (CP_DQMODE == 2'b11) ? DIN3 : 1'bx;
+    }
+    else if (CP_MIPI_EN == "TRUE")
+    {
+        operator V_MUX2 MUX2
+        port map
+        (
+           I0   =>  DIN0,
+           I1   =>  DIN2,
+           SEL  =>  MIPI_I,
+           Z    =>  DOUT
+        );
+    }
+};

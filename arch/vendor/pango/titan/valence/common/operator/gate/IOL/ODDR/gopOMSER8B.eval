@@ -1,0 +1,97 @@
+*******************************************************************
+
+  Operator    [gopOMSER8B]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+gate
+operator gopOMSER8B // pragma PAP_ARC_DISABLE_MPNR
+{
+    parameter
+    (
+        string SERCLK_SRC     = "IOCLK",   //"IOCLK" "SAMPLE_CLK" "PROBE_CLK"   
+        string OCLK_SRC       = "WCLK_DEL",         // "WCLK", "WCLK_DEL"         
+        string DO_SEL         = "DO",   // "DO", "DO_COMP"
+        string TO_SEL         = "TO",   // "TO", "TO_COMP"  
+
+        bit    LRS_EN         = 1'b0,
+        bit    GRS_EN         = 1'b0,
+        bit    CLK_INV        = 1'b0,
+        bit    LRS_INV        = 1'b0
+    );
+    port
+    (
+        input   D[1:0],
+        input   TCLK,   
+        input   SERCLK /* pragma PAP_ARC_GOP_CTRL_PIN = IOCLK*/,
+        input   SYSCLK /* pragma PAP_ARC_GOP_CTRL_PIN = "GCLK|RCLK"*/,
+        input   RESET /* pragma PAP_ARC_GOP_CTRL_PIN = RST*/,
+
+        output  ODDR_COUT[16:0],
+        input  ODDR_CIN[16:0],
+        output  DO,
+        output  TO,
+
+        input   DO_IN,
+        input   TO_IN
+    );
+};
+
+implementation impl of gopOMSER8B
+{
+    // ODDR config
+
+    if((SERCLK_SRC != "SAMPLE_CLK") && (SERCLK_SRC != "PROBE_CLK") && (SERCLK_SRC != "IOCLK"))
+    {
+        error("Error config SERCLK_SRC = %s in gopOMSER8B", SERCLK_SRC);
+    }
+    
+    if((OCLK_SRC != "WCLK") && (OCLK_SRC != "WCLK_DEL"))
+    {
+        error("Error config OCLK_SRC = %s in gopOMSER8B", OCLK_SRC);
+    }
+  
+    device devOMSER8IOLB gate_omser8iolb
+        parameter map
+        (
+
+            ODDR_LRS_EN  =>   LRS_EN,
+            DO_SEL       =>   DO_SEL,
+            TO_SEL       =>   TO_SEL,
+
+            GRS_EN       =>   GRS_EN,
+            
+            DES_SER_CLK  =>   SERCLK_SRC,
+            ODDR_OCLK    =>   OCLK_SRC,
+
+            CLK_O_INV    =>   CLK_INV,
+            LRS_INV      =>   LRS_INV
+        )
+    
+        port map 
+        (
+            TX_DATA      =>   D,
+
+            IOCLK        =>   (SERCLK_SRC == "IOCLK") ? SERCLK : 1'bx,
+            SAMPLE_CLK   =>   (SERCLK_SRC == "SAMPLE_CLK") ? SERCLK : 1'bx,
+            PROBE_CLK    =>   (SERCLK_SRC == "PROBE_CLK") ? SERCLK : 1'bx,
+            
+            WCLK         =>   (OCLK_SRC == "WCLK") ? TCLK : 1'bx,
+            WCLK_DEL     =>   (OCLK_SRC == "WCLK_DEL") ? TCLK : 1'bx,
+
+            SYSCLK       =>   SYSCLK,
+            LRS          =>   RESET,
+            ODDR_COUT    =>   ODDR_COUT,
+            ODDR_CIN    =>   ODDR_CIN,
+            DO           =>   DO,
+            TO           =>   TO,
+
+            DO_IN        =>  DO_IN,
+            TO_IN        =>  TO_IN
+        );
+};
+
+

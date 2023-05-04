@@ -1,0 +1,154 @@
+*****************************************************************
+
+  Device    [devDL_S]
+
+  Author    []
+
+  Abstract  [THE DEVICE CAN BE USED FOR LUT.]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devDL_S : device devD_S
+{
+    parameter
+    (
+        config bit INITD[31:0]     = 32'h0000_0000,
+        config string FGD_MODE     = "LUT5",               // "LUT5" "ROM" "WMUX" "ARITH" 
+        config string LATCH_SETD   = "RESET",             // USED it when place it in IOL 
+        // Used these parameter for CLM     
+        config string LATCH_CE_EN_D  = "USED",              // "UNUSED"  "USED"
+        config string LATCH_LRS_EN_D = "USED",              // "UNUSED"  "USED"
+                      
+        config string RAM_LUT_SEL  := "LUT",               // "RAM"  "LUT" 
+        config string Y3MUX_SEL    := "FG"                 // "L8"  "FG" "CY"
+    );
+    
+    port
+    (
+        input    D0, D1, D2, D3, D4, DD,
+        output   Y3
+    );
+}; // end of device devDL_S
+
+
+/*******************************************************************************
+
+  Device    [devDL_S]
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devDL_S
+{
+    // Wires for input ports
+    wire ntD0, ntD1, ntD2, ntD3, ntD4, ntDD; 
+
+    // Wires connecting to output ports
+    wire ntY3MUX;
+    // Internal wires
+    wire ntFGD_Z;
+    //
+    // Connection to ports
+    //
+ 
+    ntD0      <= D0;
+    ntD1      <= D1;
+    ntD2      <= D2;
+    ntD3      <= D3;
+    ntD4      <= D4;        
+    ntDD      <= DD;
+    Y3        <= ntY3MUX;   
+    //
+    // Instances. FGA section
+    //
+
+    device FGS FGD 
+        parameter map
+        (
+            INIT        => INITD,
+            MODE        => FGD_MODE,
+            RAM_LUT_SEL => RAM_LUT_SEL
+        )
+        port map 
+        (
+            A0   => ntD0, A1  => ntD1, A2  => ntD2, A3  => ntD3, A4  => ntD4,       
+            WD  => ntDD,  
+            Z    => ntFGD_Z 
+        );
+
+    device Y3MUX Y3MUX
+        parameter map
+        (
+            CFG  => Y3MUX_SEL
+        )       
+        port map
+        (
+            FG  => ntFGD_Z,
+            Z   => ntY3MUX
+        );
+}; // end of structure netlist of devDL_S
+timing tnl of devDL_S          
+{                            
+    if(FGD_MODE == "LATCH")
+    {
+        operator V_LAASYN V_FGD
+           parameter map 
+           (
+               SET_RESET => LATCH_SETD,
+               GRS_EN    => "FALSE",
+               LRS_EN    => (LATCH_LRS_EN_D == "USED") ? "TRUE" : "FALSE",
+               SECTION  => "D"
+           )
+            port map 
+            (
+                Q  => Y3,
+                D  => D4,
+                SR => (LATCH_LRS_EN_D == "USED") ? D2 : 1'b0,
+                CK => D1,
+                CE => (LATCH_CE_EN_D == "USED") ? D3 : 1'b1
+            );
+    }
+    else if (FGD_MODE == "WMUX")
+    {
+       operator V_LUT5M V_FGD   
+           parameter map 
+           (
+               INIT => INITD,
+               SECTION  => "D"
+           )
+           port map
+           (
+               I0   => D0,
+               I1   => D1,
+               I2   => D2,
+               I3   => D3,
+               I4   => D4,
+               ID   => DD,
+               Z    => Y3
+           );
+   }
+    else
+    {
+        operator V_LUT5 V_FGD     
+            parameter map           
+            (                   
+                INIT => INITD,
+                SECTION  => "D"  
+            )                   
+            port map                
+            (                   
+                I0   => D0,       
+                I1   => D1,       
+                I2   => D2,       
+                I3   => D3,       
+                I4   => D4,                        
+                Y    => Y3        
+            );  
+    }                    
+}                            

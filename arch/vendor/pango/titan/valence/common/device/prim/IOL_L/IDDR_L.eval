@@ -1,0 +1,60 @@
+*****************************************************************
+
+  Device    [IDDR_L]
+
+  Author    [hzhang]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+prim
+device IDDR_L
+{
+    parameter
+    (
+        config bit    GRS_EN    = 1'b0,
+        config bit    LRS_EN    = 1'b0
+    )
+    port
+    (
+        input  IN,
+    
+        input  LRS,
+        input  SYSCLK,
+
+        output DATAOUT[1:0]
+    );
+
+}; // end of device IDDR_L
+
+
+propagation prop of IDDR_L
+{
+   propagate ( IN |-> DATAOUT[0] );
+   propagate ( IN |-> DATAOUT[1] );
+
+   propagate ( SYSCLK |-> DATAOUT[0] );
+   propagate ( SYSCLK |-> DATAOUT[1] );
+
+   propagate ( LRS  |-> DATAOUT[0] );
+   propagate ( LRS  |-> DATAOUT[1] );
+};
+
+timing  iddrl_tnl of IDDR_L
+{
+     operator V_IGDDR V_IGDDR
+     parameter map                                                            
+     (                                                                        
+         LRS_EN      =>  ( LRS_EN == 1'b1) ? "TRUE" : "FALSE",           
+         GRS_EN      =>  ( GRS_EN == 1'b1) ? "TRUE" : "FALSE"            
+     )                                                                        
+     port map                                                                 
+     (                                                                        
+         PADI           =>   IN,                                             
+         Q              =>   DATAOUT,                                         
+         RCLK           =>   SYSCLK,      
+         RST            =>   LRS          
+     );                                                                       
+} 

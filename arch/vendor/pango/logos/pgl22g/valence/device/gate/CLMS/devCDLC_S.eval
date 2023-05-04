@@ -1,0 +1,153 @@
+*****************************************************************
+
+  Device    [devCDLC_S]
+
+  Author    [liujiao]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devCDLC_S : device CLMS
+{
+    parameter
+    (
+        config bit CP_INITC[31:0]     = 32'h0000_0000,        
+        config bit CP_INITD[31:0]     = 32'h0000_0000,         
+        config string CP_MODEC        = "ARITH",                // "LUT5" "ROM" "WMUX" "ARITH"        
+        config string CP_MODED        = "ARITH",                // "LUT5" "ROM" "WMUX" "ARITH"       
+        config string CP_Y2MUX_SEL    = "FX",                   // "FFCD" "FG" "CY"
+        config string CP_Y3MUX_SEL    = "FX",                   // "FFCD" "FG" "CY"
+        config string CP_MASK        := "FALSE"
+    );
+    
+    port
+    (
+               input    C0, C1, C2, C3, C4, CD,
+               input    D0, D1, D2, D3, D4, DD,
+               output   Y2, Y3,  
+        logic  input    FGC_CIN,
+               output   COUT
+
+    );
+}; // end of device devCDLC_S
+
+
+/*******************************************************************************
+
+  Device    [devCDLC_S]
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devCDLC_S
+{
+    // Wires for input ports
+    wire ntC0, ntC1, ntC2, ntC3, ntC4, ntCD; 
+    wire ntD0, ntD1, ntD2, ntD3, ntD4, ntDD; 
+
+    // Wires connecting to output ports
+    wire ntY2;
+    wire ntY3;
+    // Internal wires
+    wire ntL5C, ntCYC;
+    wire ntL5D, ntCOUT;    
+    wire ntCYB;
+
+    //
+    // Connection to ports
+    //
+    ntC0      <= C0;
+    ntC1      <= C1;
+    ntC2      <= C2;
+    ntC3      <= C3;
+    ntC4      <= C4;
+    ntCD      <= CD;
+    
+    ntD0      <= D0;
+    ntD1      <= D1;
+    ntD2      <= D2;
+    ntD3      <= D3;
+    ntD4      <= D4; 
+    ntDD      <= DD;
+
+    ntCYB     <= FGC_CIN;
+
+    Y2        <= ntY2;
+    Y3        <= ntY3;
+    COUT      <= ntCOUT;      
+    
+    //
+    // Instances. FGA section
+    //
+
+    device FYS FYC 
+        parameter map
+        (
+            CP_INIT    => CP_INITC,
+            CP_MODE    => CP_MODEC,
+            CP_MASK    => CP_MASK
+        )
+        port map 
+        (
+            A0   => ntC0,
+            A1   => ntC1,
+            A2   => ntC2,
+            A3   => ntC3,
+            A4   => ntC4,
+            AD   => ntCD,
+            CIN  => ntCYB,
+            COUT => ntCYC,
+            L5   => ntL5C 
+        );
+
+    device FYSC FYD 
+        parameter map
+        (
+            CP_INIT => CP_INITD,
+            CP_MODE => CP_MODED,
+            CP_MASK => CP_MASK
+        )
+        port map 
+        (
+            A0   => ntD0,
+            A1   => ntD1,
+            A2   => ntD2,
+            A3   => ntD3,
+            A4   => ntD4,
+            AD   => ntDD,
+            CIN  => ntCYC,
+            COUT => ntCOUT,
+            L5   => ntL5D 
+        );
+
+    device YMUX Y2MUX
+        parameter map
+        (
+            CP_OUT_SEL  => CP_Y2MUX_SEL
+        )    
+        port map
+        (
+            FX  => ntL5C, 
+            CYX => ntCYC,
+            Y   => ntY2
+        );
+        
+    device YMUX Y3MUX
+        parameter map
+        (
+            CP_OUT_SEL  => CP_Y3MUX_SEL
+        )
+        port map
+        (
+            FX  => ntL5D,
+            CYX => ntCOUT,
+            Y   => ntY3
+        );
+}; 

@@ -1,0 +1,278 @@
+
+use pgl_defs, pgl_schm_funcs, pgl200es_defs;
+
+schematic schm_view draw_logic_resource of device PGL200ES
+{
+//    // Tile index variable
+    unsigned int tx, ty;    
+    
+    // draw srb tile
+    foreach tx ( L_SRB_TILES_X )
+    {
+        foreach ty ( L_SRB_TILES_Y )
+        {
+            if(!(tx>CCS_TILE_X && tx<=(CCS_TILE_X+NUM_GRID_CCS_X/NUM_GRID_X) && ty>=CCS_TILE_Y))
+            {
+                if(!(tx<=NUM_TILE_HSST_X&&ty>=HSST_TILE_Y&&ty<(HSST_TILE_Y+NUM_TILE_HSST_Y)))
+                {
+                    if(!(tx>IOL1_TILE_X&&ty<=(NUM_TILES_REGION*4-1)))
+                    {
+                        draw_srb_tile ( tx, ty );
+                    }
+                }
+            }
+        } 
+    }   
+    
+    // draw clma tile
+    foreach tx ( L_CLMA_TILES_X )
+    {
+        foreach ty ( L_CLM_TILES_Y )
+        {
+          if(!((ty>NUM_TILES_REGION*7 + MID_TILE_REGION)&&(tx>CCS_TILE_X&&tx<CCS_TILE_X+NUM_TILE_CCS_X)))
+          {
+             if(!(ty>=HSST_TILE_Y&&ty<HSST_TILE_Y+NUM_TILE_HSST_Y&&tx<=HSST_TILE_X+NUM_TILE_HSST_X + 1))
+             {
+                 if(!(ty<=NUM_TILES_REGION*4&&tx>=IOL1_TILE_X))
+                 {
+                     if(!(tx==PLL_TILE_X))
+                     {
+                         draw_clm_tile ( tx, ty, 1 );                            
+                     }
+                 }
+             }
+          }    
+        }
+    }
+    
+    int rx ,ty_tmp ;
+    foreach rx ( {[7:0]} )
+    {
+        foreach ty_tmp ( {[30:20,10:0]} )
+        {
+            ty = ty_tmp + rx * NUM_TILES_REGION ;
+
+            if(!(ty>=USCM_TILE0_Y&&ty<USCM_TILE0_Y+NUM_TILE_USCM_Y))
+            {
+                draw_clm_tile ( PLL_TILE_X, ty, 1 );                            
+            }    
+        }
+    }
+    
+    //draw clms tiles
+
+    foreach tx ( L_CLMS_TILES_X )
+    {
+        foreach ty ( L_CLM_TILES_Y )
+        {
+          if(!((ty>NUM_TILES_REGION*7 + MID_TILE_REGION)&&(tx>CCS_TILE_X&&tx<CCS_TILE_X+NUM_TILE_CCS_X)))
+          {
+             if(!(ty>=HSST_TILE_Y&&ty<HSST_TILE_Y+NUM_TILE_HSST_Y&&tx<=HSST_TILE_X+NUM_TILE_HSST_X+1))
+             {
+                 if(!(ty<=NUM_TILES_REGION*4&&tx>=IOL1_TILE_X))
+                 {
+                     if(!(tx==PLL_TILE_X))
+                     {
+                         draw_clm_tile ( tx, ty, 0 );                            
+                     }
+                 }
+             }
+          }    
+        }
+    }
+       
+    draw_ccs_tile_pgl35es(CCS_TILE_X, CCS_TILE_Y);
+       
+    foreach tx ( L_DRM_TILES_X )
+    {
+        foreach ty ( L_DRM_TILES_Y )
+        {
+          if(!(tx>=CCS_TILE_X && tx<=(CCS_TILE_X+NUM_GRID_CCS_X/NUM_GRID_X) && ty>=CCS_TILE_Y))
+          {
+            if(!(tx<=((NUM_GRID_HSST_X-2)/NUM_GRID_X)&&ty>=HSST_TILE_Y&&ty<(HSST_TILE_Y+NUM_GRID_HSST_Y/NUM_GRID_Y)))
+            {
+                if(!(tx>=IOL1_TILE_X&&ty<=(NUM_TILES_REGION*4-1)))
+                {
+                    draw_drm_tile ( tx, ty );
+                }
+            }
+          }
+        }
+    } 
+        
+    unsigned int L_PLL_TILES_X[] = {PLL_TILE_X};
+    unsigned int L_PLL_B_TILES_Y[] = {PLL_TILE_0D_Y,PLL_TILE_1D_Y,PLL_TILE_2D_Y,PLL_TILE_3D_Y,PLL_TILE_4D_Y,PLL_TILE_5D_Y,PLL_TILE_6D_Y,PLL_TILE_7D_Y};
+    unsigned int L_PLL_T_TILES_Y[] = {PLL_TILE_0T_Y,PLL_TILE_1T_Y,PLL_TILE_2T_Y,PLL_TILE_3T_Y,PLL_TILE_4T_Y,PLL_TILE_5T_Y,PLL_TILE_6T_Y,PLL_TILE_7T_Y};
+
+    foreach tx ( L_PLL_TILES_X )
+    {
+        foreach ty ( L_PLL_B_TILES_Y )
+        {
+            draw_pll_tile( tx, ty, 0);
+        }  
+        foreach ty ( L_PLL_T_TILES_Y )
+        {
+            draw_pll_tile( tx, ty, 1);
+        }    
+    }     
+    
+    draw_hsst_tile(HSST_TILE_X,HSST_TILE_Y);    
+    
+    unsigned int L_USCM_TILES_X[] = {USCM_LOC_X};
+    unsigned int L_USCM_TILES_Y[] = {USCM0_LOC_Y, USCM1_LOC_Y};
+    int tx_srb = USCM_TILE_X;
+    
+    foreach tx ( L_USCM_TILES_X )
+    {
+        foreach ty ( L_USCM_TILES_Y )
+        {
+            int ty_srb = (ty==USCM0_LOC_Y) ? USCM_TILE0_Y : USCM_TILE1_Y;
+            draw_uscm_tile( tx, ty);
+        }      
+    }    
+    
+    foreach tx ( L_IOL0_TILES_X )
+    {
+        foreach ty ( L_IOL0_TILES_Y )
+        {
+            draw_iol_tile( tx, ty);
+        }  
+        foreach ty ( L_DQSL0_TILES_Y )
+        {
+            draw_dqsl_tile( tx, ty, 1);
+        }  
+        foreach ty ( L_IOCKGATEDLL0_TILES_Y )
+        {
+            if(!(ty==MID_TILE_REGION-1 + 3*NUM_TILES_REGION))
+            {
+                draw_iockgatedll_tile( tx, ty);
+            }
+            else
+            {
+                draw_iockgatedll2_tile( tx, ty);
+            }
+        }
+    } 
+    foreach tx ( L_IOL1_TILES_X )
+    {
+        foreach ty ( L_IOL1_TILES_Y )
+        {
+            draw_iol_tile( tx, ty);
+        }  
+        foreach ty ( L_DQSL1_TILES_Y )
+        {
+            draw_dqsl_tile( tx, ty,1);
+        }  
+        foreach ty ( L_IOCKGATEDLL1_TILES_Y )
+        {
+            draw_iockgatedll_tile( tx, ty);
+        }
+        foreach ty ( L_WLSRA_TILES_Y )
+        {
+            draw_wlsra_tile( tx, ty);
+        }
+    }
+    foreach tx ( L_IOL2_TILES_X )
+    {
+        foreach ty ( L_IOL2_TILES_Y )
+        {
+            draw_iol_tile( tx, ty);
+        }  
+        foreach ty ( L_DQSL2_TILES_Y )
+        {
+            draw_dqsl_tile( tx, ty,1);
+        } 
+        foreach ty ( L_IOCKGATEDLL2_TILES_Y )
+        {
+            draw_iockgatedll_tile( tx, ty);
+        }
+    }
+    
+    draw_wlsra_tile(HSST_TILE_X+NUM_TILE_HSST_X+1 ,NUM_TILES_REGION*4+MID_TILE_REGION);   
+    
+    foreach tx(L_IOB_TILES_X)
+    {
+        if(tx==IOB0_TILE_X)
+        {
+           foreach ty ( L_IOB0_TILES_Y )
+           {
+              draw_iob_tile( tx, ty);
+           }
+           draw_iob_half_tile( tx, 3*NUM_TILES_REGION);
+        }
+        else if(tx==IOB1_TILE_X)
+        {
+           foreach ty ( L_IOB1_TILES_Y )
+           {
+              draw_iob_tile( tx, ty);
+           }
+        }
+        else
+        {
+           foreach ty ( L_IOB2_TILES_Y )
+           {
+              draw_iob_tile( tx, ty);
+           }
+        }
+    }     
+    
+    foreach ty ( L_WLSR_TILES_Y )
+    {
+        if(ty>=MID_TILE_REGION+NUM_TILES_REGION*4)
+        {
+            foreach tx ( L_WLSR_TILES_X_U )
+            {
+                if(!(((ty==NUM_TILES_REGION*4+MID_TILE_REGION)&&(tx<=HSST_TILE_X+NUM_TILE_HSST_X + 1))||((ty<NUM_TILES_REGION*4)&&(tx>IOB1_TILE_X))))
+                {
+                    draw_wlsr_tile( tx, ty);
+                }
+            }
+            foreach tx ( L_WLSR1_TILES_X_U )
+            {
+                if(tx==WLSR1_TILE_X_L0||tx==WLSR1_TILE_X_L2||tx==WLSR1_TILE_X_R0||tx==WLSR1_TILE_X_R2)
+                {
+                    draw_wlsr1b_tile( tx, ty);
+                }
+                else
+                {
+                    draw_wlsr1_tile( tx, ty);
+                }
+            }
+        }
+        else
+        {
+            foreach tx ( L_WLSR_TILES_X_D )
+            {
+                if(!(((ty==NUM_TILES_REGION*4+MID_TILE_REGION)&&(tx<=HSST_TILE_X+NUM_TILE_HSST_X))||((ty<NUM_TILES_REGION*4)&&(tx>IOB1_TILE_X))))
+                {
+                    draw_wlsr_tile( tx, ty);
+                }
+            }
+            foreach tx ( L_WLSR1S_TILES_X_D )
+            {
+                draw_wlsr1_tile( tx, ty);
+            }
+            foreach tx ( L_WLSR1B_TILES_X_D )
+            {
+                draw_wlsr1b_tile( tx, ty);
+            }
+        } 
+        foreach tx ( L_WLSR2_TILES_X )
+        {
+            if(!(((ty==NUM_TILES_REGION*4+MID_TILE_REGION)&&(tx<=HSST_TILE_X+NUM_TILE_HSST_X))||((ty<NUM_TILES_REGION*4)&&(tx>IOB1_TILE_X))))
+            {
+                draw_wlsr2_tile( tx, ty);
+            }
+        } 
+        foreach tx ( L_WLSRD_TILES_X )
+        {
+            if(!(((ty==NUM_TILES_REGION*4+MID_TILE_REGION)&&(tx<=HSST_TILE_X+NUM_TILE_HSST_X))||((ty<NUM_TILES_REGION*4)&&(tx>=IOL1_TILE_X))))
+            {
+                draw_wlsrd_tile( tx, ty);
+            }
+        }
+    }
+
+    draw_cgra_tile(CGRA_TILE_X,CGRA_TILE_Y);
+};
+

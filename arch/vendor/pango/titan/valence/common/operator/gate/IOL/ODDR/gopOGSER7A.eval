@@ -1,0 +1,84 @@
+*******************************************************************
+
+  Operator    [gopOGSER7A]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+gate
+operator gopOGSER7A
+{
+    parameter
+    (
+        string SERCLK_SRC     = "IOCLK",   //"IOCLK" "SAMPLE_CLK" "PROBE_CLK"   
+
+        bit    LRS_EN         = 1'b0,
+        bit    GRS_EN         = 1'b0,
+        bit    CLK_INV        = 1'b0,
+        bit    LRS_INV        = 1'b0
+    );
+    port
+    (
+        input   D[5:0],
+
+        input   SERCLK /* pragma PAP_ARC_GOP_CTRL_PIN = IOCLK*/,
+        input   SYSCLK /* pragma PAP_ARC_GOP_CTRL_PIN = "GCLK|RCLK"*/,
+        input   RESET /* pragma PAP_ARC_GOP_CTRL_PIN = RST*/,
+
+        output  PADO,
+        output  PADT,
+        
+        input   ODDR_CIN[16:0],
+        output  ODDR_COUT[16:0],
+
+        output  DO_OUT
+    );
+};
+
+implementation impl of gopOGSER7A
+{
+    // ODDR config
+
+    if((SERCLK_SRC != "SAMPLE_CLK") && (SERCLK_SRC != "PROBE_CLK") && (SERCLK_SRC != "IOCLK"))
+    {
+        error("Error config SERCLK_SRC = %s in gopIGSER7A", SERCLK_SRC);
+    }
+    
+    device devOGSER7IOLA gate_ogser7iola
+        parameter map
+        (
+
+            ODDR_LRS_EN  =>   LRS_EN,
+
+            GRS_EN       =>   GRS_EN,
+            
+            DES_SER_CLK  =>   SERCLK_SRC,
+
+            CLK_O_INV    =>   CLK_INV,
+            LRS_INV      =>   LRS_INV
+        )
+
+        port map 
+        (
+            TX_DATA      =>   D,
+
+            IOCLK        =>   (SERCLK_SRC == "IOCLK") ? SERCLK : 1'bx,
+            SAMPLE_CLK   =>   (SERCLK_SRC == "SAMPLE_CLK") ? SERCLK : 1'bx,
+            PROBE_CLK    =>   (SERCLK_SRC == "PROBE_CLK") ? SERCLK : 1'bx,
+            
+            SYSCLK       =>   SYSCLK,
+            LRS          =>   RESET,
+
+            DO           =>   PADO,
+            TO           =>   PADT,
+
+            ODDR_CIN     =>   ODDR_CIN,
+            ODDR_COUT    =>   ODDR_COUT,
+
+            DO_OUT       =>  DO_OUT
+        );
+};
+
+

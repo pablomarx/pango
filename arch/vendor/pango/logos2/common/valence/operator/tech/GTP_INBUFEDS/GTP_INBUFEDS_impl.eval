@@ -1,0 +1,71 @@
+*****************************************************************
+
+  Operator   [GTP_INBUFEDS]
+
+  Author      []
+
+  Abstract    []
+
+  Copyright 2014 (c). SHENZHEN PANGO MICROSYSTEMS CO.,LTD.
+  All Right Reserved.
+
+  Revision History:
+     06/18/14 - Initial version.
+
+********************************************************************************/
+fabric
+implementation impl_a of GTP_INBUFEDS @ (2,0 # 2,1)
+{
+    wire ntD, ntDIFFIN;
+    wire ntINBUF_DYN_DIS_N_O;
+    wire ntDO,ntDO_N;
+    
+    operator gopIBUFDSAM
+        parameter map
+        (
+            IOSTANDARD          => IOSTANDARD == "DEFAULT" ? "MINI-LVDS" : IOSTANDARD,
+            CP_DYN_IN              => "ON"
+            //DIFF_IN_TERM_MODE   => TERM_DIFF
+            //CP_LP_EN            => "ON"
+        )      
+        port map
+        (
+            I        => I,
+            DIFFI_IN => ntDIFFIN,
+            DO       => ntDO,
+            DO_NDRV  => ntDO_N,
+            IN_DYN_EN  => ntINBUF_DYN_DIS_N_O,
+            O        => ntD
+        )@[1,0];
+    
+    operator gopIBUFDSBS
+        parameter map
+        (
+            IOSTANDARD          => IOSTANDARD == "DEFAULT" ? "MINI-LVDS" : IOSTANDARD,
+            CP_DYN_IN  => "ON"
+            //DIFF_IN_TERM_MODE   => TERM_DIFF
+        )      
+        port map
+        (
+            I_B       => IB,
+            DIFFI_OUT => ntDIFFIN
+        )@[1,1];
+
+    operator gopIOL
+        parameter map
+        (
+            BUF_MODE   => "IBUF",
+            CP_D_SEL5  => 2'b01,
+            CP_TRI_EN  => "TRUE"
+        )
+        port map
+        (
+            INBUF_DYN_DIS_N_I => EN,
+            INBUF_DYN_DIS_N_O => ntINBUF_DYN_DIS_N_O,
+            DI          => ntD,
+            DO_P        => ntDO,
+            DO_N        => ntDO_N,
+            DI_TO_CLK   => O
+        )@[0,0];
+};
+

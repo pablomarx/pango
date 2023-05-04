@@ -1,0 +1,226 @@
+use pg2l_floorplan_funcs, pg2l_defs, pg2l50h_defs;
+
+floorplan
+structure fp_struct place_logic_resource of device PG2L50H
+{
+      // Tile index variable
+      unsigned int rx,tx, ty;
+      int ty_tmp;
+      int l_tx[];
+      int tx_srb;      
+      //clm
+      foreach rx({[0:1]})
+      {
+        l_tx = (rx==0) ? L_CLMS_TILES_X_R0 : L_CLMS_TILES_X_R1;
+        foreach tx ( l_tx )
+        {
+          foreach ty ( L_CLM_TILES_Y )
+          {
+              ty_tmp = rx * NUM_TILES_REGION + ty;
+              place_clm_tile_fp ( tx, ty_tmp, 1);
+          } 
+        }
+      }
+
+      foreach tx ( L_CLMS_TILES_X_R2_U )
+      {
+          foreach ty ( L_SRB_TILES_Y_U )
+          {
+              rx = 2;
+              ty_tmp = rx * NUM_TILES_REGION + ty;
+              place_clm_tile_fp ( tx, ty_tmp, 1);
+          } 
+      }
+
+      foreach tx ( L_CLMS_TILES_X_R2_D )
+      {
+          foreach ty ( L_SRB_TILES_Y_D )
+          {
+              rx = 2;
+              ty_tmp = rx * NUM_TILES_REGION + ty;
+              place_clm_tile_fp ( tx, ty_tmp, 1);
+          } 
+      }
+
+      foreach rx({[0:1]})
+      {
+        l_tx = (rx==0) ? L_CLMA_TILES_X_R0 : L_CLMA_TILES_X_R1;
+        foreach tx ( l_tx )
+        {
+          foreach ty ( L_CLM_TILES_Y )
+          {
+              ty_tmp = rx * NUM_TILES_REGION + ty;
+              place_clm_tile_fp ( tx, ty_tmp, 0);
+          } 
+        }
+      }
+
+      foreach tx ( L_CLMA_TILES_X_R2_U )
+      {
+          foreach ty ( L_SRB_TILES_Y_U )
+          {
+              rx = 2;
+              ty_tmp = rx * NUM_TILES_REGION + ty;
+              place_clm_tile_fp ( tx, ty_tmp, 0);
+          } 
+      }
+
+      foreach tx ( L_CLMA_TILES_X_R2_D )
+      {
+          foreach ty ( L_SRB_TILES_Y_D )
+          {
+              rx = 2;
+              ty_tmp = rx * NUM_TILES_REGION + ty;
+              place_clm_tile_fp ( tx, ty_tmp, 0);
+          } 
+      }
+    //DRM
+    //unsigned int rx,tx,ty;
+    //unsigned int l_tx[];
+    
+    foreach rx( {[0:2]} )
+    {
+      foreach ty ( L_DRM_TILES_Y )
+      {
+          l_tx = (rx==0) ? L_DRM_TILES_X_R0 : 
+                 (rx==1) ? L_DRM_TILES_X_R1 : 
+                 (ty<25) ? L_DRM_TILES_X_R2_D : L_DRM_TILES_X_R2_U;
+          foreach tx ( l_tx )
+          {
+             
+              int ty_tmp = rx * NUM_TILES_REGION + ty;
+              place_drm_tile_fp( tx, ty_tmp);
+          }
+      } 
+    }  
+    //apm   
+    //unsigned int rx,tx,ty;
+    
+    foreach rx( {[0:2]} )
+    {
+      foreach tx ( L_APM_TILES_X )
+      {
+          foreach ty ( L_APM_TILES_Y )
+          {
+              int ty_tmp = rx * NUM_TILES_REGION + ty;
+              place_apm_tile_fp( tx, ty_tmp);
+          }
+      } 
+    }
+    //IOL
+    //unsigned int rx,tx,ty,ty_tmp;
+    //int l_tx[];
+    
+    foreach rx( {[0:2]} )
+    {
+      l_tx = ((rx==0)||(rx==1)) ? L_IOL_TILES_X_R0 : L_IOL_TILES_X_R2;
+      foreach tx ( l_tx )
+      {
+          foreach ty ( L_IOL_TILES_Y )
+          {
+              int ty_tmp = rx * NUM_TILES_REGION + ty;
+              place_iol_tile_fp( tx, ty_tmp, 0);
+          }
+      } 
+    }
+    
+    //IOB
+    foreach rx( {[0:2]} )
+    {
+      l_tx = ((rx==0)||(rx==1)) ? L_IOB_TILES_X_R0 : L_IOB_TILES_X_R2;
+      foreach tx ( l_tx )
+      {
+         ty = rx * NUM_TILES_REGION;
+         place_iob_tile_fp( tx, ty, 0);   
+      } 
+    }
+    
+    //USCM
+    ty = LOC_USCM_REGION * NUM_TILES_REGION + USCM_TILE_Y;
+    place_uscm_tile_fp( USCM_TILE_X, ty);
+    //PREGMUX 
+    ty = LOC_PREGMUXC_REGION * NUM_TILES_REGION + PREGMUXC_TILE_Y;
+    place_pregmuxc_tile_fp( PREGMUXC_TILE_X, ty);      
+     //PLL
+    //unsigned int rx,tx,ty;
+    //unsigned int l_tx[];
+    foreach rx( {[0:2]} )
+    {
+      l_tx = ((rx==0)||(rx==1)) ? L_PLL_TILES_X_R0 : L_PLL_TILES_X_R2;
+      foreach tx ( l_tx )
+      {
+          foreach ty ( {GPLL_TILE_Y} )
+          {
+              int ty_tmp = rx * NUM_TILES_REGION + ty;
+              place_pll_tile_fp( tx, ty_tmp, 0);
+          }
+      } 
+    }
+
+    foreach rx( {[0:2]} )
+    {
+      l_tx = ((rx==0)||(rx==1)) ? L_PLL_TILES_X_R0 : L_PLL_TILES_X_R2;
+      foreach tx ( l_tx )
+      {
+          foreach ty ( {PPLL_TILE_Y} )
+          {
+              int ty_tmp = rx * NUM_TILES_REGION + ty;
+              place_pll_tile_fp( tx, ty_tmp, 1);
+          }
+      } 
+    }
+    //CCS
+    //unsigned int tx,ty;
+    tx_srb = BLANK_SRB_TILE_X;
+    
+    foreach ty ({CCS_TILE_Y})
+    {
+        rx = LOC_CCS_REGION;
+        int ty_tmp = rx * NUM_TILES_REGION + ty;
+    
+        place_ccs_tile_fp( CCS_TILE_X, CCS_TILE_Y, tx_srb);
+    }     
+    //IOCK
+    //unsigned int rx,tx,ty;
+    //unsigned int l_tx[];
+
+    foreach rx( {[0:2]} )
+    {
+      foreach ty ( {IOCK_TILE_Y} )
+      {
+          l_tx = ((rx==0)||(rx==1)) ? L_IOCK_TILES_X_R0 : L_IOCK_TILES_X_R2;
+          foreach tx ( l_tx )
+          {
+             
+              int ty_tmp = rx * NUM_TILES_REGION + ty;
+              place_iock_tile_fp( tx, ty_tmp);
+          }
+      } 
+    }  
+   //HSSTLP
+    foreach ty ( {HSST_TILE_Y} )
+    {
+        rx =  LOC_HSST_REGION;
+        int ty_tmp = rx * NUM_TILES_REGION + ty;
+
+        place_hsst_tile_fp( HSST_TILE_X, ty_tmp, 0);
+    }   
+  //PCIE
+    foreach rx( {LOC_PCIE_REGION} )
+    {            
+        foreach ty( {PCIE_TILE_Y} )
+        {
+            int ty_tmp = rx * NUM_TILES_REGION + ty;
+            place_pcie_tile_fp( PCIE_TILE_X, ty_tmp);
+        }
+    }
+ //ADC
+    foreach ty( {ADC_TILE_Y} )
+    {
+        rx = LOC_ADC_REGION;
+        int ty_tmp = rx * NUM_TILES_REGION + ty;
+        int tx_srb = BLANK_SRB_TILE_X;  
+
+        place_adc_tile_fp(ADC_TILE_X,ty_tmp,tx_srb);
+    }
+}; // end of structure floorplan 

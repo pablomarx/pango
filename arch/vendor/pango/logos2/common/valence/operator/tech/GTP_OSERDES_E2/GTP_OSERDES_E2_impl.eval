@@ -1,0 +1,361 @@
+*****************************************************************
+
+  Operator   [GTP_OSERDES_E2]
+
+  Author      [liuwenyi]
+
+  Abstract    []
+
+  Copyright 2014 (c). SHENZHEN PANGO MICROSYSTEMS CO.,LTD.
+  All Right Reserved.
+
+  Revision History:
+     06/18/14 - Initial version.
+
+********************************************************************************/
+implementation impl of GTP_OSERDES_E2
+{   
+    string SRVAL_DQ0;
+    string SRVAL_DQ1;
+    string SRVAL_DQ2;
+    string SRVAL_DQ3;
+    string SRVAL_TQ0;
+    string SRVAL_TQ1;
+    string SRVAL_TQ2;
+    string SRVAL_TQ3;
+    string CP_SER_SDREN = "FALSE";
+    string CP_SER_DDREN = "FALSE";
+    string CP_OHSMEM_EN = "FALSE";
+    string OSERDES_MODE_DEFAULT = "FALSE";
+    
+    if (LRS_TYPE_DQ0 == "ASYNC_RESET" || LRS_TYPE_DQ0 == "SYNC_RESET" )
+    {
+        SRVAL_DQ0 = "RESET";
+    }
+    else 
+    {
+        SRVAL_DQ0 = "SET";
+    }          
+         
+    if (LRS_TYPE_DQ1 == "ASYNC_RESET" || LRS_TYPE_DQ1 == "SYNC_RESET" )
+    {
+        SRVAL_DQ1 = "RESET";
+    }
+    else 
+    {
+        SRVAL_DQ1 = "SET";
+    }
+
+    if (LRS_TYPE_DQ2 == "ASYNC_RESET" || LRS_TYPE_DQ2 == "SYNC_RESET" )
+    {
+        SRVAL_DQ2 = "RESET";
+    }
+    else 
+    {
+        SRVAL_DQ2 = "SET";
+    } 
+    
+    if (LRS_TYPE_DQ3 == "ASYNC_RESET" || LRS_TYPE_DQ3 == "SYNC_RESET" )
+    {
+        SRVAL_DQ3 = "RESET";
+    }
+    else 
+    {
+        SRVAL_DQ3 = "SET";
+    }
+    
+    if (LRS_TYPE_TQ0 == "ASYNC_RESET" || LRS_TYPE_TQ0 == "SYNC_RESET" )
+    {
+        SRVAL_TQ0 = "RESET";
+    }
+    else 
+    {
+        SRVAL_TQ0 = "SET";
+    }          
+         
+    if (LRS_TYPE_TQ1 == "ASYNC_RESET" || LRS_TYPE_TQ1 == "SYNC_RESET" )
+    {
+        SRVAL_TQ1 = "RESET";
+    }
+    else 
+    {
+        SRVAL_TQ1 = "SET";
+    }
+
+    if (LRS_TYPE_TQ2 == "ASYNC_RESET" || LRS_TYPE_TQ2 == "SYNC_RESET" )
+    {
+        SRVAL_TQ2 = "RESET";
+    }
+    else 
+    {
+        SRVAL_TQ2 = "SET";
+    } 
+    
+    if (LRS_TYPE_TQ3 == "ASYNC_RESET" || LRS_TYPE_TQ3 == "SYNC_RESET" )
+    {
+        SRVAL_TQ3 = "RESET";
+    }
+    else 
+    {
+        SRVAL_TQ3 = "SET";
+    }
+    
+    bit CP_INIT_DQ = (GRS_TYPE_DQ == "RESET") ? 1'b0 : 1'b1;
+    bit CP_INIT_TQ = (GRS_TYPE_TQ == "RESET") ? 1'b0 : 1'b1;
+    
+    if (OSERDES_MODE == "DDR4TO1" || OSERDES_MODE == "DDR6TO1" || OSERDES_MODE == "DDR8TO1" || OSERDES_MODE == "DDR10TO1" 
+        || OSERDES_MODE == "DDR14TO1" || OSERDES_MODE == "DDR2TO1_SAME_EDGE" || OSERDES_MODE == "DDR2TO1_OPPOSITE_EDGE")
+    {
+        CP_SER_SDREN = "FALSE";
+        CP_SER_DDREN = "TRUE";
+        CP_OHSMEM_EN = "FALSE";
+    }
+    if (OSERDES_MODE == "SDR2TO1" || OSERDES_MODE == "SDR3TO1" || OSERDES_MODE == "SDR4TO1" || OSERDES_MODE == "SDR5TO1"
+        || OSERDES_MODE == "SDR6TO1" || OSERDES_MODE == "SDR7TO1" || OSERDES_MODE == "SDR8TO1")
+    {
+        CP_SER_SDREN = "TRUE";
+        CP_SER_DDREN = "FALSE";
+        CP_OHSMEM_EN = "FALSE";
+    }
+    if (OSERDES_MODE == "HMSDR4TO1" || OSERDES_MODE == "HMSDR8TO1")
+    {
+        CP_SER_SDREN = "TRUE";
+        CP_SER_DDREN = "FALSE";
+        CP_OHSMEM_EN = "TRUE";
+    }
+    
+    int DDR_WIDTH = 2;
+    if (OSERDES_MODE == "OLATCH" || OSERDES_MODE == "ODFF")
+    {
+        DDR_WIDTH = 1;
+    }
+    if (OSERDES_MODE == "SDR3TO1")
+    {
+        DDR_WIDTH = 3;
+    }
+    else if (OSERDES_MODE == "SDR4TO1" || OSERDES_MODE == "DDR4TO1" || OSERDES_MODE == "HMSDR4TO1")
+    {
+        DDR_WIDTH = 4;
+    }
+    else if (OSERDES_MODE == "SDR5TO1")
+    {
+        DDR_WIDTH = 5;
+    }
+    else if (OSERDES_MODE == "SDR6TO1" || OSERDES_MODE == "DDR6TO1")
+    {
+        DDR_WIDTH = 6;
+    }
+    else if (OSERDES_MODE == "SDR7TO1")
+    {
+        DDR_WIDTH = 7;
+    }
+    else if (OSERDES_MODE == "SDR8TO1" || OSERDES_MODE == "DDR8TO1" || OSERDES_MODE == "HMSDR8TO1")
+    {
+        DDR_WIDTH = 8;
+    }
+    else if (OSERDES_MODE == "DDR10TO1")
+    {
+        DDR_WIDTH = 10;
+    }
+    else if (OSERDES_MODE == "DDR14TO1")
+    {
+        DDR_WIDTH = 14;
+    }
+    
+    string TSERDES_MODE_EN = "FALSE";
+    string CP_OSERDES_EN = "TRUE";
+    if(OSERDES_MODE == "SDR2TO1" || OSERDES_MODE == "SDR4TO1" || OSERDES_MODE == "SDR8TO1" || OSERDES_MODE == "DDR4TO1" || OSERDES_MODE == "DDR8TO1" || OSERDES_MODE == "HMSDR4TO1" || OSERDES_MODE == "HMSDR8TO1")
+    {
+        TSERDES_MODE_EN = "TRUE";
+    }
+    
+    if(OSERDES_MODE == "OLATCH" || OSERDES_MODE == "ODFF" || OSERDES_MODE == "DDR2TO1_SAME_EDGE" || OSERDES_MODE == "DDR2TO1_OPPOSITE_EDGE")
+    {
+        OSERDES_MODE_DEFAULT = "SDR4TO1";
+        CP_OSERDES_EN = "FALSE";
+    }
+    
+    if(OSERDES_MODE == "HMSDR4TO1")
+    {
+        OSERDES_MODE_DEFAULT = "SDR4TO1";
+    }
+    
+    if(OSERDES_MODE == "HMSDR8TO1")
+    {
+        OSERDES_MODE_DEFAULT = "SDR8TO1";
+    }
+    
+    bit CP_DQMODE[1:0] = 2'b00;
+    bit CP_TQMODE[1:0] = 2'b00;
+    if(OSERDES_MODE == "SDR2TO1" || OSERDES_MODE == "SDR3TO1" || OSERDES_MODE == "SDR4TO1" || OSERDES_MODE == "SDR5TO1" 
+    || OSERDES_MODE == "SDR6TO1" || OSERDES_MODE == "SDR7TO1" || OSERDES_MODE == "SDR8TO1" || OSERDES_MODE == "OLATCH" 
+    || OSERDES_MODE == "ODFF" || OSERDES_MODE == "HMSDR4TO1" || OSERDES_MODE == "HMSDR8TO1")
+    {
+        CP_DQMODE[1:0] = 2'b01;
+        if(TBYTE_EN == "TRUE" && TRI_EN == "TRUE")
+        {
+            CP_TQMODE[1:0] = 2'b01;
+        }
+    }
+    else if(OSERDES_MODE == "DDR2TO1_SAME_EDGE" || OSERDES_MODE == "DDR2TO1_OPPOSITE_EDGE" || OSERDES_MODE == "DDR6TO1"
+    || OSERDES_MODE == "DDR8TO1" || OSERDES_MODE == "DDR10TO1" || OSERDES_MODE == "DDR14TO1" || OSERDES_MODE == "DDR4TO1")
+    {
+        CP_DQMODE[1:0] = 2'b10;
+        if(TBYTE_EN == "TRUE" && TRI_EN == "TRUE")
+        {
+            CP_TQMODE[1:0] = 2'b10;
+        }
+    }
+    
+    bit CP_TS_TQMODE = 1'b0;
+    if(OSERDES_MODE == "SDR2TO1" || OSERDES_MODE == "SDR4TO1" || OSERDES_MODE == "SDR8TO1"
+    || OSERDES_MODE == "HMSDR4TO1" || OSERDES_MODE == "HMSDR8TO1")
+    {
+        CP_TS_TQMODE = 1'b0;
+    }
+    else if(OSERDES_MODE == "DDR4TO1" || OSERDES_MODE == "DDR8TO1")
+    {
+        CP_TS_TQMODE = 1'b1;
+    }
+    
+    string CP_OLTHEN = "FALSE";
+    if(OSERDES_MODE == "OLATCH")
+    {
+        CP_OLTHEN = "TRUE";
+    }
+    string CP_ODFFEN = "FALSE";
+    if(OSERDES_MODE == "ODFF")
+    {
+        CP_ODFFEN = "TRUE";
+    }
+    string CP_OPPOSITE_EN = "FALSE";
+    if(OSERDES_MODE == "DDR2TO1_OPPOSITE_EDGE")
+    {
+        CP_OPPOSITE_EN = "TRUE";
+    }
+    
+    wire no_connect_net1;
+    wire no_connect_net2;
+    
+    if(TSERDES_EN == "TRUE")
+    {
+        operator gopTSERDES oserdes_inst
+        parameter map
+        (
+            CP_TSERDES_MODE  =>  (TSERDES_MODE_EN == "TRUE") ? ((OSERDES_MODE_DEFAULT == "FALSE") ? OSERDES_MODE : OSERDES_MODE_DEFAULT) : "SDR2TO1",
+            CP_TSERDES_EN    =>  (TSERDES_MODE_EN == "TRUE") ? "TRUE" : "FALSE",
+            CP_SER_SDREN     =>  CP_SER_SDREN,
+            CP_SER_DDREN     =>  CP_SER_DDREN,
+            CP_THSMEM_EN     =>  CP_OHSMEM_EN,
+            CP_TSR_EN        =>  "TRUE",
+            CP_TSR_POL       =>  "FALSE",
+            CP_T_SYNC         =>  (LRS_TYPE_TQ0 == "ASYNC_RESET" || LRS_TYPE_TQ0 == "ASYNC_SET") ? "ASYNC" : "SYNC",
+            CP_GRS_DIS       =>  (GRS_EN == "TRUE") ? 1'b0 : 1'b1,
+            CP_CLK_POL4      =>  "FALSE",
+            CP_CLK_POL5      =>  "FALSE",
+            CP_CLK_POL6      =>  "FALSE",
+            CP_UPD0_SHIFTEN  =>  UPD0_SHIFT_EN,
+            CP_UPD1_SHIFTEN  =>  UPD1_SHIFT_EN,
+            CP_INIT_SET      =>  INIT_SET,
+            CP_INIT_TQ       =>  (GRS_TYPE_TQ == "RESET") ? 1'b0 : 1'b1,
+            CP_SRVAL_TQ0     =>  (LRS_TYPE_TQ0 == "ASYNC_RESET" || LRS_TYPE_TQ0 == "SYNC_RESET") ? "RESET" : "SET",
+            CP_SRVAL_TQ1     =>  (LRS_TYPE_TQ1 == "ASYNC_RESET" || LRS_TYPE_TQ1 == "SYNC_RESET") ? "RESET" : "SET",
+            CP_SRVAL_TQ2     =>  (LRS_TYPE_TQ2 == "ASYNC_RESET" || LRS_TYPE_TQ2 == "SYNC_RESET") ? "RESET" : "SET",
+            CP_SRVAL_TQ3     =>  (LRS_TYPE_TQ3 == "ASYNC_RESET" || LRS_TYPE_TQ3 == "SYNC_RESET") ? "RESET" : "SET",
+            CP_TS_TQMODE     =>  CP_TS_TQMODE,
+            //CP_TERMMODE      =>  
+            CP_TDLY_EN       =>  "FALSE",
+            //CP_TERM_OFFSET   =>  
+            CP_TDYN_EN       =>  "FALSE"
+            //CP_TDLY_SET      =>  
+        )
+        port map
+        (
+            TSR           =>  RST,
+            TCE           =>  OCE,
+            OCLKDIV       =>  OCLKDIV,
+            SERCLK        =>  SERCLK,
+            OCLK          =>  OCLK,
+            UPD0_SHIFT    =>  UPD0_SHIFT,
+            UPD1_SHIFT    =>  UPD1_SHIFT,
+            TS_CTRL[1:0]  =>  DI[1:0],
+            TS_CTRL[2]    =>  (DDR_WIDTH >= 3) ? DI[2] : 1'by,
+            TS_CTRL[3]    =>  (DDR_WIDTH >= 4) ? DI[3] : 1'by,
+            TS_CTRL[4]    =>  (DDR_WIDTH >= 5) ? DI[4] : 1'by,
+            TS_CTRL[5]    =>  (DDR_WIDTH >= 6) ? DI[5] : 1'by,
+            TS_CTRL[6]    =>  (DDR_WIDTH >= 7) ? DI[6] : 1'by,
+            TS_CTRL[7]    =>  (DDR_WIDTH >= 8) ? DI[7] : 1'by,
+            TO            =>  DO
+        );
+    }
+    else
+    {
+        operator gopOSERDES oserdes_inst
+        parameter map
+        (
+            CP_OSERDES_MODE   =>  (OSERDES_MODE_DEFAULT == "FALSE") ? OSERDES_MODE : OSERDES_MODE_DEFAULT,
+            CP_OSERDES_EN     =>  CP_OSERDES_EN,
+            CP_SER_SDREN      =>  CP_SER_SDREN,
+            CP_SER_DDREN      =>  CP_SER_DDREN,
+            CP_OHSMEM_EN      =>  CP_OHSMEM_EN,
+            CP_GRS_DIS        =>  (GRS_EN == "TRUE") ? 1'b0 : 1'b1,
+            CP_OPPOSITE_EN    =>  CP_OPPOSITE_EN,
+            CP_OLTHEN         =>  CP_OLTHEN,
+            CP_ODFFEN         =>  CP_ODFFEN,
+            CP_UPD0_SHIFTEN   =>  UPD0_SHIFT_EN,
+            CP_UPD1_SHIFTEN   =>  UPD1_SHIFT_EN,
+            CP_INIT_SET       =>  INIT_SET,
+            CP_DQMODE         =>  CP_DQMODE,
+            CP_TQMODE         =>  CP_TQMODE,
+            CP_INIT_DQ        =>  (GRS_TYPE_DQ == "RESET") ? 1'b0 : 1'b1,
+            CP_O_SYNC         =>  (LRS_TYPE_DQ0 == "ASYNC_RESET" || LRS_TYPE_DQ0 == "ASYNC_SET") ? "ASYNC" : "SYNC",
+            CP_SRVAL_DQ0      =>  (LRS_TYPE_DQ0 == "ASYNC_RESET" || LRS_TYPE_DQ0 == "SYNC_RESET") ? "RESET" : "SET",
+            CP_SRVAL_DQ1      =>  (LRS_TYPE_DQ1 == "ASYNC_RESET" || LRS_TYPE_DQ1 == "SYNC_RESET") ? "RESET" : "SET",
+            CP_SRVAL_DQ2      =>  (LRS_TYPE_DQ2 == "ASYNC_RESET" || LRS_TYPE_DQ2 == "SYNC_RESET") ? "RESET" : "SET",
+            CP_SRVAL_DQ3      =>  (LRS_TYPE_DQ3 == "ASYNC_RESET" || LRS_TYPE_DQ3 == "SYNC_RESET") ? "RESET" : "SET",            
+            CP_INIT_TQ        =>  GRS_TYPE_TQ == "RESET" ? 1'b0 : 1'b1,
+            CP_T_SYNC         =>  (LRS_TYPE_TQ0 == "ASYNC_RESET" || LRS_TYPE_TQ0 == "ASYNC_SET") ? "ASYNC" : "SYNC",
+            CP_SRVAL_TQ0      =>  (LRS_TYPE_TQ0 == "ASYNC_RESET" || LRS_TYPE_TQ0 == "SYNC_RESET") ? "RESET" : "SET",
+            CP_SRVAL_TQ1      =>  (LRS_TYPE_TQ1 == "ASYNC_RESET" || LRS_TYPE_TQ1 == "SYNC_RESET") ? "RESET" : "SET",
+            CP_SRVAL_TQ2      =>  (LRS_TYPE_TQ2 == "ASYNC_RESET" || LRS_TYPE_TQ2 == "SYNC_RESET") ? "RESET" : "SET",
+            CP_SRVAL_TQ3      =>  (LRS_TYPE_TQ3 == "ASYNC_RESET" || LRS_TYPE_TQ3 == "SYNC_RESET") ? "RESET" : "SET",           
+            CP_TBYTE_EN       =>  TBYTE_EN,
+            CP_MIPI_EN        =>  MIPI_EN,
+            CP_TRI_EN         =>  TRI_EN,
+            CP_SRO_EN         =>  "TRUE",
+            CP_SRT_EN         =>  "TRUE",
+            CP_OCASCADE_EN    =>  OCASCADE_EN
+        )
+        port map
+        (
+            OSR_IOLHR     => RST,
+            OCE           => OCE,
+            TCE           => TCE,
+            OCLKDIV       => OCLKDIV,
+            SERCLK        => SERCLK,
+            OCLK          => OCLK,
+            MIPI_SW_DYN_I => MIPI_CTRL,
+            UPD0_SHIFT    => UPD0_SHIFT,
+            UPD1_SHIFT    => UPD1_SHIFT,
+            OSHIFTIN0     => (DDR_WIDTH > 8) ? OSHIFTIN0 : 1'by,
+            OSHIFTIN1     => (DDR_WIDTH > 8) ? OSHIFTIN1 : 1'by,
+            TX_DATA[0]    => DI[0],
+            TX_DATA[1]    => (DDR_WIDTH >= 2) ? DI[1] : 1'by,
+            TX_DATA[2]    => (DDR_WIDTH >= 3) ? DI[2] : 1'by,
+            TX_DATA[3]    => (DDR_WIDTH >= 4) ? DI[3] : 1'by,
+            TX_DATA[4]    => (DDR_WIDTH >= 5) ? DI[4] : 1'by,
+            TX_DATA[5]    => (DDR_WIDTH >= 6) ? DI[5] : 1'by,
+            TX_DATA[6]    => (DDR_WIDTH >= 7) ? DI[6] : 1'by,
+            TX_DATA[7]    => (DDR_WIDTH >= 8) ? DI[7] : 1'by,
+            TS_CTRL[0]    => TI[0],
+            TS_CTRL[1]    => (DDR_WIDTH >= 2) ? TI[1] : 1'by,
+            T_BYTEIN      => TBYTE_IN,
+            OSHIFTOUT0    => (DDR_WIDTH > 8) ? OSHIFTOUT0 : no_connect_net1,
+            OSHIFTOUT1    => (DDR_WIDTH > 8) ? OSHIFTOUT1 : no_connect_net2,
+            DO_P          => DO
+        );
+    }
+
+
+    
+};

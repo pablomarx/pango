@@ -1,0 +1,108 @@
+*****************************************************************
+
+  Device    [devAH_S]
+
+  Author    []
+
+  Abstract  [THE DEVICE CAN BE USED FOR CARRY CHAIN HEAD. THE PORT CIN OF devA/Q
+             MUST BE GIVEN A VALUE, SUCH AS 1'b0. THIS DEVICE MODULE FOR 
+             GENERATING 1'b0 OR 1'b1.]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devAH_S : device devA_S
+{
+    parameter
+    (
+        config bit INITA[31:0]       = 32'h0000_0000,        
+        config string FGA_MODE       = "CY01",              // "LUT5" "ROM" "WMUX" "ARITH" "CY01"
+        config string RAM_LUT_SEL    := "LUT"              // "RAM"  "LUT" 
+    );
+    
+    port
+    (
+        logic output FGA_COUT
+    );
+}; // end of device devAH_S
+
+
+/*******************************************************************************
+
+  Device    [devAH_S]
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devAH_S
+{
+    // Internal wires
+    wire ntCYA;
+          
+    FGA_COUT  <= ntCYA;
+    
+    //
+    // Instances. FGA section
+    //
+
+    device FGS FGA 
+        parameter map
+        (
+            INIT        => INITA,
+            MODE        => FGA_MODE,
+            RAM_LUT_SEL => RAM_LUT_SEL
+        )
+        port map 
+        (
+            COUT => ntCYA
+        );
+}; // end of structure netlist of devAH_S
+
+timing tnl of devAH_S
+{   
+    //bool isGND = false;
+    //int  idx   = 0;
+    //for (idx = 16; idx < 32 ; idx++)
+    //{
+    //    if (INITA[idx] != 1'b1)
+    //    {
+    //        isGND = true;
+    //        break;
+    //    }
+    //}  
+    
+    if (INITA[31:0] == 32'h0000_0000)
+    {
+        operator V_ZERO V_FGA
+            parameter map
+            (
+               SECTION  => "A"
+            )
+            port map 
+            (
+                Z => FGA_COUT
+            );
+    }
+    else if (INITA[31:0] == 32'hffff_0000)
+    {
+        operator V_ONE V_FGA
+            parameter map
+            (
+               SECTION  => "A"
+            )
+            port map 
+            (
+                Z => FGA_COUT
+            );
+    }
+    else
+    {
+        error("devAH_S does not suport the INIT!");
+    }
+}
+

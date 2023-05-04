@@ -1,0 +1,130 @@
+******************************************************************
+//
+//  Device    [devIOBUFLB]
+//
+//  project   [Pango]
+//  
+//  Author    [hzhang]
+//
+//  Abstract  [ ]
+//
+//  Revision History:
+//                       
+//********************************************************************************/
+
+gate device devIOBUFLB : device IOB_LB
+{
+    parameter 
+    (   
+        config string IOB_MODE          := "IOBUF",
+        config string TERMINATED         = "UNUSED",    /* "UNUSED" , "PULLUP" , "PULLDOWN" , "KEEPER" */
+        config string HOT_SOCKET         = "ON",        // ON; OFF
+        config string POWER_MODE         = "ON",        // ON; OFF
+        config string VCCIO              = "3.3",       // "3.3" "2.5" "1.8" "1.5" "1.2"
+        
+        // ibuf
+        config string HYS_DRIVE_MODE     = "NOHYS" ,    // "NOHYS","SMHYS_I","SMHYS_II","LGHYS","OD","UD" 
+        config string VREF_MODE          = "IN"    ,    // "IN": VREF_IN; "OUT": VREF_OUT
+        config string VREF_IN_MODE       = "OFF",    // "OFF" "0.45" "0.50" "0.55"
+        config string DDR_TERM_MODE      = "ON",     // "TERM": "ON" "OFF"     
+        config string VREF_OUT_MODE      = "VREF1",  // "VREF1" "VREF2" "VREF3" "EXT_DRV"         
+        config string DIFF_IN_TERM_MODE  = "ON", // "ON" "OFF" 
+        
+        // obuf
+        config string SLEW_MODE          = "F",  // "F" "S"
+        config string DRV_CURR_EN        = "TRUE",  // "TRUE" "FALSE"  
+        config string DRV_CURR_VAL       = "4",
+        config string PMOS_FINGER        = "1",  // "1" "2" "3" "4" "5" "6"
+        config string NMOS_FINGER        = "1",  // "1" "2" "3" "4" "5" "6"
+        config string IOSTANDARD         = "DEFAULT" 
+    );
+   
+    port
+    (   
+        input  DO, TO,
+        output DIN,
+        inout  PAD
+     );
+};  // end of device devIOBUFLB
+
+
+/*******************************************************************************
+
+  Device    [devIOBUFLB]
+
+  Author    []
+
+  Abstract  [gate grid devIOBUFLB. structure nestlist]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devIOBUFLB
+{
+    // Wires connecting to ports. 
+    wire ntPAD, ntDO, ntTO, ntINBUF;
+    
+    PAD <= ntPAD;
+    ntDO <= DO;
+    ntTO <= TO;
+    DIN <= ntINBUF;
+    
+
+    device IOB_OBUFLB OBUFLB
+        parameter map
+        (
+            IOB_MODE     => IOB_MODE,
+            SLEW_MODE    => SLEW_MODE,
+            DRV_CURR_VAL => DRV_CURR_VAL,
+            IOSTANDARD   => IOSTANDARD
+        )
+        port map
+        (
+            TS           => ntTO,
+            IN           => ntDO,
+            OUT          => ntPAD
+        );
+
+    device IOB_INBUFLB  INBUFLB
+        parameter map
+        (
+            IOB_MODE          => IOB_MODE,
+            DDR_TERM_MODE     => DDR_TERM_MODE,
+            DIFF_IN_TERM_MODE => DIFF_IN_TERM_MODE,
+            IOSTANDARD        => IOSTANDARD
+        )
+        port map
+        (
+            IN          => ntPAD,
+            O           => ntINBUF
+        );
+            
+};  // end of structure netlist of devIOBUFLB            
+            
+timing tnl of devIOBUFLB
+{
+    operator V_OBUFT obuft
+        parameter map
+        (
+            IOSTANDARD => IOSTANDARD,
+            SLEW_RATE  => (SLEW_MODE == "S") ? "SLOW" : "FAST",
+            DRIVE_STRENGTH => DRV_CURR_VAL
+        )
+        port map
+        (
+            I => DO,
+            T => TO,
+            O => PAD
+        );
+    operator V_IBUF ibuf
+        parameter map
+        (
+            IOSTANDARD => IOSTANDARD,
+            TERM_DDR   => DDR_TERM_MODE
+        )
+        port map
+        (
+            I => PAD,
+            O => DIN
+        );
+} 

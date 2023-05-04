@@ -1,0 +1,88 @@
+use pg2l_defs,pg2l25h_defs;
+
+/*******************************************************************************
+
+       3 IO banks are defined, 2 on each edge. The banks are named 
+
+
+             BANKL4                            
+
+             BANKL5                      BANKR5 
+
+
+********************************************************************************/       
+structure arch_nl define_io_bank of PG2L25H
+{
+ 
+  &wire ntRef_ntVCCIOL4 = <wire ntVCCIOL4>;
+  &wire ntRef_ntVCCIOL5 = <wire ntVCCIOL5>;
+  &wire ntRef_ntVCCIOR5 = <wire ntVCCIOR5>;
+  &wire ntRef_ntVSS     = <wire ntVSS>;
+
+
+  int ty,sx_iob,sx_iol,sy,rx;
+  int bank_top = 4; //top bank number of the device
+
+  int bank_index;
+  int flag;
+
+
+  sx_iob = 0;
+  sx_iol = sx_iob + 2 * NUM_GRID_X;
+  //==================================//
+  //            BANKL4                //
+  //==================================//
+  device group BANKL4 /*pragma PAP_ARC_GROUP_TYPE="IO_BANK"*/;// pragma PAP_ARC_COLOR="191:191:0"
+ 
+  bank_index = 4;
+  rx = NUM_REGION + bank_top -1 - bank_index;
+  sy = rx * NUM_TILES_REGION * NUM_GRID_Y; 
+
+
+  connect
+    (
+      <pin VCCIO of <device IOBHR_TILE @ [sx_iob,sy]>> => ntRef_ntVCCIOL4,
+      <pin VSSIO of <device IOBHR_TILE @ [sx_iob,sy]>> => ntRef_ntVSS
+    );
+  BANKL4 +={ <device IOBHR_TILE @ [sx_iob,sy]>};
+
+  //==================================//
+  //            BANKL5                //
+  //==================================//
+  device group BANKL5 /*pragma PAP_ARC_GROUP_TYPE="IO_BANK"*/;// pragma PAP_ARC_COLOR="191:0:191"
+ 
+  bank_index = 5;
+  rx = NUM_REGION + bank_top -1 - bank_index;
+  sy = rx * NUM_TILES_REGION * NUM_GRID_Y; 
+
+  connect
+    (
+      <pin VCCIO of <device IOBHR_TILE @ [sx_iob,sy]>> => ntRef_ntVCCIOL5,
+      <pin VSSIO of <device IOBHR_TILE @ [sx_iob,sy]>> => ntRef_ntVSS
+    );
+  BANKL5 +={ <device IOBHR_TILE @ [sx_iob,sy]> };
+
+
+//*********************************************************************************************//
+ 
+
+  sx_iob = (NUM_TILE_X-1)*NUM_GRID_X;
+  sx_iol = sx_iob-2*NUM_GRID_X;
+  //==================================//
+  //            BANKR5                //
+  //==================================//
+  device group BANKR5 /*pragma PAP_ARC_GROUP_TYPE="IO_BANK"*/; // pragma PAP_ARC_COLOR="0:191:0"
+ 
+  bank_index = 5;
+  rx = NUM_REGION + bank_top -1 - bank_index;
+  sy = rx * NUM_TILES_REGION * NUM_GRID_Y; 
+  connect
+    (
+      <pin VCCIO of <device IOBHR_TILE @ [sx_iob,sy]>> => ntRef_ntVCCIOR5,
+      <pin VSSIO of <device IOBHR_TILE @ [sx_iob,sy]>> => ntRef_ntVSS
+    );
+  BANKR5 +={ <device IOBHR_TILE @ [sx_iob,sy]> };
+ 
+ 
+}//end of structure arch_nl define_io_bank of PG2L25H
+

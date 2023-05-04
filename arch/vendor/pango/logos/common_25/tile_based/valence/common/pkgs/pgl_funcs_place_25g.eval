@@ -1,0 +1,715 @@
+use pgl_defs;
+use pgl_CLMA_SRB_inc,pgl_CLMS_SRB_inc,pgl_DRM_SRB_inc,pgl_APM_SRB_inc,pgl_IOL_SRB_inc,pgl_PLL_B_SRB_inc,pgl_PLL_T_SRB_inc;
+use pgl_CCS_SRB_inc,pgl_DQSL_SRB_inc;
+use pgl_IOCKGATEDLL_SRB_inc,pgl_IOCKDLL_SRB_inc;
+use pgl_USCM_SRB_inc,pgl_TIEHI_SRB_inc,pgl_ANALOG_SRB_inc,pgl_IOLTB_SRB_inc;
+use pgl_IOB0_SRB_inc,pgl_IOB1_SRB_inc,pgl_IOB2_SRB_inc,pgl_IOB3_SRB_inc,pgl_CLKMUX_SRB_inc;
+
+package pgl_funcs_place_25g
+{
+/*******************************************************************
+********************************************************************/
+function place_analog_tile
+(
+  unsigned int tx,
+  unsigned int ty
+)
+{
+  int sx = tx*NUM_GRID_X;
+
+  int tmp_ty,sy;
+  sy = ty * NUM_GRID_Y;
+  for(tmp_ty=ty;tmp_ty > MID_TILE_REGION;tmp_ty = tmp_ty - NUM_TILES_REGION)
+  {
+    sy = sy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+  }
+
+    string strVar;
+
+    sprintf(strVar,"ntIPOLY10U_%d_%d",sx,sy);
+    &wire ntRef_ntIPOLY10U[13:0] = wire *strVar[13:0];
+    
+    sprintf(strVar,"ntICONST10U_%d_%d",sx,sy);
+    &wire ntRef_ntICONST10U[11:0] = wire *strVar[11:0];
+    
+    sprintf(strVar,"ntPOR_N33_%d_%d",sx,sy);
+    &wire ntRef_ntPOR_N33 = wire *strVar;
+    
+    sprintf(strVar,"ntNGB_%d_%d",sx,sy);
+    &wire ntRef_ntNGB = wire *strVar;
+    
+    sprintf(strVar,"ntPOR_N_%d_%d",sx,sy);
+    &wire ntRef_ntPOR_N = wire *strVar;
+    
+    sprintf(strVar,"ntPOR_OSC_N_%d_%d",sx,sy);
+    &wire ntRef_ntPOR_OSC_N = wire *strVar;
+    
+    sprintf(strVar,"ntCLK_USER_%d_%d",sx,sy);
+    &wire ntRef_ntCLK_USER = wire *strVar;
+    
+    sprintf(strVar,"ntTIEHI_%d_%d",sx,sy);
+    &wire ntRef_ntTIEHI = wire *strVar;
+
+    sprintf(strVar,"ntATP_O_%d_%d",sx,sy);
+    &wire ntRef_ntATP_O = wire *strVar;
+
+    sprintf(strVar,"ntATP_DUMMY_O_%d_%d",sx,sy);
+    &wire ntRef_ntATP_DUMMY_O = wire *strVar;
+
+    sprintf(strVar,"ntIBM1_OUT_%d_%d",sx,sy);
+    &wire ntRef_ntIBM1_OUT[19:0] = wire *strVar[19:0];
+
+    sprintf(strVar,"ntIBM2_OUT_%d_%d",sx,sy);
+    &wire ntRef_ntIBM2_OUT[19:0] = wire *strVar[19:0];
+
+    sprintf(strVar, "ANALOG_PGL25G_TILE_%d_%d", sx, sy);
+    device ANALOG_PGL25G_TILE *strVar
+          port map (
+                      IPOLY10U  => ntRef_ntIPOLY10U, 
+                      ICONST10U => ntRef_ntICONST10U,
+                      POR_N33   => ntRef_ntPOR_N33,  
+                      NGB       => ntRef_ntNGB,      
+                      POR_N     => ntRef_ntPOR_N,    
+                      POR_OSC_N => ntRef_ntPOR_OSC_N,
+                      CLK_USER  => ntRef_ntCLK_USER, 
+                      TIEHI     => ntRef_ntTIEHI,
+                      IBM1_OUT     => ntRef_ntIBM1_OUT,
+                      IBM2_OUT     => ntRef_ntIBM2_OUT,
+                      ATP_O     => ntRef_ntATP_O,
+                      ATP_DUMMY_O     => ntRef_ntATP_DUMMY_O
+                    )
+        @([sx,sy]);
+
+        STRUCT inc_spec_ANALOG incVar;
+        string pin_SRB;
+        string pin_logic_device;
+        string attribute_IO;
+        int loc_SRB;
+        int sy_SRB;
+  
+        foreach incVar(inc_ANALOG_SRB_spec)
+        {
+            pin_SRB = incVar.port_name_SRB;
+            pin_logic_device = incVar.port_name_device;
+            attribute_IO = incVar.attribute_IO;
+            loc_SRB = incVar.loc_SRB;
+           
+            if(loc_SRB==0)
+            {
+              sy_SRB = sy + NUM_GRID_Y;
+            }
+            else
+            {
+              sy_SRB = sy + loc_SRB*NUM_GRID_Y + NUM_GRID_Y; 
+            }
+            
+            int sx_SRB =( tx + 1 ) * NUM_GRID_X ;
+
+            if(attribute_IO =="I")
+            { 
+             
+               connect(<pin *pin_logic_device of <device ANALOG_PGL25G_TILE @[sx,sy]>> => <wire *pin_SRB of <device SRB_TILE@[sx_SRB,sy_SRB]>>);
+            }
+            else
+            {
+              connect(<pin *pin_SRB of<device SRB_TILE@[sx_SRB,sy_SRB]>> => (incVar.port_name_device == "TIEHI") ? <wire TIEHI of <device SRB_TILE@[sx_SRB,sy_SRB]>>
+                                                                         : <wire *pin_logic_device of <device ANALOG_PGL25G_TILE @[sx,sy]>>); 
+            }
+        }
+} // end of place_analog_tile
+/********************************************************************************************************
+*********************************************************************************************************/
+function place_blsr1_tile(unsigned int tx,ty)
+{   
+    unsigned int sx, sy;
+    
+    sx = tx * NUM_GRID_X;
+    sy = ty * NUM_GRID_BLSR_Y + NUM_GRID_Y ;
+    
+    string strVar;
+
+    sprintf(strVar,"ntPOR_N_OL_%d_%d",sx,sy);
+    &wire ntRef_ntPOR_N_OL = wire *strVar;
+
+    sprintf(strVar,"ntPROG_ON_O_%d_%d",sx,sy);
+    &wire ntRef_ntPROG_ON_O = wire *strVar;
+
+    sprintf(strVar,"ntPROG_ON_R_O_%d_%d",sx,sy);
+    &wire ntRef_ntPROG_ON_R_O = wire *strVar;
+
+    sprintf(strVar,"ntNONDRM_REG_INC_O_%d_%d",sx,sy);
+    &wire ntRef_ntNONDRM_REG_INC_O = wire *strVar;
+
+    sprintf(strVar,"ntPRECHG_O_%d_%d",sx,sy);
+    &wire ntRef_ntPRECHG_O = wire *strVar;
+
+    sprintf(strVar,"ntERASE_R_O_%d_%d",sx,sy);
+    &wire ntRef_ntERASE_R_O = wire *strVar;
+
+    sprintf(strVar,"ntCOL_R_N_O_%d_%d",sx,sy);
+    &wire ntRef_ntCOL_R_N_O[6:0] = wire *strVar[6:0];
+
+    sprintf(strVar,"ntWL_ON_O_%d_%d",sx,sy);
+    &wire ntRef_ntWL_ON_O = wire *strVar;
+
+    sprintf(strVar,"ntCOL_IN_O_%d_%d",sx,sy);
+    &wire ntRef_ntCOL_IN_O[6:0] = wire *strVar[6:0];
+
+    sprintf(strVar,"ntPOR_N_OR_%d_%d",sx,sy);
+    &wire ntRef_ntPOR_N_OR = wire *strVar;
+
+    sprintf(strVar,"ntDSROUTTO_CONFIG_%d_%d",sx,sy);
+    &wire ntRef_ntDSROUTTO_CONFIG[31:0] = wire *strVar[31:0];
+
+    sprintf(strVar,"ntBLSR_SEL_O_%d_%d",sx,sy);
+    &wire ntRef_ntBLSR_SEL_O[5:0] = wire *strVar[5:0];
+
+    sprintf(strVar,"ntCLKOUT_M_%d_%d",sx,sy);
+    &wire ntRef_ntCLKOUT_M = wire *strVar;
+
+    sprintf(strVar,"ntCOL_L_N_O_%d_%d",sx,sy);
+    &wire ntRef_ntCOL_L_N_O[6:0] = wire *strVar[6:0];
+
+    sprintf(strVar,"ntNONDRM_END_O_%d_%d",sx,sy);
+    &wire ntRef_ntNONDRM_END_O = wire *strVar;
+
+    sprintf(strVar,"ntWLSR_REF_%d_%d",sx,sy);
+    &wire ntRef_ntWLSR_REF[1:0] = wire *strVar[1:0];
+
+    sprintf(strVar,"ntPD_OUT_%d_%d",sx,sy);
+    &wire ntRef_ntPD_OUT = wire *strVar;
+
+    sprintf(strVar,"ntREGION_RW_EN_O_%d_%d",sx,sy);
+    &wire ntRef_ntREGION_RW_EN_O[11:0] = wire *strVar[11:0];
+
+    sprintf(strVar,"ntDATA_%d_%d",sx,sy);
+    &wire ntRef_ntDATA[2175:0] = wire *strVar[2175:0];
+
+    sprintf(strVar,"ntCOL_INC_O_%d_%d",sx,sy);
+    &wire ntRef_ntCOL_INC_O = wire *strVar;
+
+    sprintf(strVar,"ntDATA_TO_NEXT_%d_%d",sx,sy);
+    &wire ntRef_ntDATA_TO_NEXT[31:0] = wire *strVar[31:0];
+
+    sprintf(strVar,"ntTYPE_O_%d_%d",sx,sy);
+    &wire ntRef_ntTYPE_O = wire *strVar;
+
+    sprintf(strVar,"ntREAD_O_%d_%d",sx,sy);
+    &wire ntRef_ntREAD_O = wire *strVar;
+
+    sprintf(strVar,"ntRSTN_O_%d_%d",sx,sy);
+    &wire ntRef_ntRSTN_O = wire *strVar;
+
+    sprintf(strVar,"ntPOR_ERASE_N_O_%d_%d",sx,sy);
+    &wire ntRef_ntPOR_ERASE_N_O = wire *strVar;
+
+    sprintf(strVar,"ntFRAME_ADDR_O_%d_%d",sx,sy);
+    &wire ntRef_ntFRAME_ADDR_O[7:0] = wire *strVar[7:0];
+
+    sprintf(strVar,"ntPUB_OUT_%d_%d",sx,sy);
+    &wire ntRef_ntPUB_OUT = wire *strVar;
+
+    sprintf(strVar,"ntDATAN_%d_%d",sx,sy);
+    &wire ntRef_ntDATAN[2175:0] = wire *strVar[2175:0];
+
+    sprintf(strVar,"ntERASE_EN_O_%d_%d",sx,sy);
+    &wire ntRef_ntERASE_EN_O = wire *strVar;
+
+    sprintf(strVar,"ntCOL_L_O_%d_%d",sx,sy);
+    &wire ntRef_ntCOL_L_O[6:0] = wire *strVar[6:0];
+
+    sprintf(strVar,"ntMCLKB_O_%d_%d",sx,sy);
+    &wire ntRef_ntMCLKB_O = wire *strVar;
+
+    sprintf(strVar,"ntMCLKB_OL_%d_%d",sx,sy);
+    &wire ntRef_ntMCLKB_OL = wire *strVar;
+
+    sprintf(strVar,"ntMCLKB_OR_%d_%d",sx,sy);
+    &wire ntRef_ntMCLKB_OR = wire *strVar;
+
+    sprintf(strVar,"ntMCE_O_%d_%d",sx,sy);
+    &wire ntRef_ntMCE_O = wire *strVar;
+
+    sprintf(strVar,"ntMCE_OL_%d_%d",sx,sy);
+    &wire ntRef_ntMCE_OL = wire *strVar;
+
+    sprintf(strVar,"ntMCE_OR_%d_%d",sx,sy);
+    &wire ntRef_ntMCE_OR = wire *strVar;
+
+    sprintf(strVar,"ntMWR_O_%d_%d",sx,sy);
+    &wire ntRef_ntMWR_O = wire *strVar;
+
+    sprintf(strVar,"ntMWR_OL_%d_%d",sx,sy);
+    &wire ntRef_ntMWR_OL = wire *strVar;
+
+    sprintf(strVar,"ntMWR_OR_%d_%d",sx,sy);
+    &wire ntRef_ntMWR_OR = wire *strVar;
+
+    sprintf(strVar,"ntMASK_O_%d_%d",sx,sy);
+    &wire ntRef_ntMASK_O = wire *strVar;
+
+    sprintf(strVar,"ntMASK_OL_%d_%d",sx,sy);
+    &wire ntRef_ntMASK_OL = wire *strVar;
+
+    sprintf(strVar,"ntMASK_OR_%d_%d",sx,sy);
+    &wire ntRef_ntMASK_OR = wire *strVar;
+
+    sprintf(strVar,"ntPROG_CAP_O_%d_%d",sx,sy);
+    &wire ntRef_ntPROG_CAP_O = wire *strVar;
+
+    sprintf(strVar,"ntRDBK_CAP_O_%d_%d",sx,sy);
+    &wire ntRef_ntRDBK_CAP_O = wire *strVar;
+
+    sprintf(strVar,"ntCOL_R_O_%d_%d",sx,sy);
+    &wire ntRef_ntCOL_R_O[6:0] = wire *strVar[6:0];
+
+    sprintf(strVar,"ntWLSR_SEL_O_%d_%d",sx,sy);
+    &wire ntRef_ntWLSR_SEL_O[5:0] = wire *strVar[5:0];
+
+    sprintf(strVar,"ntPRECHG_R_O_%d_%d",sx,sy);
+    &wire ntRef_ntPRECHG_R_O = wire *strVar;
+
+    sprintf(strVar,"ntNONDRM_END_LOCAL_%d_%d",sx,sy);
+    &wire ntRef_ntNONDRM_END_LOCAL = wire *strVar;
+
+    sprintf(strVar,"ntTIEL1_%d_%d",sx,sy);
+    &wire ntRef_ntTIEL1 = wire *strVar;
+
+    sprintf(strVar,"ntTIEL2_%d_%d",sx,sy);
+    &wire ntRef_ntTIEL2 = wire *strVar;
+
+    sprintf(strVar,"ntCLK_ADC_L_%d_%d",sx,sy);
+    &wire ntRef_ntCLK_ADC_L = wire *strVar;
+
+    sprintf(strVar,"ntCLK_ADC_OUT_%d_%d",sx,sy);
+    &wire ntRef_ntCLK_ADC_OUT = wire *strVar;
+
+    sprintf(strVar,"ntCLK_ADC_R_%d_%d",sx,sy);
+    &wire ntRef_ntCLK_ADC_R = wire *strVar;
+
+    sprintf(strVar,"ntCLK_USER_OUT_%d_%d",sx,sy);
+    &wire ntRef_ntCLK_USER_OUT = wire *strVar;
+
+    sprintf(strVar,"ntDCI_INIT_%d_%d",sx,sy);
+    &wire ntRef_ntDCI_INIT = wire *strVar;
+
+    sprintf(strVar,"ntCLK_REL_OUT_M_%d_%d",sx,sy);
+    &wire ntRef_ntCLK_REL_OUT_M = wire *strVar;
+
+    sprintf(strVar,"ntGLOGEN_OUT_%d_%d",sx,sy);
+    &wire ntRef_ntGLOGEN_OUT = wire *strVar;
+
+    sprintf(strVar,"ntGRS_N_OUT_M_%d_%d",sx,sy);
+    &wire ntRef_ntGRS_N_OUT_M = wire *strVar;
+
+    sprintf(strVar,"ntGWEN_OUT_M_%d_%d",sx,sy);
+    &wire ntRef_ntGWEN_OUT_M = wire *strVar;
+
+    sprintf(strVar,"ntPOR_N_OUT_M_%d_%d",sx,sy);
+    &wire ntRef_ntPOR_N_OUT_M = wire *strVar;
+
+    sprintf(strVar,"ntPUP_REL_N_OUT_M_%d_%d",sx,sy);
+    &wire ntRef_ntPUP_REL_N_OUT_M = wire *strVar;
+
+    sprintf(strVar,"ntTIE_LO_1V1_%d_%d",sx,sy);
+    &wire ntRef_ntTIE_LO_1V1 = wire *strVar;
+
+    sprintf(strVar,"ntBUS_BSCAN_OUTL_%d_%d",sx,sy);
+    &wire ntRef_ntBUS_BSCAN_OUTL[17:0] = wire *strVar[17:0];
+
+    sprintf(strVar,"ntBUS_BSCAN_OUTM_%d_%d",sx,sy);
+    &wire ntRef_ntBUS_BSCAN_OUTM[17:0] = wire *strVar[17:0];
+
+    sprintf(strVar,"ntBUS_BSCAN_OUTR_%d_%d",sx,sy);
+    &wire ntRef_ntBUS_BSCAN_OUTR[17:0] = wire *strVar[17:0];
+
+    sprintf(strVar,"ntBUS_GSEB_OUTL_%d_%d",sx,sy);
+    &wire ntRef_ntBUS_GSEB_OUTL[5:0] = wire *strVar[5:0];
+
+    sprintf(strVar,"ntBUS_GSEB_OUTR_%d_%d",sx,sy);
+    &wire ntRef_ntBUS_GSEB_OUTR[5:0] = wire *strVar[5:0];
+
+    sprintf(strVar,"ntBUS_WLSR_OUTL_%d_%d",sx,sy);
+    &wire ntRef_ntBUS_WLSR_OUTL[12:0] = wire *strVar[12:0];
+
+    sprintf(strVar,"ntBUS_WLSR_OUTR_%d_%d",sx,sy);
+    &wire ntRef_ntBUS_WLSR_OUTR[12:0] = wire *strVar[12:0];
+
+
+    sprintf(strVar, "BLSR1_TILE_%d_%d", sx, sy);
+    
+    device BLSR1_TILE *strVar
+         port map (
+                        POR_N_OL         => ntRef_ntPOR_N_OL,        
+                        PROG_ON_O        => ntRef_ntPROG_ON_O,       
+                        PROG_ON_R_O      => ntRef_ntPROG_ON_R_O,     
+                        NONDRM_REG_INC_O => ntRef_ntNONDRM_REG_INC_O,
+                        PRECHG_O         => ntRef_ntPRECHG_O,        
+                        ERASE_R_O        => ntRef_ntERASE_R_O,       
+                        COL_R_N_O        => ntRef_ntCOL_R_N_O,       
+                        WL_ON_O          => ntRef_ntWL_ON_O,         
+                        COL_IN_O         => ntRef_ntCOL_IN_O,        
+                        POR_N_OR         => ntRef_ntPOR_N_OR,        
+                        DSROUTTO_CONFIG  => ntRef_ntDSROUTTO_CONFIG, 
+                        BLSR_SEL_O       => ntRef_ntBLSR_SEL_O,      
+                        CLKOUT_M         => ntRef_ntCLKOUT_M,        
+                        COL_L_N_O        => ntRef_ntCOL_L_N_O,       
+                        NONDRM_END_O     => ntRef_ntNONDRM_END_O,    
+                        WLSR_REF         => ntRef_ntWLSR_REF,        
+                        PD_OUT           => ntRef_ntPD_OUT,          
+                        REGION_RW_EN_O   => ntRef_ntREGION_RW_EN_O,  
+                        DATA             => ntRef_ntDATA,            
+                        COL_INC_O        => ntRef_ntCOL_INC_O,       
+                        DATA_TO_NEXT     => ntRef_ntDATA_TO_NEXT,    
+                        TYPE_O           => ntRef_ntTYPE_O,          
+                        READ_O           => ntRef_ntREAD_O,          
+                        RSTN_O           => ntRef_ntRSTN_O,          
+                        POR_ERASE_N_O    => ntRef_ntPOR_ERASE_N_O,   
+                        FRAME_ADDR_O     => ntRef_ntFRAME_ADDR_O,    
+                        PUB_OUT          => ntRef_ntPUB_OUT,         
+                        DATAN            => ntRef_ntDATAN,           
+                        ERASE_EN_O       => ntRef_ntERASE_EN_O,      
+                        COL_L_O          => ntRef_ntCOL_L_O,         
+                        MCLKB_O          => ntRef_ntMCLKB_O,         
+                        MCLKB_OL         => ntRef_ntMCLKB_OL,        
+                        MCLKB_OR         => ntRef_ntMCLKB_OR,        
+                        MCE_O            => ntRef_ntMCE_O,           
+                        MCE_OL           => ntRef_ntMCE_OL,          
+                        MCE_OR           => ntRef_ntMCE_OR,          
+                        MWR_O            => ntRef_ntMWR_O,           
+                        MWR_OL           => ntRef_ntMWR_OL,          
+                        MWR_OR           => ntRef_ntMWR_OR,          
+                        MASK_O           => ntRef_ntMASK_O,          
+                        MASK_OL          => ntRef_ntMASK_OL,         
+                        MASK_OR          => ntRef_ntMASK_OR,         
+                        PROG_CAP_O       => ntRef_ntPROG_CAP_O,      
+                        RDBK_CAP_O       => ntRef_ntRDBK_CAP_O,      
+                        COL_R_O          => ntRef_ntCOL_R_O,         
+                        WLSR_SEL_O       => ntRef_ntWLSR_SEL_O,      
+                        PRECHG_R_O       => ntRef_ntPRECHG_R_O,      
+                        NONDRM_END_LOCAL => ntRef_ntNONDRM_END_LOCAL,
+                        TIEL1            => ntRef_ntTIEL1,           
+                        TIEL2            => ntRef_ntTIEL2,           
+                        CLK_ADC_L        => ntRef_ntCLK_ADC_L,       
+                        CLK_ADC_OUT      => ntRef_ntCLK_ADC_OUT,     
+                        CLK_ADC_R        => ntRef_ntCLK_ADC_R,       
+                        CLK_USER_OUT     => ntRef_ntCLK_USER_OUT,    
+                        DCI_INIT         => ntRef_ntDCI_INIT,        
+                        CLK_REL_OUT_M    => ntRef_ntCLK_REL_OUT_M,   
+                        GLOGEN_OUT       => ntRef_ntGLOGEN_OUT,      
+                        GRS_N_OUT_M      => ntRef_ntGRS_N_OUT_M,     
+                        GWEN_OUT_M       => ntRef_ntGWEN_OUT_M,      
+                        POR_N_OUT_M      => ntRef_ntPOR_N_OUT_M,     
+                        PUP_REL_N_OUT_M  => ntRef_ntPUP_REL_N_OUT_M, 
+                        TIE_LO_1V1       => ntRef_ntTIE_LO_1V1,      
+                        BUS_BSCAN_OUTL   => ntRef_ntBUS_BSCAN_OUTL,  
+                        BUS_BSCAN_OUTM   => ntRef_ntBUS_BSCAN_OUTM,  
+                        BUS_BSCAN_OUTR   => ntRef_ntBUS_BSCAN_OUTR,  
+                        BUS_GSEB_OUTL    => ntRef_ntBUS_GSEB_OUTL,   
+                        BUS_GSEB_OUTR    => ntRef_ntBUS_GSEB_OUTR,   
+                        BUS_WLSR_OUTL    => ntRef_ntBUS_WLSR_OUTL,   
+                        BUS_WLSR_OUTR    => ntRef_ntBUS_WLSR_OUTR
+                  )
+        @([sx,sy]);
+        
+}// end of function place_blsr1_tile
+/********************************************************************************************************
+*********************************************************************************************************/
+function place_blsr2_tile(unsigned int tx,ty)
+{   
+    unsigned int sx, sy;
+    
+    sx = tx * NUM_GRID_X;
+    sy = ty * NUM_GRID_BLSR_Y + NUM_GRID_Y;
+    
+    string strVar;
+
+    sprintf(strVar,"ntPOR_N_OL_%d_%d",sx,sy);
+    &wire ntRef_ntPOR_N_OL = wire *strVar;
+
+    sprintf(strVar,"ntPROG_ON_O_%d_%d",sx,sy);
+    &wire ntRef_ntPROG_ON_O = wire *strVar;
+
+    sprintf(strVar,"ntPROG_ON_R_O_%d_%d",sx,sy);
+    &wire ntRef_ntPROG_ON_R_O = wire *strVar;
+
+    sprintf(strVar,"ntNONDRM_REG_INC_O_%d_%d",sx,sy);
+    &wire ntRef_ntNONDRM_REG_INC_O = wire *strVar;
+
+    sprintf(strVar,"ntPRECHG_O_%d_%d",sx,sy);
+    &wire ntRef_ntPRECHG_O = wire *strVar;
+
+    sprintf(strVar,"ntERASE_R_O_%d_%d",sx,sy);
+    &wire ntRef_ntERASE_R_O = wire *strVar;
+
+    sprintf(strVar,"ntCOL_R_N_O_%d_%d",sx,sy);
+    &wire ntRef_ntCOL_R_N_O[6:0] = wire *strVar[6:0];
+
+    sprintf(strVar,"ntWL_ON_O_%d_%d",sx,sy);
+    &wire ntRef_ntWL_ON_O = wire *strVar;
+
+    sprintf(strVar,"ntCOL_IN_O_%d_%d",sx,sy);
+    &wire ntRef_ntCOL_IN_O[6:0] = wire *strVar[6:0];
+
+    sprintf(strVar,"ntPOR_N_OR_%d_%d",sx,sy);
+    &wire ntRef_ntPOR_N_OR = wire *strVar;
+
+    sprintf(strVar,"ntDSROUTTO_CONFIG_%d_%d",sx,sy);
+    &wire ntRef_ntDSROUTTO_CONFIG[31:0] = wire *strVar[31:0];
+
+    sprintf(strVar,"ntBLSR_SEL_O_%d_%d",sx,sy);
+    &wire ntRef_ntBLSR_SEL_O[5:0] = wire *strVar[5:0];
+
+    sprintf(strVar,"ntCLKOUT_M_%d_%d",sx,sy);
+    &wire ntRef_ntCLKOUT_M = wire *strVar;
+
+    sprintf(strVar,"ntCOL_L_N_O_%d_%d",sx,sy);
+    &wire ntRef_ntCOL_L_N_O[6:0] = wire *strVar[6:0];
+
+    sprintf(strVar,"ntNONDRM_END_O_%d_%d",sx,sy);
+    &wire ntRef_ntNONDRM_END_O = wire *strVar;
+
+    sprintf(strVar,"ntWLSR_REF_%d_%d",sx,sy);
+    &wire ntRef_ntWLSR_REF[1:0] = wire *strVar[1:0];
+
+    sprintf(strVar,"ntPD_OUT_%d_%d",sx,sy);
+    &wire ntRef_ntPD_OUT = wire *strVar;
+
+    sprintf(strVar,"ntREGION_RW_EN_O_%d_%d",sx,sy);
+    &wire ntRef_ntREGION_RW_EN_O[11:0] = wire *strVar[11:0];
+
+    sprintf(strVar,"ntDATA_%d_%d",sx,sy);
+    &wire ntRef_ntDATA[2175:0] = wire *strVar[2175:0];
+
+    sprintf(strVar,"ntCOL_INC_O_%d_%d",sx,sy);
+    &wire ntRef_ntCOL_INC_O = wire *strVar;
+
+    sprintf(strVar,"ntDATA_TO_NEXT_%d_%d",sx,sy);
+    &wire ntRef_ntDATA_TO_NEXT[31:0] = wire *strVar[31:0];
+
+    sprintf(strVar,"ntTYPE_O_%d_%d",sx,sy);
+    &wire ntRef_ntTYPE_O = wire *strVar;
+
+    sprintf(strVar,"ntREAD_O_%d_%d",sx,sy);
+    &wire ntRef_ntREAD_O = wire *strVar;
+
+    sprintf(strVar,"ntRSTN_O_%d_%d",sx,sy);
+    &wire ntRef_ntRSTN_O = wire *strVar;
+
+    sprintf(strVar,"ntPOR_ERASE_N_O_%d_%d",sx,sy);
+    &wire ntRef_ntPOR_ERASE_N_O = wire *strVar;
+
+    sprintf(strVar,"ntFRAME_ADDR_O_%d_%d",sx,sy);
+    &wire ntRef_ntFRAME_ADDR_O[7:0] = wire *strVar[7:0];
+
+    sprintf(strVar,"ntPUB_OUT_%d_%d",sx,sy);
+    &wire ntRef_ntPUB_OUT = wire *strVar;
+
+    sprintf(strVar,"ntDATAN_%d_%d",sx,sy);
+    &wire ntRef_ntDATAN[2175:0] = wire *strVar[2175:0];
+
+    sprintf(strVar,"ntERASE_EN_O_%d_%d",sx,sy);
+    &wire ntRef_ntERASE_EN_O = wire *strVar;
+
+    sprintf(strVar,"ntCOL_L_O_%d_%d",sx,sy);
+    &wire ntRef_ntCOL_L_O[6:0] = wire *strVar[6:0];
+
+    sprintf(strVar,"ntMCLKB_O_%d_%d",sx,sy);
+    &wire ntRef_ntMCLKB_O = wire *strVar;
+
+    sprintf(strVar,"ntMCLKB_OL_%d_%d",sx,sy);
+    &wire ntRef_ntMCLKB_OL = wire *strVar;
+
+    sprintf(strVar,"ntMCLKB_OR_%d_%d",sx,sy);
+    &wire ntRef_ntMCLKB_OR = wire *strVar;
+
+    sprintf(strVar,"ntMCE_O_%d_%d",sx,sy);
+    &wire ntRef_ntMCE_O = wire *strVar;
+
+    sprintf(strVar,"ntMCE_OL_%d_%d",sx,sy);
+    &wire ntRef_ntMCE_OL = wire *strVar;
+
+    sprintf(strVar,"ntMCE_OR_%d_%d",sx,sy);
+    &wire ntRef_ntMCE_OR = wire *strVar;
+
+    sprintf(strVar,"ntMWR_O_%d_%d",sx,sy);
+    &wire ntRef_ntMWR_O = wire *strVar;
+
+    sprintf(strVar,"ntMWR_OL_%d_%d",sx,sy);
+    &wire ntRef_ntMWR_OL = wire *strVar;
+
+    sprintf(strVar,"ntMWR_OR_%d_%d",sx,sy);
+    &wire ntRef_ntMWR_OR = wire *strVar;
+
+    sprintf(strVar,"ntMASK_O_%d_%d",sx,sy);
+    &wire ntRef_ntMASK_O = wire *strVar;
+
+    sprintf(strVar,"ntMASK_OL_%d_%d",sx,sy);
+    &wire ntRef_ntMASK_OL = wire *strVar;
+
+    sprintf(strVar,"ntMASK_OR_%d_%d",sx,sy);
+    &wire ntRef_ntMASK_OR = wire *strVar;
+
+    sprintf(strVar,"ntPROG_CAP_O_%d_%d",sx,sy);
+    &wire ntRef_ntPROG_CAP_O = wire *strVar;
+
+    sprintf(strVar,"ntRDBK_CAP_O_%d_%d",sx,sy);
+    &wire ntRef_ntRDBK_CAP_O = wire *strVar;
+
+    sprintf(strVar,"ntCOL_R_O_%d_%d",sx,sy);
+    &wire ntRef_ntCOL_R_O[6:0] = wire *strVar[6:0];
+
+    sprintf(strVar,"ntWLSR_SEL_O_%d_%d",sx,sy);
+    &wire ntRef_ntWLSR_SEL_O[5:0] = wire *strVar[5:0];
+
+    sprintf(strVar,"ntPRECHG_R_O_%d_%d",sx,sy);
+    &wire ntRef_ntPRECHG_R_O = wire *strVar;
+
+    sprintf(strVar,"ntNONDRM_END_LOCAL_%d_%d",sx,sy);
+    &wire ntRef_ntNONDRM_END_LOCAL = wire *strVar;
+
+    sprintf(strVar,"ntTIEL1_%d_%d",sx,sy);
+    &wire ntRef_ntTIEL1 = wire *strVar;
+
+    sprintf(strVar,"ntTIEL2_%d_%d",sx,sy);
+    &wire ntRef_ntTIEL2 = wire *strVar;
+
+    sprintf(strVar,"ntCLK_ADC_L_%d_%d",sx,sy);
+    &wire ntRef_ntCLK_ADC_L = wire *strVar;
+
+    sprintf(strVar,"ntCLK_ADC_OUT_%d_%d",sx,sy);
+    &wire ntRef_ntCLK_ADC_OUT = wire *strVar;
+
+    sprintf(strVar,"ntCLK_ADC_R_%d_%d",sx,sy);
+    &wire ntRef_ntCLK_ADC_R = wire *strVar;
+
+    sprintf(strVar,"ntCLK_USER_OUT_%d_%d",sx,sy);
+    &wire ntRef_ntCLK_USER_OUT = wire *strVar;
+
+    sprintf(strVar,"ntDCI_INIT_%d_%d",sx,sy);
+    &wire ntRef_ntDCI_INIT = wire *strVar;
+
+    sprintf(strVar,"ntCLK_REL_OUT_M_%d_%d",sx,sy);
+    &wire ntRef_ntCLK_REL_OUT_M = wire *strVar;
+
+    sprintf(strVar,"ntGLOGEN_OUT_%d_%d",sx,sy);
+    &wire ntRef_ntGLOGEN_OUT = wire *strVar;
+
+    sprintf(strVar,"ntGRS_N_OUT_M_%d_%d",sx,sy);
+    &wire ntRef_ntGRS_N_OUT_M = wire *strVar;
+
+    sprintf(strVar,"ntGWEN_OUT_M_%d_%d",sx,sy);
+    &wire ntRef_ntGWEN_OUT_M = wire *strVar;
+
+    sprintf(strVar,"ntPOR_N_OUT_M_%d_%d",sx,sy);
+    &wire ntRef_ntPOR_N_OUT_M = wire *strVar;
+
+    sprintf(strVar,"ntPUP_REL_N_OUT_M_%d_%d",sx,sy);
+    &wire ntRef_ntPUP_REL_N_OUT_M = wire *strVar;
+
+    sprintf(strVar,"ntTIE_LO_1V1_%d_%d",sx,sy);
+    &wire ntRef_ntTIE_LO_1V1 = wire *strVar;
+
+    sprintf(strVar,"ntBUS_BSCAN_OUTL_%d_%d",sx,sy);
+    &wire ntRef_ntBUS_BSCAN_OUTL[17:0] = wire *strVar[17:0];
+
+    sprintf(strVar,"ntBUS_BSCAN_OUTM_%d_%d",sx,sy);
+    &wire ntRef_ntBUS_BSCAN_OUTM[17:0] = wire *strVar[17:0];
+
+    sprintf(strVar,"ntBUS_BSCAN_OUTR_%d_%d",sx,sy);
+    &wire ntRef_ntBUS_BSCAN_OUTR[17:0] = wire *strVar[17:0];
+
+    sprintf(strVar,"ntBUS_GSEB_OUTL_%d_%d",sx,sy);
+    &wire ntRef_ntBUS_GSEB_OUTL[5:0] = wire *strVar[5:0];
+
+    sprintf(strVar,"ntBUS_GSEB_OUTR_%d_%d",sx,sy);
+    &wire ntRef_ntBUS_GSEB_OUTR[5:0] = wire *strVar[5:0];
+
+    sprintf(strVar,"ntBUS_WLSR_OUTL_%d_%d",sx,sy);
+    &wire ntRef_ntBUS_WLSR_OUTL[12:0] = wire *strVar[12:0];
+
+    sprintf(strVar,"ntBUS_WLSR_OUTR_%d_%d",sx,sy);
+    &wire ntRef_ntBUS_WLSR_OUTR[12:0] = wire *strVar[12:0];
+
+
+    sprintf(strVar, "BLSR2_TILE_%d_%d", sx, sy);
+    
+    device BLSR2_TILE *strVar
+         port map (
+                    POR_N_OL         => ntRef_ntPOR_N_OL,        
+                    PROG_ON_O        => ntRef_ntPROG_ON_O,       
+                    PROG_ON_R_O      => ntRef_ntPROG_ON_R_O,     
+                    NONDRM_REG_INC_O => ntRef_ntNONDRM_REG_INC_O,
+                    PRECHG_O         => ntRef_ntPRECHG_O,        
+                    ERASE_R_O        => ntRef_ntERASE_R_O,       
+                    COL_R_N_O        => ntRef_ntCOL_R_N_O,       
+                    WL_ON_O          => ntRef_ntWL_ON_O,         
+                    COL_IN_O         => ntRef_ntCOL_IN_O,        
+                    POR_N_OR         => ntRef_ntPOR_N_OR,        
+                    DSROUTTO_CONFIG  => ntRef_ntDSROUTTO_CONFIG, 
+                    BLSR_SEL_O       => ntRef_ntBLSR_SEL_O,      
+                    CLKOUT_M         => ntRef_ntCLKOUT_M,        
+                    COL_L_N_O        => ntRef_ntCOL_L_N_O,       
+                    NONDRM_END_O     => ntRef_ntNONDRM_END_O,    
+                    WLSR_REF         => ntRef_ntWLSR_REF,        
+                    PD_OUT           => ntRef_ntPD_OUT,          
+                    REGION_RW_EN_O   => ntRef_ntREGION_RW_EN_O,  
+                    DATA             => ntRef_ntDATA,            
+                    COL_INC_O        => ntRef_ntCOL_INC_O,       
+                    DATA_TO_NEXT     => ntRef_ntDATA_TO_NEXT,    
+                    TYPE_O           => ntRef_ntTYPE_O,          
+                    READ_O           => ntRef_ntREAD_O,          
+                    RSTN_O           => ntRef_ntRSTN_O,          
+                    POR_ERASE_N_O    => ntRef_ntPOR_ERASE_N_O,   
+                    FRAME_ADDR_O     => ntRef_ntFRAME_ADDR_O,    
+                    PUB_OUT          => ntRef_ntPUB_OUT,         
+                    DATAN            => ntRef_ntDATAN,           
+                    ERASE_EN_O       => ntRef_ntERASE_EN_O,      
+                    COL_L_O          => ntRef_ntCOL_L_O,         
+                    MCLKB_O          => ntRef_ntMCLKB_O,         
+                    MCLKB_OL         => ntRef_ntMCLKB_OL,        
+                    MCLKB_OR         => ntRef_ntMCLKB_OR,        
+                    MCE_O            => ntRef_ntMCE_O,           
+                    MCE_OL           => ntRef_ntMCE_OL,          
+                    MCE_OR           => ntRef_ntMCE_OR,          
+                    MWR_O            => ntRef_ntMWR_O,           
+                    MWR_OL           => ntRef_ntMWR_OL,          
+                    MWR_OR           => ntRef_ntMWR_OR,          
+                    MASK_O           => ntRef_ntMASK_O,          
+                    MASK_OL          => ntRef_ntMASK_OL,         
+                    MASK_OR          => ntRef_ntMASK_OR,         
+                    PROG_CAP_O       => ntRef_ntPROG_CAP_O,      
+                    RDBK_CAP_O       => ntRef_ntRDBK_CAP_O,      
+                    COL_R_O          => ntRef_ntCOL_R_O,         
+                    WLSR_SEL_O       => ntRef_ntWLSR_SEL_O,      
+                    PRECHG_R_O       => ntRef_ntPRECHG_R_O,      
+                    NONDRM_END_LOCAL => ntRef_ntNONDRM_END_LOCAL,
+                    TIEL1            => ntRef_ntTIEL1,           
+                    TIEL2            => ntRef_ntTIEL2,           
+                    CLK_ADC_L        => ntRef_ntCLK_ADC_L,       
+                    CLK_ADC_OUT      => ntRef_ntCLK_ADC_OUT,     
+                    CLK_ADC_R        => ntRef_ntCLK_ADC_R,       
+                    CLK_USER_OUT     => ntRef_ntCLK_USER_OUT,    
+                    DCI_INIT         => ntRef_ntDCI_INIT,        
+                    CLK_REL_OUT_M    => ntRef_ntCLK_REL_OUT_M,   
+                    GLOGEN_OUT       => ntRef_ntGLOGEN_OUT,      
+                    GRS_N_OUT_M      => ntRef_ntGRS_N_OUT_M,     
+                    GWEN_OUT_M       => ntRef_ntGWEN_OUT_M,      
+                    POR_N_OUT_M      => ntRef_ntPOR_N_OUT_M,     
+                    PUP_REL_N_OUT_M  => ntRef_ntPUP_REL_N_OUT_M, 
+                    TIE_LO_1V1       => ntRef_ntTIE_LO_1V1,      
+                    BUS_BSCAN_OUTL   => ntRef_ntBUS_BSCAN_OUTL,  
+                    BUS_BSCAN_OUTM   => ntRef_ntBUS_BSCAN_OUTM,  
+                    BUS_BSCAN_OUTR   => ntRef_ntBUS_BSCAN_OUTR,  
+                    BUS_GSEB_OUTL    => ntRef_ntBUS_GSEB_OUTL,   
+                    BUS_GSEB_OUTR    => ntRef_ntBUS_GSEB_OUTR,   
+                    BUS_WLSR_OUTL    => ntRef_ntBUS_WLSR_OUTL,   
+                    BUS_WLSR_OUTR    => ntRef_ntBUS_WLSR_OUTR
+                  )
+        @([sx,sy]);
+        
+}// end of function place_blsr2_tile
+
+}//end of package pgl_funcs_place
+
+

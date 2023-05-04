@@ -1,0 +1,114 @@
+evACL6.val
+ * @brief .
+ * @author zpfeng(file creator)
+ * @date 2019/07/18
+ * @copyright (c) Copyright 2013~2019 - PANGO MICROSYSTEMS, INC.
+ * ALL RIGHTS RESERVED.
+ *
+ * THE SOURCE CODE CONTAINED HEREIN IS PROPRIETARY TO PANGO MICROSYSTEMS, INC.
+ * IT SHALL NOT BE REPRODUCED OR DISCLOSED IN WHOLE OR IN PART OR USED BY PARTIES
+ * WITHOUT WRITTEN AUTHORIZATION FROM THE OWNER.
+ */
+
+
+gate
+device devACL6 : device CLMA
+{
+
+    parameter
+    (
+        config bit CP_INITA[63:0] = 64'hFFFFFFFFFFFFFFFF,
+        config string CP_MODEA = "LUT6",
+        config string CP_CR0PREMUX_SEL = "YX",
+        config string CP_CR0POSTMUX_SEL = "CX"
+    );
+    port
+    (
+        input A0,
+        input A1,
+        input A2,
+        input A3,
+        input A4,
+        input A5,
+        output Y0,
+        output CR0,
+        input  CIN,
+        logic output FGA_COUT
+    );
+}; // end of device devACL6
+
+
+structure netlist of devACL6
+{
+
+    wire        ntA5       ;
+    wire        ntA4       ;
+    wire        ntA3       ;
+    wire        ntA2       ;
+    wire        ntA1       ;
+    wire        ntA0       ;
+    wire        ntCYA      ;
+    wire        ntL5A      ;
+    wire        ntL6A      ;
+    wire        ntCIN      ;
+    wire        ntQC0      ;
+    wire        ntCR0      ;
+    
+    ntA5        <= A5      ;
+    ntA4        <= A4      ;
+    ntA3        <= A3      ;
+    ntA2        <= A2      ;
+    ntA1        <= A1      ;
+    ntA0        <= A0      ;
+    ntCIN       <= CIN     ;
+    Y0          <= ntL6A   ;
+    CR0         <= ntCR0   ;
+    FGA_COUT    <= ntCYA   ;
+    
+    device LUT6 FYA
+    parameter map
+    (
+        CP_INIT             =>    CP_INITA,
+        CP_MODE             =>    CP_MODEA
+    )                                     
+    port map                              
+    (                                     
+        A0                  =>    ntA0    ,
+        A1                  =>    ntA1    ,
+        A2                  =>    ntA2    ,
+        A3                  =>    ntA3    ,
+        A4                  =>    ntA4    ,
+        A5                  =>    ntA5    ,
+        CIN                 =>    ntCIN   ,
+        COUT                =>    ntCYA   ,
+        L5                  =>    ntL5A   ,
+        L6                  =>    ntL6A
+    );
+       
+    device CRPREMUX CR0PREMUX
+    parameter map
+    (
+        CP_CRPREMUX_SEL     =>    CP_CR0PREMUX_SEL
+    )
+    port map
+    (
+        YX                  =>    ntL5A,
+        CYX                 =>    ntCYA,
+        Q                   =>    ntQC0
+    );
+    
+    device CRPOSTMUX CR0POSTMUX
+    parameter map
+    (
+        CP_CRPOSTMUX_SEL     =>    CP_CR0POSTMUX_SEL
+    )
+    port map
+    (
+        CX                   =>    ntQC0,
+        Q                    =>    ntCR0
+    );
+   
+}; // end of structure netlist of devACL6
+
+
+

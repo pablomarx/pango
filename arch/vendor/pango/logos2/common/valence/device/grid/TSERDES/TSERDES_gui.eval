@@ -1,0 +1,379 @@
+*******************************************************************
+
+  Device    [TSERDES]
+
+  Author    [xiexin]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+symbol logsym of TSERDES // pragma PAP_ARC_COLOR="210:45:45"
+{
+    // The bounding box
+    generate ( 10 # 44 );
+    //
+    // Poloygon declaration
+    //
+    shape
+    [0, 0]  ->  [0, 44]
+                        <
+                            TS_CTRL[0]                  @[ ,2 ],
+                            TS_CTRL[1]                  @[ ,4 ],
+                            TS_CTRL[2]                  @[ ,6 ],
+                            TS_CTRL[3]                  @[ ,8 ],
+                            TS_CTRL[4]                  @[ ,10],
+                            TS_CTRL[5]                  @[ ,12],
+                            TS_CTRL[6]                  @[ ,14],
+                            TS_CTRL[7]                  @[ ,16],
+                            TDLY_DYN_SET[0]             @[ ,18],
+                            TDLY_DYN_SET[1]             @[ ,20],
+                            TDLY_DYN_SET[2]             @[ ,22],
+                            TDLY_DYN_SET[3]             @[ ,24],
+                            TDLY_DYN_SET[4]             @[ ,26],
+                            TDLY_DYN_SET[5]             @[ ,28],
+                            TDLY_DYN_SET[6]             @[ ,30],
+                            TDLY_DYN_SET[7]             @[ ,32],
+                            TSR                         @[ ,34],
+                            TCE                         @[ ,36],
+                            UPD0_SHIFT                  @[ ,38],
+                            UPD1_SHIFT                  @[ ,40],
+                            TDLY_SEL                    @[ ,42]
+                        >    
+            ->  [10, 44]            
+            ->  [10, 0]
+                        <
+                            TO                          @[ , 2+11],
+                            TERM                        @[ , 4+11],
+                            TFB                         @[ , 6+11],
+                            TERM_FB                     @[ , 8+11],
+                            OCLKDIV                     @[ ,10+11],  
+                            OCLKDIVB                    @[ ,12+11],  
+                            SERCLK                      @[ ,14+11],  
+                            SERCLKB                     @[ ,16+11],  
+                            OCLK                        @[ ,18+11],  
+                            OCLKB                       @[ ,20+11]
+                        >
+            ->  [0, 0] ;
+              
+}; // symbol logsym of TSERDES
+
+symbol fpsym of TSERDES // pragma PAP_ARC_COLOR="106:64:128"
+{
+    // The bounding box
+    generate ( 60 # 80 );
+
+    shape
+    [ 0, 0 ]  ->  [ , 80 ]
+              ->  [ 60,80]
+              ->  [ , 0 ]
+              ->  [ 0, ];
+
+
+    "TSERDES" @ [30,40];
+
+
+}; // end of symbol fpsym of TSERDES
+
+schematic schm of TSERDES
+{
+    generate ( 350 # 350 );
+    
+    unsigned int XT_SERDES_X = 92;
+    unsigned int XT_SERDES_Y = 56;
+    
+    unsigned int XTSERDES_CLKGEN_X = 92;
+    unsigned int XTSERDES_CLKGEN_Y = 150;
+    
+    unsigned int XTSERDES_TDLY_X = 92;
+    unsigned int XTSERDES_TDLY_Y = 220;
+    
+    unsigned int TSRMUX_X = 40;
+    unsigned int TSRMUX_Y = 57;
+    
+    unsigned int TOMUX_X = 300;
+    unsigned int TOMUX_Y = 243;
+    
+    unsigned int TFBMUX_X = 180;
+    unsigned int TFBMUX_Y = 109;
+    
+    unsigned int TERM_TFBMUX_X = 180;
+    unsigned int TERM_TFBMUX_Y = 99;
+   
+    unsigned int TERM_MUX_X = 210;
+    unsigned int TERM_MUX_Y = 56;
+    
+    unsigned int PORT_LEFT = 10;
+    unsigned int PORT_RIGHT = 340;
+    
+    device T_SERDES (symbol logsym) XT_SERDES
+        @[XT_SERDES_X, XT_SERDES_Y];
+    
+    device TSERDES_CLKGEN (symbol logsym) XTSERDES_CLKGEN
+        @[XTSERDES_CLKGEN_X, XTSERDES_CLKGEN_Y];
+        
+    device TSERDES_TDLY (symbol logsym) XTSERDES_TDLY
+        @[XTSERDES_TDLY_X, XTSERDES_TDLY_Y];
+        
+    device MUX2TO1_T (symbol logsym) TSRMUX
+        @[TSRMUX_X, TSRMUX_Y];
+    
+    device MUX2TO1_T (symbol logsym) TOMUX
+        @[TOMUX_X, TOMUX_Y];
+    
+    device MUX2TO1_P_T (symbol logsym) TFBMUX
+        @[TFBMUX_X, TFBMUX_Y];
+        
+    device MUX2TO1_P_T (symbol logsym) TERM_TFBMUX
+        @[TERM_TFBMUX_X, TERM_TFBMUX_Y];
+    
+    //device TERM_MUX (symbol logsym) U_TERM_MUX
+    //    @[TERM_MUX_X, TERM_MUX_Y];
+    
+    device TERM_MUX (symbol logsym) U_TERM_MUX
+        @[TERM_MUX_X, TERM_MUX_Y];
+        "1'b0" @[(<pin DIN0 of<instance U_TERM_MUX>>)#| - 3, <pin DIN0 of <instance U_TERM_MUX>>#-];
+        line lnU_TERM_MUX
+            <pin DIN0 of<instance U_TERM_MUX>> ->
+            [<pin DIN0 of <instance U_TERM_MUX>>#| - 2, <pin DIN0 of <instance U_TERM_MUX>>#-];
+    
+    map (
+    <instance XT_SERDES>        => <instance XT_SERDES          of device TSERDES(structure netlist)>,
+    <instance XTSERDES_CLKGEN>  => <instance XTSERDES_CLKGEN    of device TSERDES(structure netlist)>,
+    <instance XTSERDES_TDLY>    => <instance XTSERDES_TDLY      of device TSERDES(structure netlist)>,
+    <instance TSRMUX>           => <instance TSRMUX             of device TSERDES(structure netlist)>,
+    <instance TOMUX>            => <instance TOMUX              of device TSERDES(structure netlist)>,
+    <instance TFBMUX>           => <instance TFBMUX             of device TSERDES(structure netlist)>,
+    <instance TERM_TFBMUX>      => <instance TERM_TFBMUX        of device TSERDES(structure netlist)>,
+    <instance U_TERM_MUX>       => <instance U_TERM_MUX         of device TSERDES(structure netlist)>    
+    );
+    
+    
+    
+    port TS_CTRL[0]         @[PORT_LEFT, <pin TS_CTRL[0]        of <instance XT_SERDES>>#-];
+    port TS_CTRL[1]         @[PORT_LEFT, <pin TS_CTRL[1]        of <instance XT_SERDES>>#-];
+    port TS_CTRL[2]         @[PORT_LEFT, <pin TS_CTRL[2]        of <instance XT_SERDES>>#-];
+    port TS_CTRL[3]         @[PORT_LEFT, <pin TS_CTRL[3]        of <instance XT_SERDES>>#-];
+    port TS_CTRL[4]         @[PORT_LEFT, <pin TS_CTRL[4]        of <instance XT_SERDES>>#-];
+    port TS_CTRL[5]         @[PORT_LEFT, <pin TS_CTRL[5]        of <instance XT_SERDES>>#-];
+    port TS_CTRL[6]         @[PORT_LEFT, <pin TS_CTRL[6]        of <instance XT_SERDES>>#-];
+    port TS_CTRL[7]         @[PORT_LEFT, <pin TS_CTRL[7]        of <instance XT_SERDES>>#-];
+    port UPD0_SHIFT         @[PORT_LEFT, <pin UPD0_SHIFT        of <instance XT_SERDES>>#-];
+    port UPD1_SHIFT         @[PORT_LEFT, <pin UPD1_SHIFT        of <instance XT_SERDES>>#-];
+    port TCE                @[PORT_LEFT, <pin TCE               of <instance XT_SERDES>>#-];
+    port OCLKDIV            @[PORT_LEFT, <pin OCLKDIV           of <instance XTSERDES_CLKGEN>>#-];
+    port OCLKDIVB           @[PORT_LEFT, <pin OCLKDIVB          of <instance XTSERDES_CLKGEN>>#-];
+    port SERCLK             @[PORT_LEFT, <pin SERCLK            of <instance XTSERDES_CLKGEN>>#-];
+    port SERCLKB            @[PORT_LEFT, <pin SERCLKB           of <instance XTSERDES_CLKGEN>>#-];   
+    port OCLK               @[PORT_LEFT, <pin OCLK              of <instance XTSERDES_CLKGEN>>#-];     
+    port OCLKB              @[PORT_LEFT, <pin OCLKB             of <instance XTSERDES_CLKGEN>>#-];     
+    port TDLY_DYN_SET[0]    @[PORT_LEFT, <pin TDLY_DYN_SET[0]   of <instance XTSERDES_TDLY>>#-];
+    port TDLY_DYN_SET[1]    @[PORT_LEFT, <pin TDLY_DYN_SET[1]   of <instance XTSERDES_TDLY>>#-];
+    port TDLY_DYN_SET[2]    @[PORT_LEFT, <pin TDLY_DYN_SET[2]   of <instance XTSERDES_TDLY>>#-];
+    port TDLY_DYN_SET[3]    @[PORT_LEFT, <pin TDLY_DYN_SET[3]   of <instance XTSERDES_TDLY>>#-];
+    port TDLY_DYN_SET[4]    @[PORT_LEFT, <pin TDLY_DYN_SET[4]   of <instance XTSERDES_TDLY>>#-];
+    port TDLY_DYN_SET[5]    @[PORT_LEFT, <pin TDLY_DYN_SET[5]   of <instance XTSERDES_TDLY>>#-];
+    port TDLY_DYN_SET[6]    @[PORT_LEFT, <pin TDLY_DYN_SET[6]   of <instance XTSERDES_TDLY>>#-];
+    port TDLY_DYN_SET[7]    @[PORT_LEFT, <pin TDLY_DYN_SET[7]   of <instance XTSERDES_TDLY>>#-];    
+    port TDLY_SEL           @[PORT_LEFT, <pin TDLY_SEL          of <instance XTSERDES_TDLY>>#-];    
+    port TSR                @[PORT_LEFT, <pin DIN0              of <instance TSRMUX>>#-];
+    
+    port TO                 @[PORT_RIGHT, <pin DOUT             of<instance TOMUX>>#-]; 
+    port TERM_FB            @[PORT_RIGHT, <pin DOUT             of<instance TERM_TFBMUX>>#-];
+    port TERM               @[PORT_RIGHT, <pin DOUT             of<instance U_TERM_MUX>>#-];
+    port TFB                @[PORT_RIGHT, <pin TS_CTRL[7]       of<instance XT_SERDES>>#- + 10];
+    
+    line lnTDLY_SEL
+        <port TDLY_SEL> -> <pin TDLY_SEL of<instance XTSERDES_TDLY>>;
+    line lnTDLY_DYN_SET0
+        <port TDLY_DYN_SET[0]> -> <pin TDLY_DYN_SET[0] of<instance XTSERDES_TDLY>>;
+    line lnTDLY_DYN_SET1
+        <port TDLY_DYN_SET[1]> -> <pin TDLY_DYN_SET[1] of<instance XTSERDES_TDLY>>;
+    line lnTDLY_DYN_SET2
+        <port TDLY_DYN_SET[2]> -> <pin TDLY_DYN_SET[2] of<instance XTSERDES_TDLY>>;
+    line lnTDLY_DYN_SET3
+        <port TDLY_DYN_SET[3]> -> <pin TDLY_DYN_SET[3] of<instance XTSERDES_TDLY>>;
+    line lnTDLY_DYN_SET4
+        <port TDLY_DYN_SET[4]> -> <pin TDLY_DYN_SET[4] of<instance XTSERDES_TDLY>>;
+    line lnTDLY_DYN_SET5
+        <port TDLY_DYN_SET[5]> -> <pin TDLY_DYN_SET[5] of<instance XTSERDES_TDLY>>;
+    line lnTDLY_DYN_SET6
+        <port TDLY_DYN_SET[6]> -> <pin TDLY_DYN_SET[6] of<instance XTSERDES_TDLY>>;
+    line lnTDLY_DYN_SET7
+        <port TDLY_DYN_SET[7]> -> <pin TDLY_DYN_SET[7] of<instance XTSERDES_TDLY>>;
+    
+    line lnOCLKB
+        <port OCLKB> -> <pin OCLKB of <instance XTSERDES_CLKGEN>>;
+    line lnOCLK
+        <port OCLK> -> <pin OCLK of <instance XTSERDES_CLKGEN>>;    
+    line lnSERCLKB
+        <port SERCLKB> -> <pin SERCLKB of <instance XTSERDES_CLKGEN>>;     
+    line lnSERCLK
+        <port SERCLK> -> <pin SERCLK of <instance XTSERDES_CLKGEN>>;    
+    line lnOCLKDIVB
+        <port OCLKDIVB> -> <pin OCLKDIVB of <instance XTSERDES_CLKGEN>>;    
+    line lnOCLKDIV
+        <port OCLKDIV> -> <pin OCLKDIV of <instance XTSERDES_CLKGEN>>;    
+
+
+
+    line lnTS_CTRL0
+        <port TS_CTRL[0]> -> <pin TS_CTRL[0] of<instance XT_SERDES>>;
+    line lnTS_CTRL1
+        <port TS_CTRL[1]> -> <pin TS_CTRL[1] of<instance XT_SERDES>>;
+    line lnTS_CTRL2
+        <port TS_CTRL[2]> -> <pin TS_CTRL[2] of<instance XT_SERDES>>;
+    line lnTS_CTRL3
+        <port TS_CTRL[3]> -> <pin TS_CTRL[3] of<instance XT_SERDES>>;
+    line lnTS_CTRL4
+        <port TS_CTRL[4]> -> <pin TS_CTRL[4] of<instance XT_SERDES>>;
+    line lnTS_CTRL5
+        <port TS_CTRL[5]> -> <pin TS_CTRL[5] of<instance XT_SERDES>>;
+    line lnTS_CTRL6
+        <port TS_CTRL[6]> -> <pin TS_CTRL[6] of<instance XT_SERDES>>;
+    line lnTS_CTRL7
+        <port TS_CTRL[7]> -> <pin TS_CTRL[7] of<instance XT_SERDES>>;        
+    line lnUPD0_SHIFT
+        <port UPD0_SHIFT> -> <pin UPD0_SHIFT of<instance XT_SERDES>>;
+    line lnUPD1_SHIFT
+        <port UPD1_SHIFT> -> <pin UPD1_SHIFT of<instance XT_SERDES>>;
+    line lnTCE
+        <port TCE> -> <pin TCE of<instance XT_SERDES>>;
+    line lnTSR
+        <port TSR>  ->
+        [<pin DIN0 of<instance TSRMUX>>#| - 4 , ] ->
+        <pin DIN0 of<instance TSRMUX>>,
+        
+        [<pin DIN1 of <instance TSRMUX>>#| - 4,<port TSR>#-] ->
+        [ , <pin DIN1 of<instance TSRMUX>>#-] ->
+        <pin DIN1 of <instance TSRMUX>>;
+    
+    line lnTERM
+        <pin DOUT of<instance U_TERM_MUX>> -> <port TERM>;
+        
+    line lnTO
+        <pin DOUT of<instance TOMUX>> -> <port TO>;
+    
+    line lnSR
+        <pin DOUT of<instance TSRMUX>> -> <pin SR of<instance XT_SERDES>>;
+    
+    line lnCLK_STG2_1 
+        <pin CLK_STG2_1 of<instance XTSERDES_CLKGEN>> -> [<pin CLK_STG2_1 of <instance XTSERDES_CLKGEN>>#| + 12, ]
+      -> [<pin CLK_STG2_1 of <instance XT_SERDES>>#| + 12, <pin CLK_STG2_1 of <instance XT_SERDES>>#-] -> <pin CLK_STG2_1 of<instance XT_SERDES>>;
+    
+    line lnCLK_STG2_0
+        <pin CLK_STG2_0 of<instance XTSERDES_CLKGEN>> -> [<pin CLK_STG2_0 of <instance XTSERDES_CLKGEN>>#| + 10, ]
+      -> [<pin CLK_STG2_0 of <instance XT_SERDES>>#| + 10, <pin CLK_STG2_0 of <instance XT_SERDES>>#-] -> <pin CLK_STG2_0 of<instance XT_SERDES>>;
+
+    line lnCLK_STG0
+        <pin CLK_STG0 of<instance XTSERDES_CLKGEN>> -> [<pin CLK_STG0 of <instance XTSERDES_CLKGEN>>#| + 6, ]
+      -> [<pin CLK_STG0 of <instance XT_SERDES>>#| + 6, <pin CLK_STG0 of <instance XT_SERDES>>#-] -> <pin CLK_STG0 of<instance XT_SERDES>>;      
+    
+    line lnCLK_STG1
+        <pin CLK_STG1 of<instance XTSERDES_CLKGEN>> -> [<pin CLK_STG1 of <instance XTSERDES_CLKGEN>>#| + 8, ]
+      -> [<pin CLK_STG1 of <instance XT_SERDES>>#| + 8, <pin CLK_STG1 of <instance XT_SERDES>>#-] -> <pin CLK_STG1 of<instance XT_SERDES>>;
+      
+    line lnTFB
+        <pin DI of<instance XTSERDES_TDLY>> -> 
+        [<pin DI of <instance XTSERDES_TDLY>>#| - 10, ] -> [ ,<pin DI of <instance XTSERDES_TDLY>>#- -15] -> [<pin DIN0 of <instance TOMUX>>#| - 24,  ] -> [ , <pin DIN0 of <instance TOMUX>>#-] -> <pin DIN0 of<instance TOMUX>>,
+        [<pin DIN0 of <instance TOMUX>>#| - 24,  <pin DI of <instance XTSERDES_TDLY>>#- -15] -> [<pin DIN0 of <instance TOMUX>>#| - 24, <port TFB>#-] -> <port TFB>,
+        [<pin DIN0 of <instance TOMUX>>#| - 24,  <port TFB>#-] -> [ , <pin DOUT of <instance TFBMUX>>#-] -> <pin DOUT of<instance TFBMUX>>;
+        
+    line lnTO_DLY
+        <pin D_DLY of<instance XTSERDES_TDLY>> -> <pin DIN1 of<instance TOMUX>>;
+    
+    line lnTO_SDR
+        <pin TO_SDR of<instance XT_SERDES>> -> <pin DIN0 of<instance TFBMUX>>;
+    
+    line lnTO_DDR
+        <pin TO_DDR of<instance XT_SERDES>> -> <pin DIN1 of<instance TFBMUX>>;
+        
+    line lnTERM_SDR
+        <pin TERM_SDR of<instance XT_SERDES>> -> <pin DIN0 of<instance TERM_TFBMUX>>;
+    
+    line lnTERM_DDR
+        <pin TERM_DDR of<instance XT_SERDES>> -> <pin DIN1 of<instance TERM_TFBMUX>>;
+    
+    line lnTERM_FB
+        <pin DOUT of<instance TERM_TFBMUX>> -> 
+        [<pin DOUT of<instance TERM_TFBMUX>>#| + 15,] -> <port TERM_FB>,
+        
+        [<pin DIN1 of<instance U_TERM_MUX>>#| - 10, <port TERM_FB>#-] -> [<pin DIN1 of<instance U_TERM_MUX>>#| - 10, <pin DIN1 of<instance U_TERM_MUX>>#-] -> <pin DIN1 of<instance U_TERM_MUX>>;
+    
+    line lnOUTEN0
+        <pin OUTEN[0] of<instance XT_SERDES>> -> <pin OUTEN[0] of<instance U_TERM_MUX>>;
+    
+    line lnOUTEN1
+        <pin OUTEN[1] of<instance XT_SERDES>> -> <pin OUTEN[1] of<instance U_TERM_MUX>>;
+    line lnOUTEN2
+        <pin OUTEN[2] of<instance XT_SERDES>> -> <pin OUTEN[2] of<instance U_TERM_MUX>>;
+    line lnOUTEN3
+        <pin OUTEN[3] of<instance XT_SERDES>> -> <pin OUTEN[3] of<instance U_TERM_MUX>>;
+    line lnOUTEN4
+        <pin OUTEN[4] of<instance XT_SERDES>> -> <pin OUTEN[4] of<instance U_TERM_MUX>>;
+    line lnOUTEN5
+        <pin OUTEN[5] of<instance XT_SERDES>> -> <pin OUTEN[5] of<instance U_TERM_MUX>>;
+    line lnOUTEN6
+        <pin OUTEN[6] of<instance XT_SERDES>> -> <pin OUTEN[6] of<instance U_TERM_MUX>>;
+    line lnOUTEN7
+        <pin OUTEN[7] of<instance XT_SERDES>> -> <pin OUTEN[7] of<instance U_TERM_MUX>>;
+        
+    map(
+        <line lnTDLY_SEL>                     => <wire ntTDLY_SEL            of device TSERDES (structure netlist)> ,
+        <line lnTDLY_DYN_SET0>                => <wire ntTDLY_DYN_SET[0]     of device TSERDES (structure netlist)> ,
+        <line lnTDLY_DYN_SET1>                => <wire ntTDLY_DYN_SET[1]     of device TSERDES (structure netlist)> ,
+        <line lnTDLY_DYN_SET2>                => <wire ntTDLY_DYN_SET[2]     of device TSERDES (structure netlist)> ,
+        <line lnTDLY_DYN_SET3>                => <wire ntTDLY_DYN_SET[3]     of device TSERDES (structure netlist)> ,
+        <line lnTDLY_DYN_SET4>                => <wire ntTDLY_DYN_SET[4]     of device TSERDES (structure netlist)> ,
+        <line lnTDLY_DYN_SET5>                => <wire ntTDLY_DYN_SET[5]     of device TSERDES (structure netlist)> ,
+        <line lnTDLY_DYN_SET6>                => <wire ntTDLY_DYN_SET[6]     of device TSERDES (structure netlist)> ,
+        <line lnTDLY_DYN_SET7>                => <wire ntTDLY_DYN_SET[7]     of device TSERDES (structure netlist)> ,
+        
+        <line lnOCLKB>                        => <wire ntOCLKB               of device TSERDES (structure netlist)> ,
+        <line lnOCLK>                         => <wire ntOCLK                of device TSERDES (structure netlist)> ,
+        <line lnSERCLKB>                      => <wire ntSERCLKB             of device TSERDES (structure netlist)> ,
+        <line lnSERCLK>                       => <wire ntSERCLK              of device TSERDES (structure netlist)> ,
+         <line lnOCLKDIVB>                    => <wire ntOCLKDIVB            of device TSERDES (structure netlist)> ,
+        <line lnOCLKDIV>                      => <wire ntOCLKDIV             of device TSERDES (structure netlist)> ,   
+
+        <line lnTS_CTRL0>                     => <wire ntTS_CTRL[0]          of device TSERDES (structure netlist)> ,
+        <line lnTS_CTRL1>                     => <wire ntTS_CTRL[1]          of device TSERDES (structure netlist)> ,
+        <line lnTS_CTRL2>                     => <wire ntTS_CTRL[2]          of device TSERDES (structure netlist)> ,
+        <line lnTS_CTRL3>                     => <wire ntTS_CTRL[3]          of device TSERDES (structure netlist)> ,
+        <line lnTS_CTRL4>                     => <wire ntTS_CTRL[4]          of device TSERDES (structure netlist)> ,
+        <line lnTS_CTRL5>                     => <wire ntTS_CTRL[5]          of device TSERDES (structure netlist)> ,
+        <line lnTS_CTRL6>                     => <wire ntTS_CTRL[6]          of device TSERDES (structure netlist)> ,
+        <line lnTS_CTRL7>                     => <wire ntTS_CTRL[7]          of device TSERDES (structure netlist)> ,      
+        <line lnTCE>                          => <wire ntTCE                 of device TSERDES (structure netlist)> ,
+        <line lnTSR>                          => <wire ntTSR                 of device TSERDES (structure netlist)> ,
+        <line lnTO>                           => <wire ntTO                  of device TSERDES (structure netlist)> ,
+        <line lnTFB>                          => <wire ntTFB                 of device TSERDES (structure netlist)> , 
+        <line lnTERM_FB>                      => <wire ntTERM_FB             of device TSERDES (structure netlist)> , 
+        <line lnTERM>                         => <wire ntTERM                of device TSERDES (structure netlist)>          
+    );
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,184 @@
+*****************************************************************
+
+  Device    [devAQ]
+
+  Author    [liujiao]
+
+  Abstract  [FF WITH A PART OF CLMA]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devAQ : device devA
+{
+    parameter
+    (        
+        config string CP_GRS_EN         = "TRUE",  
+        config string CP_Q0MUX_SEL     := "MX",                // "Y0" "SHIFTIN" "M0"
+        config string CP_CEMUX_SEL = "LOCAL",           //"LOCAL":CE; "CHAIN":CEIN 
+        config string CP_RSMUX_SEL = "LOCAL",           //"LOCAL":RS; "CHAIN":RSIN
+        config string CP_CLK_POL = "FALSE",             //1'b0: "CLK"; 1'b1: "Invert CLK" - CLMA Global
+        config string CP_LCE_POL  = "FALSE",            //1'b0: "CE"; 1'b1: "Invert CE" - CLMA Global
+        config string CP_LRS_POL  = "FALSE",            //1'b0: "RS"; 1'b1: "Invert RS" - CLMA Global
+        config string CP_LCE_EN  = "TRUE",             //1'b0: "Disable"; 1'b1: "Enable"
+        config string CP_LRS_EN  = "TRUE",             //1'b0: "Disable"; 1'b1: "Enable"
+        config string CP_RS_MODE = "ASYNC",          //"SYNC" "ASYNC" - CLMA Global
+        config string CP_FF0_RS  = "SET"             //"RESET" "SET"  
+    );
+    
+    port
+    (
+        output   Q0,
+        input    M0,
+        input    RS, CE, CLK,
+        input    RSCI,
+        output   RSCO,
+        input    CECI,
+        output   CECO
+
+    );
+}; // end of device devAQ
+
+
+/*******************************************************************************
+
+  Device    [devAQ]
+
+  Author    [liujiao]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devAQ
+{
+    // Wires for input ports
+    wire ntM0;
+    wire ntRS, ntCE, ntCLK;
+    wire ntRSCI;
+    wire ntCECI;
+    
+    // Wires connecting to output ports
+    wire ntQ0;
+
+    wire ntRSCO;
+    wire ntCECO;
+
+    // Internal wires
+    wire ntQD0;
+    wire ntCLKR;
+    wire ntRS_P;
+    wire ntCE_P;
+    
+    //
+    // Connection to ports
+    //
+    ntM0      <= M0;
+   
+    ntRS      <= RS;
+    ntCE      <= CE;
+    ntCLK     <= CLK;
+
+    ntRSCI    <= RSCI;
+    ntCECI    <= CECI;
+
+    Q0        <= ntQ0;
+    
+    RSCO     <= ntRSCO;
+    CECO     <= ntCECO;
+    
+    //
+    // Instances. FGA section
+    //
+
+    device QMUX Q0MUX
+        parameter map
+        (
+            CP_OUT_SEL  => CP_Q0MUX_SEL
+        ) 
+        port map
+        (
+            MX  => ntM0,
+            Q   => ntQD0
+        );
+    
+    device FF FF0
+        parameter map
+        (
+            CP_GRS_EN  => CP_GRS_EN,
+            CP_RS_MODE => CP_RS_MODE,
+            CP_FF_RS => CP_FF0_RS
+        )
+        port map
+        (
+            D  => ntQD0,
+            RS => ntRSCO,
+            CE => ntCECO,
+            CLK => ntCLKR,
+            Q  => ntQ0
+        );
+
+    device MUX2_P RSMUX
+        parameter map
+        (
+            SEL  => CP_RSMUX_SEL
+        )     
+        port map
+        (
+            DI1  => ntRSCI,
+            DI0 => ntRS_P,
+            DOUT   => ntRSCO
+        );
+
+    device MUX2_P CEMUX
+        parameter map
+        (
+            SEL  => CP_CEMUX_SEL
+        )     
+        port map
+        (
+            DI1  => ntCECI,
+            DI0 => ntCE_P,
+            DOUT   => ntCECO
+        );
+
+
+    device LRS_POLMUX LRSPOLMUX
+        parameter map
+        (
+            CP_LRS_EN  => CP_LRS_EN,
+            CP_LRS_POL  => CP_LRS_POL
+        )     
+        port map
+        (
+            IN  => ntRS,
+            Y   => ntRS_P
+        );
+
+    device LCE_POLMUX LCEPOLMUX
+        parameter map
+        (
+            CP_LCE_EN  => CP_LCE_EN,
+            CP_LCE_POL  => CP_LCE_POL
+        )     
+        port map
+        (
+            IN  => ntCE,
+            Y   => ntCE_P
+        );
+
+    device CLK_POLMUX CLKPOLMUX
+        parameter map
+        (
+            CP_CLK_POL  => CP_CLK_POL
+        )      
+        port map
+        (
+            IN  => ntCLK,
+            Y    => ntCLKR
+        ); 
+}; // end of structure netlist of devAQ
+
+

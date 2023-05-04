@@ -1,0 +1,62 @@
+*****************************************************************
+
+  Operator   [GTP_IOBUFCO]
+
+  Author      []
+
+  Abstract    []
+
+  Copyright 2014 (c). SHENZHEN PANGO MICROSYSTEMS CO.,LTD.
+  All Right Reserved.
+
+  Revision History:
+     06/18/14 - Initial version.
+
+********************************************************************************/
+fabric
+implementation impl of GTP_IOBUFCO @ (2,0 # 2,0)
+{
+    wire ntI, ntDIFFIN, ntDIFFO, ntT, ntO;
+
+    operator gopIOBUFDSA
+        parameter map
+        (
+            IOSTANDARD      => IOSTANDARD == "DEFAULT" ? "LVCMOS33" : IOSTANDARD,
+            DDR_TERM_MODE   => TERM_DDR
+        )     
+        port map
+        (
+            I        => ntO,
+            T        => ntT,
+            DIFFI_IN => ntDIFFIN,
+            O        => ntI,
+            IO       => IO,
+            DIFFO_OUT => ntDIFFO
+        )@[1,0];
+
+    operator gopIOBUFDSB
+        parameter map
+        (
+            IOSTANDARD      => IOSTANDARD == "DEFAULT" ? "LVCMOS33" : IOSTANDARD,
+            DDR_TERM_MODE   => TERM_DDR
+        )
+        port map
+        (
+            DIFFO_IN   => ntDIFFO,
+            DIFFI_OUT  => ntDIFFIN,
+            IO_B       => IOB
+        )@[1,1];
+
+    operator gopIOBUFIOL
+        port map
+        (
+            IN    =>  I,
+            TS    =>  T,
+            OUT   =>  O,
+
+            T     =>  ntT,
+            I     =>  ntI,
+            O     =>  ntO
+        )@[0,0];
+
+};

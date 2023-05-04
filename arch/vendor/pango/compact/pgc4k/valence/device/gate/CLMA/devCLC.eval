@@ -1,0 +1,107 @@
+*****************************************************************
+
+  Device    [devCLC]
+
+  Author    [liujiao]
+
+  Abstract  [THE DEVICE CAN BE USED FOR ADDIDTION.]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devCLC : device devC
+{
+    parameter
+    (
+        config bit CP_INITC[31:0]     = 32'h0000_0000,        
+        config string CP_MODEC        = "ARITH",                // "LUT5" "ROM" "WMUX" "ARITH"        
+        config string CP_Y2MUX_SEL    = "FX"                   //"FX":F2 "CYX":CYC "MF":QP1
+    );
+    
+    port
+    (
+               input    C0, C1, C2, C3, C4, CD,
+               output   Y2,  
+        logic  input    FGC_CIN,
+        logic  output   FGC_COUT
+
+    );
+}; // end of device devCLC
+
+
+/*******************************************************************************
+
+  Device    [devCLC]
+
+  Author    [liujiao]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devCLC
+{
+    // Wires for input ports
+    wire ntC0, ntC1, ntC2, ntC3, ntC4, ntCD; 
+
+    // Wires connecting to output ports
+    wire ntY2;
+    // Internal wires
+    wire ntL5C, ntCYC;   
+    wire ntCYB;
+
+    //
+    // Connection to ports
+    //
+    ntC0      <= C0;
+    ntC1      <= C1;
+    ntC2      <= C2;
+    ntC3      <= C3;
+    ntC4      <= C4;
+    ntCD      <= CD;
+
+    ntCYB     <= FGC_CIN;
+
+    Y2        <= ntY2;
+      
+    FGC_COUT  <= ntCYC;
+    
+    //
+    // Instances. FGA section
+    //
+
+    device LUT5 FYC 
+        parameter map
+        (
+            CP_INIT => CP_INITC,
+            CP_MODE => CP_MODEC
+        )
+        port map 
+        (
+            A0  => ntC0,
+            A1  => ntC1,
+            A2  => ntC2,
+            A3  => ntC3,
+            A4  => ntC4,
+            AD  => ntCD,
+            CIN => ntCYB,
+            COUT => ntCYC,
+            L5   => ntL5C 
+        );   
+
+    device YMUX Y2MUX
+        parameter map
+        (
+            CP_OUT_SEL  => CP_Y2MUX_SEL
+        )    
+        port map
+        (
+            FX   => ntL5C,
+            CYX  => ntCYC,
+            Y    => ntY2
+        );
+}; // end of structure netlist of devCLC
+
+

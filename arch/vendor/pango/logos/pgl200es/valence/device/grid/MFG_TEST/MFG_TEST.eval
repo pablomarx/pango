@@ -1,0 +1,94 @@
+tarted
+grid
+device MFG_TEST
+{
+    // grid_property_def_start
+    // grid_property_def_end
+
+    parameter
+    (
+        config bit CP_OUTEN_N = 1'b1,
+        config string CP_ATEST_EN = "FALSE",
+        config bit CP_TEST_PATH_SEL = 1'b0
+    );
+    port
+    (
+// configuration_body_def_on
+
+
+    config input SC_ATEST_EN = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_ATEST_EN" */,
+
+    config input SC_TEST_PATH_SEL = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_TEST_PATH_SEL" */,
+
+    config input SC_OUTEN_N = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_OUTEN_N" */,
+
+// configuration_body_def_end
+
+        input MFG_TEST_SEL_I[4:0] = 5'b1111_1,
+        input PLL_LDO_I[15:0] = 16'b1111_1111_1111_1111,
+        input CLK_USER_I = 1'b1,
+        input CLK_ADC_I = 1'b1,
+        input CLK_MSPI_I = 1'b1,
+        input CLK_BLSHFT_I = 1'b1,
+        input ADC_VREF_I = 1'b1,
+        input DDR_VREF_I = 1'b1,
+        input CMFB_VREF_I = 1'b1,
+        input POR_N_I = 1'b1,
+        output CLK_USER_O,
+        output ATP_O
+    );
+};
+//grid device end
+
+//grid device structure netlist started
+structure netlist of MFG_TEST
+{
+};
+//grid device structure netlist end
+//grid device configure body started
+
+configuration cfg of MFG_TEST
+{
+
+//initial config body0 begin
+    if( CP_ATEST_EN  == "TRUE" )
+    {
+        SC_ATEST_EN  :=  1'b1;
+    }
+    else
+    {
+        SC_ATEST_EN  :=  1'b0;
+    }
+    if( CP_TEST_PATH_SEL == 1'b1 )
+    {
+        SC_TEST_PATH_SEL  :=  1'b1;
+    }
+    else
+    {
+        SC_TEST_PATH_SEL  :=  1'b0;
+    }
+    if( CP_OUTEN_N == 1'b1)
+    {
+        SC_OUTEN_N  :=  1'b1;
+    }
+    else
+    {
+        SC_OUTEN_N  :=  1'b0;
+    }
+
+//initial config body0 end
+
+};
+
+//grid device configure body end
+
+
+timing  mfgtest_tnl of MFG_TEST
+{
+    CLK_USER_O <= (CP_ATEST_EN != "TRUE") ? CLK_USER_I : 1'bx;
+    ATP_O      <= (CP_ATEST_EN != "TRUE") ? POR_N_I : 1'bx;
+};
+

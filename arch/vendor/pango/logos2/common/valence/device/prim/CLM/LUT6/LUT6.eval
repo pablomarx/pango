@@ -1,0 +1,135 @@
+*****************************************************************
+
+  Device    [LUT6S]
+
+  Author    [jblu]
+
+  Abstract  [The Prim Device Of CLMA or CLMS]
+
+  Revision History:
+
+********************************************************************************/
+prim
+device LUT6
+{
+    parameter
+    (
+        config bit   CP_INIT[63:0]        = 64'hffff_ffff_ffff_ffff,
+        config string      CP_MODE        = "LUT6"
+    );
+    port 
+    ( 
+        // Input Ports of LUT6
+        input        A0,
+        input        A1,
+        input        A2,     
+        input        A3,  
+        input        A4,  
+        input        A5, 
+        input        CIN,
+                
+        input        L5_CARRY,
+        input        COUT_IN_CARRY,
+       
+        input        FCIN,
+        input        L5_A,
+        input        L5_B,
+        input        L5_C,
+        input        FCIN0,
+        input        FCIN1,
+        
+        
+        // Output Ports for LUT6
+        output       SC_QN[63:0],
+        output       L5,
+        output       L6,
+        output       COUT,
+        output       COUT_IN
+    );
+
+};
+
+/**Device***********************************************************************
+
+  Device    [LUT6S]
+
+  Abstract  [This specified how to propagate the input signal to the outputs based on
+             configuration]
+
+  Revision History:
+
+********************************************************************************/
+propagation pop of LUT6
+{
+   if (CP_MODE == "LUT6" && CP_INIT == 64'hffff_ffff_ffff_ffff)
+   {
+       propagate ( 1'b1 --> L6 ); 
+       propagate ( 1'b1 --> L5 );
+   }
+   else if (CP_MODE == "LUT6" && CP_INIT == 64'h0000_0000_0000_0000)
+   {
+       propagate ( 1'b0 --> L6 );
+       propagate ( 1'b0 --> L5 ); 
+   }
+   else
+   {
+       propagate ( A0  |-> L5 );
+       propagate ( A1  |-> L5 );
+       propagate ( A2  |-> L5 );
+       propagate ( A3  |-> L5 );
+       propagate ( A4  |-> L5 );
+       propagate ( A0  |-> L6 );
+       propagate ( A1  |-> L6 );
+       propagate ( A2  |-> L6 );
+       propagate ( A3  |-> L6 );
+       propagate ( A4  |-> L6 );
+       propagate ( A5  |-> L6 );
+       propagate ( CIN |-> L6 );
+       propagate ( A0  |-> COUT );
+       propagate ( A1  |-> COUT );
+       propagate ( A2  |-> COUT );
+       propagate ( A3  |-> COUT );
+       propagate ( A4  |-> COUT ); 
+       propagate ( A5  |-> COUT );
+       propagate ( CIN |-> COUT );
+   }
+}; // end of propagation for LUT6
+
+/**Device***********************************************************************
+
+  Device    [LUT6S]
+  
+  Author    []
+
+  Abstract  [This specified the timing model under specific configuration]
+
+  Revision History:
+
+********************************************************************************/
+timing lut6_tnl of LUT6
+{
+    wire ntco;
+    operator V_LUT6CARRY LUT6CARRY
+    parameter map
+    (
+        INIT        =>  CP_INIT,
+        I5_TO_CARRY => (CP_MODE == "ROM"  || CP_MODE == "WAND" || CP_MODE == "COMP"  || CP_MODE == "LUT6" ||
+                        CP_MODE == "MUX4" || CP_MODE == "RAM"  || CP_MODE == "ARITH") ? "TRUE" : "FALSE",
+        I5_TO_LUT   => (CP_MODE == "ROM"  || CP_MODE == "WAND" || CP_MODE == "COMP"  || CP_MODE == "LUT6" ||
+                        CP_MODE == "MUX4" || CP_MODE == "RAM"  || CP_MODE == "PRIENC" ||
+                        CP_MODE == "XOR") ? "TRUE" : "FALSE"
+    )
+    port map
+    (
+        COUT => (CP_MODE == "LUT6" || CP_MODE == "ROM") ? ntco : COUT,
+        Z    => L6,
+        Z5   => L5,
+        CIN  => (CP_MODE == "LUT6" || CP_MODE == "ROM") ? 1'b0 : CIN,
+        I0   => A0,
+        I1   => A1,
+        I2   => A2,
+        I3   => A3,
+        I4   => A4,
+        I5   => A5
+    );
+};

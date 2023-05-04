@@ -1,0 +1,108 @@
+tarted
+grid
+device IOCKDIV
+{
+    // grid_property_def_start
+    // grid_property_def_end
+
+    parameter
+    (
+        config string CP_DIVMODE = "DIV2",
+        config string CP_GRST_EN_N = "ENABLE"
+    );
+    port
+    (
+// configuration_body_def_on
+
+
+    config input SC_DIVMODE[3:0] = 4'h0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_DIVMODE[3],SC_DIVMODE[2],SC_DIVMODE[1],SC_DIVMODE[0]" */,
+
+    config input SC_GRST_EN_N = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_GRST_EN_N" */,
+
+// configuration_body_def_end
+
+        input CLK_IN = 1'b1,
+        input RST_LOC_N = 1'b1,
+        output CLK_IODIV
+    );
+};
+//grid device end
+
+//grid device structure netlist started
+structure netlist of IOCKDIV
+{
+};
+//grid device structure netlist end
+//grid device configure body started
+
+configuration cfg of IOCKDIV
+{
+
+//initial config body0 begin
+    if (CP_DIVMODE=="DIV2")
+    {
+        SC_DIVMODE  :=  4'b0001;
+    }
+    else if (CP_DIVMODE=="DIV35")
+    {
+        SC_DIVMODE  :=  4'b0010;
+    }
+    else if (CP_DIVMODE=="DIV4")
+    {
+        SC_DIVMODE  :=  4'b0100;
+    }
+    else if (CP_DIVMODE=="DIV5")
+    {
+        SC_DIVMODE  :=  4'b1000;
+    }
+    else
+    {
+        SC_DIVMODE  :=  4'b0000;
+        error("MODE(%s) is not support!",CP_DIVMODE);
+    }
+
+//initial config body0 end
+
+
+//initial config body1 begin
+    if(CP_GRST_EN_N == "ENABLE")
+    {
+        SC_GRST_EN_N  :=  1'b0;
+    }
+    else if(CP_GRST_EN_N == "DISABLE")
+    {
+        SC_GRST_EN_N  :=  1'b1;
+    }
+    else
+    {
+        SC_GRST_EN_N  :=  1'b0;
+        error("MODE(%s) is not support!",CP_GRST_EN_N);
+    }
+
+//initial config body1 end
+
+};
+
+//grid device configure body end
+
+timing iockdiv_tnl of IOCKDIV
+{
+    operator V_IOCLKDIV V_IOCLKDIV
+        parameter map
+        (
+            GRS_EN     => (CP_GRST_EN_N == "ENABLE") ? "TRUE" : "FALSE",
+            DIV_FACTOR => (CP_DIVMODE == "DIV2")  ? "2"  :
+                          (CP_DIVMODE == "DIV35") ? "3.5" :
+                          (CP_DIVMODE == "DIV4")  ? "4"  :
+                          (CP_DIVMODE == "DIV5")  ? "5"  : "NODIV"
+        )
+        port map
+        (
+            CLKIN     => CLK_IN,
+            RST_N     => RST_LOC_N, 
+            CLKDIVOUT => CLK_IODIV
+        );
+};
+

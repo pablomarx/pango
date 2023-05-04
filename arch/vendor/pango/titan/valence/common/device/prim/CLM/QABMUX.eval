@@ -1,0 +1,74 @@
+*****************************************************************
+
+  Device    [QABMUX]
+
+  Author    [clwang]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+prim
+device QABMUX
+{
+    parameter
+    (
+        config string CFG  = "L6"     // "L6" "FF0" "ABP"
+    );
+    port 
+    (
+        input  L6, FF0, ABP,
+        output Z
+    );
+
+}; // end of device QABMUX
+
+/**Device***********************************************************************
+
+  Device    [QABMUX]
+
+  Abstract  [This specified how to propagate the input signal to the outputs based on
+             configuration]
+
+  Revision History:
+
+********************************************************************************/
+propagation pop of QABMUX
+{
+    if (CFG == "L6")
+    {
+        propagate ( L6 --> Z );
+    }
+    else if (CFG == "FF0")
+    {
+        propagate ( FF0 --> Z );
+    }
+    else if (CFG == "ABP")
+    {
+        propagate ( ABP --> Z );
+    }
+    else
+    {
+       error("Illegal configuration value with QABMUX.");
+    }
+
+}; // end of propagation for QABMUX
+
+/**Device***********************************************************************
+
+  Device    [QABMUX]
+  
+  Author    []
+
+  Abstract  [This specified the timing model under specific configuration]
+
+  Revision History:
+
+********************************************************************************/
+timing  qabmux_tnl of QABMUX
+{
+    Z <= (CFG == "L6")  ? L6  :
+         (CFG == "FF0") ? FF0 : 
+         (CFG == "ABP") ? ABP : 1'bx;
+};

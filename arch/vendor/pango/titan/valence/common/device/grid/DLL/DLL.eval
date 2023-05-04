@@ -1,0 +1,187 @@
+*****************************************************************
+
+  Device    [DLL]
+
+  Author    [clwang]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+grid
+device DLL
+{
+    parameter
+    (
+        // These are the config parameters that are used to enable formal flow. They
+        // should be present in the declaration only if a MACRO is set. In normal
+        // implementation flow they should be turned off.
+        //
+        config int    CODE_OFFSET  = 4,            // [-4,3]                                          
+        config string GRS_EN       = "TRUE",       // global reset/set enable control.
+                                                   // "TRUE"; "FALSE"
+        config string FAST_LOCK    = "TRUE"   ,    // clock/osclock div. rate select
+                                                   // "TRUE"; "FALSE"
+        config bit    DLL_RST_POL  = 1'b0   ,
+        config string DLLOSC_EN    = "FALSE",      // "FALSE"; "TRUE"
+        config string DLL_FORCE    = "NOSET",      // "NOSET"; "SETH"
+        config string ROUNDOFF_EN  = "FALSE"       // "FALSE"; "TRUE"
+    );
+
+    port
+    (
+        config input SC_CODESCAL[2:0]   = 3'b000    /*pragma PAP_CFG_BIT_NAME = "SC_CODESCAL<2>, SC_CODESCAL<1>, SC_CODESCAL<0>"*/,
+        config input SC_CODESCAL_EN     = 1'b0      /*pragma PAP_CFG_BIT_NAME = "SC_CODESCAL_EN"*/,
+        config input SC_DIS_GRS         = 1'b0      /*pragma PAP_CFG_BIT_NAME = "SC_DIS_GRS"*/,
+        config input SC_DIV_SEL         = 1'b0      /*pragma PAP_CFG_BIT_NAME = "SC_DIV_SEL"*/,
+        config input SC_DLL_RST_POL     = 1'b0      /*pragma PAP_CFG_BIT_NAME = "SC_DLL_RST_POL"*/,
+        config input SC_DLLOSC_EN       = 1'b0      /*pragma PAP_CFG_BIT_NAME = "SC_DLLOSC_EN"*/,
+        config input SC_DLL_FORCE       = 1'b0      /*pragma PAP_CFG_BIT_NAME = "SC_DLL_FORCE"*/,
+        config input SC_ROUNDOFF_EN     = 1'b0      /*pragma PAP_CFG_BIT_NAME = "SC_ROUNDOFF_EN"*/,
+
+               input  FREEZE_DLL_OSC = 1'b1,
+               input  UPDATE_N       = 1'b1,
+               input  IOCLK          = 1'b1,
+               input  CE             = 1'b1,
+               input  DLL_RST        = 1'b1,
+               output LOCK,
+               output DIV_CLK_OSC_OUT,
+               output DLL_CODE[7:0]
+    );
+}; // end of device DLL
+
+/*******************************************************************************
+
+  Device    [DLL]
+
+  Author    [clwang]
+
+  Abstract  [The structure netlist of CLMS is described in the similar fashion 
+             as in HDL. In unit instantiation statement, the formal pin may be 
+             connected to net which is declared explicitly. 
+             
+             In Valence, the connection can also be made from formal pin to other 
+             pin or port, in which case Valence compiler shall create the net to 
+             fulfil the connection. The built-in naming convention is kicked in 
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of DLL
+{
+    device DLL_INST DLL_INST
+    
+        parameter map
+        (
+            CODE_OFFSET => CODE_OFFSET,    
+            GRS_EN      => GRS_EN,         
+            FAST_LOCK   => FAST_LOCK       
+        )
+        port map
+        (
+            FREEZE_DLL_OSC    => FREEZE_DLL_OSC,
+            UPDATE_N          => UPDATE_N,
+            IOCLK             => IOCLK,
+            CE                => CE,
+            DLL_RST           => DLL_RST,
+            LOCK              => LOCK,
+            DIV_CLK_OSC_OUT   => DIV_CLK_OSC_OUT,
+            DLL_CODE          => DLL_CODE
+        );
+
+}; // end of structure netlist of DLL 
+
+/*******************************************************************************
+
+  Device    [DLL]
+
+  Author    [clwang]
+
+  Abstract  [Configure the configuration bits based on the value of config parameter]
+
+  Revision History:
+
+********************************************************************************/
+configuration cfg of DLL
+{
+    if (CODE_OFFSET == (0-4))
+    {
+        SC_CODESCAL_EN := 1'b1;
+        SC_CODESCAL    := 3'b111;    
+    }
+    else if (CODE_OFFSET == (0-3))
+    {
+        SC_CODESCAL_EN := 1'b1;
+        SC_CODESCAL    := 3'b110;        
+    }
+    else if (CODE_OFFSET == (0-2))
+    {
+        SC_CODESCAL_EN := 1'b1;
+        SC_CODESCAL    := 3'b101;        
+    }    
+    else if (CODE_OFFSET == (0-1))
+    {
+        SC_CODESCAL_EN := 1'b1;
+        SC_CODESCAL    := 3'b100;        
+    }      
+    else if (CODE_OFFSET == 1)
+    {
+        SC_CODESCAL_EN := 1'b1;
+        SC_CODESCAL    := 3'b000;        
+    }    
+    else if (CODE_OFFSET == 2)
+    {
+        SC_CODESCAL_EN := 1'b1;
+        SC_CODESCAL    := 3'b001;        
+    }   
+    else if (CODE_OFFSET == 3)
+    {
+        SC_CODESCAL_EN := 1'b1;
+        SC_CODESCAL    := 3'b010;        
+    }       
+    else if (CODE_OFFSET == 0)
+    {
+        SC_CODESCAL_EN := 1'b0;
+        SC_CODESCAL    := 3'b011;
+    }
+    else
+    {
+        SC_CODESCAL_EN := 1'b0;
+        SC_CODESCAL    := 3'b000;    
+    }
+    SC_DIS_GRS       :=  (GRS_EN == "FALSE") ? 1'b1 : 1'b0;
+    SC_DIV_SEL       :=  (FAST_LOCK == "TRUE") ? 1'b1 : 1'b0;
+    
+    SC_DLL_RST_POL   :=  DLL_RST_POL     ;
+    SC_DLLOSC_EN     :=  (DLLOSC_EN == "TRUE") ? 1'b1 : 1'b0   ;
+    SC_DLL_FORCE     :=  (DLL_FORCE == "NOSET")  ? 1'b0 : 1'b1   ;
+    SC_ROUNDOFF_EN   :=  (ROUNDOFF_EN == "TRUE") ? 1'b1 : 1'b0 ;
+
+}; // end of configuration cfg of DLL
+ 
+timing tnl of DLL
+{
+    operator V_DLL V_DLL
+        parameter map
+        (
+            DELAY_STEP_OFFSET => CODE_OFFSET,
+            GRS_EN      => GRS_EN,
+            FAST_LOCK   => FAST_LOCK
+        )
+        port map
+        (
+            CLKIN        =>   IOCLK,
+            UPDATE_N     =>   UPDATE_N,
+            RST          =>   DLL_RST,
+            PWD          =>   FREEZE_DLL_OSC,
+            DELAY_STEP   =>   DLL_CODE,
+            LOCK         =>   LOCK
+        );
+};
+
+

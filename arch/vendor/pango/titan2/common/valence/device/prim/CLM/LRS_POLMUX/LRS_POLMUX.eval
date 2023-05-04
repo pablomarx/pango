@@ -1,0 +1,98 @@
+*****************************************************************
+
+  Device    [LRS_POLMUX]
+
+  Author    [jblu]
+
+  Abstract  [The Prim Device Of CLMA or CLMS]
+
+  Revision History:
+
+********************************************************************************/
+prim
+device LRS_POLMUX
+{
+    parameter
+    (
+        config string CP_LRS_EN = "TRUE",    //"TRUE" "FALSE"
+        config string CP_LRS_POL = "FALSE"    //"TRUE" "FALSE"
+    );
+    port 
+    ( 
+        // Input Ports of LRS_POLMUX
+        input DIN2,
+        input DIN1,
+        input DIN0,
+        
+        //input IN,
+        
+        // Output Ports for LRS_POLMUX
+        output Y
+    );
+
+};
+
+/**Device***********************************************************************
+
+  Device    [LRS_POLMUX]
+
+  Abstract  [This specified how to propagate the input signal to the outputs based on
+             configuration]
+
+  Revision History:
+
+********************************************************************************/
+propagation pop of LRS_POLMUX
+{
+    if (CP_LRS_EN == "TRUE")
+    {
+        if (CP_LRS_POL == "FALSE")
+        {
+            propagate ( DIN0 --> Y );
+        }
+        else
+        {
+            propagate ( DIN1 ~-> Y );
+        }
+    }
+    else
+    {
+        propagate ( 1'b0 --> Y );
+    }
+
+}; // end of propagation for LRS_POLMUX
+
+/**Device***********************************************************************
+
+  Device    [LRS_POLMUX]
+  
+  Author    []
+
+  Abstract  [This specified the timing model under specific configuration]
+
+  Revision History:
+
+********************************************************************************/
+timing  lrs_pol_mux_tnl of LRS_POLMUX
+{
+    if (CP_LRS_EN == "TRUE")
+    {
+        if (CP_LRS_POL == "FALSE")
+        {
+            Y <= DIN0;
+        }
+        else
+        {
+            operator V_INV LRS_INV
+            port map
+            (
+                I => DIN1,
+                Z => Y
+            );
+        }
+    }
+    else
+    {
+        Y <= 1'b0;
+    }
+};

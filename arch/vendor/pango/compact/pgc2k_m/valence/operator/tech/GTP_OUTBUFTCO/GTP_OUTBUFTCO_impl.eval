@@ -1,0 +1,68 @@
+*****************************************************************
+
+  Operator   [GTP_OUTBUFTCO]
+
+  Author      []
+
+  Abstract    []
+
+  Copyright 2014 (c). SHENZHEN PANGO MICROSYSTEMS CO.,LTD.
+  All Right Reserved.
+
+  Revision History:
+     06/18/14 - Initial version.
+
+********************************************************************************/
+fabric
+implementation impl of GTP_OUTBUFTCO @ (4,0 # 2,0)
+{
+    wire ntDQ_CAS_OUT, ntTQ_CAS_OUT, ntO0, ntO1, ntT0, ntT1;
+
+    operator gopOBUFT
+        parameter map
+        (
+            IOSTANDARD => IOSTANDARD == "DEFAULT" ? "LVCMOS33" : IOSTANDARD
+        )        
+        port map
+        (
+            I        => ntO0,
+            T        => ntT0,           
+            O        => O
+        )@[1,0];
+    
+    operator gopOBUFT
+        parameter map
+        (
+            IOSTANDARD => IOSTANDARD == "DEFAULT" ? "LVCMOS33" : IOSTANDARD
+        )       
+        port map
+        (
+            I        => ntO1,
+            T        => ntT1,           
+            O        => OB
+        )@[1,1];
+
+    operator gopIOLOCMP
+        port map
+        (
+            IN     =>  ntDQ_CAS_OUT,
+            TI     =>  ntTQ_CAS_OUT,
+ 
+            T      =>  ntT1,
+            O      =>  ntO1
+        )@[0,1];
+
+    operator gopOBUFTIOL
+        port map
+        (
+            IN     =>  I,
+            TS     =>  T,
+
+            T      =>  ntT0,
+            O      =>  ntO0,
+            
+            DQ_CAS_OUT => ntDQ_CAS_OUT,
+            TQ_CAS_OUT => ntTQ_CAS_OUT            
+        )@[0,0];
+};
+

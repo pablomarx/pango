@@ -1,0 +1,129 @@
+*****************************************************************
+
+  Device    [devAAX_S]
+
+  Author    []
+
+  Abstract  [THE DEVICE CAN BE USED FOR CARRY CHAIN HEAD. THE PORT CIN OF devA/Q
+             CAN BE CONTROLLED BY USER. THIS DEVICE MODULE FOR THE PURPOSE.]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devAAX_S : device devA_S
+{
+    parameter
+    (
+        config bit INITA[31:0]       = 32'h0000_0000,        
+        config string FGA_MODE       = "CYX",              // "LUT5" "ROM" "WMUX" "ARITH" "CY01" "CYX"
+        config string RAM_LUT_SEL    := "LUT"              // "RAM"  "LUT"
+    );
+    
+    port
+    (
+              input  A0, A1, A2, A3, A4,
+        logic output FGA_COUT
+    );
+}; // end of device devAAX_S
+
+
+/*******************************************************************************
+
+  Device    [devAAX_S]
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devAAX_S
+{
+    // Internal wires
+    wire ntA0, ntA1, ntA2, ntA3, ntA4, ntAD;
+    wire ntCYA;
+    ntA0      <= A0;
+    ntA1      <= A1;   
+    ntA2      <= A2;   
+    ntA3      <= A3;
+    ntA4      <= A4; 
+    FGA_COUT  <= ntCYA;
+    
+    //
+    // Instances. FGA section
+    //
+
+    device FGS FGA 
+        parameter map
+        (
+            INIT        => INITA,
+            MODE        => FGA_MODE,
+            RAM_LUT_SEL => RAM_LUT_SEL
+        )
+        port map 
+        (
+            A0   => ntA0,
+            A1   => ntA1,
+            A2   => ntA2,
+            A3   => ntA3,
+            A4   => ntA4,
+            COUT => ntCYA
+        );
+}; // end of structure netlist of devAAX_S
+
+timing tnl of devAAX_S
+{   
+    if (FGA_MODE == "CYX")
+    { 
+        operator V_LUT5CARRY V_FGA
+            parameter map            
+            (
+                INIT        => INITA,
+                ID_TO_LUT   => "FALSE",
+                CIN_TO_LUT  => (FGA_MODE == "L5C01") ? "FALSE" : "TRUE",
+                I4_TO_CARRY => (FGA_MODE == "CY01")  ? "FALSE" : "TRUE",
+                SECTION  => "A"      
+            )                
+            port map 
+            (
+                CIN => 1'b0,
+                I0  => 1'b0,  
+                I1  => 1'b0,
+                I2  => 1'b0,
+                I3  => 1'b0,
+                ID  => 1'b0,            
+                I4  => A4,          
+                COUT => FGA_COUT
+            );
+    }
+    else if (FGA_MODE == "CY01")
+    {   
+        operator V_LUT5CARRY V_FGA
+            parameter map            
+            (   
+                INIT        => INITA,
+                ID_TO_LUT   => "FALSE",
+                CIN_TO_LUT  => (FGA_MODE == "L5C01") ? "FALSE" : "TRUE",
+                I4_TO_CARRY => (FGA_MODE == "CY01")  ? "FALSE" : "TRUE",                     
+                SECTION  => "A"      
+            )                
+       
+            port map 
+            (
+                CIN => 1'b0,
+                I0 => A0,
+                I1  => 1'b0,
+                I2  => 1'b0,
+                I3  => 1'b0,
+                I4  => 1'b0,
+                ID  => 1'b0,
+                COUT => FGA_COUT
+            );    
+    }
+    else
+    {
+        error("devAAX_S does not suport the mode %s!",FGA_MODE);
+    }
+}

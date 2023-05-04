@@ -1,0 +1,1566 @@
+*************************************************************************
+****************************************************************************************/
+library work;
+use pgl_defs,pgl200es_defs;
+use pgl200es_connect_wl_bl;
+
+structure arch_nl connect_addr_srb of PGL200ES
+{
+
+    unsigned int l_regions[] = {[0:7]};
+    unsigned int rx,tx,ty_srb,tx_wlsr1 , tx_wlsr;
+    
+    unsigned int l_tx_wlsrs[];
+
+    unsigned int tx_blsr =  BLSR_TILE_X;
+
+    unsigned int ty,tmp_ty;
+
+    string wlsr ,blsr;
+
+     
+    foreach rx( l_regions )
+    {
+        blsr = (rx<=3) ? "BLSR_PGL200ES_RD_TILE" : "BLSR_PGL200ES_TILE" ;        
+
+        unsigned int l_tx_wlsr[] = (rx<=3) ? L_WLSR_TILES_X_D : L_WLSR_TILES_X_U;
+        unsigned int l_tx_wlsr1s[] = (rx<=3) ? L_WLSR1S_TILES_X_D : L_WLSR1S_TILES_X_U;
+        unsigned int l_tx_wlsr1b[] = (rx<=3) ? L_WLSR1B_TILES_X_D : L_WLSR1B_TILES_X_U;
+        unsigned int l_tx_wlsrd[] = (rx<=3) ? L_WLSRD_TILES_X_D : L_WLSRD_TILES_X;
+        unsigned int l_tx_iock[] = (rx<=3) ? {IOL0_TILE_X,IOL1_TILE_X} : {IOL0_TILE_X,IOL2_TILE_X};
+
+// for srb addr
+
+        foreach ty_srb({[0:14,16:30]})
+        {
+            foreach tx(l_tx_wlsr)
+            {
+                if(!(tx<=NUM_TILE_HSST_X+1&&rx==4))
+                {
+                    if(!(tx>IOL1_TILE_X&&rx<=3))
+                    {
+                        if(!((tx>CCS_TILE_X && tx<=(CCS_TILE_X+NUM_GRID_CCS_X/NUM_GRID_X)&&rx==7)||(tx<=NUM_TILE_HSST_X&&rx==3)))
+                        {
+
+                            connect_SRB_gs_addr_input(tx, ty_srb, rx, "WLSR_TILE", 0);
+                        }
+                        else
+                        {
+                            if(ty_srb<15)
+                            {   
+                                connect_SRB_gs_addr_input(tx, ty_srb, rx, "WLSR_TILE", 0);
+                            }
+                        }
+                    }
+                }
+            }
+            foreach tx(l_tx_wlsr1s )
+            {
+                if(!(tx<=NUM_TILE_HSST_X&&rx==4))
+                {
+                    if(!(tx>IOL1_TILE_X&&rx<=3))
+                    {
+                        if(!((tx>CCS_TILE_X && tx<=(CCS_TILE_X+NUM_GRID_CCS_X/NUM_GRID_X)&&rx==7)||(tx<=NUM_TILE_HSST_X&&rx==3)))
+                        {
+                            connect_SRB_gs_addr_input(tx, ty_srb, rx, "WLSR1_TILE", 0);
+                        }
+                        else
+                        {
+                            if(ty_srb<15)
+                            {   
+                                connect_SRB_gs_addr_input(tx, ty_srb, rx, "WLSR1_TILE", 0);
+                            }
+                        }
+                    }
+                }
+            }
+            foreach tx(l_tx_wlsr1b )
+            {
+                if(!(tx<=NUM_TILE_HSST_X&&rx==4))
+                {
+                    if(!(tx>IOL1_TILE_X&&rx<=3))
+                    {
+                        if(!((tx>CCS_TILE_X && tx<=(CCS_TILE_X+NUM_GRID_CCS_X/NUM_GRID_X)&&rx==7)||(tx<=NUM_TILE_HSST_X&&rx==3)))
+                        {
+                            connect_SRB_gs_addr_input(tx, ty_srb, rx, "WLSR1B_TILE", 0);
+                        }
+                        else
+                        {
+                            if(ty_srb<15)
+                            {   
+                                connect_SRB_gs_addr_input(tx, ty_srb, rx, "WLSR1B_TILE", 0);
+                            }
+                        }
+                    }
+                }
+            }
+            foreach tx( {PLL_TILE_X})
+            {
+                if(!(tx<=NUM_TILE_HSST_X&&rx==4))
+                {
+                    if(!(tx>IOL1_TILE_X&&rx<=3))
+                    {
+                        if(!((tx>CCS_TILE_X && tx<=(CCS_TILE_X+NUM_GRID_CCS_X/NUM_GRID_X)&&rx==7)||(tx<=NUM_TILE_HSST_X&&rx==3)))
+                        {
+                            connect_SRB_gs_addr_input(tx, ty_srb, rx, "WLSR2_TILE", 0);
+                        }
+                        else
+                        {
+                            if(ty_srb<15)
+                            {   
+                                connect_SRB_gs_addr_input(tx, ty_srb, rx, "WLSR2_TILE", 0);
+                            }
+                        }
+                    }
+                }
+            }
+            foreach tx(l_tx_wlsrd )
+            {
+                if(!(tx<=NUM_TILE_HSST_X&&rx==4))
+                {
+                    if(!(tx>IOL1_TILE_X&&rx<=3))
+                    {
+                        if(!((tx>CCS_TILE_X && tx<=(CCS_TILE_X+NUM_GRID_CCS_X/NUM_GRID_X)&&rx==7)||(tx<=NUM_TILE_HSST_X&&rx==3)))
+                        {
+                            connect_SRB_gs_addr_input(tx, ty_srb, rx, "WLSRD_TILE", 0);
+                        }
+                        else
+                        {
+                            if(ty_srb<15)
+                            {   
+                                connect_SRB_gs_addr_input(tx, ty_srb, rx, "WLSRD_TILE", 0);
+                            }
+                        }
+                    }
+                }
+            }
+            foreach tx(l_tx_iock)
+            {
+                string iock = ((rx==2||rx==3)&&tx>PLL_TILE_X) ? "WLSRA_TILE" : (rx==3&&tx<PLL_TILE_X) ? "IOCKGATEDLL2_TILE" : "IOCKGATEDLL_TILE" ;
+            
+                if(!(tx<=NUM_TILE_HSST_X&&rx==4))
+                {
+                    if(!(tx>IOL1_TILE_X&&rx<=3))
+                    {
+                        if(!((tx>CCS_TILE_X && tx<=(CCS_TILE_X+NUM_GRID_CCS_X/NUM_GRID_X)&&rx==7)||(tx<=NUM_TILE_HSST_X&&rx==3)))
+                        {
+                            connect_SRB_gs_addr_input(tx, ty_srb, rx, iock, 1);
+                        }
+                        else
+                        {
+                            if(ty_srb<15)
+                            {   
+                                connect_SRB_gs_addr_input(tx, ty_srb, rx, iock, 1);
+                            }
+                        }
+                    }
+                }
+            }
+            if(rx==4)
+            {
+                connect_SRB_gs_addr_input(NUM_TILE_HSST_X + 1, ty_srb, 4, "WLSRA_TILE", 0);
+            }
+
+        }
+    }
+// for clm addr 
+    int l_clma_tx[]=L_CLMA_TILES_X ;
+    int l_clms_tx[]=L_CLMS_TILES_X ;
+
+    int ty_clm ;
+
+    foreach rx( l_regions )
+    {
+        unsigned int l_tx_wlsr[] = (rx<=3) ? L_WLSR_TILES_X_D : L_WLSR_TILES_X_U;
+        unsigned int l_tx_wlsr1b[] = (rx<=3) ? L_WLSR1B_TILES_X_D : L_WLSR1B_TILES_X_U;
+        unsigned int l_tx_wlsr1s[] = (rx<=3) ? L_WLSR1S_TILES_X_D : L_WLSR1S_TILES_X_U;
+
+        foreach tx(l_clms_tx)
+        {
+            foreach tx_wlsr1(l_tx_wlsr1b)
+            {
+                if(tx==tx_wlsr1)
+                {
+                    wlsr = "WLSR1B_TILE";
+                    break ;
+                }
+            }
+            foreach tx_wlsr1(l_tx_wlsr1s)
+            {
+                if(tx==tx_wlsr1)
+                {
+                    wlsr = "WLSR1_TILE";
+                    break ;
+                }
+            }
+            foreach tx_wlsr(l_tx_wlsr)
+            {
+                if(tx==tx_wlsr)
+                {
+                    wlsr = "WLSR_TILE";
+                    break ;
+                }
+            }
+            foreach ty_clm({[0:14,16:30]})
+            {
+                if(!(tx<=NUM_TILE_HSST_X + 1&&rx==4))
+                {
+                    if(!(tx>IOL1_TILE_X&&rx<=3))
+                    {
+                        if(!((tx>CCS_TILE_X && tx<=(CCS_TILE_X+NUM_TILE_CCS_X)&&rx==7)||(tx<=NUM_TILE_HSST_X&&rx==3)||(rx==4&&tx>IOL1_TILE_X)))
+                        {
+                            connect_CLM_gs_addr_input(tx, ty_clm, rx, "CLMS_TILE", wlsr,0);
+                        }
+                        else if(rx==4&&tx>IOL1_TILE_X)
+                        {
+                            if(ty_clm>0)
+                            {
+                                connect_CLM_gs_addr_input(tx, ty_clm, rx, "CLMS_TILE", wlsr,0);
+                            }
+                        }
+                        else
+                        {
+                            if(ty_clm<15)
+                            {
+                                connect_CLM_gs_addr_input(tx, ty_clm, rx, "CLMS_TILE", wlsr,0);
+                            }                            
+                        }
+                    }
+                }
+            }
+        }
+        foreach tx(l_clma_tx)
+        {
+            if(tx!=PLL_TILE_X)
+            {            
+                foreach tx_wlsr1(l_tx_wlsr1b)
+                {
+                    if(tx==tx_wlsr1)
+                    {
+                        wlsr = "WLSR1B_TILE";
+                        break ;
+                    }
+                }
+                foreach tx_wlsr1(l_tx_wlsr1s)
+                {
+                    if(tx==tx_wlsr1)
+                    {
+                        wlsr = "WLSR1_TILE";
+                        break ;
+                    }
+                }
+                foreach tx_wlsr(l_tx_wlsr)
+                {
+                    if(tx==tx_wlsr)
+                    {
+                        wlsr = "WLSR_TILE";
+                        break ;
+                    }
+                }
+                foreach ty_clm({[0:14,16:30]})
+                {
+                    if(!(tx<=NUM_TILE_HSST_X+1&&rx==4))
+                    {
+                        if(!(tx>IOL1_TILE_X&&rx<=3))
+                        {
+                            if(!((tx>CCS_TILE_X && tx<=(CCS_TILE_X+NUM_TILE_CCS_X)&&rx==7)||(tx<=NUM_TILE_HSST_X+1&&rx==3)||(rx==4&&tx>IOL1_TILE_X)))
+                            {
+                                connect_CLM_gs_addr_input(tx, ty_clm, rx, "CLMA_TILE", wlsr,0);
+                            }
+                            else if(rx==4&&tx>IOL1_TILE_X)
+                            {
+                                if(ty_clm>0)
+                                {
+                                    connect_CLM_gs_addr_input(tx, ty_clm, rx, "CLMA_TILE", wlsr,0);
+                                }
+                            }
+                            else
+                            {
+                                if(ty_clm<15)
+                                {
+                                    connect_CLM_gs_addr_input(tx, ty_clm, rx, "CLMA_TILE", wlsr,0);
+                                }                            
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                wlsr = "WLSR2_TILE" ;
+
+                foreach ty_clm({[2:10,20:28]})
+                {
+                    connect_CLM_gs_addr_input(tx, ty_clm, rx, "CLMA_TILE", wlsr,0);
+                }
+                if(!(rx==3))
+                {
+                    foreach ty_clm({29,30})
+                    {
+                        connect_CLM_gs_addr_input(tx, ty_clm, rx, "CLMA_TILE", wlsr,0);
+                    }                
+                }
+                if(!(rx==4))
+                {
+                    foreach ty_clm({0,1})
+                    {
+                        connect_CLM_gs_addr_input(tx, ty_clm, rx, "CLMA_TILE", wlsr,0);
+                    }
+                }
+            }
+        } 
+    } // end region loop
+
+
+};//end of structure arch_nl connect_global_sig of PGL200ES
+/***************************************************************************************
+****************************************************************************************/
+library work;
+use pgl_defs,pgl200es_defs;
+use pgl200es_connect_wl_bl;
+
+structure arch_nl connect_addr of PGL200ES
+{
+
+    unsigned int l_regions[] = {[0:7]};
+    unsigned int rx,tx,ty_srb,tx_wlsr1 , tx_wlsr;
+    
+    unsigned int l_tx_wlsrs[];
+
+    unsigned int tx_blsr =  BLSR_TILE_X;
+
+    unsigned int ty,tmp_ty;
+
+    string wlsr ,blsr;
+
+// for DRM addr
+
+    int ty_drm ; 
+    
+    foreach rx( l_regions )
+    {
+        int l_drm_tx[] = (rx<=3) ? L_WLSRD_TILES_X_D : L_WLSRD_TILES_X ;
+
+        foreach tx(l_drm_tx )
+        {
+            foreach ty_drm({0,5,10,16,21,26})
+            {
+                if(!(tx<=NUM_TILE_HSST_X&&rx==4))
+                {
+                    if(!(tx>IOB1_TILE_X&&rx<=3))
+                    {
+                        if(!((tx>=CCS_TILE_X && tx<=(CCS_TILE_X+NUM_GRID_CCS_X/NUM_GRID_X)&&rx==7)||(tx<=NUM_TILE_HSST_X&&rx==3)))
+                        {       
+                            connect_DRM_gs_addr_input(tx, rx, ty_drm);
+                        }
+                        else
+                        {
+                            if(ty_drm<15)
+                            {
+                                connect_DRM_gs_addr_input(tx, rx, ty_drm);
+                            }
+                        }
+                    }
+                }
+            }   
+        }
+    }
+// for pll addr
+    int ty_pll ;   
+
+    foreach rx( l_regions )
+    {
+        foreach tx( {PLL_TILE_X})
+        {
+            foreach ty_pll({11,16})
+            {
+                connect_PLL_gs_addr_input( tx, rx, ty_pll,"PLL_TILE");
+            } 
+        }    
+    } 
+
+// for uscm addr
+
+    connect_USCM_gs_addr_input( BLSR_TILE_X, PLL_TILE_X, 3, USCM0_LOC_Y);
+    connect_USCM_gs_addr_input( BLSR_TILE_X, PLL_TILE_X, 4, USCM1_LOC_Y);
+
+// for iol_v addr
+
+    foreach rx( l_regions )
+    {
+        int l_iol_tx[] = L_IOL_TILES_X;
+
+        foreach tx(l_iol_tx )
+        {
+            string iock = ((rx==2||rx==3)&&tx==IOL1_TILE_X) ? "WLSRA_TILE" : (rx==3&&tx==IOL0_TILE_X) ? "IOCKGATEDLL2_TILE" : "IOCKGATEDLL_TILE" ;
+
+            if(!(tx==IOL0_TILE_X&&rx==4||(tx==IOL1_TILE_X&&rx>3)||(tx==IOL2_TILE_X&&rx<4)))
+            { 
+                if(!((tx==IOL0_TILE_X&&rx==3)||(tx==IOL1_TILE_X&&rx>1)))
+                {
+                    foreach ty( {[1:5,8:12,18:22,25:29]})
+                    {
+                        connect_iol_v_gs_addr_input(tx, rx, ty, "IOL_TILE", iock, 0,0);
+                    }
+                    foreach ty( {6,13,24})
+                    {
+                        connect_iol_v_gs_addr_input(tx, rx, ty, "DQSL_TILE", iock, 0,0);
+                    }
+                    foreach ty( {7,17,23,30})
+                    {
+                        connect_cramsl2_addr_input(tx,tx, rx, ty, "CRAMSL2_TILE", iock, 1,0,0,0);
+                    }
+                    if(!((rx==0)||(tx==IOL0_TILE_X&&rx==5)||(tx==IOL2_TILE_X&&rx==4)))
+                    {
+                        connect_iol_v_gs_addr_input(tx, rx, 0, "RLYBUFS5_TILE", iock, 0,1);
+                    }
+                    else
+                    {
+                        connect_cramsl2_addr_input(tx,tx, rx, 0, "CRAMSL2_TILE", iock, 1,0,0,0);
+                    }
+                }
+                else if(!(tx==IOL1_TILE_X&&rx>1))
+                {
+                    foreach ty( {[1:5,8:12]})
+                    {
+                        connect_iol_v_gs_addr_input(tx, rx, ty, "IOL_TILE", iock, 0,0);
+                    }
+                    foreach ty( {6,13})
+                    {
+                        connect_iol_v_gs_addr_input(tx, rx, ty, "DQSL_TILE", iock, 0,0);
+                    }
+                    foreach ty( {7})
+                    {
+                        connect_cramsl2_addr_input(tx,tx, rx, ty, "CRAMSL2_TILE", iock, 1,0,0,0);
+                    }
+                    if(!((rx==0)||(tx==IOL0_TILE_X&&rx==5)||(tx==IOL2_TILE_X&&rx==4)))
+                    {
+                        connect_iol_v_gs_addr_input(tx, rx, 0, "RLYBUFS5_TILE", iock, 0,1);
+                    }
+                    else
+                    {
+                        connect_cramsl2_addr_input(tx,tx, rx, 0, "CRAMSL2_TILE", iock, 1,0,0,0);
+                    }
+                }
+                else
+                {
+                    foreach ty( {[0:14,16:30]})
+                    {
+                        connect_cramsl2_addr_input(tx,tx, rx, ty, "CRAMSL2_TILE", iock, 0,0,0,0);
+                    }                    
+                }
+            }
+        }
+    }
+
+// CRAMSL2 ADDR
+
+    int flag_x_lr,flag_lr ;
+    string cramsl2 ;
+
+    foreach ty({4 * NUM_TILES_REGION,4 * NUM_TILES_REGION-1,4 * NUM_TILES_REGION-2})
+    {
+        foreach tx({L_CLMS_TILES_X,L_CLMA_TILES_X})
+        {
+            foreach tx_wlsr1(L_WLSR1S_TILES_X_U)
+            {
+                if(tx==tx_wlsr1)
+                {
+                    wlsr = "WLSR1_TILE";
+                    break ;
+                }
+            }
+            foreach tx_wlsr1(L_WLSR1B_TILES_X_U)
+            {
+                if(tx==tx_wlsr1)
+                {
+                    wlsr = "WLSR1B_TILE";
+                    break ;
+                }
+            }
+            foreach tx_wlsr(L_WLSR_TILES_X_U)
+            {
+                if(tx==tx_wlsr)
+                {
+                    wlsr = "WLSR_TILE";
+                    break ;
+                }
+            }
+
+            cramsl2 = (ty==4 * NUM_TILES_REGION) ? "CRAMSL2_TILE" : "CRAMSL2NOIBM_TILE";
+
+            flag_lr = (ty==4 * NUM_TILES_REGION) ? 0 :
+                      (ty==4 * NUM_TILES_REGION-1) ? 1 : 2 ;
+
+            if(tx>=IOB1_TILE_X)
+            {
+                connect_cramsl2_addr_input(tx,tx,4, ty, cramsl2, wlsr, 0 ,0,flag_lr,1);                  
+            }
+        }
+    }
+
+}
+
+/***************************************************************************************
+****************************************************************************************/
+library work;
+use pgl_defs,pgl200es_defs;
+use pgl200es_connect_wl_bl;
+
+structure arch_nl connect_blsr_output of PGL200ES
+{
+    unsigned int l_regions[] = {[0:7]};
+    unsigned int tx_blsr = BLSR_TILE_X;
+    unsigned int rx,tx;
+    string device_wlsr,blsr,iock;
+    
+    foreach rx( l_regions )
+    {
+        int tx_wlsr1_r0 = (rx<4) ? WLSR1_TILE_X_D_R0 : WLSR1_TILE_X_R0 ;
+        int tx_wlsr1_r2 = WLSR1_TILE_X_R2 ;
+        int tx_wlsr1_l0 = WLSR1_TILE_X_L0 ;
+        int tx_wlsr1_l2 = WLSR1_TILE_X_L2 ;
+
+        int l_wlsr_tx[]= (rx>3) ? L_WLSR_TILES_X_U : L_WLSR_TILES_X_D ;
+        int l_wlsrd_tx[]= (rx>3) ? L_WLSRD_TILES_X : L_WLSRD_TILES_X_D;
+        int l_wlsr1_tx[]=(rx>3) ? L_WLSR1S_TILES_X_U : L_WLSR1S_TILES_X_D ;
+        int l_wlsr1b_tx[]=(rx>3) ? L_WLSR1B_TILES_X_U : L_WLSR1B_TILES_X_D ;
+
+        blsr = (rx<=3) ? "BLSR_PGL200ES_RD_TILE" : "BLSR_PGL200ES_TILE" ;
+
+        foreach tx( l_wlsr_tx )
+        {
+            int tx_source = (tx<tx_wlsr1_l2) ? tx_wlsr1_l2 :
+                            (tx<tx_wlsr1_l0) ? tx_wlsr1_l0 :
+                            (tx>tx_wlsr1_r2) ? tx_wlsr1_r2 : 
+                            (tx>tx_wlsr1_r0) ? tx_wlsr1_r0 :
+                            tx_blsr ;
+            string source   = (tx_source==tx_blsr&&rx<4) ? "BLSR_PGL200ES_RD_TILE" : (tx_source==tx_blsr&&rx>3) ? "BLSR_PGL200ES_TILE" : "WLSR1B_TILE";
+            string source_bus_wlsr_l = (tx_source==tx_blsr) ? "BUS_WLSR_OUTL" : "BUS_WLSR_OUT";
+            string source_bus_wlsr_r = (tx_source==tx_blsr) ? "BUS_WLSR_OUTR" : "BUS_WLSR_OUT";
+            string source_mce_r   = (tx_source==tx_blsr) ? "MCE_OR" : "MCE_O";
+            string source_mce_l   = (tx_source==tx_blsr) ? "MCE_OL" : "MCE_O";
+            string source_mclkb_r = (tx_source==tx_blsr) ? "MCLKB_OR" : "MCLKB_O";
+            string source_mclkb_l = (tx_source==tx_blsr) ? "MCLKB_OL" : "MCLKB_O";
+            string source_mwr_r   = (tx_source==tx_blsr) ? "MWR_OR" : "MWR_O";
+            string source_mwr_l   = (tx_source==tx_blsr) ? "MWR_OL" : "MWR_O";
+
+            if(!((rx==4&&tx<=NUM_TILE_HSST_X + 1)||(rx<=3&&tx>IOL1_TILE_X)))
+            {
+                connect_blsr_gs_output(rx, tx, BLSR_TILE_X, CCS_TILE_X, CCS_TILE_Y, "WLSR_TILE", "BUS_WLSR_IN", tx_source, source_bus_wlsr_l,source_bus_wlsr_r, source_mce_r, source_mce_l,source_mclkb_r, source_mclkb_l, source_mwr_r, source_mwr_l, source,blsr, 0);
+            }
+        } 
+
+        foreach tx( l_wlsr1_tx )
+        {
+            int tx_source = (tx<tx_wlsr1_l2) ? tx_wlsr1_l2 :
+                            (tx<tx_wlsr1_l0) ? tx_wlsr1_l0 :
+                            (tx>tx_wlsr1_r2) ? tx_wlsr1_r2 : 
+                            (tx>tx_wlsr1_r0) ? tx_wlsr1_r0 :
+                            tx_blsr ;
+            string source   = (tx_source==tx_blsr&&rx<4) ? "BLSR_PGL200ES_RD_TILE" : (tx_source==tx_blsr&&rx>3) ? "BLSR_PGL200ES_TILE" : "WLSR1B_TILE";
+            string source_bus_wlsr_l = (tx_source==tx_blsr) ? "BUS_WLSR_OUTL" : "BUS_WLSR_OUT";
+            string source_bus_wlsr_r = (tx_source==tx_blsr) ? "BUS_WLSR_OUTR" : "BUS_WLSR_OUT";
+            string source_mce_r   = (tx_source==tx_blsr) ? "MCE_OR" : "MCE_O";
+            string source_mce_l   = (tx_source==tx_blsr) ? "MCE_OL" : "MCE_O";
+            string source_mclkb_r = (tx_source==tx_blsr) ? "MCLKB_OR" : "MCLKB_O";
+            string source_mclkb_l = (tx_source==tx_blsr) ? "MCLKB_OL" : "MCLKB_O";
+            string source_mwr_r   = (tx_source==tx_blsr) ? "MWR_OR" : "MWR_O";
+            string source_mwr_l   = (tx_source==tx_blsr) ? "MWR_OL" : "MWR_O";
+
+            if(!((rx==4&&tx<=NUM_TILE_HSST_X)||(rx<=3&&tx>IOL1_TILE_X)))
+            {
+                connect_blsr_gs_output(rx, tx, BLSR_TILE_X, CCS_TILE_X, CCS_TILE_Y,"WLSR1_TILE" , "BUS_WLSR_IN", tx_source, source_bus_wlsr_l,source_bus_wlsr_r, source_mce_r, source_mce_l,source_mclkb_r, source_mclkb_l, source_mwr_r, source_mwr_l, source,blsr, 0);
+            }
+        }
+
+        foreach tx( l_wlsr1b_tx )
+        {
+            int tx_source = (tx<tx_wlsr1_l2) ? tx_wlsr1_l2 :
+                            (tx<tx_wlsr1_l0) ? tx_wlsr1_l0 :
+                            (tx>tx_wlsr1_r2) ? tx_wlsr1_r2 : 
+                            (tx>tx_wlsr1_r0) ? tx_wlsr1_r0 :
+                            tx_blsr ;
+            string source   = (tx_source==tx_blsr&&rx<4) ? "BLSR_PGL200ES_RD_TILE" : (tx_source==tx_blsr&&rx>3) ? "BLSR_PGL200ES_TILE" : "WLSR1B_TILE";
+            string source_bus_wlsr_l = (tx_source==tx_blsr) ? "BUS_WLSR_OUTL" : "BUS_WLSR_OUT";
+            string source_bus_wlsr_r = (tx_source==tx_blsr) ? "BUS_WLSR_OUTR" : "BUS_WLSR_OUT";
+            string source_mce_r   = (tx_source==tx_blsr) ? "MCE_OR" : "MCE_O";
+            string source_mce_l   = (tx_source==tx_blsr) ? "MCE_OL" : "MCE_O";
+            string source_mclkb_r = (tx_source==tx_blsr) ? "MCLKB_OR" : "MCLKB_O";
+            string source_mclkb_l = (tx_source==tx_blsr) ? "MCLKB_OL" : "MCLKB_O";
+            string source_mwr_r   = (tx_source==tx_blsr) ? "MWR_OR" : "MWR_O";
+            string source_mwr_l   = (tx_source==tx_blsr) ? "MWR_OL" : "MWR_O";
+
+            if(!((rx==4&&tx<=NUM_TILE_HSST_X)||(rx<=3&&tx>IOL1_TILE_X)))
+            {
+                connect_blsr_gs_output(rx, tx, BLSR_TILE_X, CCS_TILE_X, CCS_TILE_Y,"WLSR1B_TILE" , "BUS_WLSR_IN", tx_source, source_bus_wlsr_l,source_bus_wlsr_r, source_mce_r, source_mce_l,source_mclkb_r, source_mclkb_l, source_mwr_r, source_mwr_l, source,blsr, 0);
+            }
+        }
+
+        foreach tx( {PLL_TILE_X} )
+        {
+            int tx_source = (tx<tx_wlsr1_l2) ? tx_wlsr1_l2 :
+                            (tx<tx_wlsr1_l0) ? tx_wlsr1_l0 :
+                            (tx>tx_wlsr1_r2) ? tx_wlsr1_r2 : 
+                            (tx>tx_wlsr1_r0) ? tx_wlsr1_r0 :
+                            tx_blsr ;
+            string source   = (tx_source==tx_blsr&&rx<4) ? "BLSR_PGL200ES_RD_TILE" : (tx_source==tx_blsr&&rx>3) ? "BLSR_PGL200ES_TILE" : "WLSR1B_TILE";
+            string source_bus_wlsr_l = (tx_source==tx_blsr) ? "BUS_WLSR_OUTL" : "BUS_WLSR_OUT";
+            string source_bus_wlsr_r = (tx_source==tx_blsr) ? "BUS_WLSR_OUTR" : "BUS_WLSR_OUT";
+            string source_mce_r   = (tx_source==tx_blsr) ? "MCE_OR" : "MCE_O";
+            string source_mce_l   = (tx_source==tx_blsr) ? "MCE_OL" : "MCE_O";
+            string source_mclkb_r = (tx_source==tx_blsr) ? "MCLKB_OR" : "MCLKB_O";
+            string source_mclkb_l = (tx_source==tx_blsr) ? "MCLKB_OL" : "MCLKB_O";
+            string source_mwr_r   = (tx_source==tx_blsr) ? "MWR_OR" : "MWR_O";
+            string source_mwr_l   = (tx_source==tx_blsr) ? "MWR_OL" : "MWR_O";
+
+                connect_blsr_gs_output(rx, tx, BLSR_TILE_X, CCS_TILE_X, CCS_TILE_Y,"WLSR2_TILE" , "BUS_WLSR_IN", tx_source, source_bus_wlsr_l,source_bus_wlsr_r, source_mce_r, source_mce_l,source_mclkb_r, source_mclkb_l, source_mwr_r, source_mwr_l, source,blsr, 0);
+        }
+        foreach tx( l_wlsrd_tx )
+        {
+            int tx_source = (tx<tx_wlsr1_l2) ? tx_wlsr1_l2 :
+                            (tx<tx_wlsr1_l0) ? tx_wlsr1_l0 :
+                            (tx>tx_wlsr1_r2) ? tx_wlsr1_r2 : 
+                            (tx>tx_wlsr1_r0) ? tx_wlsr1_r0 :
+                            tx_blsr ;
+            string source   = (tx_source==tx_blsr&&rx<4) ? "BLSR_PGL200ES_RD_TILE" : (tx_source==tx_blsr&&rx>3) ? "BLSR_PGL200ES_TILE" : "WLSR1B_TILE";
+            string source_bus_wlsr_l = (tx_source==tx_blsr) ? "BUS_WLSR_OUTL" : "BUS_WLSR_OUT";
+            string source_bus_wlsr_r = (tx_source==tx_blsr) ? "BUS_WLSR_OUTR" : "BUS_WLSR_OUT";
+            string source_mce_r   = (tx_source==tx_blsr) ? "MCE_OR" : "MCE_O";
+            string source_mce_l   = (tx_source==tx_blsr) ? "MCE_OL" : "MCE_O";
+            string source_mclkb_r = (tx_source==tx_blsr) ? "MCLKB_OR" : "MCLKB_O";
+            string source_mclkb_l = (tx_source==tx_blsr) ? "MCLKB_OL" : "MCLKB_O";
+            string source_mwr_r   = (tx_source==tx_blsr) ? "MWR_OR" : "MWR_O";
+            string source_mwr_l   = (tx_source==tx_blsr) ? "MWR_OL" : "MWR_O";
+
+            if(!((rx==4&&tx<=NUM_TILE_HSST_X)||(rx<=3&&tx>IOL1_TILE_X)))
+            {
+                connect_blsr_gs_output(rx, tx, BLSR_TILE_X, CCS_TILE_X, CCS_TILE_Y,"WLSRD_TILE" , "BUS_WLSR_IN", tx_source, source_bus_wlsr_l,source_bus_wlsr_r, source_mce_r, source_mce_l,source_mclkb_r, source_mclkb_l, source_mwr_r, source_mwr_l, source, blsr,0);
+            }
+        }
+        foreach tx( L_IOB_TILES_X )
+        {
+            int tx_source = (tx<tx_wlsr1_l2) ? tx_wlsr1_l2 :
+                            (tx<tx_wlsr1_l0) ? tx_wlsr1_l0 :
+                            (tx>tx_wlsr1_r2) ? tx_wlsr1_r2 : 
+                            (tx>tx_wlsr1_r0) ? tx_wlsr1_r0 :
+                            tx_blsr ;
+            string source   = (tx_source==tx_blsr&&rx<4) ? "BLSR_PGL200ES_RD_TILE" : (tx_source==tx_blsr&&rx>3) ? "BLSR_PGL200ES_TILE" : "WLSR1B_TILE";
+            string source_bus_wlsr_l = (tx_source==tx_blsr) ? "BUS_WLSR_OUTL" : "BUS_WLSR_OUT";
+            string source_bus_wlsr_r = (tx_source==tx_blsr) ? "BUS_WLSR_OUTR" : "BUS_WLSR_OUT";
+            string source_mce_r   = (tx_source==tx_blsr) ? "MCE_OR" : "MCE_O";
+            string source_mce_l   = (tx_source==tx_blsr) ? "MCE_OL" : "MCE_O";
+            string source_mclkb_r = (tx_source==tx_blsr) ? "MCLKB_OR" : "MCLKB_O";
+            string source_mclkb_l = (tx_source==tx_blsr) ? "MCLKB_OL" : "MCLKB_O";
+            string source_mwr_r   = (tx_source==tx_blsr) ? "MWR_OR" : "MWR_O";
+            string source_mwr_l   = (tx_source==tx_blsr) ? "MWR_OL" : "MWR_O";
+
+            if(!((tx==IOB1_TILE_X&&rx>1)||(tx==IOB2_TILE_X&&rx<4)||(tx==IOB0_TILE_X&&(rx==4))))
+            {
+                string iob = (tx==IOB0_TILE_X&&rx==3) ? "IOB_TILE_HALF" : "IOB_TILE" ;
+    
+                connect_blsr_gs_output(rx, tx, BLSR_TILE_X, CCS_TILE_X, CCS_TILE_Y,iob, "BUS_WLSRB_IN", tx_source, source_bus_wlsr_l,source_bus_wlsr_r, source_mce_r, source_mce_l,source_mclkb_r, source_mclkb_l, source_mwr_r, source_mwr_l, source,blsr, 1);
+            }
+        }
+
+        foreach tx( L_IOL_TILES_X )
+        {
+            int tx_source = (tx<tx_wlsr1_l2) ? tx_wlsr1_l2 :
+                            (tx<tx_wlsr1_l0) ? tx_wlsr1_l0 :
+                            (tx>tx_wlsr1_r2) ? tx_wlsr1_r2 : 
+                            (tx>tx_wlsr1_r0) ? tx_wlsr1_r0 :
+                            tx_blsr ;
+            string source   = (tx_source==tx_blsr&&rx<4) ? "BLSR_PGL200ES_RD_TILE" : (tx_source==tx_blsr&&rx>3) ? "BLSR_PGL200ES_TILE" : "WLSR1B_TILE";
+            string source_bus_wlsr_l = (tx_source==tx_blsr) ? "BUS_WLSR_OUTL" : "BUS_WLSR_OUT";
+            string source_bus_wlsr_r = (tx_source==tx_blsr) ? "BUS_WLSR_OUTR" : "BUS_WLSR_OUT";
+            string source_mce_r   = (tx_source==tx_blsr) ? "MCE_OR" : "MCE_O";
+            string source_mce_l   = (tx_source==tx_blsr) ? "MCE_OL" : "MCE_O";
+            string source_mclkb_r = (tx_source==tx_blsr) ? "MCLKB_OR" : "MCLKB_O";
+            string source_mclkb_l = (tx_source==tx_blsr) ? "MCLKB_OL" : "MCLKB_O";
+            string source_mwr_r   = (tx_source==tx_blsr) ? "MWR_OR" : "MWR_O";
+            string source_mwr_l   = (tx_source==tx_blsr) ? "MWR_OL" : "MWR_O";
+
+            if(!((tx==IOL1_TILE_X&&rx>3)||(tx==IOL2_TILE_X&&rx<4)||(tx==IOL0_TILE_X&&rx==4)))
+            {
+                iock = ((rx==2||rx==3)&&tx==IOL1_TILE_X) ? "WLSRA_TILE" : (rx==3&&tx==IOL0_TILE_X) ? "IOCKGATEDLL2_TILE" : "IOCKGATEDLL_TILE" ; 
+
+                connect_blsr_gs_output(rx, tx, BLSR_TILE_X, CCS_TILE_X, CCS_TILE_Y,iock , "BUS_WLSR_IN", tx_source, source_bus_wlsr_l,source_bus_wlsr_r, source_mce_r, source_mce_l,source_mclkb_r, source_mclkb_l, source_mwr_r, source_mwr_l, source,blsr, 0);
+            }
+        }
+        foreach tx( {NUM_TILE_HSST_X+1} )
+        {
+            if(rx==4)
+            {
+                int tx_source = (tx<tx_wlsr1_l2) ? tx_wlsr1_l2 :
+                                (tx<tx_wlsr1_l0) ? tx_wlsr1_l0 :
+                                (tx>tx_wlsr1_r2) ? tx_wlsr1_r2 : 
+                                (tx>tx_wlsr1_r0) ? tx_wlsr1_r0 :
+                                tx_blsr ;
+                string source   = (tx_source==tx_blsr&&rx<4) ? "BLSR_PGL200ES_RD_TILE" : (tx_source==tx_blsr&&rx>3) ? "BLSR_PGL200ES_TILE" : "WLSR1B_TILE";
+                string source_bus_wlsr_l = (tx_source==tx_blsr) ? "BUS_WLSR_OUTL" : "BUS_WLSR_OUT";
+                string source_bus_wlsr_r = (tx_source==tx_blsr) ? "BUS_WLSR_OUTR" : "BUS_WLSR_OUT";
+                string source_mce_r   = (tx_source==tx_blsr) ? "MCE_OR" : "MCE_O";
+                string source_mce_l   = (tx_source==tx_blsr) ? "MCE_OL" : "MCE_O";
+                string source_mclkb_r = (tx_source==tx_blsr) ? "MCLKB_OR" : "MCLKB_O";
+                string source_mclkb_l = (tx_source==tx_blsr) ? "MCLKB_OL" : "MCLKB_O";
+                string source_mwr_r   = (tx_source==tx_blsr) ? "MWR_OR" : "MWR_O";
+                string source_mwr_l   = (tx_source==tx_blsr) ? "MWR_OL" : "MWR_O";
+
+                connect_blsr_gs_output(rx, tx, BLSR_TILE_X, CCS_TILE_X, CCS_TILE_Y,"WLSRA_TILE" , "BUS_WLSR_IN", tx_source, source_bus_wlsr_l,source_bus_wlsr_r, source_mce_r, source_mce_l,source_mclkb_r, source_mclkb_l, source_mwr_r, source_mwr_l, source, blsr,0);
+            }
+        }
+    }
+    
+    unsigned int l_tx_wlsrs_0[7:0] = {1,18,38,56,95,117,137,159};
+    unsigned int l_tx_wlsrs_0_b[7:0] = {159,137,117,95,56,38,18,1};
+    unsigned int l_tx_wlsrs_1[6:0] = {1,18,38,56,75,77,79};
+    unsigned int l_tx_wlsrs_1_b[6:0] = {79,77,75,56,38,18,1};
+    unsigned int l_tx_wlsrs_2[6:0] = {18,38,56,95,117,137,159};
+    unsigned int l_tx_wlsrs_2_b[6:0] = {159,137,117,95,56,38,18};
+    unsigned int l_tx_wlsrs_3[5:0] = {1,18,38,56,75,77};
+    unsigned int l_tx_wlsrs_3_b[5:0] = {77,75,56,38,18,1};
+
+    unsigned int ty, index;
+    
+    foreach rx( {[0:7]} )
+    {
+
+        blsr = (rx<=3) ? "BLSR_PGL200ES_RD_TILE" : "BLSR_PGL200ES_TILE" ;
+
+        int l_wlsr1s_tx[]=(rx>3) ? L_WLSR1S_TILES_X_U : L_WLSR1S_TILES_X_D ;
+        int l_wlsr1b_tx[]=(rx>3) ? L_WLSR1B_TILES_X_U : L_WLSR1B_TILES_X_D ;
+        int l_iock_tx[]= (rx>4) ? {IOL0_TILE_X,IOL2_TILE_X} : (rx==4) ? {IOL2_TILE_X} : {IOL0_TILE_X,IOL1_TILE_X};
+        int tx_wlsr1_r = (rx>3) ? WLSR1_TILE_X_R0 : WLSR1_TILE_X_D_R0 ;
+
+        if(rx>4)
+        {
+            foreach index({[7:0]})
+            { 
+                connect_blsr_gs_output1(index, BLSR_TILE_X, rx, l_tx_wlsrs_0_b,l_tx_wlsrs_1_b,l_tx_wlsrs_2_b, l_tx_wlsrs_3_b,l_wlsr1s_tx,l_wlsr1b_tx,l_iock_tx,WLSR1_TILE_X_L0,tx_wlsr1_r, blsr, 0,1);
+
+                connect_blsr_gs_output1(index, BLSR_TILE_X, rx, l_tx_wlsrs_0,l_tx_wlsrs_1,l_tx_wlsrs_2,l_tx_wlsrs_3,l_wlsr1s_tx,l_wlsr1b_tx,l_iock_tx,WLSR1_TILE_X_L0,tx_wlsr1_r,blsr , 0,0);
+            }
+        }
+        if(rx==4)
+        {
+            foreach index({[6:0]})
+            { 
+                connect_blsr_gs_output1(index, BLSR_TILE_X, rx, l_tx_wlsrs_0_b,l_tx_wlsrs_1_b, l_tx_wlsrs_2_b,l_tx_wlsrs_3_b,l_wlsr1s_tx,l_wlsr1b_tx,l_iock_tx,WLSR1_TILE_X_L0,tx_wlsr1_r,blsr , 2,1);
+
+                connect_blsr_gs_output1(index, BLSR_TILE_X, rx, l_tx_wlsrs_0,l_tx_wlsrs_1,l_tx_wlsrs_2,l_tx_wlsrs_3,l_wlsr1s_tx,l_wlsr1b_tx,l_iock_tx,WLSR1_TILE_X_L0,tx_wlsr1_r, blsr, 2,0);
+            }
+        }
+        if(rx>1&&rx<=3)
+        {
+            foreach index({[5:0]})
+            { 
+                connect_blsr_gs_output1(index, BLSR_TILE_X, rx, l_tx_wlsrs_0_b,l_tx_wlsrs_1_b,l_tx_wlsrs_2_b,l_tx_wlsrs_3_b,l_wlsr1s_tx,l_wlsr1b_tx,l_iock_tx,WLSR1_TILE_X_L0,tx_wlsr1_r, blsr, 3,1);
+
+                connect_blsr_gs_output1(index, BLSR_TILE_X, rx, l_tx_wlsrs_0,l_tx_wlsrs_1, l_tx_wlsrs_2,l_tx_wlsrs_3,l_wlsr1s_tx,l_wlsr1b_tx,l_iock_tx,WLSR1_TILE_X_L0,tx_wlsr1_r, blsr, 3,0);
+            }
+        }
+        if(rx<=1)
+        {
+            foreach index({[6:0]})
+            { 
+                connect_blsr_gs_output1(index, BLSR_TILE_X, rx, l_tx_wlsrs_0_b,l_tx_wlsrs_1_b,l_tx_wlsrs_2_b,l_tx_wlsrs_3_b,l_wlsr1s_tx,l_wlsr1b_tx,l_iock_tx,WLSR1_TILE_X_L0,tx_wlsr1_r, blsr, 1,1);
+
+                connect_blsr_gs_output1(index, BLSR_TILE_X, rx, l_tx_wlsrs_0,l_tx_wlsrs_1, l_tx_wlsrs_2,l_tx_wlsrs_3,l_wlsr1s_tx,l_wlsr1b_tx,l_iock_tx,WLSR1_TILE_X_L0,tx_wlsr1_r, blsr, 1,0);
+            }
+        }
+    }
+
+};//end of structure arch_nl connect_blsr of PGL200ES
+
+/***************************************************************************************
+****************************************************************************************/
+library work;
+use pgl_defs,pgl200es_defs,pgl200es_connect_wl_bl;
+
+structure arch_nl connect_col_addr of PGL200ES
+{
+
+    int rx, tx , num_wlsr,num_rckb,flag_rckb;
+
+    string blsr ;
+
+    int l_wlsrd_tx[]= {8,15,20,25,30,35,40,45,50,55,60,67,79,84,89,94,99,104,109,114,119,124,129,134,139,144,149,154};
+    int l_wlsr2_tx[]= {73};
+
+    int l_iock_tx_u[]= {1,159};
+    int l_iob_tx_u[]= {0,160};
+
+    int l_iock_tx_d[]= {1,79};
+    int l_iob_tx_d[]= {0,80};
+
+    blsr = "BLSR_PGL200ES_TILE" ;    
+
+    string iob = "IOB_TILE" ;
+
+    foreach rx({[7:5]})
+    {
+        blsr = "BLSR_PGL200ES_TILE" ;
+
+        num_wlsr = 0 ;
+
+        flag_rckb = 0 ;
+
+        foreach tx({[0:69,71:160]})
+        {
+            connect_col_wlsr_addr(BLSR_TILE_X, tx, num_wlsr, 0, flag_rckb, rx, L_WLSR_TILES_X_U, l_wlsrd_tx, l_wlsr2_tx, L_WLSR1S_TILES_X_U,L_WLSR1B_TILES_X_U, l_iock_tx_u, l_iob_tx_u, "COL_ADDR", blsr,iob);
+
+            num_wlsr = num_wlsr + 1 ;
+        }
+    }
+    foreach rx({4})
+    {
+        blsr = "BLSR_PGL200ES_TILE" ;
+
+        num_wlsr = 0 ;
+
+        flag_rckb = 0 ;
+
+        foreach tx({[11:69,71:160]})
+        {
+            flag_rckb = (tx==11) ? flag_rckb + 1 : 0 ; 
+
+            num_rckb = (flag_rckb==2) ? 1 : 0 ;
+
+            connect_col_wlsr_addr(BLSR_TILE_X, tx, num_wlsr, num_rckb, flag_rckb, rx, L_WLSR_TILES_X_U, l_wlsrd_tx, l_wlsr2_tx, L_WLSR1S_TILES_X_U,L_WLSR1B_TILES_X_U, l_iock_tx_u, l_iob_tx_u, "COL_ADDR", blsr,iob);
+
+            num_wlsr = num_wlsr + 1 ;
+        }
+    }
+
+    foreach rx({2,3})
+    {
+        blsr = "BLSR_PGL200ES_RD_TILE" ;
+
+        num_wlsr = 0 ;
+
+        flag_rckb = 0 ;        
+
+        foreach tx({[0:69,71:79]})
+        {
+            flag_rckb = (tx==79) ? flag_rckb + 1 : 0 ;
+
+            num_rckb = (flag_rckb==2) ? 1 : 0 ;        
+
+            iob = (rx==3&&tx==0) ? "IOB_TILE_HALF" : "IOB_TILE" ;
+
+            connect_col_wlsr_addr(BLSR_TILE_X, tx, num_wlsr, num_rckb,flag_rckb,rx, L_WLSR_TILES_X_D, l_wlsrd_tx, l_wlsr2_tx, L_WLSR1S_TILES_X_D,L_WLSR1B_TILES_X_D, l_iock_tx_d, l_iob_tx_d, "COL_ADDR", blsr,iob);
+    
+            num_wlsr = num_wlsr + 1 ;
+        }
+    }
+    foreach rx({0,1})
+    {
+        blsr = "BLSR_PGL200ES_RD_TILE" ;
+
+        num_wlsr = 0 ;
+
+        flag_rckb = 0 ;
+
+        foreach tx({[0:69,71:80]})
+        {
+            connect_col_wlsr_addr(BLSR_TILE_X, tx, num_wlsr, 0,flag_rckb,rx, L_WLSR_TILES_X_D, l_wlsrd_tx, l_wlsr2_tx, L_WLSR1S_TILES_X_D,L_WLSR1B_TILES_X_D, l_iock_tx_d, l_iob_tx_d, "COL_ADDR", blsr,iob);
+
+            num_wlsr = num_wlsr + 1 ;
+        }
+    }
+
+// for WLSRD COL_ADDR_D
+
+    foreach rx({[7:0]})
+    {
+        blsr = (rx<=3) ? "BLSR_PGL200ES_RD_TILE" : "BLSR_PGL200ES_TILE" ;
+
+        num_wlsr = 0 ;
+
+        flag_rckb = 0 ;
+
+        foreach tx(l_wlsrd_tx)
+        {
+
+            if(!((rx==4&&tx<=HSST_TILE_X+NUM_TILE_HSST_X)||(rx<=3&&tx>=IOL1_TILE_X)))
+            {
+        
+                connect_col_wlsr_addr(BLSR_TILE_X, tx, num_wlsr, 0 ,flag_rckb,rx, L_WLSR_TILES_X_U, l_wlsrd_tx, l_wlsr2_tx, L_WLSR1_TILES_X_U, L_WLSR1B_TILES_X_U,l_iock_tx_u, l_iob_tx_u, "COL_ADDR_D", blsr,iob);
+
+                num_wlsr = num_wlsr + 1 ;
+            }
+        }        
+    }
+
+};//end of structure arch_nl connect_blsr of PGL200ES
+/***************************************************************************************
+****************************************************************************************/
+library work;
+use pgl_defs,pgl200es_defs;
+use pgl200es_connect_wl_bl;
+
+structure arch_nl connect_bl_srb of PGL200ES
+{
+    unsigned int l_regions[] = {[0:7]};
+    unsigned int tx_blsr = BLSR_TILE_X;    
+    unsigned int tx_ccs = CCS_TILE_X;
+    unsigned int ty_ccs = CCS_TILE_Y;
+    unsigned int l_tx_srb[] = L_SRB_TILES_X;  
+    unsigned int tx_ll = RPT_X_L2;  
+    unsigned int tx_lr = RPT_X_L1;  
+    unsigned int tx_rl = RPT_X_R1;  
+    unsigned int tx_rr = RPT_X_R2;  
+
+
+    unsigned int tx, rx, ty_int, ty,flag_ud,flag_rd;
+    string device_wlsr,blsr;
+
+    foreach rx( l_regions )
+    {
+
+       blsr = (rx<=3) ? "BLSR_PGL200ES_RD_TILE" : "BLSR_PGL200ES_TILE" ;     
+
+// for SRB DATA
+
+      foreach tx( l_tx_srb )
+      {
+
+          string data = (tx <= tx_ll) ? "DATA_L_2_NEXT" :
+                        (tx <= tx_lr) ? "DATA_L_1_NEXT" :
+                        (tx >= tx_rr) ? "DATA_R_2_NEXT" :  
+                        (tx >= tx_rl) ? "DATA_R_1_NEXT" :   
+                                        "DATA" ; 
+          string datan = (tx <= tx_ll) ? "DATAN_L_2_NEXT" :
+                        (tx <= tx_lr) ?  "DATAN_L_1_NEXT" :
+                        (tx >= tx_rr) ?  "DATAN_R_2_NEXT" :  
+                        (tx >= tx_rl) ?  "DATAN_R_1_NEXT" :   
+                                         "DATAN" ;            
+          flag_ud = ((((tx>CCS_TILE_X) && (tx<=CCS_TILE_X+NUM_TILE_CCS_X))&&rx==7)||(tx<=NUM_TILE_HSST_X&&rx==3)) ? 0 : 1 ;
+
+          if(!(tx<=NUM_TILE_HSST_X&&rx==4))
+          {
+              if(!(tx>IOL1_TILE_X&&rx<=3))
+              {
+                
+                  connect_SRB_bl_input(tx,rx,tx_blsr,data,datan,blsr, flag_ud);
+              }
+          }
+      }
+
+// for CLM DATA
+
+      foreach tx( L_CLMA_TILES_X )
+      {
+          string data = (tx <= tx_ll) ? "DATA_L_2_NEXT" :
+                        (tx <= tx_lr) ? "DATA_L_1_NEXT" :
+                        (tx >= tx_rr) ? "DATA_R_2_NEXT" :  
+                        (tx >= tx_rl) ? "DATA_R_1_NEXT" :   
+                                        "DATA" ; 
+          string datan = (tx <= tx_ll) ? "DATAN_L_2_NEXT" :
+                        (tx <= tx_lr) ?  "DATAN_L_1_NEXT" :
+                        (tx >= tx_rr) ?  "DATAN_R_2_NEXT" :  
+                        (tx >= tx_rl) ?  "DATAN_R_1_NEXT" :   
+                                         "DATAN" ;
+          flag_ud = ((((tx>=CCS_TILE_X) && (tx<=CCS_TILE_X+NUM_TILE_CCS_X))&&rx==7)||(tx<=NUM_TILE_HSST_X+1&&rx==3)) ? 0 : 1;    
+
+          int flag_pll = (tx==PLL_TILE_X) ? 1 : 0 ;
+
+          int flag_uscm_t = (rx==4&&flag_pll==1) ? 1 : 0; 
+
+          int flag_uscm_b = (rx==3&&flag_pll==1) ? 1 : 0; 
+
+          int flag_ip = (rx==4&&tx>IOL1_TILE_X) ? 1 : 0 ;
+
+         if(!(rx==4&&tx<=HSST_TILE_X+NUM_TILE_HSST_X + 1))
+         {
+             if(!(tx>IOL1_TILE_X&&rx<=3))
+             {
+                  connect_CLM_bl_input( rx, tx, tx_blsr,data,datan,blsr,"CLMA_TILE", flag_ud,flag_pll,flag_uscm_t,flag_uscm_b,flag_ip );                           
+             }
+         }
+
+      }
+
+      foreach tx( L_CLMS_TILES_X )
+      {
+          string data = (tx <= tx_ll) ? "DATA_L_2_NEXT" :
+                        (tx <= tx_lr) ? "DATA_L_1_NEXT" :
+                        (tx >= tx_rr) ? "DATA_R_2_NEXT" :  
+                        (tx >= tx_rl) ? "DATA_R_1_NEXT" :   
+                                        "DATA" ; 
+          string datan = (tx <= tx_ll) ? "DATAN_L_2_NEXT" :
+                        (tx <= tx_lr) ?  "DATAN_L_1_NEXT" :
+                        (tx >= tx_rr) ?  "DATAN_R_2_NEXT" :  
+                        (tx >= tx_rl) ?  "DATAN_R_1_NEXT" :   
+                                         "DATAN" ;
+          flag_ud = ((((tx>=CCS_TILE_X) && (tx<=CCS_TILE_X+NUM_TILE_CCS_X))&&rx==7)||(tx<=NUM_TILE_HSST_X&&rx==3)) ? 0 : 1;        
+
+          int flag_pll =  0 ;
+
+          int flag_uscm_t =  0; 
+
+          int flag_uscm_b =  0; 
+
+          int flag_ip = (rx==4&&tx>IOL1_TILE_X) ? 1 : 0 ;
+
+         if(!(rx==4&&tx<=HSST_TILE_X+NUM_TILE_HSST_X + 1))
+         {
+             if(!(tx>IOL1_TILE_X&&rx<=3))
+             {
+                  connect_CLM_bl_input( rx, tx, tx_blsr,data,datan,blsr,"CLMS_TILE", flag_ud,flag_pll,flag_uscm_t,flag_uscm_b,flag_ip );                           
+             }
+         }
+
+      }
+
+    }
+};//end of structure arch_nl connect_bl of PGL200ES
+/***************************************************************************************
+****************************************************************************************/
+library work;
+use pgl_defs,pgl200es_defs;
+use pgl200es_connect_wl_bl;
+
+structure arch_nl connect_bl of PGL200ES
+{
+    unsigned int l_regions[] = {[0:7]};
+    unsigned int tx_blsr = BLSR_TILE_X;    
+    unsigned int tx_ccs = CCS_TILE_X;
+    unsigned int ty_ccs = CCS_TILE_Y;
+    unsigned int l_tx_srb[] = L_SRB_TILES_X;  
+    unsigned int tx_ll = RPT_X_L2;  
+    unsigned int tx_lr = RPT_X_L1;  
+    unsigned int tx_rl = RPT_X_R1;  
+    unsigned int tx_rr = RPT_X_R2;  
+
+
+    unsigned int tx, rx, ty_int, ty,flag_ud,flag_rd;
+    string device_wlsr,blsr;
+
+    foreach rx( l_regions )
+    {
+
+       blsr = (rx<=3) ? "BLSR_PGL200ES_RD_TILE" : "BLSR_PGL200ES_TILE" ;
+
+// for DRM DATA
+
+    foreach tx ( L_DRM_TILES_X )
+    {
+
+          string data = (tx <= tx_ll) ? "DATA_L_2_NEXT" :
+                        (tx <= tx_lr) ? "DATA_L_1_NEXT" :
+                        (tx >= tx_rr) ? "DATA_R_2_NEXT" :  
+                        (tx >= tx_rl) ? "DATA_R_1_NEXT" :   
+                                        "DATA" ; 
+          string datan = (tx <= tx_ll) ? "DATAN_L_2_NEXT" :
+                        (tx <= tx_lr) ?  "DATAN_L_1_NEXT" :
+                        (tx >= tx_rr) ?  "DATAN_R_2_NEXT" :  
+                        (tx >= tx_rl) ?  "DATAN_R_1_NEXT" :   
+                                         "DATAN" ;
+
+          flag_ud = ((((tx>=CCS_TILE_X) && (tx<=CCS_TILE_X+NUM_TILE_CCS_X))&&rx==7)||(tx<=NUM_TILE_HSST_X&&rx==3)) ? 0 : 1;
+
+          if(!(tx<=((NUM_GRID_HSST_X-2)/NUM_GRID_X)&&rx==4))
+          {
+              if(!(tx>=IOL1_TILE_X&&rx<=3))
+              {
+                  connect_DRM_bl_input( rx, tx ,data, datan, blsr, tx_blsr, flag_ud);
+              }
+          }
+      } 
+
+// for PLL DATA
+
+    connect_PLL_bl_input(rx,PLL_TILE_X,PLL_TILE_0D_Y,BLSR_TILE_X,"DATA","DATAN",blsr, 0);
+    connect_PLL_bl_input(rx,PLL_TILE_X,PLL_TILE_0T_Y,BLSR_TILE_X,"DATA","DATAN",blsr, 1);
+
+// for IOL DATA
+
+    foreach tx(L_IOL_TILES_X)
+    {
+        if(!((tx==IOL1_TILE_X&&rx>1)||(tx==IOL2_TILE_X&&rx<4)||(tx==IOL0_TILE_X&&rx==4)))
+        {
+
+            string data = (tx <= tx_ll) ? "DATA_L_2_NEXT" :
+                          (tx <= tx_lr) ? "DATA_L_1_NEXT" :
+                          (tx >= tx_rr) ? "DATA_R_2_NEXT" :  
+                          (tx >= tx_rl) ? "DATA_R_1_NEXT" :   
+                                          "DATA" ; 
+            string datan = (tx <= tx_ll) ? "DATAN_L_2_NEXT" :
+                          (tx <= tx_lr) ?  "DATAN_L_1_NEXT" :
+                          (tx >= tx_rr) ?  "DATAN_R_2_NEXT" :  
+                          (tx >= tx_rl) ?  "DATAN_R_1_NEXT" :   
+                                           "DATAN" ;
+              
+            flag_ud = (tx==IOL0_TILE_X&&rx==3) ? 0 : 1 ;
+
+            flag_rd = (((tx==IOL0_TILE_X||tx==IOL1_TILE_X)&&(rx==0||rx==5))||(tx==IOL2_TILE_X&&rx==4)) ? 1 : 0 ;
+
+            connect_IOL_bl_input(tx,rx,BLSR_TILE_X, data, datan, blsr, flag_ud, flag_rd);
+        }
+    }
+// for IOB DATA
+
+    foreach tx( L_IOB_TILES_X)
+    {
+        if(!((tx==IOB1_TILE_X&&rx>1)||(tx==IOB2_TILE_X&&rx<4)||(tx==IOB0_TILE_X&&(rx==4))))
+        {
+            string data = (tx <= tx_ll) ? "DATA_L_2_NEXT" :
+                          (tx <= tx_lr) ? "DATA_L_1_NEXT" :
+                          (tx >= tx_rr) ? "DATA_R_2_NEXT" :  
+                          (tx >= tx_rl) ? "DATA_R_1_NEXT" :   
+                                          "DATA" ; 
+            string datan = (tx <= tx_ll) ? "DATAN_L_2_NEXT" :
+                          (tx <= tx_lr) ?  "DATAN_L_1_NEXT" :
+                          (tx >= tx_rr) ?  "DATAN_R_2_NEXT" :  
+                          (tx >= tx_rl) ?  "DATAN_R_1_NEXT" :   
+                                           "DATAN" ;
+              
+            flag_ud = (tx==IOB0_TILE_X&&rx==3) ? 0 : 1 ;
+
+            string iob = (tx==IOB0_TILE_X&&rx==3) ? "IOB_TILE_HALF" : "IOB_TILE" ;
+
+            connect_IOB_bl_input( rx, tx, data,datan,blsr,iob,BLSR_TILE_X,flag_ud);
+        }
+    }
+
+// for WLSR DATA
+
+    int l_wlsr_x[] = (rx<=3) ? L_WLSR_TILES_X_D : L_WLSR_TILES_X_U ;
+
+    foreach tx( l_wlsr_x)
+    {
+        if(!((rx==4&&tx<=NUM_TILE_HSST_X+1)||(rx<=3&&tx>IOL1_TILE_X)))
+        {
+            string data = (tx <= tx_ll) ? "DATA_L_2_NEXT" :
+                          (tx <= tx_lr) ? "DATA_L_1_NEXT" :
+                          (tx >= tx_rr) ? "DATA_R_2_NEXT" :  
+                          (tx >= tx_rl) ? "DATA_R_1_NEXT" :   
+                                          "DATA" ; 
+            string datan = (tx <= tx_ll) ? "DATAN_L_2_NEXT" :
+                          (tx <= tx_lr) ?  "DATAN_L_1_NEXT" :
+                          (tx >= tx_rr) ?  "DATAN_R_2_NEXT" :  
+                          (tx >= tx_rl) ?  "DATAN_R_1_NEXT" :   
+                                           "DATAN" ;
+
+            connect_WLSR_bl_input(rx, tx, BLSR_TILE_X, data, datan, blsr,"WLSR_TILE");     
+        } 
+    }
+
+    int l_wlsr1_x[] = (rx<=3) ? L_WLSR1_TILES_X_D : L_WLSR1_TILES_X_U ;
+
+    foreach tx( l_wlsr1_x )
+    {
+        device_wlsr = (tx==WLSR1_TILE_X_R0||tx==WLSR1_TILE_X_R2||tx==WLSR1_TILE_X_L0||tx==WLSR1_TILE_X_L2||tx==WLSR1_TILE_X_D_R0) ? "WLSR1B_TILE" : "WLSR1_TILE" ;      
+
+        string data = (tx <= tx_ll) ? "DATA_L_2_NEXT" :
+                      (tx <= tx_lr) ? "DATA_L_1_NEXT" :
+                      (tx >= tx_rr) ? "DATA_R_2_NEXT" :  
+                      (tx >= tx_rl) ? "DATA_R_1_NEXT" :   
+                                      "DATA" ; 
+        string datan = (tx <= tx_ll) ? "DATAN_L_2_NEXT" :
+                      (tx <= tx_lr) ?  "DATAN_L_1_NEXT" :
+                      (tx >= tx_rr) ?  "DATAN_R_2_NEXT" :  
+                      (tx >= tx_rl) ?  "DATAN_R_1_NEXT" :   
+                                       "DATAN" ;
+
+        connect_WLSR_bl_input(rx, tx, BLSR_TILE_X, data, datan, blsr,device_wlsr);
+    }
+
+    foreach tx( L_WLSR2_TILES_X )
+    {
+        if(!((rx==4&&tx<=NUM_TILE_HSST_X)||(rx<=3&&tx>IOL1_TILE_X)))
+        {
+            string data = (tx <= tx_ll) ? "DATA_L_2_NEXT" :
+                          (tx <= tx_lr) ? "DATA_L_1_NEXT" :
+                          (tx >= tx_rr) ? "DATA_R_2_NEXT" :  
+                          (tx >= tx_rl) ? "DATA_R_1_NEXT" :   
+                                          "DATA" ; 
+            string datan = (tx <= tx_ll) ? "DATAN_L_2_NEXT" :
+                          (tx <= tx_lr) ?  "DATAN_L_1_NEXT" :
+                          (tx >= tx_rr) ?  "DATAN_R_2_NEXT" :  
+                          (tx >= tx_rl) ?  "DATAN_R_1_NEXT" :   
+                                           "DATAN" ;
+
+            connect_WLSR_bl_input(rx, tx, BLSR_TILE_X, data, datan, blsr,"WLSR2_TILE");
+        }
+    }
+
+    foreach tx( L_WLSRD_TILES_X )
+    {
+        if(!((rx==4&&tx<=NUM_TILE_HSST_X)||(rx<=3&&tx>=IOL1_TILE_X)))
+        {
+            string data = (tx <= tx_ll) ? "DATA_L_2_NEXT" :
+                          (tx <= tx_lr) ? "DATA_L_1_NEXT" :
+                          (tx >= tx_rr) ? "DATA_R_2_NEXT" :  
+                          (tx >= tx_rl) ? "DATA_R_1_NEXT" :   
+                                          "DATA" ; 
+            string datan = (tx <= tx_ll) ? "DATAN_L_2_NEXT" :
+                          (tx <= tx_lr) ?  "DATAN_L_1_NEXT" :
+                          (tx >= tx_rr) ?  "DATAN_R_2_NEXT" :  
+                          (tx >= tx_rl) ?  "DATAN_R_1_NEXT" :   
+                                           "DATAN" ;
+
+            connect_WLSR_bl_input(rx, tx, BLSR_TILE_X, data, datan, blsr,"WLSRD_TILE");
+        }
+    }
+    foreach tx( {NUM_TILE_HSST_X+1} )
+    {
+        if(rx==4)
+        {
+            string data = (tx <= tx_ll) ? "DATA_L_2_NEXT" :
+                          (tx <= tx_lr) ? "DATA_L_1_NEXT" :
+                          (tx >= tx_rr) ? "DATA_R_2_NEXT" :  
+                          (tx >= tx_rl) ? "DATA_R_1_NEXT" :   
+                                          "DATA" ; 
+            string datan = (tx <= tx_ll) ? "DATAN_L_2_NEXT" :
+                          (tx <= tx_lr) ?  "DATAN_L_1_NEXT" :
+                          (tx >= tx_rr) ?  "DATAN_R_2_NEXT" :  
+                          (tx >= tx_rl) ?  "DATAN_R_1_NEXT" :   
+                                           "DATAN" ;
+
+            connect_WLSR_bl_input(rx, tx, BLSR_TILE_X, data, datan, blsr,"WLSRA_TILE");
+        }
+    }
+    foreach tx( {IOL1_TILE_X} )
+    {
+        if(rx==2||rx==3)
+        {
+            string data = (tx <= tx_ll) ? "DATA_L_2_NEXT" :
+                          (tx <= tx_lr) ? "DATA_L_1_NEXT" :
+                          (tx >= tx_rr) ? "DATA_R_2_NEXT" :  
+                          (tx >= tx_rl) ? "DATA_R_1_NEXT" :   
+                                          "DATA" ; 
+            string datan = (tx <= tx_ll) ? "DATAN_L_2_NEXT" :
+                          (tx <= tx_lr) ?  "DATAN_L_1_NEXT" :
+                          (tx >= tx_rr) ?  "DATAN_R_2_NEXT" :  
+                          (tx >= tx_rl) ?  "DATAN_R_1_NEXT" :   
+                                           "DATAN" ;
+
+            connect_WLSR_bl_input(rx, tx, BLSR_TILE_X, data, datan, blsr,"WLSRA_TILE");
+        }
+    }
+
+  } //end of region
+
+// for USCM DATA
+
+    connect_USCM_bl_input( 3, USCM_LOC_X, "DATA","DATAN", "BLSR_PGL200ES_RD_TILE","BLSR_PGL200ES_TILE", BLSR_TILE_X);
+
+// for CRAMSL2 DATA
+
+    int flag_noibm,flag_ip ;
+    string cramsl2 ;
+
+    foreach rx({2,3,4})
+    {
+        blsr = (rx<=3) ? "BLSR_PGL200ES_RD_TILE" : "BLSR_PGL200ES_TILE" ;
+
+        foreach tx( {NUM_TILE_HSST_X+1,IOL1_TILE_X} )
+        {
+
+            string data = (tx <= tx_ll) ? "DATA_L_2_NEXT" :
+                          (tx <= tx_lr) ? "DATA_L_1_NEXT" :
+                          (tx >= tx_rr) ? "DATA_R_2_NEXT" :  
+                          (tx >= tx_rl) ? "DATA_R_1_NEXT" :   
+                                          "DATA" ; 
+            string datan = (tx <= tx_ll) ? "DATAN_L_2_NEXT" :
+                          (tx <= tx_lr) ?  "DATAN_L_1_NEXT" :
+                          (tx >= tx_rr) ?  "DATAN_R_2_NEXT" :  
+                          (tx >= tx_rl) ?  "DATAN_R_1_NEXT" :   
+                                           "DATAN" ;            
+
+            flag_ud = (rx==3&&(tx==NUM_TILE_HSST_X+1||tx==IOL1_TILE_X+2)) ? 1 : 2 ;
+
+            int flag_rckb = 0 ;
+
+            if(rx!=4&&tx==IOL1_TILE_X)
+            {
+                cramsl2 = (tx==IOL1_TILE_X) ? "CRAMSL2_TILE" : "CRAMSL2NOIBM_TILE" ;
+
+                flag_noibm = (tx==IOL1_TILE_X) ? 0 : 1 ;
+
+                connect_CRAMSL2_bl_input(tx,0,rx,tx_blsr,"DATA","DATAN",blsr, cramsl2,flag_noibm,flag_ud,flag_rckb,0);
+            }
+        }
+    }
+
+    foreach ty({4 * NUM_TILES_REGION,4 * NUM_TILES_REGION-1,4 * NUM_TILES_REGION-2})
+    {
+        foreach tx({L_CLMS_TILES_X,L_CLMA_TILES_X})
+        {
+            string data = (tx <= tx_ll) ? "DATA_L_2_NEXT" :
+                          (tx <= tx_lr) ? "DATA_L_1_NEXT" :
+                          (tx >= tx_rr) ? "DATA_R_2_NEXT" :  
+                          (tx >= tx_rl) ? "DATA_R_1_NEXT" :   
+                                          "DATA" ; 
+            string datan = (tx <= tx_ll) ? "DATAN_L_2_NEXT" :
+                          (tx <= tx_lr) ?  "DATAN_L_1_NEXT" :
+                          (tx >= tx_rr) ?  "DATAN_R_2_NEXT" :  
+                          (tx >= tx_rl) ?  "DATAN_R_1_NEXT" :   
+                                           "DATAN" ;
+            if(tx>=IOB1_TILE_X)
+            {
+                cramsl2 = (ty==4 * NUM_TILES_REGION) ? "CRAMSL2_TILE" : "CRAMSL2NOIBM_TILE";
+
+                connect_CRAMSL2_bl_input(tx,ty,4,tx_blsr,data,datan,"BLSR_PGL200ES_TILE", cramsl2,0,2,0,1);
+            }
+        }
+    }
+
+// for RCKB DATA
+
+
+// for hsst DATA
+
+    foreach tx( {HSST_TILE_X} )
+    {
+        string data = (tx <= tx_ll) ? "DATA_L_2_NEXT" :
+                      (tx <= tx_lr) ? "DATA_L_1_NEXT" :
+                      (tx >= tx_rr) ? "DATA_R_2_NEXT" :  
+                      (tx >= tx_rl) ? "DATA_R_1_NEXT" :   
+                                      "DATA" ; 
+        string datan = (tx <= tx_ll) ? "DATAN_L_2_NEXT" :
+                      (tx <= tx_lr) ?  "DATAN_L_1_NEXT" :
+                      (tx >= tx_rr) ?  "DATAN_R_2_NEXT" :  
+                      (tx >= tx_rl) ?  "DATAN_R_1_NEXT" :   
+                                       "DATAN" ;
+
+        connect_hsst_bl_input(tx,HSST_TILE_Y,BLSR_TILE_X,3,data,datan,"BLSR_PGL200ES_RD_TILE","BLSR_PGL200ES_TILE");
+    }
+}
+
+
+/***************************************************************************************
+****************************************************************************************/
+library work;
+use pgl_defs,pgl200es_defs;
+use pgl200es_connect_wl_bl;
+
+structure arch_nl connect_blsr_input of PGL200ES
+{
+    unsigned int NUM_REGION = 8;
+    unsigned int L_REGIONS[] = {[0:7]};
+    unsigned int tx_wlsr1_l = WLSR1_TILE_X_L0;
+    unsigned int tx_blsr = BLSR_TILE_X;
+    unsigned int tx_ccs = CCS_TILE_X;
+    unsigned int ty_ccs = CCS_TILE_Y;
+    unsigned int tx_wlsr2 = PLL_TILE_X;
+
+    string blsr,blsr_d,blsr_u ;
+
+    int rx;
+    foreach rx( L_REGIONS )
+    {
+        blsr = (rx<=3) ? "BLSR_PGL200ES_RD_TILE" : "BLSR_PGL200ES_TILE" ;
+        blsr_d = (rx<=4) ? "BLSR_PGL200ES_RD_TILE" : "BLSR_PGL200ES_TILE" ;
+        blsr_u = (rx<=2) ? "BLSR_PGL200ES_RD_TILE" : "BLSR_PGL200ES_TILE" ;
+
+        unsigned int tx_wlsr1_r = (rx<4) ? WLSR1_TILE_X_D_R0 : WLSR1_TILE_X_R0 ;
+        unsigned int flag_y = (rx>3) ? 0 : 
+                              (rx<2) ? 2 : 1 ;
+
+        int tx_wlsr1b = (rx<=3) ? WLSR1_TILE_X_D_R0 : WLSR1_TILE_X_R0 ;
+
+        int tx_wlsr1_r0 = (rx<=3) ?  WLSR1_TILE_X_D_R0: WLSR1_TILE_X_R0 ;
+        int tx_wlsr1_r2 =  WLSR1_TILE_X_R2 ;
+
+        connect_BLSR_input_loop( rx, tx_wlsr1_l, tx_wlsr1_r, tx_blsr, IOL0_TILE_X, IOL1_TILE_X, IOL2_TILE_X, tx_ccs, ty_ccs, tx_wlsr2, NUM_REGION, blsr,blsr_u,blsr_d,tx_wlsr1b,flag_y);
+
+        interconnect_wlsr1b_tile(rx, WLSR1_TILE_X_L0,WLSR1_TILE_X_L2,tx_wlsr1_r0,tx_wlsr1_r2,IOB1_TILE_X,IOB2_TILE_X,0);
+        interconnect_wlsr1b_tile(rx, WLSR1_TILE_X_L0,WLSR1_TILE_X_L2, WLSR1_TILE_X_R0,WLSR1_TILE_X_R2,IOB1_TILE_X,IOB2_TILE_X,1);
+
+    }
+
+    connect_BLSR_input_pgl200es(BLSR_TILE_X,CCS_TILE_X,CCS_TILE_Y, "CCS_TILE","BLSR_PGL200ES_RD_TILE","BLSR_PGL200ES_TILE");
+
+};//end of structure arch_nl connect_BLSR_input of PGL200ES
+///***************************************************************************************
+//****************************************************************************************/
+////library work;
+////use pgl_defs,pgl200es_defs;
+////use pgl_funcs_place,pgl_funcs_connect_gs_wl;
+////use pgl_funcs_connect_blsr,pgl200es_funcs;
+////
+////structure arch_nl connect_esd_tile of PGL200ES
+////{
+////  int tx,ty;
+////
+////  foreach tx( {ESD_PGL35ES_TILE_X} )
+////  {
+////    foreach ty( {ESD_PGL35ES_TILE_Y} )
+////    {
+////      connect_esd_tile( tx, ty);
+////    }
+////  }
+////
+////
+////};//end of structure arch_nl connect_ccs_tile of PGL200ES
+////new add @20180718//////////////////////////////////////////
+/***************************************************************************************
+****************************************************************************************/
+library work;
+use pgl_defs,pgl200es_defs;
+use pgl200es_connect_wl_bl;
+structure arch_nl connect_CCS_wl_bl of PGL200ES
+{
+      connect_CCS_wl_bl(CCS_TILE_X,CCS_TILE_Y,PLL_TILE_0D_Y,PLL_TILE_0T_Y,BUF_PGL35IP_TILE_X,BUF_PGL35IP_TILE_Y,BLSR_TILE_X,7,IDCODE_TILE_X,IDCODE_TILE_Y,WLSR1_TILE_X_L0,IOB2_TILE_X);
+
+};//end of structure arch_nl connect_CCS_wl_bl of PGL200ES
+/***************************************************************************************
+****************************************************************************************/
+library work;
+use pgl_defs,pgl200es_defs;
+use pgl200es_connect_wl_bl;
+structure arch_nl connect_gs_wl of PGL200ES
+{
+    unsigned int l_tx_wlsrs_0[159:0] = {[0:69,71:160]};
+    unsigned int l_tx_wlsrs_0_b[159:0] = {[160:71],[69:0]};
+    unsigned int l_tx_wlsrs_1[148:0] = {[11:69,71:160]};
+    unsigned int l_tx_wlsrs_1_b[148:0] = {[160:71],[69:11]};
+    unsigned int l_tx_wlsrs_2[78:0] = {[0:69,71:79]};
+    unsigned int l_tx_wlsrs_2_b[78:0] = {[79:71],[69:0]};
+    unsigned int l_tx_wlsrs_3[79:0] = {[0:69,71:80]};
+    unsigned int l_tx_wlsrs_3_b[79:0] = {[80:71],[69:0]};
+    unsigned int tx_rpt_ll = RPT_X_L2 ; 
+    unsigned int tx_rpt_lr = RPT_X_L1 ;
+    unsigned int tx_rpt_rl = RPT_X_R1 ;
+    unsigned int tx_rpt_rr = RPT_X_R2 ;
+
+    unsigned int ty, rx, index;
+
+    string iob ,iock,iock_d,iock_u,blsr;
+
+    foreach rx( {[0:7]} )
+    {
+        blsr = (rx<=3) ? "BLSR_PGL200ES_RD_TILE" : "BLSR_PGL200ES_TILE" ;
+
+        int l_wlsr_tx[]= (rx>3) ? L_WLSR_TILES_X_U : L_WLSR_TILES_X_D ;
+        int l_wlsrd_tx[]= (rx>3) ? L_WLSRD_TILES_X : L_WLSRD_TILES_X_D;
+        int l_wlsr1_tx[]=(rx>3) ? L_WLSR1S_TILES_X_U : L_WLSR1S_TILES_X_D ;
+        int l_wlsr1b_tx[]=(rx>3) ? L_WLSR1B_TILES_X_U : L_WLSR1B_TILES_X_D ;
+        int l_wlsr2_tx[]= {PLL_TILE_X};
+        int l_iock_tx[]= (rx>3) ? {IOL0_TILE_X,IOL2_TILE_X} : {IOL0_TILE_X,IOL1_TILE_X} ;
+        int l_iob_tx[]= (rx>3) ? {IOB0_TILE_X,IOB2_TILE_X} : {IOB0_TILE_X,IOB1_TILE_X} ;
+
+        if(rx>=5)
+        {
+            foreach index({[159:0]})
+            { 
+                connect_WLSR_gs_wl(index, BLSR_TILE_X, rx, l_tx_wlsrs_0_b,l_tx_wlsrs_1_b, l_tx_wlsrs_2_b,l_tx_wlsrs_3_b,l_wlsr_tx,l_wlsr1_tx,l_wlsr1b_tx,l_wlsr2_tx,l_wlsrd_tx,l_iock_tx, l_iob_tx, tx_rpt_ll,tx_rpt_lr,tx_rpt_rl,tx_rpt_rr,blsr, 0,1);
+
+                connect_WLSR_gs_wl(index, BLSR_TILE_X, rx, l_tx_wlsrs_0,l_tx_wlsrs_1, l_tx_wlsrs_2,l_tx_wlsrs_3,l_wlsr_tx,l_wlsr1_tx,l_wlsr1b_tx,l_wlsr2_tx,l_wlsrd_tx,l_iock_tx, l_iob_tx,tx_rpt_ll,tx_rpt_lr,tx_rpt_rl,tx_rpt_rr,blsr, 0,0);
+            }
+        }
+        else if(rx==4)
+        {
+            foreach index({[148:0]})
+            { 
+                connect_WLSR_gs_wl(index, BLSR_TILE_X, rx, l_tx_wlsrs_0_b,l_tx_wlsrs_1_b, l_tx_wlsrs_2_b,l_tx_wlsrs_3_b,l_wlsr_tx,l_wlsr1_tx,l_wlsr1b_tx,l_wlsr2_tx,l_wlsrd_tx,l_iock_tx,l_iob_tx,tx_rpt_ll,tx_rpt_lr,tx_rpt_rl,tx_rpt_rr, blsr, 1,1);
+
+                connect_WLSR_gs_wl(index, BLSR_TILE_X, rx, l_tx_wlsrs_0,l_tx_wlsrs_1, l_tx_wlsrs_2,l_tx_wlsrs_3,l_wlsr_tx,l_wlsr1_tx,l_wlsr1b_tx,l_wlsr2_tx,l_wlsrd_tx,l_iock_tx,l_iob_tx,tx_rpt_ll,tx_rpt_lr,tx_rpt_rl,tx_rpt_rr, blsr, 1,0);
+            }
+        }
+        else if(rx>1)
+        {
+            foreach index({[78:0]})
+            { 
+                connect_WLSR_gs_wl(index, BLSR_TILE_X, rx, l_tx_wlsrs_0_b,l_tx_wlsrs_1_b, l_tx_wlsrs_2_b,l_tx_wlsrs_3_b,l_wlsr_tx,l_wlsr1_tx,l_wlsr1b_tx,l_wlsr2_tx,l_wlsrd_tx,l_iock_tx,l_iob_tx,tx_rpt_ll,tx_rpt_lr,tx_rpt_rl,tx_rpt_rr, blsr, 2,1);
+
+                connect_WLSR_gs_wl(index, BLSR_TILE_X, rx, l_tx_wlsrs_0,l_tx_wlsrs_1, l_tx_wlsrs_2,l_tx_wlsrs_3,l_wlsr_tx,l_wlsr1_tx,l_wlsr1b_tx,l_wlsr2_tx,l_wlsrd_tx,l_iock_tx,l_iob_tx,tx_rpt_ll,tx_rpt_lr,tx_rpt_rl,tx_rpt_rr, blsr, 2,0);
+            }
+        }
+        else
+        {
+            foreach index({[79:0]})
+            { 
+                connect_WLSR_gs_wl(index, BLSR_TILE_X, rx, l_tx_wlsrs_0_b,l_tx_wlsrs_1_b, l_tx_wlsrs_2_b,l_tx_wlsrs_3_b,l_wlsr_tx,l_wlsr1_tx,l_wlsr1b_tx,l_wlsr2_tx,l_wlsrd_tx,l_iock_tx,l_iob_tx,tx_rpt_ll,tx_rpt_lr,tx_rpt_rl,tx_rpt_rr, blsr, 3,1);
+
+                connect_WLSR_gs_wl(index, BLSR_TILE_X, rx, l_tx_wlsrs_0,l_tx_wlsrs_1, l_tx_wlsrs_2,l_tx_wlsrs_3,l_wlsr_tx,l_wlsr1_tx,l_wlsr1b_tx,l_wlsr2_tx,l_wlsrd_tx,l_iock_tx,l_iob_tx,tx_rpt_ll,tx_rpt_lr,tx_rpt_rl,tx_rpt_rr, blsr, 3,0);
+            }
+        }
+
+        if(rx!=4)
+        {
+            iob = (rx==3) ? "IOB_TILE_HALF" : "IOB_TILE" ;  
+
+            iock = (rx==3) ? "IOCKGATEDLL2_TILE" : "IOCKGATEDLL_TILE" ;
+
+            iock_u = (rx==2) ? "IOCKGATEDLL2_TILE" : "IOCKGATEDLL_TILE" ;
+
+            connect_iockgatedll_gs_input(IOL0_TILE_X,rx,IOL0_TILE_X,IOL1_TILE_X,IOL2_TILE_X,BUF_PGL35IP_TILE_X,BUF_PGL35IP_TILE_Y,HSST_TILE_X,HSST_TILE_Y,8,"BUF_PGL200ES_TILE",iock,iock_u,"IOCKGATEDLL_TILE",iob,"HSST_TILE");
+        }
+        if(rx==4)
+        {
+            iock = "WLSRA_TILE" ;            
+
+            connect_iockgatedll_gs_input(NUM_TILE_HSST_X+1,rx,IOL0_TILE_X,IOL1_TILE_X,IOL2_TILE_X,BUF_PGL35IP_TILE_X,BUF_PGL35IP_TILE_Y,HSST_TILE_X,HSST_TILE_Y,8,"BUF_PGL200ES_TILE",iock,"IOCKGATEDLL_TILE","IOCKGATEDLL_TILE","IOB_TILE","HSST_TILE");
+        }
+        if(rx<2)
+        {
+            iock =  "IOCKGATEDLL_TILE"  ;
+
+            iock_u =  "IOCKGATEDLL_TILE" ;
+
+            iock_d =  "IOCKGATEDLL_TILE" ;
+
+            connect_iockgatedll_gs_input(IOL1_TILE_X,rx,IOL0_TILE_X,IOL1_TILE_X,IOL2_TILE_X,BUF_PGL35IP_TILE_X,BUF_PGL35IP_TILE_Y,HSST_TILE_X,HSST_TILE_Y,8,"BUF_PGL200ES_TILE",iock,iock_u,iock_d,"IOB_TILE","HSST_TILE");
+        }
+        if(rx>3)
+        {
+            connect_iockgatedll_gs_input(IOL2_TILE_X,rx,IOL0_TILE_X,IOL1_TILE_X,IOL2_TILE_X,BUF_PGL35IP_TILE_X,BUF_PGL35IP_TILE_Y,HSST_TILE_X,HSST_TILE_Y,8,"BUF_PGL200ES_TILE","IOCKGATEDLL_TILE","IOCKGATEDLL_TILE","IOCKGATEDLL_TILE","IOB_TILE","HSST_TILE");
+        }
+
+    }
+
+}
+/***************************************************************************************
+****************************************************************************************/
+library work;
+use pgl_defs,pgl200es_defs;
+use pgl200es_connect_wl_bl;
+
+structure arch_nl connect_hsst_wl_bl of PGL200ES
+{
+
+    connect_hsst_wl_input(HSST_TILE_X,HSST_TILE_Y,WLSR1_TILE_X_L2,4*NUM_TILES_REGION + 15,"WLSR1B_TILE");
+
+};//end of structure arch_nl connect_hsst_wl_bl of PGL200ES
+/***************************************************************************************
+****************************************************************************************/
+library work;
+use pgl_defs,pgl200es_defs;
+use pgl200es_connect_wl_bl;
+
+structure arch_nl connect_iob_gs of PGL200ES
+{
+
+    int tx,rx;
+    string iob ,iock;
+
+    foreach rx({[0:7]})
+    {
+        foreach tx(L_IOB_TILES_X)
+        {
+            if(!((tx==IOB0_TILE_X&&rx==4)||(tx==IOB1_TILE_X&&rx>1)||(tx==IOB2_TILE_X&&rx<4)))
+            {
+                iob = (tx==IOB0_TILE_X&&rx==3) ? "IOB_TILE_HALF" : "IOB_TILE" ;  
+
+                iock = (tx==IOB0_TILE_X&&rx==3) ? "IOCKGATEDLL2_TILE" : "IOCKGATEDLL_TILE" ;           
+
+                connect_iob_gs_input(tx,rx,iob,iock);
+            }
+        }
+    }
+
+};//end of structure arch_nl connect_iob_gs of PGL200ES
+
+
+
+
+
+
+
+
+
+

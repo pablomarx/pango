@@ -1,0 +1,92 @@
+*****************************************************************
+
+  Device    [devAAE_S]
+
+  Author    [guoxi]
+
+  Abstract  [THE DEVICE MODELLED FOR THE END OF CARRY CHAIN. FOR THE OUTPUT PORT 
+             HAD BEEN USED BY SUM OF CARRY CHAIN, SIGNAL OF THE PORT COUT CAN NOT
+             PASS TO IT DERECTLY.]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devAAE_S : device devA_S
+{
+    parameter
+    (
+        config bit     CP_INITA[31:0] = 32'hffff_ffff,        
+        config string  CP_MODEA     = "LUT5",          //"LUT5" "ROM" "WMUX" "RAM" "ARITH" "PRIENC" "MUX4" "XOR" "COMP" "RAM"
+        config string  CP_MASK    := "FALSE",         
+        config string  CP_Y0MUX_SEL := "CYX"             //"FX":F0 "CYX":CYA "MF":QP0
+    );
+    
+    port
+    (
+        output   Y0,
+        input    CIN
+    );
+}; // end of device devAAE_S
+
+
+/*******************************************************************************
+
+  Device    [devAAE_S]
+
+  Author    [guoxi]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devAAE_S
+{
+    // Wires for input ports
+    wire ntCIN;
+
+    // Wires connecting to output ports
+    wire ntY0;
+
+    // Internal wires
+    wire ntCYA;
+
+    //
+    // Connection to ports
+    //
+
+    ntCIN   <= CIN;
+    Y0      <= ntY0;
+    
+    //
+    // Instances. FGA section
+    //
+
+    device LUT5S FYA
+        parameter map
+        (
+            CP_INIT   => CP_INITA,
+            CP_MODE   => CP_MODEA,
+            CP_MASK   => CP_MASK               
+         )
+         port map
+         (
+                CIN  => ntCIN,
+            COUT => ntCYA
+          );
+    
+    device YMUX  Y0MUX
+        parameter map
+        (
+            CP_OUT_SEL => CP_Y0MUX_SEL
+        )
+        port map
+        (
+            CYX  => ntCYA,
+            Y    => ntY0
+        );
+
+}; // end of structure netlist of devAAE_S
+
+

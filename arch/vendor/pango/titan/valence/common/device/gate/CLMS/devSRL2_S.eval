@@ -1,0 +1,307 @@
+*******************************************************************
+
+  Device    [devSRL2_S]
+
+  Author    [clwang]
+
+  Abstract  [2-Bit Shift Register Look-Up-Table With FF0 and FFAB]
+
+  Revision History:
+
+********************************************************************************/
+gate 
+device devSRL2_S : device CLMS
+{
+
+    parameter
+    (   
+
+        config string GRS_EN        = "FALSE",             // "TRUE" "FALSE"
+        config string LRS_EN        = "TRUE",              // "TRUE" "FALSE"
+        config string QABMUX_SEL    = "FF0",               // "L6" "FF0" "ABP" 
+        config string ABPMUX_SEL    = "BD",                // "BD"   "AD"  
+        config string Y0MUX_SEL    := "FFAB",              // "FFAB" "FG" "CY" 
+        config string CEMUX_SEL     = "CE",                // "CE" "CEIN" 
+        config string RSMUX_SEL     = "RS",                // "RS" "RSIN"
+        config bit    CLK_POS       = 1'b0,                // 1'b0: "CLK"; 1'b1: "CLK_B"   
+        config bit    CE_POS        = 1'b0,                // 1'b0: "CE";  1'b1: "CE_B"
+        config bit    RS_POS        = 1'b0,                // 1'b0: "RS"   1'b1:  "RS_B"
+        config string SYNC_MODE     = "SYNC",              // "SYNC" "ASYNC"
+        config string FFAB_SET      = "RESET"              // "RESET" "SET"
+    );
+    port
+    (  
+              input    BD,
+              input    AD,
+              output   Y0,
+              input    RS, CE, CLK,     
+        logic input    SHIFTIN,
+        logic output   SHIFTOUT,
+              input    RSIN,
+              output   RSOUT, 
+              input    CEIN,
+              output   CEOUT
+    );
+
+}// end of device devSRL2_S
+
+/*******************************************************************************
+
+  Device    [devSRL2_S]
+
+  Author    [clwang]
+
+  Abstract  [The structure netlist of devSRL2_S is described in the similar fashion 
+             as in HDL. In unit instantiation statement, the formal pin may be 
+             connected to net which is declared explicitly. 
+             
+             In Valence, the connection can also be made from formal pin to other 
+             pin or port, in which case Valence compiler shall create the net to 
+             fulfil the connection. The built-in naming convention is kicked in 
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devSRL2_S
+{
+// Wires for input ports
+    wire ntBD; 
+    wire ntAD; 
+    wire ntRS, ntCE, ntCLK;
+
+    wire ntRSIN;
+    wire ntCEIN;
+
+    // Wires connecting to output ports
+    wire ntY0MUX,ntFF0_Q;
+    wire ntRSMUX;
+    wire ntCEMUX;
+    
+    // Internal wires  
+    wire ntRSPOLMUX, ntCEPOLMUX, ntCLKPOLMUX;
+    wire ntFFAB_Q, ntABPMUX, ntQABMUX;
+    ntBD      <= BD;
+    //
+    // Connection to ports
+    //
+    ntAD      <= AD;
+    ntRS      <= RS;
+    ntCE      <= CE;
+    ntCLK     <= CLK;
+    ntFF0_Q   <= SHIFTIN;
+    ntRSIN    <= RSIN;
+    ntCEIN    <= CEIN;
+    Y0        <= ntY0MUX;
+    RSOUT     <= ntRSMUX;
+    CEOUT     <= ntCEMUX;
+    SHIFTOUT  <= ntFFAB_Q;
+    //
+    // Instances. FGA section
+    //
+    device Y0MUX Y0MUX
+        parameter map
+        (
+            CFG  => Y0MUX_SEL
+        ) 
+        port map
+        (
+            FFAB  => ntFFAB_Q,
+            Z     => ntY0MUX
+        );
+    device ABPMUX ABPMUX
+        parameter map
+        (
+            CFG  => ABPMUX_SEL
+        )     
+        port map
+        (
+            BD  => ntBD, AD => ntAD,
+            Z   => ntABPMUX
+        );
+
+    device QABMUX QABMUX
+        parameter map
+        (
+            CFG  => QABMUX_SEL
+        )      
+        port map
+        ( 
+            FF0 => ntFF0_Q,  ABP => ntABPMUX,
+            Z   => ntQABMUX
+        );
+
+    device FF FFAB
+        parameter map
+        (
+            GRS_EN => GRS_EN,
+            LRS_EN => LRS_EN,        
+            SET   => FFAB_SET,
+            SYNC  => SYNC_MODE
+        )
+        port map
+        (
+            D  => ntQABMUX,
+            RS => ntRSMUX, CE => ntCEMUX, CK => ntCLKPOLMUX,
+            Q  => ntFFAB_Q
+        );
+
+
+    device RSMUX RSMUX
+        parameter map
+        (
+            CFG  => RSMUX_SEL
+        )     
+        port map
+        (
+            RS  => ntRSPOLMUX, RSIN => ntRSIN,
+            Y   => ntRSMUX
+        );
+
+    device CEMUX CEMUX
+        parameter map
+        (
+            CFG  => CEMUX_SEL
+        )     
+        port map
+        (
+            CE  => ntCEPOLMUX, CEIN => ntCEIN,
+            Y   => ntCEMUX
+        );
+
+
+    device RSPOLMUX RSPOLMUX
+        parameter map
+        (
+            CFG  => RS_POS
+        )     
+        port map
+        (
+            RS  => ntRS, RS_B => ntRS,
+            Y   => ntRSPOLMUX
+        );
+
+    device CEPOLMUX CEPOLMUX
+        parameter map
+        (
+            CFG  => CE_POS
+        )     
+        port map
+        (
+            CE  => ntCE, CE_B => ntCE,
+            Y   => ntCEPOLMUX
+        );
+
+    device CLKPOLMUX CLKPOLMUX
+        parameter map
+        (
+            CFG  => CLK_POS
+        )      
+        port map
+        (
+            CLK => ntCLK, CLK_B => ntCLK,
+            Y   => ntCLKPOLMUX
+        );
+
+}; // end of structure netlist of devSRL2_S
+
+
+timing tnl of devSRL2_S
+{
+    // the delay CEIN->CEOUT RSIN->RSOUT describe in the cell timing file.
+    wire ntCLK;
+    wire ntRS;
+    wire ntCE;
+    
+    
+    
+    if (CLK_POS == 1'b1)
+    {
+        operator V_INV V_CLKPOLMUX
+            parameter map
+            (
+                SECTION => "CLK_INV_DUMY"
+            )
+            port map 
+            (
+                I => CLK,
+                Z => ntCLK
+            );    
+    }
+    
+    if (CE_POS == 1'b1)
+    {
+        operator V_INV V_CEPOLMUX
+            parameter map
+            (
+                SECTION => "CE_INV_DUMY"
+            )
+            port map 
+            (
+                I => CE,
+                Z => ntCE
+            );    
+    }
+    
+    if (RS_POS == 1'b1)
+    {
+        operator V_INV V_RSPOLMUX
+            parameter map
+            (
+                SECTION => "RS_INV_DUMY"
+            )
+            port map 
+            (
+                I => RS,
+                Z => ntRS
+            );    
+    }    
+                    
+    if ( SYNC_MODE == "SYNC" )
+    {
+        
+        operator V_FFSYN FFAB_FF
+            parameter map 
+            (
+                GRS_EN    => GRS_EN,
+                LRS_EN    => LRS_EN,
+                SET_RESET => FFAB_SET,
+                SECTION  => "AB"
+            )
+            port map 
+            (
+                Q  => Y0,
+                D  => (ABPMUX_SEL == "BD") ? BD : AD,
+                SR => (LRS_EN == "TRUE") ?(( RSMUX_SEL == "RS") ? (RS_POS == 1'b1 ? ntRS : RS) : RSIN) : 1'b0,
+                CK => (CLK_POS == 1'b1) ? ntCLK : CLK,
+                CE => ( CEMUX_SEL == "CE") ? ((CE_POS == 1'b1) ? ntCE : CE) : CEIN
+            );
+
+    } else if ( SYNC_MODE == "ASYNC" ) {
+
+        operator V_FFASYN FFAB_FF
+            parameter map 
+            (
+                GRS_EN    => GRS_EN,
+                LRS_EN    => LRS_EN,
+                SET_RESET => FFAB_SET,
+                SECTION  => "AB"
+            )
+            port map 
+            (
+                Q  => Y0,
+                D  => (ABPMUX_SEL == "BD") ? BD : AD,
+                SR => (LRS_EN == "TRUE") ?(( RSMUX_SEL == "RS") ? (RS_POS == 1'b1 ? ntRS : RS) : RSIN) : 1'b0,
+                CK => (CLK_POS == 1'b1) ? ntCLK : CLK,
+                CE => ( CEMUX_SEL == "CE") ? ((CE_POS == 1'b1) ? ntCE : CE) : CEIN
+            );
+
+    }
+   
+}
+
+
+

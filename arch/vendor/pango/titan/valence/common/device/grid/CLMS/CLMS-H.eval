@@ -1,0 +1,1230 @@
+*******************************************************************
+
+  Device    [CLMS]
+
+  Author    [clwang]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+grid
+device CLMS
+{
+
+    parameter
+    (
+        config bit INITA[31:0]     = 32'hffff_ffff,
+        config bit INITB[31:0]     = 32'hffff_ffff,
+        config bit INITC[31:0]     = 32'hffff_ffff,
+        config bit INITD[31:0]     = 32'hffff_ffff,
+        
+        config string FGA_MODE     = "LUT5",               // "LUT5" "ROM" "WMUX" "ARITH" "LATCH"
+        config string FGB_MODE     = "LUT5",               // "LUT5" "ROM" "WMUX" "ARITH" "LATCH"
+        config string FGC_MODE     = "LUT5",               // "LUT5" "ROM" "WMUX" "ARITH" "LATCH"
+        config string FGD_MODE     = "LUT5",               // "LUT5" "ROM" "WMUX" "ARITH" "LATCH"
+        config string LATCH_SETA   = "RESET",              // USED it when place it in IOL
+        config string LATCH_SETB   = "RESET",              // USED it when place it in IOL
+        config string LATCH_SETC   = "RESET",              // USED it when place it in IOL
+        config string LATCH_SETD   = "RESET",              // USED it when place it in IOL
+        
+        // Used these parameter for CLM     
+        config string LATCH_CE_EN_A  = "USED",              //"UNUSED";  "USED"
+        config string LATCH_CE_EN_B  = "USED",              //"UNUSED";  "USED"
+        config string LATCH_CE_EN_C  = "USED",              //"UNUSED";  "USED"
+        config string LATCH_CE_EN_D  = "USED",              //"UNUSED";  "USED"
+        config string LATCH_LRS_EN_A = "USED",              //"UNUSED";  "USED"
+        config string LATCH_LRS_EN_B = "USED",              //"UNUSED";  "USED"
+        config string LATCH_LRS_EN_C = "USED",              //"UNUSED";  "USED"
+        config string LATCH_LRS_EN_D = "USED",              //"UNUSED";  "USED"
+
+        config string RAM_LUT_SEL  = "LUT",                // "RAM"  "LUT"    
+        config string GRS_EN       = "FALSE",              // "TRUE" "FALSE"
+        config string LRS_EN       = "TRUE",               // "TRUE" "FALSE"
+        config string Y3MUX_SEL    = "FG",                 // "L8"  "FG" "CY"
+        config string Q3MUX_SEL    = "Y3",                 // "Y3"  "FFCD" "M3"
+        config string QCDMUX_SEL   = "L6",                 // "L6"  "FF2"  "CDP"
+        config string CDPMUX_SEL   = "DD",                 // "DD"  "CD"
+        config string Y2MUX_SEL    = "FG",                 // "FFCD" "FG" "CY"
+        config string Q2MUX_SEL    = "Y2"  ,               // "Y2"   "FF1" "M1"
+        config string Y1MUX_SEL    = "FG"  ,               // "L7"   "FG" "CY"
+        config string Q1MUX_SEL    = "Y1"  ,               // "Y1"   "FFAB" "M2"  
+        config string QABMUX_SEL   = "L6"  ,               // "L6" "FF0" "ABP" 
+        config string ABPMUX_SEL   = "BD"  ,               // "BD"   "AD"  
+        config string Y0MUX_SEL    = "FG",                 // "FFAB" "FG" "CY" 
+        config string Q0MUX_SEL    = "Y0"  ,               // "Y0" "SHIFTIN" "M0"
+        config string CEMUX_SEL    = "CE",                 // "CE" "CEIN" 
+        config string RSMUX_SEL    = "RS",                 // "RS" "RSIN"
+        config bit    CLK_POS      = 1'b0,                // 1'b0: "CLK"; 1'b1: "CLK_B"   
+        config string CLK_SEL      = "SCLK",              // "SCLK" "ACLK"
+        config bit    CE_POS       = 1'b0,                // 1'b0: "CE";  1'b1: "CE_B"
+        config bit    RS_POS       = 1'b0,                // 1'b0: "RS"   1'b1:  "RS_B"
+                
+        config string SYNC_MODE    = "SYNC",               // "SYNC" "ASYNC"
+        config string FF0_SET      = "RESET",              // "RESET" "SET"
+        config string FF1_SET      = "RESET",              // "RESET" "SET"
+        config string FF2_SET      = "RESET",              // "RESET" "SET"
+        config string FF3_SET      = "RESET",              // "RESET" "SET"
+        config string FFAB_SET     = "RESET",              // "RESET" "SET"
+        config string FFCD_SET     = "RESET"               // "RESET" "SET"
+    );
+    port
+    (
+        // These are the config ports.
+        config input SC_INITA[31:0]       = 32'hffff_ffff
+        /*pragma PAP_CFG_BIT_NAME = "SC_INITA<31>,SC_INITA<30>,SC_INITA<29>,SC_INITA<28>,SC_INITA<27>,SC_INITA<26>,SC_INITA<25>,SC_INITA<24>,SC_INITA<23>,SC_INITA<22>,SC_INITA<21>,SC_INITA<20>,SC_INITA<19>,SC_INITA<18>,SC_INITA<17>,SC_INITA<16>,SC_INITA<15>,SC_INITA<14>,SC_INITA<13>,SC_INITA<12>,SC_INITA<11>,SC_INITA<10>,SC_INITA<9>,SC_INITA<8>,SC_INITA<7>,SC_INITA<6>,SC_INITA<5>,SC_INITA<4>,SC_INITA<3>,SC_INITA<2>,SC_INITA<1>,SC_INITA<0>" */,
+        
+        config input  SC_INITB[31:0]       = 32'hffff_ffff
+        /*pragma PAP_CFG_BIT_NAME = "SC_INITB<31>,SC_INITB<30>, SC_INITB<29>,SC_INITB<28>,SC_INITB<27>,SC_INITB<26>,SC_INITB<25>,SC_INITB<24>, SC_INITB<23>,SC_INITB<22>,SC_INITB<21>,SC_INITB<20>,SC_INITB<19>,SC_INITB<18>, SC_INITB<17>,SC_INITB<16>,SC_INITB<15>,SC_INITB<14>,SC_INITB<13>,SC_INITB<12>, SC_INITB<11>,SC_INITB<10>,SC_INITB<9>,SC_INITB<8>,SC_INITB<7>,SC_INITB<6>, SC_INITB<5>,SC_INITB<4>,SC_INITB<3>,SC_INITB<2>,SC_INITB<1>,SC_INITB<0>" */,
+        
+        config input SC_INITC[31:0]       = 32'hffff_ffff
+        /*pragma PAP_CFG_BIT_NAME = "SC_INITC<31>,SC_INITC<30>, SC_INITC<29>,SC_INITC<28>,SC_INITC<27>,SC_INITC<26>,SC_INITC<25>,SC_INITC<24>, SC_INITC<23>,SC_INITC<22>,SC_INITC<21>,SC_INITC<20>,SC_INITC<19>,SC_INITC<18>, SC_INITC<17>,SC_INITC<16>,SC_INITC<15>,SC_INITC<14>,SC_INITC<13>,SC_INITC<12>, SC_INITC<11>,SC_INITC<10>,SC_INITC<9>,SC_INITC<8>,SC_INITC<7>,SC_INITC<6>, SC_INITC<5>,SC_INITC<4>,SC_INITC<3>,SC_INITC<2>,SC_INITC<1>,SC_INITC<0>" */,
+
+        config input SC_INITD[31:0]       = 32'hffff_ffff
+        /*pragma PAP_CFG_BIT_NAME = "SC_INITD<31>,SC_INITD<30>, SC_INITD<29>,SC_INITD<28>,SC_INITD<27>,SC_INITD<26>,SC_INITD<25>,SC_INITD<24>, SC_INITD<23>,SC_INITD<22>,SC_INITD<21>,SC_INITD<20>,SC_INITD<19>,SC_INITD<18>, SC_INITD<17>,SC_INITD<16>,SC_INITD<15>,SC_INITD<14>,SC_INITD<13>,SC_INITD<12>, SC_INITD<11>,SC_INITD<10>,SC_INITD<9>,SC_INITD<8>,SC_INITD<7>,SC_INITD<6>, SC_INITD<5>,SC_INITD<4>,SC_INITD<3>,SC_INITD<2>,SC_INITD<1>,SC_INITD<0>" */,
+
+        config input SC_MODEA[3:0]       = 4'b1010
+        /*pragma PAP_CFG_BIT_NAME = "SC_I0IDA, SC_MATHA, SC_CARRYA, SC_I5CONSTA"*/,
+        config input SC_MODEB[3:0]       = 4'b1010
+        /*pragma PAP_CFG_BIT_NAME = "SC_I0IDB, SC_MATHB, SC_CARRYB, SC_I5CONSTB"*/,
+        config input SC_MODEC[3:0]       = 4'b1010
+        /*pragma PAP_CFG_BIT_NAME = "SC_I0IDC, SC_MATHC, SC_CARRYC, SC_I5CONSTC"*/,
+        config input SC_MODED[3:0]       = 4'b1010
+        /*pragma PAP_CFG_BIT_NAME = "SC_I0IDD, SC_MATHD, SC_CARRYD, SC_I5CONSTD"*/,
+
+
+        config input SC_Y3_SEL[2:0]      = 3'b000
+        /*pragma PAP_CFG_BIT_NAME = "SC_XDI<3>,SC_FDI<3>, SC_CDI<3>" */, 
+
+        config input SC_QD3_SEL[1:0]     = 2'b00
+        /*pragma PAP_CFG_BIT_NAME = "SC_SREN<3>, SC_MDI<3>" */, 
+
+        config input SC_DP1_SEL[1:0]     = 2'b00
+        /*pragma PAP_CFG_BIT_NAME = "SC_SREN<5>, SC_MDI<5>" */, 
+
+        config input SC_CD_DD_SEL        = 1'b1
+        /*pragma PAP_CFG_BIT_NAME = "SC_CD_DD_SEL" */,
+
+        config input SC_Y2_SEL[2:0]      = 3'b000
+        /*pragma PAP_CFG_BIT_NAME = "SC_XDI<2>,SC_FDI<2>, SC_CDI<2>" */,
+
+        config input SC_QD2_SEL[1:0]     = 2'b00
+        /*pragma PAP_CFG_BIT_NAME = "SC_SREN<2>, SC_MDI<2>" */,
+
+        config input SC_Y1_SEL[2:0]      = 3'b000
+        /*pragma PAP_CFG_BIT_NAME = "SC_XDI<1>,SC_FDI<1>, SC_CDI<1>" */,
+
+        config input SC_QD1_SEL[1:0]     = 2'b00
+        /*pragma PAP_CFG_BIT_NAME = "SC_SREN<1>, SC_MDI<1>" */,
+        
+        config input SC_DP0_SEL[1:0]     = 2'b00
+        /*pragma PAP_CFG_BIT_NAME = "SC_SREN<4>, SC_MDI<4>" */,
+        
+        config input SC_AD_BD_SEL        = 1'b1
+        /*pragma PAP_CFG_BIT_NAME = "SC_AD_BD_SEL" */,
+        
+        config input SC_Y0_SEL[2:0]      = 3'b000
+        /*pragma PAP_CFG_BIT_NAME = "SC_XDI<0>,SC_FDI<0>, SC_CDI<0>" */,
+        
+        config input SC_QD0_SEL[1:0]     = 2'b00
+        /*pragma PAP_CFG_BIT_NAME = "SC_SREN<0>, SC_MDI<0>" */,
+        
+        config input SC_CE_SEL           = 1'b0
+        /*pragma PAP_CFG_BIT_NAME = "SC_CE_SEL" */,
+        
+        config input SC_RS_SEL           = 1'b0
+        /*pragma PAP_CFG_BIT_NAME = "SC_RS_SEL" */,
+        
+        config input SC_CLK_POS          = 1'b1
+        /*pragma PAP_CFG_BIT_NAME = "SC_CLK_POS" */,
+        
+        config input SC_CE_POS           = 1'b1
+        /*pragma PAP_CFG_BIT_NAME = "SC_CE_POS" */,
+        
+        config input SC_RS_POS           = 1'b1
+        /*pragma PAP_CFG_BIT_NAME = "SC_RS_POS" */,
+        
+        config input SC_SYNC             = 1'b0
+        /*pragma PAP_CFG_BIT_NAME = "SC_SYNC" */,
+        
+        config input SC_Q0_SET           = 1'b1
+        /*pragma PAP_CFG_BIT_NAME = "SC_Q0_SET" */,
+        
+        config input SC_Q1_SET           = 1'b1
+        /*pragma PAP_CFG_BIT_NAME = "SC_Q1_SET" */,
+        
+        config input SC_Q2_SET           = 1'b1
+        /*pragma PAP_CFG_BIT_NAME = "SC_Q2_SET" */,
+        
+        config input SC_Q3_SET           = 1'b1
+        /*pragma PAP_CFG_BIT_NAME = "SC_Q3_SET" */,
+        
+        config input SC_QP0_SET          = 1'b1
+        /*pragma PAP_CFG_BIT_NAME = "SC_QP0_SET" */,
+        
+        config input SC_QP1_SET          = 1'b1
+        /*pragma PAP_CFG_BIT_NAME = "SC_QP1_SET" */,
+        
+        config input SC_CLMS_RAM_EN      = 1'b0
+        /*pragma PAP_CFG_BIT_NAME = "SC_RAM" */,
+        
+        config input SC_GRS_DIS          = 1'b1
+        /*pragma PAP_CFG_BIT_NAME = "SC_GRS_DIS" */,
+        
+        config input SC_RS_DIS           = 1'b1
+        /*pragma PAP_CFG_BIT_NAME = "SC_RS_DIS" */,
+        
+        config input SC_RAM_WCK          = 1'b0
+        /*pragma PAP_CFG_BIT_NAME = "SC_RAM_WCK" */,      
+        
+        config input SC_MASK_BIT         = 1'b0    
+        /*pragma PAP_CFG_BIT_NAME = "SC_MASK_BIT" */,        
+        
+        // These are the ports of FGD.
+        input    D0 = 1'b1, 
+        input    D1 = 1'b1, 
+        input    D2 = 1'b1, 
+        input    D3 = 1'b1, 
+        input    D4 = 1'b1, 
+        input    DD = 1'b1,
+        output   Y3, Q3,
+               
+        // These are the ports of FGC.
+        input    C0 = 1'b1, 
+        input    C1 = 1'b1, 
+        input    C2 = 1'b1, 
+        input    C3 = 1'b1, 
+        input    C4 = 1'b1, 
+        input    CD = 1'b1,
+        output   Y2, Q2,
+        
+        // These are the ports of FGB.
+        input    B0 = 1'b1, 
+        input    B1 = 1'b1, 
+        input    B2 = 1'b1, 
+        input    B3 = 1'b1, 
+        input    B4 = 1'b1, 
+        input    BD = 1'b1,
+        output   Y1, Q1,
+        
+        // These are the ports of FGA.
+        input    A0 = 1'b1, 
+        input    A1 = 1'b1, 
+        input    A2 = 1'b1, 
+        input    A3 = 1'b1, 
+        input    A4 = 1'b1, 
+        input    AD = 1'b1,
+        output   Y0, Q0,
+
+        // These are the ports shared with FGC and FGD.
+        output   Y6CD,
+
+        // These are the ports shared with FGA and FGB.
+        output   Y6AB,
+
+        // These are the ports of RAM.
+        // Here are the ports of RAM write adress( WA[3:0] ), and shared with ROM. 
+        input    M1 = 1'b1, 
+        input    M3 = 1'b1,
+        input    M0 = 1'b1, 
+        input    M2 = 1'b1,
+
+        // Here are the ports of CLMS for controlling.
+        input    RS   = 1'b1, 
+        input    CE   = 1'b1, 
+        input    CLK  = 1'b1, 
+        input    ACLK = 1'b1,
+     
+        // These are the ports for Group, such as Carry Chain, ROM, SHIFT.
+        input    CIN = 1'b1,
+        output   COUT,
+        
+        input    L7IN = 1'b1,
+        output   L7OUT,
+
+        input    SHIFTIN = 1'b1,
+        output   SHIFTOUT,
+
+        // These are the Ports for Global Controlling, such as Global Reset.
+        input    RSIN = 1'b1,
+        output   RSOUT,
+
+        input    CEIN = 1'b1,
+        output   CEOUT
+
+    );
+
+}// end of device CLMS
+
+/*******************************************************************************
+
+  Device    [CLMS]
+
+  Author    [clwang]
+
+  Abstract  [The structure netlist of CLMS is described in the similar fashion 
+             as in HDL. In unit instantiation statement, the formal pin may be 
+             connected to net which is declared explicitly. 
+             
+             In Valence, the connection can also be made from formal pin to other 
+             pin or port, in which case Valence compiler shall create the net to 
+             fulfil the connection. The built-in naming convention is kicked in 
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of CLMS
+{
+    // Wires for input ports
+    wire ntD0, ntD1, ntD2, ntD3, ntD4, ntDD; 
+    wire ntC0, ntC1, ntC2, ntC3, ntC4, ntCD; 
+    wire ntB0, ntB1, ntB2, ntB3, ntB4, ntBD; 
+    wire ntA0, ntA1, ntA2, ntA3, ntA4, ntAD; 
+    wire ntM1, ntM3;
+    wire ntM0, ntM2;
+    wire ntRS, ntCE, ntCLK, ntACLK;
+    wire ntCIN;
+    wire ntL7IN;
+    wire ntSHIFTIN;
+    wire ntRSIN;
+    wire ntCEIN;
+
+    // Wires connecting to output ports
+    wire ntY3MUX,ntFF3_Q;
+    wire ntY2MUX,ntFF2_Q;
+    wire ntY1MUX,ntFF1_Q;
+    wire ntY0MUX,ntFF0_Q;
+    wire ntL6CDMUX,ntL6ABMUX;    
+    wire ntCYD;
+    wire ntL7MUX;
+    wire ntRSMUX;
+    wire ntCEMUX;
+
+    // Internal wires
+
+    wire ntFGD_Z;
+    wire ntQ3MUX;    
+    wire ntFGC_Z, ntCYC;
+    wire ntQ2MUX;
+    wire ntCDPMUX, ntQCDMUX, ntFFCD_Q;
+    
+    wire ntFGB_Z, ntCYB;
+    wire ntQ1MUX;
+    wire ntFGA_Z, ntCYA;
+    wire ntQ0MUX;
+
+    wire ntL8MUX;
+    wire ntRSPOLMUX, ntCEPOLMUX, ntCLKPOLMUX, ntRAMCLKMUX;
+    wire ntFFAB_Q, ntABPMUX, ntQABMUX;
+
+    //
+    // Connection to ports
+    //
+    ntD0      <= D0;
+    ntD1      <= D1;
+    ntD2      <= D2;
+    ntD3      <= D3;
+    ntD4      <= D4; 
+    ntDD      <= DD;
+ 
+    ntC0      <= C0;
+    ntC1      <= C1;
+    ntC2      <= C2;
+    ntC3      <= C3;
+    ntC4      <= C4;
+    ntCD      <= CD;
+ 
+    ntB0      <= B0;
+    ntB1      <= B1; 
+    ntB2      <= B2;
+    ntB3      <= B3;
+    ntB4      <= B4;
+    ntBD      <= BD;
+ 
+    ntA0      <= A0;
+    ntA1      <= A1;
+    ntA2      <= A2;
+    ntA3      <= A3;
+    ntA4      <= A4;
+    ntAD      <= AD;
+ 
+    ntM1      <= M1;
+    ntM3      <= M3;
+    ntM0      <= M0;
+    ntM2      <= M2;
+
+    ntRS      <= RS;
+    ntCE      <= CE;
+    ntCLK     <= CLK;
+    ntACLK    <= ACLK;
+    ntCIN     <= CIN;
+    ntL7IN    <= L7IN;
+    ntSHIFTIN <= SHIFTIN;
+    ntRSIN    <= RSIN;
+    ntCEIN    <= CEIN;
+
+    Y3        <= ntY3MUX;
+    Q3        <= ntFF3_Q;
+    Y2        <= ntY2MUX;
+    Q2        <= ntFF2_Q;
+    Y1        <= ntY1MUX;
+    Q1        <= ntFF1_Q;
+    Y0        <= ntY0MUX;
+    Q0        <= ntFF0_Q;
+    Y6CD      <= ntL6CDMUX;
+    Y6AB      <= ntL6ABMUX;    
+    COUT      <= ntCYD;
+    L7OUT     <= ntL7MUX;
+    RSOUT     <= ntRSMUX;
+    CEOUT     <= ntCEMUX;
+    SHIFTOUT  <= ntFF3_Q;
+    
+    //
+    // Instances. FGD section
+    //
+
+    device FGS FGD
+        parameter map
+        (
+            INIT        => INITD,
+            MODE        => FGD_MODE,
+            RAM_LUT_SEL => RAM_LUT_SEL
+        )
+        port map 
+        (
+            A0  => ntD0, A1  => ntD1, A2  => ntD2, A3  => ntD3, A4  => ntD4,
+            WD  => ntDD,  
+           
+            // SOME PORTS HAVE NOT BEEN FIXED. FIXED ME
+            WA0  => ntM0, WA1 => ntM1, WA2 => ntM2, WA3 => ntM3, 
+            WCK  => ntRAMCLKMUX,
+            WE   => ntRSPOLMUX,
+            CIN  => ntCYC,
+            COUT => ntCYD,
+            Z    => ntFGD_Z 
+        );
+
+    device Y3MUX Y3MUX
+        parameter map
+        (
+            CFG  => Y3MUX_SEL
+        )
+        port map
+        (
+            L8  => ntL8MUX, FG  => ntFGD_Z, CY  => ntCYD,
+            Z   => ntY3MUX
+        );
+    
+    device Q3MUX Q3MUX
+        parameter map
+        (
+            CFG  => Q3MUX_SEL
+        )    
+        port map
+        (
+            Y3  => ntY3MUX, FFCD  => ntFFCD_Q, M3  => ntM3,
+            Z   => ntQ3MUX
+        );
+    
+    device FF FF3
+        parameter map
+        (
+            GRS_EN => GRS_EN,
+            LRS_EN => LRS_EN,
+            SET  => FF3_SET,
+            SYNC => SYNC_MODE
+        )
+        port map
+        (
+            D  => ntQ3MUX,
+            RS => ntRSMUX, CE => ntCEMUX, CK => ntCLKPOLMUX,
+            Q  => ntFF3_Q
+        );
+
+    //
+    // Instances. FGC section
+    //
+
+    device FGS FGC 
+        parameter map
+        (
+            INIT        => INITC,
+            MODE        => FGC_MODE,
+            RAM_LUT_SEL => RAM_LUT_SEL
+        )
+        port map 
+        (
+            A0   => ntC0, A1  => ntC1, A2  => ntC2, A3  => ntC3, A4  => ntC4,
+            WD   => ntCD,             
+            // SOME PORTS HAVE NOT BEEN FIXED. FIXED ME
+            WA0  => ntM0, WA1 => ntM1, WA2 => ntM2, WA3 => ntM3, 
+            WCK  => ntRAMCLKMUX,
+            WE   => ntRSPOLMUX,
+            CIN  => ntCYB,
+            COUT => ntCYC,
+            Z    => ntFGC_Z 
+        );
+
+    device Y2MUX Y2MUX
+        parameter map
+        (
+            CFG  => Y2MUX_SEL
+        )    
+        port map
+        (
+            FFCD  => ntFFCD_Q, FG  => ntFGC_Z, CY  => ntCYC,
+            Z     => ntY2MUX
+        );
+    
+    device Q2MUX Q2MUX
+        parameter map
+        (
+            CFG  => Q2MUX_SEL
+        )      
+        port map
+        (
+            Y2  => ntY2MUX, FF1  => ntFF1_Q, M1  => ntM1,
+            Z   => ntQ2MUX
+        );
+    
+    device FF FF2
+        parameter map
+        (
+            GRS_EN => GRS_EN,
+            LRS_EN => LRS_EN,
+            SET   => FF2_SET,
+            SYNC  => SYNC_MODE
+        )
+        port map
+        (
+            D  => ntQ2MUX,
+            RS => ntRSMUX, CE => ntCEMUX, CK => ntCLKPOLMUX,
+            Q  => ntFF2_Q
+        );
+
+    //
+    // Instances. Common to FGC and FGD sections
+    //
+    
+    device L6CDMUX L6CDMUX    
+        port map
+        (
+            I1   => ntFGD_Z, I0  => ntFGC_Z,
+            SEL  => ntM1, 
+            Z    => ntL6CDMUX
+        );
+
+    device CDPMUX CDPMUX
+        parameter map
+        (
+            CFG  => CDPMUX_SEL
+        )   
+        port map
+        (
+            DD  => ntDD, CD  => ntCD,
+            Z   => ntCDPMUX
+        );
+
+    device QCDMUX QCDMUX
+        parameter map
+        (
+            CFG  => QCDMUX_SEL
+        )      
+        port map
+        (
+            L6  => ntL6CDMUX, FF2  =>ntFF2_Q, CDP  => ntCDPMUX,   
+            Z   => ntQCDMUX
+        );
+
+    device FF FFCD
+        parameter map
+        (
+            GRS_EN => GRS_EN,
+            LRS_EN => LRS_EN,           
+            SET   => FFCD_SET,
+            SYNC  => SYNC_MODE
+        )
+        port map
+        (
+            D  => ntQCDMUX,
+            RS => ntRSMUX, CE => ntCEMUX, CK => ntCLKPOLMUX,
+            Q  => ntFFCD_Q
+        );
+
+
+    //
+    // Instances. FGB section
+    //
+
+    device FGS FGB 
+        parameter map
+        (
+            INIT        => INITB,
+            MODE        => FGB_MODE,
+            RAM_LUT_SEL => RAM_LUT_SEL
+        )
+        port map 
+        (
+            A0   => ntB0, A1  => ntB1, A2  => ntB2, A3  => ntB3, A4  => ntB4,
+            WD   => ntBD,    
+         
+            // SOME PORTS HAVE NOT BEEN FIXED. FIXED ME
+            WA0  => ntM0, WA1 => ntM1, WA2 => ntM2, WA3 => ntM3, 
+            WCK  => ntRAMCLKMUX,
+            WE   => ntRSPOLMUX,
+
+            CIN  => ntCYA,
+            COUT => ntCYB,
+            Z    => ntFGB_Z 
+        );
+
+    device Y1MUX Y1MUX
+        parameter map
+        (
+            CFG  => Y1MUX_SEL
+        )       
+        port map
+        (
+            L7  => ntL7MUX, FG  => ntFGB_Z, CY  => ntCYB,
+            Z   => ntY1MUX
+        );
+    
+    device Q1MUX Q1MUX
+        parameter map
+        (
+            CFG  => Q1MUX_SEL
+        )      
+        port map
+        (
+            Y1  => ntY1MUX, FFAB  => ntFFAB_Q, M2  => ntM2,
+            Z   => ntQ1MUX
+        );
+    
+    device FF FF1
+        parameter map
+        (
+            GRS_EN => GRS_EN,
+            LRS_EN => LRS_EN,        
+            SET     => FF1_SET,
+            SYNC    => SYNC_MODE
+        )
+        port map
+        (
+            D  => ntQ1MUX,
+            RS => ntRSMUX, CE => ntCEMUX, CK => ntCLKPOLMUX,
+            Q  => ntFF1_Q
+        );
+
+
+    //
+    // Instances. FGA section
+    //
+
+    device FGS FGA 
+        parameter map
+        (
+            INIT        => INITA,
+            MODE        => FGA_MODE,
+            RAM_LUT_SEL => RAM_LUT_SEL
+        )
+        port map 
+        (
+            A0   => ntA0, A1  => ntA1, A2  => ntA2, A3  => ntA3, A4  => ntA4,
+            WD   => ntAD,             
+            // SOME PORTS HAVE NOT BEEN FIXED. FIXED ME
+            WA0  => ntM0, WA1 => ntM1, WA2 => ntM2, WA3 => ntM3, 
+            WCK  => ntRAMCLKMUX,
+            WE   => ntRSPOLMUX,
+
+            CIN  => ntCIN,
+            COUT => ntCYA,
+            Z    => ntFGA_Z 
+        );
+
+    device Y0MUX Y0MUX
+        parameter map
+        (
+            CFG  => Y0MUX_SEL
+        ) 
+        port map
+        (
+            FFAB  => ntFFAB_Q, FG => ntFGA_Z, CY => ntCYA,
+            Z     => ntY0MUX
+        );
+    
+    device Q0MUX Q0MUX
+        parameter map
+        (
+            CFG  => Q0MUX_SEL
+        ) 
+        port map
+        (
+            Y0  => ntY0MUX, SHIFTIN => ntSHIFTIN, M0 => ntM0,
+            Z   => ntQ0MUX
+        );
+    
+    device FF FF0
+        parameter map
+        (
+            GRS_EN => GRS_EN,
+            LRS_EN => LRS_EN,        
+            SET  => FF0_SET,
+            SYNC => SYNC_MODE
+        )
+        port map
+        (
+            D  => ntQ0MUX,
+            RS => ntRSMUX, CE => ntCEMUX, CK => ntCLKPOLMUX,
+            Q  => ntFF0_Q
+        );
+
+    //
+    // Instances. Common to FGA and FGB sections
+    //
+    
+    device L6ABMUX L6ABMUX
+        port map
+        (
+            I1  => ntFGB_Z, I0 => ntFGA_Z,
+            SEL => ntM0,
+            Z   => ntL6ABMUX
+        );
+
+    device ABPMUX ABPMUX
+        parameter map
+        (
+            CFG  => ABPMUX_SEL
+        )     
+        port map
+        (
+            BD  => ntBD, AD => ntAD,
+            Z   => ntABPMUX
+        );
+
+    device QABMUX QABMUX
+        parameter map
+        (
+            CFG  => QABMUX_SEL
+        )      
+        port map
+        ( 
+            L6  => ntL6ABMUX, FF0 => ntFF0_Q, ABP => ntABPMUX,
+            Z   => ntQABMUX
+        );
+
+    device FF FFAB
+        parameter map
+        (
+            GRS_EN => GRS_EN,
+            LRS_EN => LRS_EN,        
+            SET   => FFAB_SET,
+            SYNC  => SYNC_MODE
+        )
+        port map
+        (
+            D  => ntQABMUX,
+            RS => ntRSMUX, CE => ntCEMUX, CK => ntCLKPOLMUX,
+            Q  => ntFFAB_Q
+        );
+
+
+    device L8MUX L8MUX
+        port map
+        (
+            I1  => ntL7IN, I0 => ntL7MUX, 
+            SEL => ntM3,
+            Z   => ntL8MUX
+        );
+
+    device L7MUX L7MUX
+        port map
+        (
+            I1  => ntL6CDMUX, I0 => ntL6ABMUX, 
+            SEL => ntM2,
+            Z   => ntL7MUX
+        );
+
+    device RSMUX RSMUX
+        parameter map
+        (
+            CFG  => RSMUX_SEL
+        )     
+        port map
+        (
+            RS  => ntRSPOLMUX, RSIN => ntRSIN,
+            Y   => ntRSMUX
+        );
+
+    device CEMUX CEMUX
+        parameter map
+        (
+            CFG  => CEMUX_SEL
+        )     
+        port map
+        (
+            CE  => ntCEPOLMUX, CEIN => ntCEIN,
+            Y   => ntCEMUX
+        );
+
+
+    device RSPOLMUX RSPOLMUX
+        parameter map
+        (
+            CFG  => RS_POS
+        )     
+        port map
+        (
+            RS  => ntRS, RS_B => ntRS,
+            Y   => ntRSPOLMUX
+        );
+
+    device CEPOLMUX CEPOLMUX
+        parameter map
+        (
+            CFG  => CE_POS
+        )     
+        port map
+        (
+            CE  => ntCE, CE_B => ntCE,
+            Y   => ntCEPOLMUX
+        );
+
+    device CLKPOLMUX CLKPOLMUX
+        parameter map
+        (
+            CFG  => CLK_POS
+        )      
+        port map
+        (
+            CLK => ntCLK, CLK_B => ntCLK,
+            Y   => ntCLKPOLMUX
+        );
+        
+    device RAMCLKMUX RAMCLKMUX
+        parameter map
+        (
+            CFG  => CLK_SEL
+        )      
+        port map
+        (
+            SCLK => ntCLKPOLMUX, ACLK => ntACLK,
+            Z   => ntRAMCLKMUX
+        );        
+
+}; // end of structure netlist of CLMS
+
+/*******************************************************************************
+
+  Device    [CLMS]
+
+  Author    []
+
+  Abstract  [The floorplan structure]
+
+  Revision History:
+
+********************************************************************************/
+floorplan
+structure fp_struct of CLMS
+{
+    device FGS FGA ;
+    device FGS FGB ;
+    device FGS FGC ;
+    device FGS FGD ;            
+    device L6ABMUX  L6ABMUX ;   
+    device L7MUX  L7MUX ;   
+    device L6CDMUX L6CDMUX ;
+    device L8MUX L8MUX ;   
+    device FF  FF0 ;   
+    device FF  FFAB ;       
+    device FF  FF1;
+    device FF  FF2;    
+    device FF  FFCD;    
+    device FF  FF3;    
+
+}; // end of structure fp_struct of CLMS
+
+
+
+/*******************************************************************************
+
+  Device    [CLMS]
+
+  Author    [clwang]
+
+  Abstract  [Configure the configuration bits based on the value of config parameter]
+
+  Revision History:
+
+********************************************************************************/
+configuration cfg of CLMS
+{
+    int i;
+    for(i = 0; i < 32; i+=1)
+    {
+        SC_INITA[i] := INITA[i] ? 1'b0 : 1'b1;  
+        SC_INITB[i] := INITB[i] ? 1'b0 : 1'b1; 
+        SC_INITC[i] := INITC[i] ? 1'b0 : 1'b1;
+        SC_INITD[i] := INITD[i] ? 1'b0 : 1'b1;  
+    }
+    
+
+    if (FGA_MODE == "ARITH" || FGA_MODE == "CYX" || FGA_MODE == "CYE")
+    {
+        SC_MODEA := 4'b0101; //{U4_MUX, U5_MUX, U6_MUX, U8_MUX}
+    } 
+    else if (FGA_MODE == "L5C01" || FGA_MODE == "RAM")
+    {
+        SC_MODEA := 4'b0001; 
+    }
+    else if (FGA_MODE == "CY01")
+    {
+        SC_MODEA := 4'b0111; 
+    }
+    else if (FGA_MODE == "LUT5" || FGA_MODE == "ROM" || FGA_MODE == "LATCH")
+    {
+        SC_MODEA := 4'b0010; // U4_MUX = 1'b1; U5_MUX = 1'b0; U6_MUX = 1'b1; U8_MUX = 1'b1;
+    }
+    else if (FGA_MODE == "WMUX")
+    {
+        SC_MODEA := 4'b1000; 
+    }
+    else if (FGA_MODE == "ARITH0")
+    {
+        SC_MODEA := 4'b0000;        
+    }    
+    else if (FGA_MODE == "ARITH3")
+    {
+        SC_MODEA := 4'b0011;        
+    }
+    else if (FGA_MODE == "ARITH4")
+    {
+        SC_MODEA := 4'b0100;        
+    }    
+    else if (FGA_MODE == "ARITH6")
+    {
+        SC_MODEA := 4'b0110;        
+    }    
+    else if (FGA_MODE == "ARITH9")
+    {
+        SC_MODEA := 4'b1001;        
+    }
+    else if (FGA_MODE == "ARITH10")
+    {
+        SC_MODEA := 4'b1010;        
+    }    
+    else if (FGA_MODE == "ARITH11")
+    {
+        SC_MODEA := 4'b1011;        
+    }
+    else if (FGA_MODE == "ARITH12")
+    {
+        SC_MODEA := 4'b1100;        
+    }    
+    else if (FGA_MODE == "ARITH13")
+    {
+        SC_MODEA := 4'b1101;        
+    }
+    else if (FGA_MODE == "ARITH14")
+    {
+        SC_MODEA := 4'b1110;        
+    }     
+    else if (FGA_MODE == "ARITH15")
+    {
+        SC_MODEA := 4'b1111;        
+    }    
+    else
+    {
+        SC_MODEA := 4'b0010;
+        printf("LUT_MODE(%s) is not support!",FGA_MODE);
+    }
+  
+    if (FGB_MODE == "ARITH" || FGB_MODE == "CYX" || FGB_MODE == "CYE")
+    {
+        SC_MODEB := 4'b0101; //{U4_MUX, U5_MUX, U6_MUX, U8_MUX}
+    } 
+    else if (FGB_MODE == "L5C01" || FGB_MODE == "RAM")
+    {
+        SC_MODEB := 4'b0001; 
+    }
+    else if (FGB_MODE == "CY01")
+    {
+        SC_MODEB := 4'b0111; 
+    }
+    else if (FGB_MODE == "LUT5" || FGB_MODE == "ROM"  || FGB_MODE == "LATCH")
+    {
+        SC_MODEB := 4'b0010; // U4_MUX = 1'b1; U5_MUX = 1'b0; U6_MUX = 1'b1; U8_MUX = 1'b1;
+    }
+    else if (FGB_MODE == "WMUX")
+    {
+        SC_MODEB := 4'b1000; 
+    }
+    else if (FGB_MODE == "ARITH0")
+    {
+        SC_MODEB := 4'b0000;        
+    }    
+    else if (FGB_MODE == "ARITH3")
+    {
+        SC_MODEB := 4'b0011;        
+    }
+    else if (FGB_MODE == "ARITH4")
+    {
+        SC_MODEB := 4'b0100;        
+    }    
+    else if (FGB_MODE == "ARITH6")
+    {
+        SC_MODEB := 4'b0110;        
+    }    
+    else if (FGB_MODE == "ARITH9")
+    {
+        SC_MODEB := 4'b1001;        
+    }
+    else if (FGB_MODE == "ARITH10")
+    {
+        SC_MODEB := 4'b1010;        
+    }    
+    else if (FGB_MODE == "ARITH11")
+    {
+        SC_MODEB := 4'b1011;        
+    }
+    else if (FGB_MODE == "ARITH12")
+    {
+        SC_MODEB := 4'b1100;        
+    }    
+    else if (FGB_MODE == "ARITH13")
+    {
+        SC_MODEB := 4'b1101;        
+    }
+    else if (FGB_MODE == "ARITH14")
+    {
+        SC_MODEB := 4'b1110;        
+    }     
+    else if (FGB_MODE == "ARITH15")
+    {
+        SC_MODEB := 4'b1111;        
+    }    
+    else
+    {
+        SC_MODEB := 4'b0010;
+        printf("LUT_MODE(%s) is not support!",FGB_MODE);
+    } 
+
+    if (FGC_MODE == "ARITH" || FGC_MODE == "CYX" || FGC_MODE == "CYE")
+    {
+        SC_MODEC := 4'b0101; //{U4_MUX, U5_MUX, U6_MUX, U8_MUX}
+    } 
+    else if (FGC_MODE == "L5C01" || FGC_MODE == "RAM")
+    {
+        SC_MODEC := 4'b0001; 
+    }
+    else if (FGC_MODE == "CY01")
+    {
+        SC_MODEC := 4'b0111; 
+    }
+    else if (FGC_MODE == "LUT5" || FGC_MODE == "ROM" || FGC_MODE == "LATCH")
+    {
+        SC_MODEC := 4'b0010; // U4_MUX = 1'b1; U5_MUX = 1'b0; U6_MUX = 1'b1; U8_MUX = 1'b1;
+    }
+    else if (FGC_MODE == "WMUX")
+    {
+        SC_MODEC := 4'b1000; 
+    }
+    else if (FGC_MODE == "ARITH0")
+    {
+        SC_MODEC := 4'b0000;        
+    }    
+    else if (FGC_MODE == "ARITH3")
+    {
+        SC_MODEC := 4'b0011;        
+    }
+    else if (FGC_MODE == "ARITH4")
+    {
+        SC_MODEC := 4'b0100;        
+    }    
+    else if (FGC_MODE == "ARITH6")
+    {
+        SC_MODEC := 4'b0110;        
+    }    
+    else if (FGC_MODE == "ARITH9")
+    {
+        SC_MODEC := 4'b1001;        
+    }
+    else if (FGC_MODE == "ARITH10")
+    {
+        SC_MODEC := 4'b1010;        
+    }    
+    else if (FGC_MODE == "ARITH11")
+    {
+        SC_MODEC := 4'b1011;        
+    }
+    else if (FGC_MODE == "ARITH12")
+    {
+        SC_MODEC := 4'b1100;        
+    }    
+    else if (FGC_MODE == "ARITH13")
+    {
+        SC_MODEC := 4'b1101;        
+    }
+    else if (FGC_MODE == "ARITH14")
+    {
+        SC_MODEC := 4'b1110;        
+    }     
+    else if (FGC_MODE == "ARITH15")
+    {
+        SC_MODEC := 4'b1111;        
+    } 
+    else
+    {
+        SC_MODEC := 4'b0010;
+        printf("LUT_MODE(%s) is not support!",FGC_MODE);
+    }
+    
+    if (FGD_MODE == "ARITH" || FGD_MODE == "CYX" || FGD_MODE == "CYE")
+    {
+        SC_MODED := 4'b0101; //{U4_MUX, U5_MUX, U6_MUX, U8_MUX}
+    } 
+    else if (FGD_MODE == "L5C01" || FGD_MODE == "RAM")
+    {
+        SC_MODED := 4'b0001;
+    }
+    else if (FGD_MODE == "CY01")
+    {
+        SC_MODED := 4'b0111; 
+    }
+    else if (FGD_MODE == "LUT5" || FGD_MODE == "ROM" || FGD_MODE == "LATCH")
+    {
+        SC_MODED := 4'b0010; // U4_MUX = 1'b1; U5_MUX = 1'b0; U6_MUX = 1'b1; U8_MUX = 1'b1;
+    }
+    else if (FGD_MODE == "WMUX")
+    {
+        SC_MODED := 4'b1000;
+    }
+    else if (FGD_MODE == "ARITH0")
+    {
+        SC_MODED := 4'b0000;        
+    }    
+    else if (FGD_MODE == "ARITH3")
+    {
+        SC_MODED := 4'b0011;        
+    }
+    else if (FGD_MODE == "ARITH4")
+    {
+        SC_MODED := 4'b0100;        
+    }    
+    else if (FGD_MODE == "ARITH6")
+    {
+        SC_MODED := 4'b0110;        
+    }    
+    else if (FGD_MODE == "ARITH9")
+    {
+        SC_MODED := 4'b1001;        
+    }
+    else if (FGD_MODE == "ARITH10")
+    {
+        SC_MODED := 4'b1010;        
+    }    
+    else if (FGD_MODE == "ARITH11")
+    {
+        SC_MODED := 4'b1011;        
+    }
+    else if (FGD_MODE == "ARITH12")
+    {
+        SC_MODED := 4'b1100;        
+    }    
+    else if (FGD_MODE == "ARITH13")
+    {
+        SC_MODED := 4'b1101;        
+    }
+    else if (FGD_MODE == "ARITH14")
+    {
+        SC_MODED := 4'b1110;        
+    }     
+    else if (FGD_MODE == "ARITH15")
+    {
+        SC_MODED := 4'b1111;        
+    } 
+    else
+    {
+        SC_MODED := 4'b0010;
+        printf("LUT_MODE(%s) is not support!",FGD_MODE);
+    }    
+        
+
+    SC_Y3_SEL      := (Y3MUX_SEL == "L8")     ? 3'b110 : (Y3MUX_SEL == "FG")       ? 3'b000 : 3'b011;     // "L8"  "FG" "CY"     SC_XDI,SC_FDI, SC_CDI
+    SC_QD3_SEL     := (Q3MUX_SEL == "Y3")     ? 2'b00  : (Q3MUX_SEL == "FFCD")     ? 2'b10  : 2'b01;      // "Y3"  "FFCD" "M3"   SC_SREN, SC_MDI
+    
+    SC_DP1_SEL     := (QCDMUX_SEL == "L6")    ? 2'b00 : (QCDMUX_SEL == "FF2")      ? 2'b10  : 2'b01;      // "L6"  "FF2"  "CDP"  SC_SREN<5>, SC_MDI<5>
+    SC_CD_DD_SEL   := (CDPMUX_SEL == "DD")    ? 1'b1  : 1'b0                                      ;       // "DD"  "CD"          SC_CD_DD_SEL
+    
+    SC_Y2_SEL      := (Y2MUX_SEL == "FFCD")   ? 3'b110 : (Y2MUX_SEL == "FG")       ? 3'b000 : 3'b011;      // "FFCD" "FG" "CY"    SC_XDI,SC_FDI, SC_CDI
+    SC_QD2_SEL     := (Q2MUX_SEL == "Y2"  )   ? 2'b00 : (Q2MUX_SEL == "FF1")       ? 2'b10 : 2'b01;       // "Y2"   "FF1" "M1"
+    
+    SC_Y1_SEL      := (Y1MUX_SEL == "L7"  )   ? 3'b110 : (Y1MUX_SEL == "FG"  )     ? 3'b000 : 3'b011;      // "L7"   "FG" "CY"
+    SC_QD1_SEL     := (Q1MUX_SEL == "Y1"  )   ? 2'b00 : (Q1MUX_SEL == "FFAB")      ? 2'b10 : 2'b01;       // "Y1"   "FFAB" "M2" 
+        
+    SC_DP0_SEL     := (QABMUX_SEL == "L6" )   ? 2'b00 : (QABMUX_SEL == "FF0")      ? 2'b10 : 2'b01;       // "L6" "FF0" "ABP" 
+    SC_AD_BD_SEL   := (ABPMUX_SEL == "BD" )   ? 1'b1  : 1'b0                                      ;       // "BD"   "AD" 
+    
+    SC_Y0_SEL      := (Y0MUX_SEL == "FFAB")   ? 3'b110 : (Y0MUX_SEL == "FG")        ? 3'b000 : 3'b011;    // "FFAB" "FG" "CY"
+    SC_QD0_SEL     := (Q0MUX_SEL == "Y0"  )   ? 2'b00 : (Q0MUX_SEL == "SHIFTIN"  ) ? 2'b10 : 2'b01;       // "Y0" "SHIFTIN" "M0" 
+    
+    SC_CE_SEL      := (CEMUX_SEL == "CE"  )   ? 1'b0  : 1'b1                                      ;       // "CE" "CEIN"
+    SC_RS_SEL      := (RSMUX_SEL == "RS"  )   ? 1'b0  : 1'b1                                      ;       // "RS" "RSIN"
+    SC_CLK_POS     := CLK_POS                                             ;
+    SC_CE_POS      := CE_POS                                              ;
+    SC_RS_POS      := RS_POS                                              ;
+    SC_SYNC        := (SYNC_MODE == "SYNC")   ? 1'b0  : 1'b1                                      ;       // "SYNC" "ASYNC"
+    
+    //if (SYNC_MODE == "SYNC")
+    //{
+        //SC_Q0_SET      := (FF0_SET   == "SET")  ? 1'b1  : 1'b0                                      ;       // "RESET" "SET" 
+        //SC_Q1_SET      := (FF1_SET   == "SET")  ? 1'b1  : 1'b0                                      ;       // "RESET" "SET" 
+        //SC_Q2_SET      := (FF2_SET   == "SET")  ? 1'b1  : 1'b0                                      ;       // "RESET" "SET" 
+        //SC_Q3_SET      := (FF3_SET   == "SET")  ? 1'b1  : 1'b0                                      ;       // "RESET" "SET" 
+        //SC_QP0_SET     := (FFAB_SET  == "SET")  ? 1'b1  : 1'b0                                      ;       // "RESET" "SET" 
+        //SC_QP1_SET     := (FFCD_SET  == "SET")  ? 1'b1  : 1'b0                                      ;       // "RESET" "SET" 
+    //} 
+    //else
+    //{
+        SC_Q0_SET      := (FF0_SET   == "RESET")  ? 1'b1  : 1'b0                                      ;       // "RESET" "SET" 
+        SC_Q1_SET      := (FF1_SET   == "RESET")  ? 1'b1  : 1'b0                                      ;       // "RESET" "SET" 
+        SC_Q2_SET      := (FF2_SET   == "RESET")  ? 1'b1  : 1'b0                                      ;       // "RESET" "SET" 
+        SC_Q3_SET      := (FF3_SET   == "RESET")  ? 1'b1  : 1'b0                                      ;       // "RESET" "SET" 
+        SC_QP0_SET     := (FFAB_SET  == "RESET")  ? 1'b1  : 1'b0                                      ;       // "RESET" "SET" 
+        SC_QP1_SET     := (FFCD_SET  == "RESET")  ? 1'b1  : 1'b0                                      ;       // "RESET" "SET"   
+    //}
+    
+    SC_CLMS_RAM_EN := (RAM_LUT_SEL == "LUT") ? 1'b0  : 1'b1                                          ;       // "RAM"  "LUT" 
+    SC_GRS_DIS     := (GRS_EN   == "FALSE")   ? 1'b1 : 1'b0                                            ;       // "TRUE" "FALSE"
+    SC_RS_DIS      := (LRS_EN   == "FALSE")   ? 1'b1 : 1'b0                                            ;       // "TRUE"   "FALSE" 
+    
+    SC_RAM_WCK     := (CLK_SEL == "ACLK") ? 1'b1 : 1'b0;                                                      // "ACLK" "SCLK"
+    
+    // modify for RAM when mask LUT init value.
+    if (FGD_MODE == "RAM")
+    {
+        SC_MASK_BIT    := 1'b1;
+    }
+}; // end of configuration cfg of CLMS
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

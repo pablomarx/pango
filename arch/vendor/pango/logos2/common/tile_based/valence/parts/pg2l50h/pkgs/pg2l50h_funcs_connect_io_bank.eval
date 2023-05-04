@@ -1,0 +1,358 @@
+use pg2l_defs;
+
+package pg2l50h_funcs_connect_io_bank
+{
+
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_iob_scanchain_50h
+(  
+  string type_lr,
+  unsigned int bank,
+
+  unsigned int tx_ccs,
+  unsigned int ty_ccs,
+
+  unsigned int tx_hsst,
+  unsigned int ty_hsst_u,
+  unsigned int ty_hsst_d,
+
+  unsigned int tx_esd,
+  unsigned int ty_esd,
+
+  unsigned int bank_top,  //top bank number of the device
+  unsigned int rx_min_r,  //rx of bottom bank on the right
+  unsigned int num_tile_x,
+  unsigned int num_region,
+  string device_iob,
+  string device_hsst,
+  string device_esd,
+
+  string port_tck_out_l,    //from esd_buffer
+  string port_tck_out_r
+)
+{
+  int sx_ccs = tx_ccs * NUM_GRID_X + 3;
+  int sy_ccs = ty_ccs * NUM_GRID_Y;
+  int sx_hsst = tx_hsst * NUM_GRID_X + 3;
+  int sy_hsst_u = ty_hsst_u * NUM_GRID_Y;
+  int sy_hsst_d = ty_hsst_d * NUM_GRID_Y;
+  int sx_esd = tx_esd * NUM_GRID_X;
+  int sy_esd = ty_esd * NUM_GRID_Y;
+
+  int tx,tx_dll;
+  if(type_lr == "L")
+  {
+    tx = 0;
+  }
+  else
+  {
+    tx = num_tile_x-1;
+  }
+
+  int sx = tx * NUM_GRID_X;
+
+  int rx = num_region + bank_top -1 -bank;
+  int sy_iob = rx * NUM_TILES_REGION * NUM_GRID_Y;
+  int sy_iob_d = (rx-1) * NUM_TILES_REGION * NUM_GRID_Y;
+  int sy_iob_u = (rx+1) * NUM_TILES_REGION * NUM_GRID_Y;
+
+  string iob = device_iob;
+  string hsst = device_hsst;
+  string esd = device_esd;
+
+  string tck_out_l = port_tck_out_l;
+  string tck_out_r = port_tck_out_r;
+
+  if(type_lr=="L")
+  {
+    connect
+      (
+        <pin TDI[0] of <device *iob @ [sx,sy_iob]>>  => <wire TDO[1] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[1] of <device *iob @ [sx,sy_iob]>>  => <wire TDO[2] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[2] of <device *iob @ [sx,sy_iob]>>  => <wire TDO[3] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[3] of <device *iob @ [sx,sy_iob]>>  => <wire TDO[4] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[4] of <device *iob @ [sx,sy_iob]>>  => <wire TDO[5] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[5] of <device *iob @ [sx,sy_iob]>>  => <wire TDO[6] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[6] of <device *iob @ [sx,sy_iob]>>  => <wire TDO[7] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[7] of <device *iob @ [sx,sy_iob]>>  => <wire TDO[8] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[8] of <device *iob @ [sx,sy_iob]>>  => <wire TDO[9] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[9] of <device *iob @ [sx,sy_iob]>>  => <wire TDO[10] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[10] of <device *iob @ [sx,sy_iob]>> => <wire TDO[11] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[11] of <device *iob @ [sx,sy_iob]>> => <wire TDO[12] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[12] of <device *iob @ [sx,sy_iob]>> => <wire TDO[13] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[13] of <device *iob @ [sx,sy_iob]>> => <wire TDO[14] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[14] of <device *iob @ [sx,sy_iob]>> => <wire TDO[15] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[15] of <device *iob @ [sx,sy_iob]>> => <wire TDO[16] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[16] of <device *iob @ [sx,sy_iob]>> => <wire TDO[17] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[17] of <device *iob @ [sx,sy_iob]>> => <wire TDO[18] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[18] of <device *iob @ [sx,sy_iob]>> => <wire TDO[19] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[19] of <device *iob @ [sx,sy_iob]>> => <wire TDO[20] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[20] of <device *iob @ [sx,sy_iob]>> => <wire TDO[21] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[21] of <device *iob @ [sx,sy_iob]>> => <wire TDO[22] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[22] of <device *iob @ [sx,sy_iob]>> => <wire TDO[23] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[23] of <device *iob @ [sx,sy_iob]>> => <wire TDO[24] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[24] of <device *iob @ [sx,sy_iob]>> => <wire TDO[25] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[25] of <device *iob @ [sx,sy_iob]>> => <wire TDO[26] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[26] of <device *iob @ [sx,sy_iob]>> => <wire TDO[27] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[27] of <device *iob @ [sx,sy_iob]>> => <wire TDO[28] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[28] of <device *iob @ [sx,sy_iob]>> => <wire TDO[29] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[29] of <device *iob @ [sx,sy_iob]>> => <wire TDO[30] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[30] of <device *iob @ [sx,sy_iob]>> => <wire TDO[31] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[31] of <device *iob @ [sx,sy_iob]>> => <wire TDO[32] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[32] of <device *iob @ [sx,sy_iob]>> => <wire TDO[33] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[33] of <device *iob @ [sx,sy_iob]>> => <wire TDO[34] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[34] of <device *iob @ [sx,sy_iob]>> => <wire TDO[35] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[35] of <device *iob @ [sx,sy_iob]>> => <wire TDO[36] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[36] of <device *iob @ [sx,sy_iob]>> => <wire TDO[37] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[37] of <device *iob @ [sx,sy_iob]>> => <wire TDO[38] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[38] of <device *iob @ [sx,sy_iob]>> => <wire TDO[39] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[39] of <device *iob @ [sx,sy_iob]>> => <wire TDO[40] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[40] of <device *iob @ [sx,sy_iob]>> => <wire TDO[41] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[41] of <device *iob @ [sx,sy_iob]>> => <wire TDO[42] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[42] of <device *iob @ [sx,sy_iob]>> => <wire TDO[43] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[43] of <device *iob @ [sx,sy_iob]>> => <wire TDO[44] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[44] of <device *iob @ [sx,sy_iob]>> => <wire TDO[45] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[45] of <device *iob @ [sx,sy_iob]>> => <wire TDO[46] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[46] of <device *iob @ [sx,sy_iob]>> => <wire TDO[47] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[47] of <device *iob @ [sx,sy_iob]>> => <wire TDO[48] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[48] of <device *iob @ [sx,sy_iob]>> => <wire TDO[49] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[49] of <device *iob @ [sx,sy_iob]>> => (bank==5) ? <wire TDI_BSCAN of <device CCS_TILE @ [sx_ccs,sy_ccs]>> :
+                                                          (rx==0) ? <wire TDO_B of <device *esd @ [sx_esd,sy_esd]>>
+                                                                  : <wire TDO[0] of <device *iob@[sx,sy_iob_d]>>,
+
+        <pin TCK_IN of <device *iob @ [sx,sy_iob]>>  => (bank==6) ? <wire CLOCKDR of <device CCS_TILE @[sx_ccs,sy_ccs]>>
+                                                                  : <wire *tck_out_l of <device *esd @[sx_esd,sy_esd]>>,
+        <pin TCK_T of <device *iob @ [sx,sy_iob]>>   => (bank==6) ? <wire CLOCKDR of <device CCS_TILE @[sx_ccs,sy_ccs]>>
+                                                                  : <wire *tck_out_l of <device *esd @[sx_esd,sy_esd]>>,
+        <pin TCK_B of <device *iob @ [sx,sy_iob]>>   => <wire TCK_OUT of <device *iob @ [sx,sy_iob]>>
+      );
+  }
+  else
+  {
+    connect
+      (
+        <pin TDI[0] of <device *iob @ [sx,sy_iob]>>  => (rx==(num_region-2)) ? <wire TDO_BSCAN of <device *hsst @ [sx_hsst,sy_hsst_u]>> :
+                                                                               <wire TDO[49] of <device *iob @ [sx,sy_iob_u]>>,
+        <pin TDI[1] of <device *iob @ [sx,sy_iob]>>  => <wire TDO[0] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[2] of <device *iob @ [sx,sy_iob]>>  => <wire TDO[1] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[3] of <device *iob @ [sx,sy_iob]>>  => <wire TDO[2] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[4] of <device *iob @ [sx,sy_iob]>>  => <wire TDO[3] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[5] of <device *iob @ [sx,sy_iob]>>  => <wire TDO[4] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[6] of <device *iob @ [sx,sy_iob]>>  => <wire TDO[5] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[7] of <device *iob @ [sx,sy_iob]>>  => <wire TDO[6] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[8] of <device *iob @ [sx,sy_iob]>>  => <wire TDO[7] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[9] of <device *iob @ [sx,sy_iob]>>  => <wire TDO[8] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[10] of <device *iob @ [sx,sy_iob]>>  => <wire TDO[9] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[11] of <device *iob @ [sx,sy_iob]>>  => <wire TDO[10] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[12] of <device *iob @ [sx,sy_iob]>> => <wire TDO[11] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[13] of <device *iob @ [sx,sy_iob]>> => <wire TDO[12] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[14] of <device *iob @ [sx,sy_iob]>> => <wire TDO[13] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[15] of <device *iob @ [sx,sy_iob]>> => <wire TDO[14] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[16] of <device *iob @ [sx,sy_iob]>> => <wire TDO[15] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[17] of <device *iob @ [sx,sy_iob]>> => <wire TDO[16] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[18] of <device *iob @ [sx,sy_iob]>> => <wire TDO[17] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[19] of <device *iob @ [sx,sy_iob]>> => <wire TDO[18] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[20] of <device *iob @ [sx,sy_iob]>> => <wire TDO[19] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[21] of <device *iob @ [sx,sy_iob]>> => <wire TDO[20] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[22] of <device *iob @ [sx,sy_iob]>> => <wire TDO[21] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[23] of <device *iob @ [sx,sy_iob]>> => <wire TDO[22] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[24] of <device *iob @ [sx,sy_iob]>> => <wire TDO[23] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[25] of <device *iob @ [sx,sy_iob]>> => <wire TDO[24] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[26] of <device *iob @ [sx,sy_iob]>> => <wire TDO[25] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[27] of <device *iob @ [sx,sy_iob]>> => <wire TDO[26] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[28] of <device *iob @ [sx,sy_iob]>> => <wire TDO[27] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[29] of <device *iob @ [sx,sy_iob]>> => <wire TDO[28] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[30] of <device *iob @ [sx,sy_iob]>> => <wire TDO[29] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[31] of <device *iob @ [sx,sy_iob]>> => <wire TDO[30] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[32] of <device *iob @ [sx,sy_iob]>> => <wire TDO[31] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[33] of <device *iob @ [sx,sy_iob]>> => <wire TDO[32] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[34] of <device *iob @ [sx,sy_iob]>> => <wire TDO[33] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[35] of <device *iob @ [sx,sy_iob]>> => <wire TDO[34] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[36] of <device *iob @ [sx,sy_iob]>> => <wire TDO[35] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[37] of <device *iob @ [sx,sy_iob]>> => <wire TDO[36] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[38] of <device *iob @ [sx,sy_iob]>> => <wire TDO[37] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[39] of <device *iob @ [sx,sy_iob]>> => <wire TDO[38] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[40] of <device *iob @ [sx,sy_iob]>> => <wire TDO[39] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[41] of <device *iob @ [sx,sy_iob]>> => <wire TDO[40] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[42] of <device *iob @ [sx,sy_iob]>> => <wire TDO[41] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[43] of <device *iob @ [sx,sy_iob]>> => <wire TDO[42] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[44] of <device *iob @ [sx,sy_iob]>> => <wire TDO[43] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[45] of <device *iob @ [sx,sy_iob]>> => <wire TDO[44] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[46] of <device *iob @ [sx,sy_iob]>> => <wire TDO[45] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[47] of <device *iob @ [sx,sy_iob]>> => <wire TDO[46] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[48] of <device *iob @ [sx,sy_iob]>> => <wire TDO[47] of <device *iob @ [sx,sy_iob]>>,
+        <pin TDI[49] of <device *iob @ [sx,sy_iob]>> => <wire TDO[48] of <device *iob @ [sx,sy_iob]>>,
+
+        <pin TCK_IN of <device *iob @ [sx,sy_iob]>>  => <wire *tck_out_r of <device *esd @[sx_esd,sy_esd]>>,
+        <pin TCK_B of <device *iob @ [sx,sy_iob]>>   => <wire *tck_out_r of <device *esd @[sx_esd,sy_esd]>>,
+        <pin TCK_T of <device *iob @ [sx,sy_iob]>>   => <wire TCK_OUT of <device *iob @ [sx,sy_iob]>>
+
+      );
+  }
+
+
+  
+}//end of function connect_iob_scanchain_50h
+
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_iol_dqs_input_50h
+(
+    unsigned int rx,
+    unsigned int tx,
+    unsigned int tx_pll,
+    unsigned int loc_iol,         //loc_iol = 0,bottom half region;loc_iol = 1, top half region
+    string device_iol
+)
+{
+    int sx,sx_pll;
+    sx = tx * NUM_GRID_X + 3;
+    sx_pll = tx_pll * NUM_GRID_X;
+    int sy_pll = (loc_iol==0) ? rx*NUM_TILES_REGION*NUM_GRID_Y : (rx*NUM_TILES_REGION+MID_TILE_REGION+1) * NUM_GRID_Y;  
+    string pll = (loc_iol==0) ? "PPLL_TILE" : "GPLL_TILE";
+    string iol = device_iol;
+
+    int l_ty_dqs0[] = (loc_iol==0) ? {[13:24]} : {[38:50]};
+    int l_ty_dqs1[] = (loc_iol==0) ? {[0:12]} : {[26:37]};
+    int ty_dqs0_0 = (loc_iol==0) ? 19 : 44;
+    int ty_dqs0_1 = (loc_iol==0) ? 20 : 45;
+    int ty_dqs1_0 = (loc_iol==0) ? 7 : 32;
+    int ty_dqs1_1 = (loc_iol==0) ? 8 : 33;
+
+    int sy_dqs0_0 = (rx*NUM_TILES_REGION+ty_dqs0_0)* NUM_GRID_Y;
+    int sy_dqs0_1 = (rx*NUM_TILES_REGION+ty_dqs0_1)* NUM_GRID_Y;
+    int sy_dqs1_0 = (rx*NUM_TILES_REGION+ty_dqs1_0)* NUM_GRID_Y;
+    int sy_dqs1_1 = (rx*NUM_TILES_REGION+ty_dqs1_1)* NUM_GRID_Y;
+
+    connect
+      (
+        <pin DQSI00 of <device *pll @[sx_pll,sy_pll]>>   => <wire DI_TO_CLK of <device *iol @[sx,sy_dqs0_1]>>,
+        <pin DQSIB00 of <device *pll @[sx_pll,sy_pll]>>  => <wire DI_TO_CLKB of <device *iol @[sx,sy_dqs0_1]>>,
+
+        <pin DQSI01 of <device *pll @[sx_pll,sy_pll]>>   => <wire DI_TO_CLK of <device *iol @[sx,sy_dqs1_1]>>,
+        <pin DQSIB01 of <device *pll @[sx_pll,sy_pll]>>  => <wire DI_TO_CLKB of <device *iol @[sx,sy_dqs1_1]>>
+      );
+
+   
+    int ty,sy;
+    foreach ty( l_ty_dqs0 )
+    {
+      sy = (rx*NUM_TILES_REGION+ty) * NUM_GRID_Y;
+      if(ty==50)
+      {
+        connect
+          (
+            <pin IFIFO_WADDR[2] of <device *iol @[sx,sy]>>   => <wire TIELO of <device *iol @[sx,sy]>>,
+            <pin IFIFO_WADDR[1] of <device *iol @[sx,sy]>>   => <wire TIELO of <device *iol @[sx,sy]>>,
+            <pin IFIFO_WADDR[0] of <device *iol @[sx,sy]>>   => <wire TIELO of <device *iol @[sx,sy]>>,
+            <pin IFIFO_RADDR[2] of <device *iol @[sx,sy]>>   => <wire TIELO of <device *iol @[sx,sy]>>,
+            <pin IFIFO_RADDR[1] of <device *iol @[sx,sy]>>   => <wire TIELO of <device *iol @[sx,sy]>>,
+            <pin IFIFO_RADDR[0] of <device *iol @[sx,sy]>>   => <wire TIELO of <device *iol @[sx,sy]>>,
+            <pin DQSI_DELAY of <device *iol @[sx,sy]>>       => <wire TIELO of <device *iol @[sx,sy]>>,
+            <pin DQSI_DELAY_N of <device *iol @[sx,sy]>>     => <wire TIEHI of <device *iol @[sx,sy]>>,
+            <pin WCLK of <device *iol @[sx,sy]>>             => <wire PHY_CLK0_2X_B_P of <device *pll @[sx_pll,sy_pll]>>,    //BUG: L2HW-85
+            <pin WCLK_DELAY of <device *iol @[sx,sy]>>       => <wire PHY_CLK0_2X_B_N of <device *pll @[sx_pll,sy_pll]>>,    //BUG: L2HW-85
+
+            <pin T_BYTEIN of <device *iol @[sx,sy]>>         => <wire TO1 of <device *pll @[sx_pll,sy_pll]>>,
+            <pin TERM_BYTEIN of <device *iol @[sx,sy]>>      => <wire TERM1 of <device *pll @[sx_pll,sy_pll]>>,
+
+            <pin VCC_REG of <device *iol @[sx,sy]>>          => <wire VCCREG0 of <device *pll @[sx_pll,sy_pll]>>,
+            <pin PLLCLK0 of <device *iol @[sx,sy]>>          => <wire PHY_CLK0_2X_B_N of <device *pll @[sx_pll,sy_pll]>>,  
+            <pin PLLCLK0_N of <device *iol @[sx,sy]>>        => <wire PHY_CLK0_2X_B_P of <device *pll @[sx_pll,sy_pll]>>,  
+            <pin PLLCLK1 of <device *iol @[sx,sy]>>          => <wire SYSCLK0_B_N of <device *pll @[sx_pll,sy_pll]>> 
+          );
+      }
+      else
+      {
+        connect
+          (
+            <pin IFIFO_WADDR of <device *iol @[sx,sy]>>   => <wire IFIFO_WADDR0 of <device *pll @[sx_pll,sy_pll]>>,
+            <pin IFIFO_RADDR of <device *iol @[sx,sy]>>   => <wire IFIFO_RADDR0 of <device *pll @[sx_pll,sy_pll]>>,
+            <pin DQSI_DELAY of <device *iol @[sx,sy]>>    => <wire CLK_DQSI_DEL0 of <device *pll @[sx_pll,sy_pll]>>,
+            <pin DQSI_DELAY_N of <device *iol @[sx,sy]>>  => <wire CLK_DQSIB_DEL0 of <device *pll @[sx_pll,sy_pll]>>,
+            <pin WCLK of <device *iol @[sx,sy]>>          => <wire CLK_W0 of <device *pll @[sx_pll,sy_pll]>>,
+            <pin WCLK_DELAY of <device *iol @[sx,sy]>>    => <wire CLK_W_DEL0 of <device *pll @[sx_pll,sy_pll]>>,
+
+            <pin T_BYTEIN of <device *iol @[sx,sy]>>       => (ty==ty_dqs0_0) ? <wire TO0 of <device *pll @[sx_pll,sy_pll]>> :
+                                                              (ty==ty_dqs0_1) ? <wire TO0 of <device *pll @[sx_pll,sy_pll]>> 
+                                                                              : <wire TO1 of <device *pll @[sx_pll,sy_pll]>>,
+            <pin TERM_BYTEIN of <device *iol @[sx,sy]>>    => (ty==ty_dqs0_0) ? <wire TERM0 of <device *pll @[sx_pll,sy_pll]>> :
+                                                              (ty==ty_dqs0_1) ? <wire TERM0 of <device *pll @[sx_pll,sy_pll]>> 
+                                                                              : <wire TERM1 of <device *pll @[sx_pll,sy_pll]>>,
+
+            <pin VCC_REG of <device *iol @[sx,sy]>>       => <wire VCCREG0 of <device *pll @[sx_pll,sy_pll]>>,
+            <pin PLLCLK0 of <device *iol @[sx,sy]>>       => <wire PHY_CLK0_2X_B_N of <device *pll @[sx_pll,sy_pll]>>,  
+            <pin PLLCLK0_N of <device *iol @[sx,sy]>>     => <wire PHY_CLK0_2X_B_P of <device *pll @[sx_pll,sy_pll]>>,  
+            <pin PLLCLK1 of <device *iol @[sx,sy]>>       => <wire SYSCLK0_B_N of <device *pll @[sx_pll,sy_pll]>> 
+          );
+      }
+    }
+
+    foreach ty( l_ty_dqs1 )
+    {
+      sy = (rx*NUM_TILES_REGION+ty) * NUM_GRID_Y;
+      if(ty==0)
+      {
+        connect
+          (
+            <pin IFIFO_WADDR[2] of <device *iol @[sx,sy]>>   => <wire TIELO of <device *iol @[sx,sy]>>,
+            <pin IFIFO_WADDR[1] of <device *iol @[sx,sy]>>   => <wire TIELO of <device *iol @[sx,sy]>>,
+            <pin IFIFO_WADDR[0] of <device *iol @[sx,sy]>>   => <wire TIELO of <device *iol @[sx,sy]>>,
+            <pin IFIFO_RADDR[2] of <device *iol @[sx,sy]>>   => <wire TIELO of <device *iol @[sx,sy]>>,
+            <pin IFIFO_RADDR[1] of <device *iol @[sx,sy]>>   => <wire TIELO of <device *iol @[sx,sy]>>,
+            <pin IFIFO_RADDR[0] of <device *iol @[sx,sy]>>   => <wire TIELO of <device *iol @[sx,sy]>>,
+            <pin DQSI_DELAY of <device *iol @[sx,sy]>>       => <wire TIELO of <device *iol @[sx,sy]>>,
+            <pin DQSI_DELAY_N of <device *iol @[sx,sy]>>     => <wire TIEHI of <device *iol @[sx,sy]>>,
+            <pin WCLK of <device *iol @[sx,sy]>>             => <wire PHY_CLK1_2X_B_P of <device *pll @[sx_pll,sy_pll]>>,    //BUG: L2HW-85
+            <pin WCLK_DELAY of <device *iol @[sx,sy]>>       => <wire PHY_CLK1_2X_B_P of <device *pll @[sx_pll,sy_pll]>>,    //BUG: L2HW-85
+            <pin VCC_REG of <device *iol @[sx,sy]>>          => <wire VCCREG1 of <device *pll @[sx_pll,sy_pll]>>,
+
+            <pin T_BYTEIN of <device *iol @[sx,sy]>>         => <wire TO3 of <device *pll @[sx_pll,sy_pll]>>,
+            <pin TERM_BYTEIN of <device *iol @[sx,sy]>>      => <wire TERM3 of <device *pll @[sx_pll,sy_pll]>>,
+
+            <pin PLLCLK0 of <device *iol @[sx,sy]>>          => <wire PHY_CLK1_2X_B_N of <device *pll @[sx_pll,sy_pll]>>,  
+            <pin PLLCLK0_N of <device *iol @[sx,sy]>>        => <wire PHY_CLK1_2X_B_P of <device *pll @[sx_pll,sy_pll]>>,  
+            <pin PLLCLK1 of <device *iol @[sx,sy]>>          => <wire SYSCLK1_B_N of <device *pll @[sx_pll,sy_pll]>> 
+          );
+      }
+      else
+      {
+        connect
+          (
+            <pin IFIFO_WADDR of <device *iol @[sx,sy]>>   => <wire IFIFO_WADDR1 of <device *pll @[sx_pll,sy_pll]>>,
+            <pin IFIFO_RADDR of <device *iol @[sx,sy]>>   => <wire IFIFO_RADDR1 of <device *pll @[sx_pll,sy_pll]>>,
+            <pin DQSI_DELAY of <device *iol @[sx,sy]>>    => <wire CLK_DQSI_DEL1 of <device *pll @[sx_pll,sy_pll]>>,
+            <pin DQSI_DELAY_N of <device *iol @[sx,sy]>>  => <wire CLK_DQSIB_DEL1 of <device *pll @[sx_pll,sy_pll]>>,
+            <pin WCLK of <device *iol @[sx,sy]>>          => <wire CLK_W1 of <device *pll @[sx_pll,sy_pll]>>,
+            <pin WCLK_DELAY of <device *iol @[sx,sy]>>    => <wire CLK_W_DEL1 of <device *pll @[sx_pll,sy_pll]>>,
+            <pin VCC_REG of <device *iol @[sx,sy]>>       => <wire VCCREG1 of <device *pll @[sx_pll,sy_pll]>>,
+
+            <pin T_BYTEIN of <device *iol @[sx,sy]>>      => (ty==ty_dqs1_0) ? <wire TO2 of <device *pll @[sx_pll,sy_pll]>> :
+                                                             (ty==ty_dqs1_1) ? <wire TO2 of <device *pll @[sx_pll,sy_pll]>> 
+                                                                             : <wire TO3 of <device *pll @[sx_pll,sy_pll]>>,                                                                                 
+            <pin TERM_BYTEIN of <device *iol @[sx,sy]>>   => (ty==ty_dqs1_0) ? <wire TERM2 of <device *pll @[sx_pll,sy_pll]>> :
+                                                             (ty==ty_dqs1_1) ? <wire TERM2 of <device *pll @[sx_pll,sy_pll]>> 
+                                                                             : <wire TERM3 of <device *pll @[sx_pll,sy_pll]>>,
+
+            <pin PLLCLK0 of <device *iol @[sx,sy]>>       => <wire PHY_CLK1_2X_B_N of <device *pll @[sx_pll,sy_pll]>>,  
+            <pin PLLCLK0_N of <device *iol @[sx,sy]>>     => <wire PHY_CLK1_2X_B_P of <device *pll @[sx_pll,sy_pll]>>,  
+            <pin PLLCLK1 of <device *iol @[sx,sy]>>       => <wire SYSCLK1_B_N of <device *pll @[sx_pll,sy_pll]>> 
+          );
+      }
+    }
+};//end of function connect_iol_dqs_input_50h
+
+
+
+};//end of package pg2l50h_funcs_connect_io_bank
+
+
+
+
+
+
+
+
+
+

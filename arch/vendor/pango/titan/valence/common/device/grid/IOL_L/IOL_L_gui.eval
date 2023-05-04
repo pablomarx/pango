@@ -1,0 +1,722 @@
+*******************************************************************
+
+  Device    [IOL_L]
+
+  Author    [tangqiang]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+symbol logsym of IOL_L // pragma PAP_ARC_COLOR="64:64:128"
+{
+    // The bounding box
+    generate ( 80 # 200 );
+    //
+    // Poloygon declaration
+    //
+    shape
+    [ 0, 0 ]  ->  [ , 200]  <  
+
+                               
+                               SYSCLK             @[ ,20+20],                                
+                               LRS                @[ ,22+20],                                
+                               CE                 @[ ,24+20],   
+                               
+                               TX_DATA[0]         @[ ,30+40],
+                               TX_DATA[1]         @[ ,32+40], 
+                               
+                               TS_CTRL            @[ ,48+60], 
+                               
+                               IODLY_CTRL[0]      @[ ,64+80],
+                               IODLY_CTRL[1]      @[ ,66+80],
+                               IODLY_CTRL[2]      @[ ,68+80],
+                                                              
+                               SLIP               @[ ,80+100],                                                             
+                                                                                                                                                                                     
+                               RX_DATA[1]         @[ ,84+100],
+                               RX_DATA[0]         @[ ,86+100],                                                  
+                               RX_DATA_DD         @[ ,88+100],
+                               IODLY_OV           @[ ,90+100]
+                                                              
+                               
+                             >
+   
+              ->  [ 80, ]                                                         
+   
+              ->  [ , 0]     <
+                               DO_IN     @[ ,88+80], 
+                               TO_IN     @[ ,82+80], 
+                               DO_OUT    @[ ,76+80], 
+                               TO_OUT    @[ ,70+80],
+              
+                               TO        @[ ,60+60],
+                                                      
+                               DO        @[ ,50+50],
+                               
+                               DIN       @[ ,40+40]
+                            > 
+   
+              ->  [ 0, ]  ;
+
+}; // symbol logsym of IOL_L
+/*******************************************************************************
+
+  Device    [IOL_L]
+
+  Author    [tangqiang]
+
+  Abstract  [The schematic for IOL_L]
+
+  Revision History:
+
+********************************************************************************/
+schematic schm of IOL_L
+{
+    // The bounding box
+    generate ( 41*8 # 35*8 );
+
+    //
+    // Layout all symbols. 
+    // 
+    // Currently, the size of instance is made the same as its symbol
+    // definition. This is becasue that the port location in symbol definition has been nicely
+    // aligned. If no size is specified, the relative location of ports is preserved.
+    //
+    device LRS_MUX_L ( symbol logsym ) LRS_MUX_L
+        @[5*8,1*8+4]; 
+
+    device CE_MUX_L ( symbol logsym )  CE_MUX_L
+        @[5*8,3*8+2];
+
+    device SYSCLK_MUX_I_L ( symbol logsym ) SYSCLK_MUX_I_L
+        @[5*8,5*8-1];   
+
+    device SYSCLK_MUX_O_L ( symbol logsym ) SYSCLK_MUX_O_L
+        @[5*8,6*8+5];
+ 
+    device ODDR_LRS_MUX_L ( symbol logsym ) ODDR_LRS_MUX_L
+        @[12*8,10*8+4]; 
+
+    "0" @ [(<instance ODDR_LRS_MUX_L>#|)-3, <pin ZERO of <instance ODDR_LRS_MUX_L>>#-];         
+           
+    device OFF_LRS_MUX_L ( symbol logsym ) OFF_LRS_MUX_L
+        @[12*8+6,6*8-2]; 
+        
+    "0" @ [(<instance OFF_LRS_MUX_L>#|)-3, <pin ZERO of <instance OFF_LRS_MUX_L>>#-];           
+            
+    device OFF_CE_MUX_L ( symbol logsym ) OFF_CE_MUX_L
+        @[14*8,8*8];     
+
+    "1" @ [(<instance OFF_CE_MUX_L>#|)-3, <pin ONE of <instance OFF_CE_MUX_L>>#-]; 
+    
+    unsigned int pin_offset;     
+    pin_offset = <pin Y of <instance OFF_CE_MUX_L>>#-;        
+    
+    device OFF_L ( symbol logsym ) OFF_L
+        @[16*8+2,pin_offset-12];
+        
+    device ODDR_L ( symbol logsym ) ODDR_L
+        @[15*8,12*8];        
+                                
+    device TSFF_LRS_MUX_L ( symbol logsym ) TSFF_LRS_MUX_L
+        @[13*8,26*8]; 
+        
+    "0" @ [(<instance TSFF_LRS_MUX_L>#|)-3, <pin ZERO of <instance TSFF_LRS_MUX_L>>#-];         
+        
+    device TSFF_CE_MUX_L ( symbol logsym ) TSFF_CE_MUX_L
+        @[13*8,28*8];  
+        
+    "1" @ [(<instance TSFF_CE_MUX_L>#|)-3, <pin ONE of <instance TSFF_CE_MUX_L>>#-];                 
+        
+    pin_offset = <pin Y of <instance TSFF_CE_MUX_L>>#-;  
+    
+    device TSFF_L ( symbol logsym ) TSFF_L
+        @[15*8, pin_offset-12];      
+                        
+    device OUTPUT_MUX_L ( symbol logsym ) OUTPUT_MUX_L
+        @[22*8+6, 23*8];
+
+    device TS_MUX_L ( symbol logsym ) TS_MUX_L
+        @[21*8+6, 27*8];
+ 
+    device TO_MUX_L ( symbol logsym ) TO_MUX_L
+        @[24*8+6, 28*8+6]; 
+        
+    pin_offset = <pin Y of <instance LRS_MUX_L>>#-;    
+        
+    device IFF_LRS_MUX_L ( symbol logsym ) IFF_LRS_MUX_L
+        @[28*8, pin_offset-8];
+        
+    "0" @ [(<instance IFF_LRS_MUX_L>#|)-3, <pin ZERO of <instance IFF_LRS_MUX_L>>#-];        
+        
+    pin_offset = <pin Y of <instance CE_MUX_L>>#-;  
+    device IFF_CE_MUX_L ( symbol logsym ) IFF_CE_MUX_L
+        @[28*8, pin_offset-8];   
+        
+    "1" @ [(<instance IFF_CE_MUX_L>#|)-3, <pin ONE of <instance IFF_CE_MUX_L>>#-];              
+                       
+    pin_offset = <pin Y of <instance IFF_CE_MUX_L>>#-;                         
+                       
+    device IFF_L ( symbol logsym ) IFF_L
+        @[30*8+2, pin_offset-12];
+        
+    device IDDR_LRS_MUX_L ( symbol logsym ) IDDR_LRS_MUX_L
+        @[28*8, 6*8]; 
+        
+    "0" @ [(<instance IDDR_LRS_MUX_L>#|)-3, <pin ZERO of <instance IDDR_LRS_MUX_L>>#-];         
+  
+    device IDDR_L ( symbol logsym ) IDDR_L
+        @[28*8, 9*8];
+  
+    device IN_DELSEL_MUX_L ( symbol logsym ) IN_DELSEL_MUX_L
+        @[25*8+2, 21*8];
+
+    device IN_OUT_DELSEL_MUX_L ( symbol logsym ) IN_OUT_DELSEL_MUX_L
+        @[26*8+4, 26*8+4];
+
+    pin_offset = <pin Y of <instance IN_OUT_DELSEL_MUX_L>>#-;  
+
+    device DELAY_L ( symbol logsym ) DELAY_L
+        @[28*8+6, pin_offset-4];
+        
+    device OUT_DELSEL_MUX_L( symbol logsym ) OUT_DELSEL_MUX_L
+        @[35*8+2, 25*8];        
+        
+    device DO_MUX_L ( symbol logsym ) DO_MUX_L
+        @[36*8+1, 26*8+4];             
+        
+    device IDDR_IFF_MUX_L ( symbol logsym ) IDDR_IFF_MUX_L
+        @[35*8+2, 7*8];   
+        
+    //
+    // All device has been drawn. Now map the graphical object to the corresponding object
+    // in the logic structure netlist
+    //
+    map (
+            <instance LRS_MUX_L>              => <instance LRS_MUX_L               of device IOL_L (structure netlist)> ,
+            <instance CE_MUX_L>               => <instance CE_MUX_L                of device IOL_L (structure netlist)> ,
+            <instance SYSCLK_MUX_I_L>         => <instance SYSCLK_MUX_I_L          of device IOL_L (structure netlist)> ,
+            <instance SYSCLK_MUX_O_L>         => <instance SYSCLK_MUX_O_L          of device IOL_L (structure netlist)> ,           
+            <instance ODDR_LRS_MUX_L>         => <instance ODDR_LRS_MUX_L          of device IOL_L (structure netlist)> ,
+            <instance OFF_LRS_MUX_L>          => <instance OFF_LRS_MUX_L           of device IOL_L (structure netlist)> ,
+            <instance OFF_CE_MUX_L>           => <instance OFF_CE_MUX_L            of device IOL_L (structure netlist)> ,
+            <instance OFF_L>                  => <instance OFF_L                   of device IOL_L (structure netlist)> ,
+            <instance ODDR_L>                 => <instance ODDR_L                  of device IOL_L (structure netlist)> ,
+            <instance TSFF_LRS_MUX_L>         => <instance TSFF_LRS_MUX_L          of device IOL_L (structure netlist)> ,
+            <instance TSFF_CE_MUX_L>          => <instance TSFF_CE_MUX_L           of device IOL_L (structure netlist)> ,
+            <instance TSFF_L>                 => <instance TSFF_L                  of device IOL_L (structure netlist)> ,
+            <instance OUTPUT_MUX_L>           => <instance OUTPUT_MUX_L            of device IOL_L (structure netlist)> ,            
+            <instance TS_MUX_L>               => <instance TS_MUX_L                of device IOL_L (structure netlist)> ,
+            <instance TO_MUX_L>               => <instance TO_MUX_L                of device IOL_L (structure netlist)> ,
+            <instance IFF_LRS_MUX_L>          => <instance IFF_LRS_MUX_L           of device IOL_L (structure netlist)> ,
+            <instance IFF_CE_MUX_L>           => <instance IFF_CE_MUX_L            of device IOL_L (structure netlist)> ,
+            <instance IFF_L>                  => <instance IFF_L                   of device IOL_L (structure netlist)> ,
+            <instance IDDR_LRS_MUX_L>         => <instance IDDR_LRS_MUX_L          of device IOL_L (structure netlist)> ,           
+            <instance IDDR_IFF_MUX_L>         => <instance IDDR_IFF_MUX_L          of device IOL_L (structure netlist)> , 
+            <instance IDDR_L>                 => <instance IDDR_L                  of device IOL_L (structure netlist)> ,                      
+            <instance IN_DELSEL_MUX_L>        => <instance IN_DELSEL_MUX_L         of device IOL_L (structure netlist)> ,
+            <instance IN_OUT_DELSEL_MUX_L>    => <instance IN_OUT_DELSEL_MUX_L     of device IOL_L (structure netlist)> ,
+            <instance DELAY_L>                => <instance DELAY_L                 of device IOL_L (structure netlist)> ,
+            <instance DO_MUX_L>               => <instance DO_MUX_L                of device IOL_L (structure netlist)> ,
+            <instance OUT_DELSEL_MUX_L>       => <instance OUT_DELSEL_MUX_L        of device IOL_L (structure netlist)>          
+        );
+
+
+    //
+    // Layout all ports. 
+    // 
+    // Since ports drive or are driven by pins of symbol instance, derive the port
+    // location from those pins
+    //
+    pin_offset = <pin I1 of <instance LRS_MUX_L>>#-;
+    port LRS @[3*8,pin_offset];
+
+    pin_offset = <pin I1 of <instance CE_MUX_L>>#-;
+    port CE  @[3*8,pin_offset];
+
+    pin_offset = <pin I1 of <instance SYSCLK_MUX_O_L>>#-;
+    port SYSCLK  @[3*8,pin_offset];
+      
+    port TS_CTRL  @[3*8, <pin TS of <instance ODDR_L>>#-];
+
+    port TX_DATA[0]    @[3*8, <pin DATA[0] of <instance ODDR_L>>#-];
+    port TX_DATA[1]    @[3*8, <pin DATA[1] of <instance ODDR_L>>#-];
+                       
+    port RX_DATA_DD    @[37*8+4, 5*8+5]; 
+                       
+    port RX_DATA[0]    @[37*8+4, <pin Y of <instance IDDR_IFF_MUX_L>>#-];
+    port RX_DATA[1]    @[37*8+4, <pin DATAOUT[1] of <instance IDDR_L>>#-];
+                       
+    port DIN           @[37*8+4, 23*8+2];  // pragma PAP_UI_ORIENTATION="EAST" 
+                       
+    port DO_OUT        @[37*8+4, <pin Y of <instance OUT_DELSEL_MUX_L>>#-];      
+    port DO            @[37*8+4, <pin Y of <instance DO_MUX_L>>#-];    
+    port DO_IN         @[37*8+4, 28*8+3];// pragma PAP_UI_ORIENTATION="EAST"     
+                       
+    port IODLY_OV      @[37*8+4, <pin IODLY_OV of <instance DELAY_L>>#-];     
+                       
+    port TO_OUT        @[23*8+2, 32*8]; // pragma PAP_UI_ORIENTATION="NORTH"     
+    port TO_IN         @[24*8+3, 32*8]; // pragma PAP_UI_ORIENTATION="NORTH"     
+    port TO            @[<pin Y of <instance TO_MUX_L>>#|, 32*8]; // pragma PAP_UI_ORIENTATION="NORTH"               
+    
+    port IODLY_CTRL[2] @[<pin IODLY_CTRL[2] of <instance DELAY_L>>#|, 32*8]; // pragma PAP_UI_ORIENTATION="NORTH"           
+    port IODLY_CTRL[1] @[<pin IODLY_CTRL[1] of <instance DELAY_L>>#|, 32*8]; // pragma PAP_UI_ORIENTATION="NORTH"     
+    port IODLY_CTRL[0] @[<pin IODLY_CTRL[0] of <instance DELAY_L>>#|, 32*8]; // pragma PAP_UI_ORIENTATION="NORTH"    
+   
+
+    // DEBUG
+    // breakpoint();    
+
+    //
+    // Layout all lines (wires in the logic netlist)
+    //
+    // The name of line is preceeded with "ln"
+    //
+    
+    
+    
+ line lnLRS
+        <port LRS> ->
+        [(<instance LRS_MUX_L>#|)-4, ] ->  
+        <pin I1 of <instance LRS_MUX_L>>,   
+            
+        [(<instance LRS_MUX_L>#|)-4, <port LRS>#-] ->
+        [ , <pin I0 of <instance LRS_MUX_L>>#-] ->
+        <pin I0 of <instance LRS_MUX_L>>;          
+    
+ line lnCE
+        <port CE> ->
+        [(<instance CE_MUX_L>#|)-4, ] ->  
+        <pin I1 of <instance CE_MUX_L>>,   
+            
+        [(<instance CE_MUX_L>#|)-4, <port CE>#-] ->
+        [ , <pin I0 of <instance CE_MUX_L>>#-] ->
+        <pin I0 of <instance CE_MUX_L>>;          
+        
+ line lnSYSCLK
+        <port SYSCLK> ->
+        [(<instance SYSCLK_MUX_O_L>#|)-4, ] ->  
+        <pin I1 of <instance SYSCLK_MUX_O_L>>,   
+            
+        [(<instance SYSCLK_MUX_O_L>#|)-4, <port SYSCLK>#-] ->
+        [ , <pin I0 of <instance SYSCLK_MUX_O_L>>#-] ->
+        <pin I0 of <instance SYSCLK_MUX_O_L>>,
+        
+        [(<instance SYSCLK_MUX_O_L>#|)-4, <pin I0 of <instance SYSCLK_MUX_O_L>>#-] ->     
+        [ , <pin I1 of <instance SYSCLK_MUX_I_L>>#-] ->
+        <pin I1 of <instance SYSCLK_MUX_I_L>>,    
+  
+        [(<instance SYSCLK_MUX_O_L>#|)-4, <pin I1 of <instance SYSCLK_MUX_I_L>>#-] ->     
+        [ , <pin I0 of <instance SYSCLK_MUX_I_L>>#-] ->
+        <pin I0 of <instance SYSCLK_MUX_I_L>>;  
+      
+            
+ line lnTS_CTRL
+        <port TS_CTRL> ->
+        [5*8+5, ]-> 
+         <pin TS of <instance ODDR_L>>,
+         
+        [5*8+5,<port TS_CTRL>#-]->       
+        [,25*8+2]->
+        [19*8, ] ->        
+        [ , <pin I1 of <instance TS_MUX_L>>#-] ->
+        <pin I1 of <instance TS_MUX_L>>,        
+        
+        [5*8+5,25*8+2]->
+        [, <pin D of <instance TSFF_L>>#-]->
+        <pin D of <instance TSFF_L>>;        
+          
+ line lnTX_DATA0
+        <port TX_DATA[0]> -> 
+        [5*8, ] ->       
+        <pin DATA[0] of <instance ODDR_L>>,
+        
+        [5*8,<port TX_DATA[0]>#-] ->
+        [ ,<pin I2 of <instance OUTPUT_MUX_L>>#-]->
+        <pin I2 of <instance OUTPUT_MUX_L>>,
+        
+        [5*8,<port TX_DATA[0]>#-] ->
+        [ ,<pin D of <instance OFF_L>>#-] ->
+        <pin D of <instance OFF_L>>;                    
+
+ line lnTX_DATA1
+        <port TX_DATA[1]> -> <pin DATA[1] of <instance ODDR_L>>;
+
+
+ line lnLRS_MUX
+        <pin Y of <instance LRS_MUX_L>> ->
+        [9*8+5, ]->
+        [21*8+5, ]->
+        <pin LRS of <instance IFF_LRS_MUX_L>>,
+        
+        [9*8+5,<pin Y of <instance LRS_MUX_L>>#-]->
+        [ ,<pin LRS of <instance OFF_LRS_MUX_L>>#-]->
+        <pin LRS of <instance OFF_LRS_MUX_L>>,
+        
+        [9*8+5,<pin LRS of <instance OFF_LRS_MUX_L>>#-]->
+        [ ,<pin LRS of <instance ODDR_LRS_MUX_L>>#-]->
+        <pin LRS of <instance ODDR_LRS_MUX_L>>,        
+    
+        [9*8+5,<pin LRS of <instance ODDR_LRS_MUX_L>>#-]->
+        [ ,<pin LRS of <instance TSFF_LRS_MUX_L>>#-]->
+        <pin LRS of <instance TSFF_LRS_MUX_L>>, 
+
+        [21*8+5,<pin Y of <instance LRS_MUX_L>>#-]->
+        [ ,<pin LRS of <instance IDDR_LRS_MUX_L>>#-]->
+        <pin LRS of <instance IDDR_LRS_MUX_L>>;
+
+ line lnCE_MUX
+        <pin Y of <instance CE_MUX_L>> ->
+        [7*8+6, ]->      
+        <pin CE of <instance IFF_CE_MUX_L>>,
+
+        [7*8+6,<pin Y of <instance CE_MUX_L>>#-]->
+        [ ,<pin CE of <instance OFF_CE_MUX_L>>#-]->
+        <pin CE of <instance OFF_CE_MUX_L>>,
+
+        [7*8+6,<pin CE of <instance OFF_CE_MUX_L>>#-]->
+        [ ,<pin CE of <instance TSFF_CE_MUX_L>>#-]->
+        <pin CE of <instance TSFF_CE_MUX_L>>;
+
+ line lnSYSCLK_MUX_I
+        <pin Y of <instance SYSCLK_MUX_I_L>> ->
+        [24*8, ]->
+        [ ,<pin CLK of <instance IFF_L>>#-]->        
+        <pin CLK of <instance IFF_L>>,
+
+        [24*8,<pin Y of <instance SYSCLK_MUX_I_L>>#-]->
+        [ ,<pin SYSCLK of <instance IDDR_L>>#-]->
+        <pin SYSCLK of <instance IDDR_L>>;
+
+ line lnSYSCLK_MUX_O
+        <pin Y of <instance SYSCLK_MUX_O_L>> ->
+        [7*8, ]->
+        [11*8+3, ]->
+        [ ,<pin CLK of <instance OFF_L>>#-]->        
+        <pin CLK of <instance OFF_L>>,
+
+        [7*8,<pin Y of <instance SYSCLK_MUX_O_L>>#-]->
+        [ ,<pin SYSCLK of <instance ODDR_L>>#-]->
+        <pin SYSCLK of <instance ODDR_L>>,
+        
+        [7*8,<pin SYSCLK of <instance ODDR_L>>#-]->        
+        [ ,<pin CLK of <instance TSFF_L>>#-]->
+        <pin CLK of <instance TSFF_L>>;
+
+ line lnODDR_LRS_MUX
+        <pin Y of <instance ODDR_LRS_MUX_L>> ->
+        [<pin LRS of <instance ODDR_L>>#|,]->
+        <pin LRS of <instance ODDR_L>>;        
+
+ line lnOFF_LRS_MUX
+        <pin Y of <instance OFF_LRS_MUX_L>> ->
+        [<pin LRS of <instance OFF_L>>#|,]->
+        <pin LRS of <instance OFF_L>>;
+
+ line lnOFF_CE_MUX
+        <pin Y of <instance OFF_CE_MUX_L>> ->
+        <pin CE of <instance OFF_L>>;
+
+ line lnOFF
+        <pin Q of <instance OFF_L>> ->
+        [21*8+3, ]->      
+        [ ,<pin I0 of <instance OUTPUT_MUX_L>>#-]->      
+        <pin I0 of <instance OUTPUT_MUX_L>>;
+
+ line lnODDR_TS
+        <pin TO of <instance ODDR_L>> ->
+        [20*8+3, ]->      
+        [ ,<pin I0 of <instance TS_MUX_L>>#-]->      
+        <pin I0 of <instance TS_MUX_L>>;
+
+ line lnODDR_TX
+        <pin DO of <instance ODDR_L>> ->
+        [20*8+7, ]->      
+        [ ,<pin I1 of <instance OUTPUT_MUX_L>>#-]->      
+        <pin I1 of <instance OUTPUT_MUX_L>>;
+
+ line lnTSFF_LRS_MUX
+        <pin Y of <instance TSFF_LRS_MUX_L>> ->
+        [<pin LRS of <instance TSFF_L>>#|,]->
+        <pin LRS of <instance TSFF_L>>;
+
+ line lnTSFF_CE_MUX
+        <pin Y of <instance TSFF_CE_MUX_L>> ->
+        <pin CE of <instance TSFF_L>>;
+
+ line lnTSFF
+        <pin Q of <instance TSFF_L>> ->
+        [19*8, ]->      
+        [ ,<pin I2 of <instance TS_MUX_L>>#-]->      
+        <pin I2 of <instance TS_MUX_L>>;
+        
+ line lnOUTPUT_MUX
+        <pin Y of <instance OUTPUT_MUX_L>> ->
+        [24*8+5, ]->      
+        [ ,<pin I0 of <instance OUT_DELSEL_MUX_L>>#-]->      
+        [25*8+7, ]->
+        <pin I0 of <instance OUT_DELSEL_MUX_L>>,  
+        
+        [25*8+7,<pin I0 of <instance OUT_DELSEL_MUX_L>>#-]->
+        [ ,<pin I0 of <instance IN_OUT_DELSEL_MUX_L>>#-]->         
+        <pin I0 of <instance IN_OUT_DELSEL_MUX_L>>;
+
+ line lnTS_MUX
+        <pin Y of <instance TS_MUX_L>> ->
+        [23*8+2, ]->
+        [,28*8+2]->
+        <port TO_OUT>,
+        
+        [23*8+2,28*8+2]->
+        [<pin I0 of <instance TO_MUX_L>>#|,]->         
+        <pin I0 of <instance TO_MUX_L>>;         
+        
+ line lnTO_MUX
+        <pin Y of <instance TO_MUX_L>> ->
+        <port TO>;               
+
+ line lnTO_IN
+        <port TO_IN>->
+        [,28*8+4]->
+        [<pin I1 of <instance TO_MUX_L>>#|,]->         
+        <pin I1 of <instance TO_MUX_L>>;                     
+
+ line lnIFF_LRS_MUX
+        <pin Y of <instance IFF_LRS_MUX_L>> ->
+        [<pin LRS of <instance IFF_L>>#|,]->
+        <pin LRS of <instance IFF_L>>;
+
+ line lnIFF_CE_MUX
+        <pin Y of <instance IFF_CE_MUX_L>> ->
+        <pin CE of <instance IFF_L>>;
+
+ line lnIFF
+        <pin Q of <instance IFF_L>> -> 
+        [34*8+4, ]->
+        [,<pin IFF of <instance IDDR_IFF_MUX_L>>#-]->
+        <pin IFF of <instance IDDR_IFF_MUX_L>>;    
+
+ line lnIDDR_LRS_MUX
+        <pin Y of <instance IDDR_LRS_MUX_L>> ->
+        [<pin LRS of <instance IDDR_L>>#|,]->
+        <pin LRS of <instance IDDR_L>>;
+
+ line lnDATAOUT0
+        <pin DATAOUT[0] of <instance IDDR_L>> ->
+        [34*8+4, ]->        
+        [,<pin IDDR of <instance IDDR_IFF_MUX_L>>#-]->
+        <pin IDDR of <instance IDDR_IFF_MUX_L>>;  
+
+ line lnDATAOUT1
+        <pin DATAOUT[1] of <instance IDDR_L>> ->
+        <port RX_DATA[1]>;
+
+ line lnDIN
+        <port DIN>->
+        [<pin I0 of <instance IN_DELSEL_MUX_L>>#|, ]->
+        <pin I0 of <instance IN_DELSEL_MUX_L>>,
+        
+        [<pin I0 of <instance IN_DELSEL_MUX_L>>#|,<port DIN>#-]->
+        [ ,<pin I1 of <instance IN_OUT_DELSEL_MUX_L>>#-]->
+        <pin I1 of <instance IN_OUT_DELSEL_MUX_L>>;        
+
+ line lnIN_DELSEL_MUX
+        <pin Y of <instance IN_DELSEL_MUX_L>> ->
+        [ ,<pin IN of <instance IDDR_L>>#-]->
+        <pin IN of <instance IDDR_L>>,
+       
+        [<pin Y of <instance IN_DELSEL_MUX_L>>#|,<pin IN of <instance IDDR_L>>#-]->     
+        [ ,<pin D of <instance IFF_L>>#-]->
+        [28*8, ]->
+        <pin D of <instance IFF_L>>,
+        
+        [28*8,<pin D of <instance IFF_L>>#-]-> 
+        [ ,<port RX_DATA_DD>#-]->
+        <port RX_DATA_DD>;       
+
+ line lnIN_OUT_DELSEL_MUX
+        <pin Y of <instance IN_OUT_DELSEL_MUX_L>> ->
+        <pin DIN of <instance DELAY_L>>;
+
+ line lnDELAY_DOUT
+        <pin DOUT of <instance DELAY_L>> ->
+        [34*8+5, ]->
+        [ ,<pin I1 of <instance OUT_DELSEL_MUX_L>>#-]->
+        <pin I1 of <instance OUT_DELSEL_MUX_L>>,
+        
+        [34*8+5,<pin I1 of <instance OUT_DELSEL_MUX_L>>#-]->  
+        [34*8+5,24*8+2]->
+        [ <pin I1 of <instance IN_DELSEL_MUX_L>>#|,]->
+        <pin I1 of <instance IN_DELSEL_MUX_L>>;                    
+
+ line lnIODLY_OV
+        <pin IODLY_OV of <instance DELAY_L>> -> <port IODLY_OV>;
+
+ line lnIODLY_CTRL0
+        <pin IODLY_CTRL[0] of <instance DELAY_L>> ->
+        <port IODLY_CTRL[0]>;
+
+ line lnIODLY_CTRL1
+        <pin IODLY_CTRL[1] of <instance DELAY_L>> ->
+        <port IODLY_CTRL[1]>;
+
+ line lnIODLY_CTRL2
+        <pin IODLY_CTRL[2] of <instance DELAY_L>> ->
+        <port IODLY_CTRL[2]>;
+
+ line lnOUT_DELSEL_MUX
+        <pin Y of <instance OUT_DELSEL_MUX_L>> ->
+        [36*8,]->
+        <port DO_OUT>,
+        
+        [36*8,<pin Y of <instance OUT_DELSEL_MUX_L>>#-]->
+        [ ,<pin I0 of <instance DO_MUX_L>>#-]->
+        <pin I0 of <instance DO_MUX_L>>;  
+                
+ line lnDO_MUX
+        <pin Y of <instance DO_MUX_L>> ->
+        <port DO>;
+                
+ line lnDO_IN
+        <port DO_IN>->
+        [36*8,]->
+        [ ,<pin I1 of <instance DO_MUX_L>>#-]->
+        <pin I1 of <instance DO_MUX_L>>;                                
+
+ line lnIDDR_IFF_MUX
+        <pin Y of <instance IDDR_IFF_MUX_L>> ->
+        <port RX_DATA[0]>;
+        
+    //
+    // Map lines to nets in the logic counterpart
+    //
+    map (
+            <line lnLRS>                    => <wire ntLRS                    of device IOL_L (structure netlist)> ,
+            <line lnCE>                     => <wire ntCE                     of device IOL_L (structure netlist)> ,
+            <line lnSYSCLK>                 => <wire ntSYSCLK                 of device IOL_L (structure netlist)> ,        
+            <line lnTS_CTRL>                => <wire ntTS_CTRL                of device IOL_L (structure netlist)> ,            
+            <line lnTX_DATA0>               => <wire ntTX_DATA[0]             of device IOL_L (structure netlist)> ,
+            <line lnTX_DATA1>               => <wire ntTX_DATA[1]             of device IOL_L (structure netlist)> ,                                   
+            <line lnLRS_MUX>                => <wire ntLRS_MUX                of device IOL_L (structure netlist)> ,
+            <line lnCE_MUX>                 => <wire ntCE_MUX                 of device IOL_L (structure netlist)> ,
+            <line lnSYSCLK_MUX_I>           => <wire ntSYSCLK_MUX_I           of device IOL_L (structure netlist)> ,
+            <line lnSYSCLK_MUX_O>           => <wire ntSYSCLK_MUX_O           of device IOL_L (structure netlist)> ,          
+            <line lnODDR_LRS_MUX>           => <wire ntODDR_LRS_MUX           of device IOL_L (structure netlist)> ,        
+            <line lnOFF_LRS_MUX>            => <wire ntOFF_LRS_MUX            of device IOL_L (structure netlist)> ,
+            <line lnOFF_CE_MUX>             => <wire ntOFF_CE_MUX             of device IOL_L (structure netlist)> ,
+            <line lnOFF>                    => <wire ntOFF_Q                  of device IOL_L (structure netlist)> ,
+            <line lnODDR_TS>                => <wire ntODDR_TS                of device IOL_L (structure netlist)> ,
+            <line lnODDR_TX>                => <wire ntODDR_TX                of device IOL_L (structure netlist)> ,
+            <line lnTSFF_LRS_MUX>           => <wire ntTSFF_LRS_MUX           of device IOL_L (structure netlist)> ,
+            <line lnTSFF_CE_MUX>            => <wire ntTSFF_CE_MUX            of device IOL_L (structure netlist)> ,
+            <line lnTSFF>                   => <wire ntTSFF_Q                 of device IOL_L (structure netlist)> ,
+            <line lnOUTPUT_MUX>             => <wire ntOUTPUT_MUX             of device IOL_L (structure netlist)> ,
+            <line lnTS_MUX>                 => <wire ntTS_MUX                 of device IOL_L (structure netlist)> ,
+            <line lnTO_MUX>                 => <wire ntTO_MUX                 of device IOL_L (structure netlist)> ,
+            <line lnTO_IN>                  => <wire ntTO_IN                  of device IOL_L (structure netlist)> ,
+            <line lnIFF_LRS_MUX>            => <wire ntIFF_LRS_MUX            of device IOL_L (structure netlist)> ,
+            <line lnIFF_CE_MUX>             => <wire ntIFF_CE_MUX             of device IOL_L (structure netlist)> ,
+            <line lnIFF>                    => <wire ntIFF                    of device IOL_L (structure netlist)> ,
+            <line lnIDDR_LRS_MUX>           => <wire ntIDDR_LRS_MUX           of device IOL_L (structure netlist)> ,                                  
+            <line lnDATAOUT0>               => <wire ntRX_DATA0               of device IOL_L (structure netlist)> ,
+            <line lnDATAOUT1>               => <wire ntRX_DATA[1]             of device IOL_L (structure netlist)> ,                
+            <line lnDIN>                    => <wire ntDIN                    of device IOL_L (structure netlist)> ,
+            <line lnIN_DELSEL_MUX>          => <wire ntIN_DELSEL_MUX          of device IOL_L (structure netlist)> ,
+            <line lnIN_OUT_DELSEL_MUX>      => <wire ntIN_OUT_DELSEL_MUX      of device IOL_L (structure netlist)> ,
+            <line lnDELAY_DOUT>             => <wire ntDELAY_DOUT             of device IOL_L (structure netlist)> ,
+            <line lnIODLY_OV>               => <wire ntIODLY_OV               of device IOL_L (structure netlist)> ,
+            <line lnIODLY_CTRL0>            => <wire ntIODLY_CTRL[0]          of device IOL_L (structure netlist)> ,
+            <line lnIODLY_CTRL1>            => <wire ntIODLY_CTRL[1]          of device IOL_L (structure netlist)> ,
+            <line lnIODLY_CTRL2>            => <wire ntIODLY_CTRL[2]          of device IOL_L (structure netlist)> ,
+            <line lnOUT_DELSEL_MUX>         => <wire ntOUT_DELSEL_MUX         of device IOL_L (structure netlist)> ,
+            <line lnDO_MUX>                 => <wire ntDO_MUX                 of device IOL_L (structure netlist)> ,
+            <line lnDO_IN>                  => <wire ntDO_IN                  of device IOL_L (structure netlist)> ,            
+            <line lnIDDR_IFF_MUX>           => <wire ntRX_DATA[0]             of device IOL_L (structure netlist)>
+        );
+
+
+
+
+
+    //
+    // Free-hanging lines
+    //
+    
+    line lnOFF_LRS_MUX_1
+        [(<instance OFF_LRS_MUX_L>#|)-2, <pin ZERO of <instance OFF_LRS_MUX_L>>#-] -> 
+        <pin ZERO  of <instance OFF_LRS_MUX_L>>; 
+
+    line lnOFF_CE_MUX_1
+        [(<instance OFF_CE_MUX_L>#|)-2, <pin ONE of <instance OFF_CE_MUX_L>>#-] -> 
+        <pin ONE  of <instance OFF_CE_MUX_L>>;       
+        
+    line lnODDR_LRS_MUX_1
+        [(<instance ODDR_LRS_MUX_L>#|)-2, <pin ZERO of <instance ODDR_LRS_MUX_L>>#-] -> 
+        <pin ZERO  of <instance ODDR_LRS_MUX_L>>;         
+        
+    line lnTSFF_LRS_MUX_1
+        [(<instance TSFF_LRS_MUX_L>#|)-2, <pin ZERO of <instance TSFF_LRS_MUX_L>>#-] -> 
+        <pin ZERO  of <instance TSFF_LRS_MUX_L>>; 
+        
+    line lnTSFF_CE_MUX_1
+        [(<instance TSFF_CE_MUX_L>#|)-2, <pin ONE of <instance TSFF_CE_MUX_L>>#-] -> 
+        <pin ONE  of <instance TSFF_CE_MUX_L>>;         
+                
+    line lnIFF_LRS_MUX_1
+        [(<instance IFF_LRS_MUX_L>#|)-2, <pin ZERO of <instance IFF_LRS_MUX_L>>#-] -> 
+        <pin ZERO  of <instance IFF_LRS_MUX_L>>; 
+
+    line lnIFF_CE_MUX_1
+        [(<instance IFF_CE_MUX_L>#|)-2, <pin ONE of <instance IFF_CE_MUX_L>>#-] -> 
+        <pin ONE  of <instance IFF_CE_MUX_L>>;           
+        
+    line lnIDDR_LRS_MUX_1
+        [(<instance IDDR_LRS_MUX_L>#|)-2, <pin ZERO of <instance IDDR_LRS_MUX_L>>#-] -> 
+        <pin ZERO  of <instance IDDR_LRS_MUX_L>>; 
+                
+}; // end of schematic schm of IOL_L    
+
+
+    
+/*******************************************************************************
+
+  Device    [IOL_L]
+
+  Author    [tangqiang]
+
+  Abstract  [The floorplan schematic for IOL_L]
+
+  Revision History:
+
+********************************************************************************/
+floorplan
+schematic floorplan_view of IOL_L // pragma PAP_ARC_SHOW_BOUNDING_BOX
+{
+    generate ( 20*8 # 20*8 );
+
+    device IFF_L (symbol fpsym) IFF_L
+        @[2*8, 4*8];
+    device IDDR_L (symbol fpsym) IDDR_L
+        @[2*8, 12*8];
+    device OFF_L (symbol fpsym) OFF_L
+        @[8*8, 4*8];
+    device ODDR_L (symbol fpsym) ODDR_L
+        @[8*8, 12*8];
+    device TSFF_L (symbol fpsym) TSFF_L
+        @[14*8, 4*8];
+    device DELAY_L (symbol fpsym) DELAY_L
+        @[14*8, 12*8];
+
+
+    map (
+         <instance IFF_L >    => <instance IFF_L    of device IOL_L (structure fp_struct)> ,
+         <instance IDDR_L>    => <instance IDDR_L   of device IOL_L (structure fp_struct)> ,
+         <instance OFF_L>     => <instance OFF_L    of device IOL_L (structure fp_struct)> ,
+         <instance ODDR_L>    => <instance ODDR_L   of device IOL_L (structure fp_struct)> ,
+         <instance TSFF_L>    => <instance TSFF_L   of device IOL_L (structure fp_struct)> ,
+         <instance DELAY_L>   => <instance DELAY_L  of device IOL_L (structure fp_struct)>
+        );
+};         
+                          

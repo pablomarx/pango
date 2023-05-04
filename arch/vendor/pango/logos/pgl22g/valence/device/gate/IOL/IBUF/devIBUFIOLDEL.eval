@@ -1,0 +1,133 @@
+*****************************************************************
+
+  Device    [devIBUFIOLDEL]
+
+  Author    [yqtan]
+
+  Abstract  [device base on IOL, used as inout path through to IOB ]
+
+  Revision History:
+
+********************************************************************************/
+
+gate
+device devIBUFIOLDEL : device IOL
+{
+    parameter
+    (
+        config bit CP_DELAY_SETTING[1:0] := 2'b10,    //2'd0 => neither input nor output use delay unit; 2'd1 => delay unit for output; 
+                                                      //2'd2 => delay unit for input; 2'd3 => illegal setting
+        config bit    CP_IODLY_STEP[3:0]  = 4'b0000,  //d'0~d'15
+        config string CP_IODLY_DYN       := "TRUE",
+        config string CP_IODLY_DEGL       = "FALSE",
+        config string CP_MIPI_EN          = "DISABLE" //"DISABLE", "ENABLE"
+    );
+    port
+    (
+        input   IODLY_CTRL[2:0],
+        input   DI,
+        input   MIPI_SW_DYN_I,
+        output  MIPI_SW_DYN_O,
+        output  IODLY_OV,
+        
+        output  RX_DATA_DD,
+        output  TO,
+        output  INCK
+    );
+
+}// end of device devIBUFIOLDEL
+
+/*******************************************************************************
+
+  Device    [devIBUFIOLDEL]
+
+  Author    [yqtan]
+
+  Abstract  [The structure netlist of devIBUFIOLDEL is described in the similar fashion
+             as in HDL. In unit instantiation statement, the formal pin may be
+             connected to net which is declared explicitly.
+
+             In Valence, the connection can also be made from formal pin to other
+             pin or port, in which case Valence compiler shall create the net to
+             fulfil the connection. The built-in naming convention is kicked in
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devIBUFIOLDEL
+{    
+    // Wires connecting to output ports
+    wire ntDI;
+    wire ntIODLY_OV;
+    wire ntRX_DATA_DD;
+    
+    wire ntDIN;
+    wire ntDOUT;
+    
+    wire ntMIPI_SW_DYN_I;
+    wire ntMIPI_SW_DYN_O;
+    
+    ntMIPI_SW_DYN_I      <= MIPI_SW_DYN_I;
+    MIPI_SW_DYN_O        <= ntMIPI_SW_DYN_O;
+    
+    ntDI         <= DI;
+    
+    IODLY_OV     <= ntIODLY_OV;
+    RX_DATA_DD   <= ntRX_DATA_DD;
+    INCK         <= ntDI;
+   
+   device MUX21_EN MIPI_EN_MUX
+        parameter map
+        (
+            CP_SEL => CP_MIPI_EN
+        )
+        port map
+        (
+            X0 => ntMIPI_SW_DYN_I,
+            X1 => 1'b0,
+            Y  => ntMIPI_SW_DYN_O
+        );
+        
+   device MUX21  IN_OUT_DELSEL_MUX
+       parameter map
+       (
+           CP_SEL => CP_DELAY_SETTING[0]
+       )
+       port map
+       (
+           X0    => ntDI,
+           Y     => ntDIN
+        );
+
+    
+   device DLY DELAY
+        parameter map
+        (
+            CP_IODLY_STEP => CP_IODLY_STEP,
+            CP_IODLY_DYN  => CP_IODLY_DYN,
+            CP_IODLY_DEGL => CP_IODLY_DEGL
+        )
+        port map
+        (
+            DIN        => ntDIN,
+            DOUT       => ntDOUT,
+            IODLY_CTRL => IODLY_CTRL,
+            IODLY_OV   => ntIODLY_OV
+        );
+    
+    device MUX21  IN_DELSEL_MUX
+        parameter map
+        (
+           CP_SEL => CP_DELAY_SETTING[1]
+        )
+        port map
+        (
+           X1     => ntDOUT,
+           Y      => ntRX_DATA_DD
+        );            
+}; // end of structure netlist of devIBUFIOLDEL
+

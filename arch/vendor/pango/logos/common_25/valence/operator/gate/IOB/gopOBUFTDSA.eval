@@ -1,0 +1,56 @@
+*******************************************************************
+
+  Operator    [gopOBUFTDSA]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+
+gate
+operator gopOBUFTDSA
+{
+    parameter
+    (
+        string TERMINATED         = "PULLUP",    /* "UNUSED" , "PULLUP" , "PULLDOWN" , "KEEPER" */
+        string HOT_SOCKET         = "ON",        // ON: 1'b0; OFF: 1'b1
+        string POWER_MODE         = "ON",        // ON: 1'b0; OFF: 1'b1 ON--> POWER GUARD
+        string VCCIO              = "3.3",       // "3.3" "2.5" "1.8" "1.5" "1.2"
+
+        string SLEW_MODE          = "F",  // "F" "S"
+        string DRV_CURR_VAL       = "4",
+        string IOSTANDARD         = "LVDS25",
+        string DIFF_IN_TERM_MODE     = "OFF"
+    );
+    port
+    (
+        input  I,
+        input  T,
+        output DIFFO_OUT,
+        output O
+    );
+};
+
+implementation impl of gopOBUFTDSA
+{
+    device devOBUFTDSAD gate_obuftdsad
+        parameter map
+        (
+            CP_PORT_STATUS        =>  TERMINATED,
+            CP_HOT_SOCKET         =>  HOT_SOCKET,
+            CP_VCCIO              =>  VCCIO,
+            CP_IOB_MODE           =>  "OBUFHR_DS",
+            CP_SLEW_MODE          =>  SLEW_MODE,
+            CP_DRV_STRENGTH       =>  DRV_CURR_VAL,
+            CP_IO_STANDARD        =>  IOSTANDARD,
+            CP_DIFFIN_TERM      =>  DIFF_IN_TERM_MODE
+        )
+        port map 
+        (
+            DO        => I,
+            TS        => T,
+            DIFFO_OUT => DIFFO_OUT,
+            PAD       => O
+        );
+};

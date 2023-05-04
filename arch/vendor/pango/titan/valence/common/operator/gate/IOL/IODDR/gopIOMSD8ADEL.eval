@@ -1,0 +1,160 @@
+*******************************************************************
+
+  Operator    [gopIOMSD8ADEL]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+gate
+operator gopIOMSD8ADEL
+{
+    parameter
+    (
+        string IN_MUX_SEL         = "DIN",       // "DIN"     : IN_FROM_PAD
+                                                 // "DIN_CDR" : IN_PAD_FOR_CDR
+        string DELAY_MODE      = "NODELAY",   //"NODELAY", "INDELAY", "OUTDELAY",
+        string DELAY_SEL       = "DEFAULT",
+        bit    IODLY_CTRL_EN   = 1'b0,
+        bit    IODLY_STEP[6:0] = 7'b000_0000,
+        bit    GRS_EN          = 1'b0,
+        bit    DPI_EN           = 1'b0,
+
+        string SER_DES_CLK_SRC  = "IOCLK",      //"IOCLK",  "SAMPLE_CLK" "PROBE_CLK"
+        string OCLK_SRC         = "WCLK",            // "WCLK", "WCLK_DEL"   
+
+        bit    WL_EXTEND        = 1'b0,
+        bit    IDDR_LRS_EN      = 1'b0,
+        bit    ODDR_LRS_EN      = 1'b0,
+        bit    CLK_I_INV        = 1'b0,
+        bit    CLK_O_INV        = 1'b0,
+        bit    LRS_INV          = 1'b0
+    );
+    port
+    (
+        input   D[5:0],
+        input   T[3:0],        
+        output  Q[5:0],
+        output  OUT,
+
+        input   IFIFO_WADDR[2:0],
+        input   IFIFO_RADDR[2:0],
+
+        input   DPI_CTRL[1:0],
+        input   DPI_STS_CLR,
+        output  DPI_STS[1:0],
+
+        input   IODLY_CTRL[2:0],
+        output  IODLY_OV,
+    
+        input   SER_DES_CLK,
+        
+        input   ICLK,
+        input   TCLK,
+
+        input   SYSCLK /* pragma PAP_ARC_GOP_CTRL_PIN = "GCLK|RCLK"*/,
+
+        input   RESET /* pragma PAP_ARC_GOP_CTRL_PIN = RST*/,
+        input   SLIP,
+
+        input   PADI,
+        output  PADO,
+        output  PADT,
+        input   ODDR_CIN[16:0],
+        output   ODDR_COUT[16:0],
+        output  IDDR_COUT[6:0],
+        input  IDDR_CIN[6:0],
+
+        output  DO_OUT,
+        output  TO_OUT
+    );
+};
+
+implementation impl of gopIOMSD8ADEL
+{
+    // IDDR/ODDR config
+
+    if((SER_DES_CLK_SRC != "SAMPLE_CLK") && (SER_DES_CLK_SRC != "PROBE_CLK") && (SER_DES_CLK_SRC != "IOCLK"))
+    {
+        error("Error config SER_DES_CLK_SRC = %s in gopIMDES8A", SER_DES_CLK_SRC);
+    }
+
+    string ODDR_OCLK      = "WCLK";      // "WCLK", "WCLKDEL"
+
+    if((OCLK_SRC != "WCLK") && (OCLK_SRC != "WCLK_DEL"))
+    {
+        error("Error config OCLK_SRC = %s in gopOMSER8A", OCLK_SRC);
+    }
+    
+    device devIOMSD8IOLADEL gate_iomsd8ioladel
+        parameter map
+        (
+            IN_MUX_SEL      => IN_MUX_SEL,
+            DELAY_MODE      => DELAY_MODE,
+            DELAY_SEL       => DELAY_SEL,
+            IODLY_CTRL_EN   => IODLY_CTRL_EN,
+            IODLY_STEP      => IODLY_STEP,
+
+            WL_EXTEND    =>   WL_EXTEND,
+            GRS_EN       =>   GRS_EN,
+            DPI_EN       =>   DPI_EN,
+                             
+            DES_SER_CLK  =>   SER_DES_CLK_SRC,
+            ODDR_OCLK    =>   OCLK_SRC,
+             
+            IDDR_LRS_EN  =>   IDDR_LRS_EN,
+            ODDR_LRS_EN  =>   ODDR_LRS_EN,
+                                    
+            CLK_I_INV    =>   CLK_I_INV,
+            CLK_O_INV    =>   CLK_O_INV,
+            LRS_INV      =>   LRS_INV
+        )
+
+        port map 
+        (
+            RX_DATA      =>   Q,
+            RX_DATA_DD   =>  OUT,
+
+            TX_DATA      =>   D,
+            TS_CTRL      =>   T,
+
+            IFIFO_WADDR  =>   IFIFO_WADDR,
+            IFIFO_RADDR  =>   IFIFO_RADDR,
+
+            IODLY_CTRL   =>   IODLY_CTRL,
+            IODLY_OV     =>   IODLY_OV,
+
+            DPI_CTRL     =>   DPI_CTRL,
+            DPI_STS_CLR  =>   DPI_STS_CLR,
+            DPI_STS      =>   DPI_STS,
+
+            IOCLK        =>   (SER_DES_CLK_SRC == "IOCLK") ? SER_DES_CLK : 1'bx,
+
+            SAMPLE_CLK   =>   (SER_DES_CLK_SRC == "SAMPLE_CLK") ? SER_DES_CLK : 1'bx,
+            PROBE_CLK    =>   (SER_DES_CLK_SRC == "PROBE_CLK") ? SER_DES_CLK : 1'bx,
+
+            WCLK         =>   (OCLK_SRC == "WCLK") ? TCLK : 1'bx,
+            WCLK_DEL     =>   (OCLK_SRC == "WCLK_DEL") ? TCLK : 1'bx,
+        
+            DQSI_DEL     =>   ICLK,
+
+            SYSCLK       =>   SYSCLK,
+            LRS          =>   RESET,
+            SLIP         =>   SLIP,
+            DIN          =>   IN_MUX_SEL == "DIN"     ? PADI : 1'bx,
+            DIN_CDR      =>   IN_MUX_SEL == "DIN_CDR" ? PADI : 1'bx,
+            DO           =>   PADO, 
+            TO           =>   PADT,
+
+            IDDR_COUT    =>   IDDR_COUT,
+            IDDR_CIN    =>   IDDR_CIN,
+            ODDR_CIN     =>   ODDR_CIN,
+            ODDR_COUT     =>   ODDR_COUT,
+
+            DO_OUT       =>  DO_OUT,
+            TO_OUT       =>  TO_OUT
+        );
+};
+
+

@@ -1,0 +1,125 @@
+*****************************************************************
+
+  Device    [devIOBDHP]
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+
+gate
+device devIOBDHP : device IOBDHP
+{
+    parameter
+    (
+        config string CP_IOB_MODE = "UNUSED",
+        config string CP_PORT_STATUS = "PULLUP",
+        config string CP_IO_STANDARD = "DEFAULT",
+        config string CP_DRV_STRENGTH = "12",
+        config string CP_SLEW_MODE = "S",
+        config string CP_OPENDRAIN = "OFF",
+        config string CP_VREF = "OFF",
+        config string CP_DYN_IN = "OFF",
+        config string CP_DIFFIN_TERM = "OFF",
+        config string CP_DYN_TERM = "OFF",
+        config string CP_HYS = "OFF",
+        config string CP_VCCIO = "1.8",
+        config string CP_DDRIN_TERM = "OFF",
+        config string CP_TERM_VAL = "48",
+        config string CP_PREEMP = "ON"
+    );
+    port
+    (
+        input MIPI_SW_DYN = 1'b1,
+        input DIFFI_IN = 1'b1,
+        input S11_USR_DO_P = 1'b1,
+        input S11_USR_DO_N = 1'b1,
+        input S11_ENINR_DYN = 1'b1,
+        output DIN_MIPI_LP,
+        output DIN,
+        output DIFFO_OUT,
+        inout PAD
+    );
+};
+
+
+//grid device structure netlist started
+structure netlist of devIOBDHP
+{    
+    //for input port net
+    wire           ntMIPI_SW_DYN              ;
+    wire           ntS11_ENINR_DYN            ;
+    wire           ntDIFFI_IN                 ;
+    wire           ntS11_USR_DO_P             ;
+    wire           ntS11_USR_DO_N             ;
+                                           
+                                           
+    //for output port                      
+    wire           ntDIN                      ;
+    wire           ntDIN_MIPI_LP              ;
+    wire           ntDIFFO_OUT                ;
+    wire           ntPAD                      ;
+                                           
+    //connect to input port                
+    ntMIPI_SW_DYN      <= MIPI_SW_DYN         ;
+    ntS11_ENINR_DYN    <= S11_ENINR_DYN       ;
+    ntDIFFI_IN         <= DIFFI_IN            ;
+    ntS11_USR_DO_P     <= S11_USR_DO_P        ;
+    ntS11_USR_DO_N     <= S11_USR_DO_N        ;
+                                           
+                                           
+    //connect to output port               
+    DIN                <= ntDIN               ;
+    DIN_MIPI_LP        <= ntDIN_MIPI_LP       ;
+    DIFFO_OUT          <= ntDIFFO_OUT         ;
+    PAD                <= ntPAD               ;
+    
+    
+    
+    device IOBHP_IBUFD IOBHP_IBUFD
+    parameter map
+    (
+        CP_IOB_MODE    => CP_IOB_MODE         ,
+        CP_DYN_IN      => CP_DYN_IN           ,
+        CP_IO_STANDARD => CP_IO_STANDARD
+    )
+    port map
+    (
+        OUT            => ntDIN               ,
+        MIPI_SW_DYN    => ntMIPI_SW_DYN       ,
+        IN_DYN_EN      => ntS11_ENINR_DYN     ,
+        DIN_MIPI_LP    => ntDIN_MIPI_LP       ,
+        IN             => ntPAD               ,
+        DIFFI_IN       => ntDIFFI_IN
+    );
+    
+    device IOBHP_OBUFD IOBHP_OBUFD
+    parameter map
+    (
+        CP_IOB_MODE    => CP_IOB_MODE         ,
+        CP_PORT_STATUS => CP_PORT_STATUS      ,
+        CP_OPENDRAIN   => CP_OPENDRAIN
+    )
+    port map
+    (
+        OUT            => ntPAD               ,
+        DIFFO_OUT      => ntDIFFO_OUT         ,
+        IN             => ntPAD               ,
+        DO_P           => ntS11_USR_DO_P      ,
+        DO_N           => ntS11_USR_DO_N
+    );       
+};// end of structure netlist of devIOBDHP
+
+
+
+
+
+
+
+
+
+
+

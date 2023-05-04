@@ -1,0 +1,94 @@
+*****************************************************************
+
+  Device    [devIBUFIOLL]
+
+  Author    [hzhang]
+
+  Abstract  [device base on IOL, used as inout path through to IOB ]
+
+  Revision History:
+
+********************************************************************************/
+
+gate
+device devIBUFIOLL : device IOL_L
+{
+    parameter
+    (
+        config string DELAY_MODE     := "NODELAY" ,    //"NODELAY", "INDELAY", "OUTDELAY"
+       
+        config bit    TRI_FORCE[1:0]  := 2'b00
+    );
+    port
+    (
+        output  RX_DATA_DD,
+        // from/to IOB
+        output  TO,
+        input   DIN
+    );
+
+}// end of device devIBUFIOLL
+
+/*******************************************************************************
+
+  Device    [devIBUFIOLL]
+
+  Author    []
+
+  Abstract  [The structure netlist of devIBUFIOLL is described in the similar fashion
+             as in HDL. In unit instantiation statement, the formal pin may be
+             connected to net which is declared explicitly.
+
+             In Valence, the connection can also be made from formal pin to other
+             pin or port, in which case Valence compiler shall create the net to
+             fulfil the connection. The built-in naming convention is kicked in
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devIBUFIOLL
+{
+    // Wires for input ports
+
+    wire ntDIN;
+
+    ntDIN             <= DIN;
+
+    // Wires connecting to output ports
+    wire ntIN_DELSEL_MUX;
+  
+    RX_DATA_DD   <= ntIN_DELSEL_MUX ;
+
+   // DELAY
+
+    device IN_DELSEL_MUX_L IN_DELSEL_MUX_L
+        parameter map
+        (
+           DELAY_MODE => DELAY_MODE
+        )
+        port map
+        (
+            I0  => ntDIN,
+            Y   => ntIN_DELSEL_MUX
+        );
+        
+}; // end of structure netlist of devIBUFIOLL
+
+timing tnl of devIBUFIOLL
+{
+    operator V_BUF buf
+        parameter map
+        (
+           SECTION => "IBUF_IOL"
+        )
+        port map
+        (
+            I => DIN,
+            Z => RX_DATA_DD
+        );
+}
+

@@ -1,0 +1,124 @@
+*****************************************************************
+
+  Device    [devDAE]
+
+  Author    []
+
+  Abstract  [THE DEVICE MODELLED FOR THE END OF CARRY CHAIN. FOR THE OUTPUT PORT 
+             HAD BEEN USED BY SUM OF CARRY CHAIN, SIGNAL OF THE PORT COUT CAN NOT
+             PASS TO IT DERECTLY.]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devDAE : device devD
+{
+    parameter
+    (
+        config bit INITD[31:0]     = 32'h0000_ffff,
+        config string FGD_MODE     = "CYE",               // "LUT5" "ROM" "WMUX" "ARITH"        
+        config string Y3MUX_SEL    := "CY"                   // "L8"  "FG" "CY"                      
+    );
+    
+    port
+    (
+               output   Y3,
+        logic  input    FGD_CIN
+    );
+}; // end of device devDAE
+
+
+/*******************************************************************************
+
+  Device    [devDAE]
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devDAE
+{
+    // Wires connecting to output ports
+    wire ntY3MUX;
+    wire ntCYD;
+    // Internal wires
+    wire ntCYC;
+
+    //
+    // Connection to ports
+    //
+    ntCYC     <= FGD_CIN;
+    
+    Y3        <= ntY3MUX;
+    
+    //
+    // Instances. FGA section
+    //
+
+    device FGA FGD 
+        parameter map
+        (
+            INIT        => INITD,
+            MODE        => FGD_MODE
+        )
+        port map 
+        (
+            CIN  => ntCYC,
+            COUT => ntCYD
+        );
+
+    device Y3MUX Y3MUX
+        parameter map
+        (
+            CFG  => Y3MUX_SEL
+        )    
+        port map
+        (
+            CY => ntCYD,
+            Z   => ntY3MUX
+        );
+}; // end of structure netlist of devDAE
+
+timing tnl of devDAE
+{  
+    wire ntI0;
+    operator V_LUT5CARRY V_FGD
+        parameter map            
+        (
+            INIT        => INITD,
+            ID_TO_LUT   => "FALSE",
+            CIN_TO_LUT  => (FGD_MODE == "L5C01") ? "FALSE" : "TRUE",
+            I4_TO_CARRY => (FGD_MODE == "CY01")  ? "FALSE" : "TRUE",
+            SECTION  => "D"      
+        )                              
+        port map 
+        (
+            I0  => 1'b0,  
+            I1  => 1'b0,
+            I2  => 1'b0,
+            I3  => 1'b0,
+            I4  => 1'b0,
+            ID  => 1'b0,
+            CIN => FGD_CIN,
+            COUT => ntI0
+        );
+     if (Y3MUX_SEL != "FFAB")
+     {   
+     operator V_MUX V_Y3MUX
+         parameter map
+         (
+             SEL  => (Y3MUX_SEL == "CY") ? "I0" : "I1",
+             SECTION  => "D"
+         )
+         port map
+         (
+             I0 => ntI0,
+             I1 => 1'B0,
+             Y => Y3
+         ); 
+     }
+}

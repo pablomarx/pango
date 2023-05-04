@@ -1,0 +1,195 @@
+*******************************************************************
+
+  Device    [devARAM16X1D]
+
+  Author    [guoxi]
+
+  Abstract  [RAM16X4D]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devARAM16X1D : device CLMS
+{
+    parameter
+    (
+        config bit     CP_INITA[31:0] = 32'hffff_ffff,
+        config string  CP_MODEA       = "LUT5",         //"LUT5" "ROM" "WMUX" "RAM" "ARITH" "PRIENC" "MUX4" "XOR" "COMP" "RAM"
+        config string  CP_MASK      := "TRUE",        //Disable; Enable         
+       
+        config string  CP_Y0MUX_SEL := "FX",             //"FX":F0 "CYX":CYA "MF":QP0
+        config string  CP_LRS_EN    = "FALSE",          //"Disable"; "Enable"
+        config string  CP_LRS_POL   = "FALSE",          //"RS"; "Invert RS" - CLMS Global
+        config string  CP_CLK_POL   = "FALSE",          //"CLK"; "Invert CLK" - CLMS Global
+        config string  CP_WCK_SEL   = "LOCAL"           //"LOCAL": local CLK; "CHAIN": adjcent WCLK
+
+     );
+    port
+    ( 
+        input    A0,
+        input    A1,
+        input    A2,
+        input    A3,
+        input    A4,
+        input    AD,
+        input    RS,
+        input    CE,
+        input    CLK,
+        input    WCLK,
+
+        // Here are the ports of RAM write address( WA[3:0] ), and shared with ROM. 
+        input    M1,
+        input    M3,
+        input    M0,
+        input    M2,
+
+        output   Y0 
+    );
+
+}// end of device devARAM16X1D
+
+/*******************************************************************************
+
+  Device    [devARAM16X1D]
+
+  Author    [guoxi]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devARAM16X1D
+{
+    // Wires for input ports
+    wire ntA0;
+    wire ntA1;
+    wire ntA2;
+    wire ntA3;
+    wire ntA4;
+    wire ntAD;
+    wire ntRS;
+    wire ntCLK;
+    wire ntWCLK1;
+    wire ntWCLK;
+    
+    wire ntM1;
+    wire ntM3;
+    wire ntM0;
+    wire ntM2;
+
+    // Wires connecting to output ports
+    wire ntY0;
+    
+    // Internal wires
+    wire ntL5A;
+    wire ntCLKCO;
+    wire ntRS_P;
+    wire ntCLK_W;
+    wire ntWE;
+
+    //
+    // Connection to ports
+    //
+    ntA0      <= A0;
+    ntA1      <= A1;
+    ntA2      <= A2;
+    ntA3      <= A3;
+    ntAD      <= AD;
+    ntM1      <= M1;
+    ntM3      <= M3;
+    ntM0      <= M0;
+    ntM2      <= M2;
+    ntRS      <= RS;
+    ntCLK     <= CLK;
+    ntWCLK    <= WCLK;
+
+    Y0  <= ntY0;
+
+    //
+    // Instances. FGA section
+    //
+
+    device FYS FYA
+        parameter map
+        (
+            CP_INIT   => CP_INITA,
+            CP_MODE   => CP_MODEA,
+            CP_MASK   => CP_MASK               
+         )
+         port map
+         (
+            A0   => ntA0,
+            A1   => ntA1,
+            A2   => ntA2,
+            A3   => ntA3,
+            A4   => ntA4,
+            AD   => ntAD,
+            L5   => ntL5A,
+            WA   => { ntM3, ntM2, ntM1, ntM0 },
+            WCK  => ntCLK_W,
+            WE   => ntWE            
+         );
+    
+    device YMUX  Y0MUX
+        parameter map
+        (
+            CP_OUT_SEL => CP_Y0MUX_SEL
+        )
+        port map
+        (
+            Y    => ntY0,
+            FX   => ntL5A
+        );
+   
+    device LRS_POLMUX  LRSPOLMUX
+        parameter map
+        (
+            CP_LRS_EN  => CP_LRS_EN,
+            CP_LRS_POL => CP_LRS_POL
+        )
+        port map
+        (
+            Y  => ntRS_P,
+            IN => ntRS
+        );
+
+    device CLK_POLMUX  CLKPOLMUX
+        parameter map
+        (
+            CP_CLK_POL => CP_CLK_POL
+        )
+        port map
+        (
+            Y  => ntCLKCO,
+            IN => ntCLK
+        );
+   
+    device MUX2_P WCKMUX
+        parameter map
+        (
+            SEL => CP_WCK_SEL
+        )
+        port map
+        (
+            DOUT => ntCLK_W, 
+            DI1  => ntWCLK1, 
+            DI0  => ntCLKCO
+        );
+    
+    device RAM_RS U0_NOT
+        port map
+        (
+            IN  => ntRS_P,
+            OUT => ntWE
+        );  
+          
+    device RAM_RS RAM_RS_BUF2
+        port map
+        (
+            IN  => ntWCLK,
+            OUT => ntWCLK1
+        );
+}; // end of structure netlist of devARAM16X1D
+

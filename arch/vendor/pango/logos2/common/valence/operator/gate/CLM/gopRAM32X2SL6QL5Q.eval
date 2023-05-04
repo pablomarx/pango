@@ -1,0 +1,338 @@
+*********************************************************************
+
+  Operator    [gopRAM32X2SL6QL5Q]
+  
+  Author    [jblu]
+
+  Abstract  []
+
+  Revision History:
+
+ ********************************************************************************/
+gate
+operator gopRAM32X2SL6QL5Q
+{
+    parameter
+    (
+        bit    INIT[63:0]   = 64'hFFFFFFFFFFFFFFFF,
+        string MODE         = "RAM"              ,
+        string FF_RS        = "SET"               ,
+        string FFAPP_RS     = "SET"               ,
+        bit    FF_INIT      = 1'b1                ,
+        bit    FFAPP_INIT   = 1'b1                ,
+        string QMUX_SEL     = "YX"                ,
+        string FFAPPMUX_SEL = "YX"                ,
+        string CRPREMUX_SEL   = "YX"                ,
+        string CRPOSTMUX_SEL  = "QPX"               ,
+        string RAM_LUT_DIH  = "LI"                ,
+        string RAM_LUT_DIL  = "LI"                ,
+        string MASK_LUT6    = "TRUE"              ,
+        
+        string RS_MODE      = "SYNC"              ,
+        string LRS_POL      = "FALSE"             ,
+        string LRS_EN       = "FALSE"             ,
+        string LCE_POL      = "FALSE"             ,
+        string LCE_EN       = "FALSE"             ,
+        string CLK_POL      = "FALSE"             ,
+        string RSMUX_SEL    = "LOCAL"             ,
+        string CEMUX_SEL    = "LOCAL"             ,
+        string GRS_EN       = "TRUE"              ,
+        string LATCH_EN     = "FALSE"             ,
+        string WCK_SEL      = "LOCAL"             ,
+        string RAM_MODE     = "LRAM"              ,
+        string RAM32_EN     = "TRUE"          
+    );
+
+    port
+    (        
+        input  RADDR[5:0],
+        input  WADDR[5:0],
+        input  DIH, DIL,
+        
+        input  WE,
+        input  RS /*pragma PAP_ARC_GOP_CTRL_PIN="RST"*/,
+        input  CE /*pragma PAP_ARC_GOP_CTRL_PIN="CE"*/,
+        input  WCLK /*pragma PAP_ARC_GOP_CTRL_PIN="GCLK|RCLK|COLCLK"*/,
+        input  RSCI,
+        output RSCO,
+        input  CECI,
+        output CECO, 
+        output DOHQ, DOLQ, DOH
+    );
+};
+
+implementation impl_devARAM32X2DL6QL5Q_S of gopRAM32X2SL6QL5Q
+{    
+    device devARAM32X2DL6QL5Q_S gatedev
+        parameter map 
+        ( 
+            CP_INITA           => INIT                                      ,
+            CP_MODEA           => MODE                                      ,
+            CP_FF0_RS          => FF_RS                                     ,
+            CP_FFAPP0_RS       => FFAPP_RS                                  ,
+            CP_FF0_INIT        => FF_INIT                                   ,
+            CP_FFAPP0_INIT     => FFAPP_INIT                                ,
+            CP_Q0MUX_SEL       => QMUX_SEL                                  ,
+            CP_FFAPP0MUX_SEL   => FFAPPMUX_SEL                              ,
+            CP_CR0PREMUX_SEL   => CRPREMUX_SEL                                ,
+            CP_CR0POSTMUX_SEL  => CRPOSTMUX_SEL                               ,
+            CP_RAM_LUTA_DIH    => RAM_LUT_DIH                               ,
+            CP_RAM_LUTA_DIL    => RAM_LUT_DIL                               ,
+            CP_MASK_LUT6A      => MASK_LUT6                                 ,
+            
+            CP_RS_MODE         => RS_MODE                                   ,
+            CP_LRS_POL         => LRS_POL                                   ,
+            CP_LRS_EN          => LRS_EN                                    ,
+            CP_LCE_POL         => LCE_POL                                   ,
+            CP_LCE_EN          => LCE_EN                                    ,
+            CP_CLK_POL         => CLK_POL                                   ,
+            CP_RSMUX_SEL       => RSMUX_SEL                                 ,
+            CP_CEMUX_SEL       => CEMUX_SEL                                 ,
+            CP_GRS_EN          => GRS_EN                                    ,
+            CP_LATCH_EN        => LATCH_EN                                  ,
+            CP_WCK_SEL         => WCK_SEL                                   ,
+            CP_RAM_MODE        => RAM_MODE                                  ,
+            CP_RAM32_EN        => RAM32_EN                  
+        )
+        port map 
+        (
+            A0                 => RADDR[0]                                  ,
+            A1                 => RADDR[1]                                  ,
+            A2                 => RADDR[2]                                  ,
+            A3                 => RADDR[3]                                  ,
+            A4                 => RADDR[4]                                  ,
+            A5                 => RADDR[5]                                  ,
+                                                                            
+            D0                 => WADDR[0]                                  ,
+            D1                 => WADDR[1]                                  ,
+            D2                 => WADDR[2]                                  ,
+            D3                 => WADDR[3]                                  ,
+            D4                 => WADDR[4]                                  ,
+            D5                 => WADDR[5]                                  ,
+                               
+            M0                 => DIL                                       ,
+            AD                 => DIH                                       ,
+                               
+            WE                 => WE                                        ,
+            CLK                => ( WCK_SEL == "LOCAL" ) ? WCLK : 1'bx, 
+            NEXT_CLK           => ( WCK_SEL != "LOCAL" ) ? WCLK : 1'bx,
+            CE                 => (CEMUX_SEL != "LOCAL")  ? 1'bx : CE       ,
+            RS                 => (RSMUX_SEL != "LOCAL")  ? 1'bx : RS       , 
+            
+            RSCI               => (RSMUX_SEL == "LOCAL")  ? 1'bx : RS       ,         
+            RSCO               => RSCO                                      ,       
+            CECI               => (CEMUX_SEL == "LOCAL")  ? 1'bx : CE       ,        
+            CECO               => CECO                                      ,                                    
+            
+            CR0                => DOLQ                                       ,
+            Y0                 => DOH                                       ,
+            Q0                 => DOHQ
+        );
+}; // end of implementation impl_devARAM32X2DL6QL5Q of gopRAM32X2SL6QL5Q
+
+implementation impl_devBRAM32X2DL6QL5Q_S of gopRAM32X2SL6QL5Q
+{    
+    device devBRAM32X2DL6QL5Q_S gatedev
+        parameter map 
+        ( 
+            CP_INITB           => INIT                                      ,
+            CP_MODEB           => MODE                                      ,
+            CP_FF1_RS          => FF_RS                                     ,
+            CP_FFAPP1_RS       => FFAPP_RS                                  ,
+            CP_FF1_INIT        => FF_INIT                                   ,
+            CP_FFAPP1_INIT     => FFAPP_INIT                                ,
+            CP_Q1MUX_SEL       => QMUX_SEL                                  ,
+            CP_FFAPP1MUX_SEL   => FFAPPMUX_SEL                              ,
+            CP_CR1PREMUX_SEL   => CRPREMUX_SEL                                ,
+            CP_CR1POSTMUX_SEL  => CRPOSTMUX_SEL                               ,
+            CP_RAM_LUTB_DIH    => RAM_LUT_DIH                               ,
+            CP_RAM_LUTB_DIL    => RAM_LUT_DIL                               ,
+            CP_MASK_LUT6B      => MASK_LUT6                                 ,
+            
+            CP_RS_MODE         => RS_MODE                                   ,
+            CP_LRS_POL         => LRS_POL                                   ,
+            CP_LRS_EN          => LRS_EN                                    ,
+            CP_LCE_POL         => LCE_POL                                   ,
+            CP_LCE_EN          => LCE_EN                                    ,
+            CP_CLK_POL         => CLK_POL                                   ,
+            CP_RSMUX_SEL       => RSMUX_SEL                                 ,
+            CP_CEMUX_SEL       => CEMUX_SEL                                 ,
+            CP_GRS_EN          => GRS_EN                                    ,
+            CP_LATCH_EN        => LATCH_EN                                  ,
+            CP_WCK_SEL         => WCK_SEL                                   ,
+            CP_RAM_MODE        => RAM_MODE                                  ,
+            CP_RAM32_EN        => RAM32_EN                  
+        )
+        port map 
+        (
+            B0                 => RADDR[0]                                  ,
+            B1                 => RADDR[1]                                  ,
+            B2                 => RADDR[2]                                  ,
+            B3                 => RADDR[3]                                  ,
+            B4                 => RADDR[4]                                  ,
+            B5                 => RADDR[5]                                  ,
+                                                                            
+            D0                 => WADDR[0]                                  ,
+            D1                 => WADDR[1]                                  ,
+            D2                 => WADDR[2]                                  ,
+            D3                 => WADDR[3]                                  ,
+            D4                 => WADDR[4]                                  ,
+            D5                 => WADDR[5]                                  ,
+                               
+            M1                 => DIL                                       ,
+            BD                 => DIH                                       ,
+                               
+            WE                 => WE                                        ,
+            CLK                => ( WCK_SEL == "LOCAL" ) ? WCLK : 1'bx, 
+            NEXT_CLK           => ( WCK_SEL != "LOCAL" ) ? WCLK : 1'bx,
+            CE                 => (CEMUX_SEL != "LOCAL")  ? 1'bx : CE       ,
+            RS                 => (RSMUX_SEL != "LOCAL")  ? 1'bx : RS       , 
+            
+            RSCI               => (RSMUX_SEL == "LOCAL")  ? 1'bx : RS       ,         
+            RSCO               => RSCO                                      ,       
+            CECI               => (CEMUX_SEL == "LOCAL")  ? 1'bx : CE       ,        
+            CECO               => CECO                                      ,                                     
+            
+            CR1                => DOLQ                                       ,
+            Y1                 => DOH                                       ,
+            Q1                 => DOHQ
+        );
+}; // end of implementation impl_devBRAM32X2DL6QL5Q of gopRAM32X2SL6QL5Q
+
+implementation impl_devCRAM32X2DL6QL5Q_S of gopRAM32X2SL6QL5Q
+{    
+    device devCRAM32X2DL6QL5Q_S gatedev
+        parameter map 
+        ( 
+            CP_INITC           => INIT                                      ,
+            CP_MODEC           => MODE                                      ,
+            CP_FF2_RS          => FF_RS                                     ,
+            CP_FFAPP2_RS       => FFAPP_RS                                  ,
+            CP_FF2_INIT        => FF_INIT                                   ,
+            CP_FFAPP2_INIT     => FFAPP_INIT                                ,
+            CP_Q2MUX_SEL       => QMUX_SEL                                  ,
+            CP_FFAPP2MUX_SEL   => FFAPPMUX_SEL                              ,
+            CP_CR2PREMUX_SEL   => CRPREMUX_SEL                                ,
+            CP_CR2POSTMUX_SEL  => CRPOSTMUX_SEL                               ,
+            CP_RAM_LUTC_DIH    => RAM_LUT_DIH                               ,
+            CP_RAM_LUTC_DIL    => RAM_LUT_DIL                               ,
+            CP_MASK_LUT6C      => MASK_LUT6                                 ,
+            
+            CP_RS_MODE         => RS_MODE                                   ,
+            CP_LRS_POL         => LRS_POL                                   ,
+            CP_LRS_EN          => LRS_EN                                    ,
+            CP_LCE_POL         => LCE_POL                                   ,
+            CP_LCE_EN          => LCE_EN                                    ,
+            CP_CLK_POL         => CLK_POL                                   ,
+            CP_RSMUX_SEL       => RSMUX_SEL                                 ,
+            CP_CEMUX_SEL       => CEMUX_SEL                                 ,
+            CP_GRS_EN          => GRS_EN                                    ,
+            CP_LATCH_EN        => LATCH_EN                                  ,
+            CP_WCK_SEL         => WCK_SEL                                   ,
+            CP_RAM_MODE        => RAM_MODE                                  ,
+            CP_RAM32_EN        => RAM32_EN                  
+        )
+        port map 
+        (
+            C0                 => RADDR[0]                                  ,
+            C1                 => RADDR[1]                                  ,
+            C2                 => RADDR[2]                                  ,
+            C3                 => RADDR[3]                                  ,
+            C4                 => RADDR[4]                                  ,
+            C5                 => RADDR[5]                                  ,
+                                                                            
+            D0                 => WADDR[0]                                  ,
+            D1                 => WADDR[1]                                  ,
+            D2                 => WADDR[2]                                  ,
+            D3                 => WADDR[3]                                  ,
+            D4                 => WADDR[4]                                  ,
+            D5                 => WADDR[5]                                  ,
+                               
+            M2                 => DIL                                       ,
+            CD                 => DIH                                       ,
+                               
+            WE                 => WE                                        ,
+            CLK                => ( WCK_SEL == "LOCAL" ) ? WCLK : 1'bx, 
+            NEXT_CLK           => ( WCK_SEL != "LOCAL" ) ? WCLK : 1'bx,
+            CE                 => (CEMUX_SEL != "LOCAL")  ? 1'bx : CE       ,
+            RS                 => (RSMUX_SEL != "LOCAL")  ? 1'bx : RS       , 
+            
+            RSCI               => (RSMUX_SEL == "LOCAL")  ? 1'bx : RS       ,         
+            RSCO               => RSCO                                      ,       
+            CECI               => (CEMUX_SEL == "LOCAL")  ? 1'bx : CE       ,        
+            CECO               => CECO                                      ,
+            
+            CR2                => DOLQ                                       ,
+            Y2                 => DOH                                       ,
+            Q2                 => DOHQ
+        );
+};    //end of implementation impl_devCRAM32X2DL6QL5Q of gopRAM32X2SL6QL5Q
+
+implementation impl_devDRAM32X2SL6QL5Q_S of gopRAM32X2SL6QL5Q
+{    
+    device devDRAM32X2SL6QL5Q_S gatedev
+        parameter map 
+        ( 
+            CP_INITD           => INIT                                      ,
+            CP_MODED           => MODE                                      ,
+            CP_FF3_RS          => FF_RS                                     ,
+            CP_FFAPP3_RS       => FFAPP_RS                                  ,
+            CP_FF3_INIT        => FF_INIT                                   ,
+            CP_FFAPP3_INIT     => FFAPP_INIT                                ,
+            CP_Q3MUX_SEL       => QMUX_SEL                                  ,
+            CP_FFAPP3MUX_SEL   => FFAPPMUX_SEL                              ,
+            CP_CR3PREMUX_SEL   => CRPREMUX_SEL                                ,
+            CP_CR3POSTMUX_SEL  => CRPOSTMUX_SEL                               ,
+            //CP_RAM_LUTD_DIH    => RAM_LUT_DIH                               ,
+            CP_RAM_LUTD_DIL    => RAM_LUT_DIL                               ,
+            CP_MASK_LUT6D      => MASK_LUT6                                 ,
+            
+            CP_RS_MODE         => RS_MODE                                   ,
+            CP_LRS_POL         => LRS_POL                                   ,
+            CP_LRS_EN          => LRS_EN                                    ,
+            CP_LCE_POL         => LCE_POL                                   ,
+            CP_LCE_EN          => LCE_EN                                    ,
+            CP_CLK_POL         => CLK_POL                                   ,
+            CP_RSMUX_SEL       => RSMUX_SEL                                 ,
+            CP_CEMUX_SEL       => CEMUX_SEL                                 ,
+            CP_GRS_EN          => GRS_EN                                    ,
+            CP_LATCH_EN        => LATCH_EN                                  ,
+            CP_WCK_SEL         => WCK_SEL                                   ,
+            CP_RAM_MODE        => RAM_MODE                                  ,
+            CP_RAM32_EN        => RAM32_EN                  
+        )
+        port map 
+        (
+            D0             => RADDR[0]                                  , 
+            D1             => RADDR[1]                                  ,
+            D2             => RADDR[2]                                  ,
+            D3             => RADDR[3]                                  ,
+            D4             => RADDR[4]                                  ,
+            D5             => RADDR[5]                                  ,
+                                                                            
+            WADDR0         => WADDR[0]                                  ,  
+            WADDR1         => WADDR[1]                                  ,  
+            WADDR2         => WADDR[2]                                  ,  
+            WADDR3         => WADDR[3]                                  ,
+            WADDR4         => WADDR[4]                                  ,
+            WADDR5         => WADDR[5]                                  ,
+                               
+            M3             => DIL                                       ,
+            DD             => DIH                                       ,
+                           
+            WE             => WE                                        ,
+            CLK            => ( WCK_SEL == "LOCAL" ) ? WCLK : 1'bx, 
+            NEXT_CLK       => ( WCK_SEL != "LOCAL" ) ? WCLK : 1'bx,
+            CE             => (CEMUX_SEL != "LOCAL")  ? 1'bx : CE       ,
+            RS             => (RSMUX_SEL != "LOCAL")  ? 1'bx : RS       , 
+            
+            RSCI           => (RSMUX_SEL == "LOCAL")  ? 1'bx : RS       ,         
+            RSCO           => RSCO                                      ,       
+            CECI           => (CEMUX_SEL == "LOCAL")  ? 1'bx : CE       ,        
+            CECO           => CECO                                      ,
+            
+            CR3            => DOLQ                                       ,
+            Y3             => DOH                                       ,
+            Q3             => DOHQ
+        );
+};    //end of implementation impl_devDRAM32X2SL6QL5Q of gopRAM32X2SL6QL5Q

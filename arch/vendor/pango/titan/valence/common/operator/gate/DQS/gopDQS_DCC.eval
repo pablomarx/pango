@@ -1,0 +1,74 @@
+*******************************************************************
+
+  Operator    [gopDQS_DCC]
+
+  Abstract  []
+
+  Revision History:
+
+ ********************************************************************************/
+gate
+operator gopDQS_DCC
+{
+    parameter
+    (
+        string GRS_EN                 = "TRUE",          // "TRUE" : 1'b0; "FALSE" : 1'b1
+        bit    LRS_POL                = 1'b0,            // 1'b0: noinv; 1'b1: inv
+        string DQS_MODE               = "FULL_RATE",     // "FULL_RATE" "HALF_RATE" "QUAD_RATE"  
+        string CLK_EN                 = "TRUE",          // "TRUE" : 1'b1; "FALSE" : 1'b0
+        string CLKDIV_FACTOR          = "2"              // "2", "3.5", "4", "5" 
+    );
+
+    port
+    (
+        input  DCC_CLKCTRL[2:0],
+        input  IOCLK0 /* pragma PAP_ARC_GOP_CTRL_PIN = IOCLK*/,
+        input  IOCLK1 /* pragma PAP_ARC_GOP_CTRL_PIN = IOCLK*/,
+        input  RST /* pragma PAP_ARC_GOP_CTRL_PIN = RST*/,
+        input  IOCLK_SEL[3:0],
+        input  CLK0_STEP[7:0],
+        input  CLK1_STEP[7:0],
+        input  SAMPLE_CLK_SLIP,
+        output SAMPLE_CLK /* pragma PAP_ARC_GOP_CTRL_PIN = RCLK*/,
+        output PROBE_CLK,
+        output SAMPLE_CLKDIV
+    );
+};
+
+/**Implementation Body*******************************************************************
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_dqs of gopDQS_DCC
+{  
+    device devDCC dqs_dcc_inst
+        parameter map
+        (
+             GRS_EN         => GRS_EN         ,
+             LRS_POL        => LRS_POL        ,
+             DQS_MODE       => DQS_MODE       ,
+             CLK_EN         => CLK_EN         ,
+             CLKDIV_FACTOR  => CLKDIV_FACTOR
+        )
+        port map
+        (
+             DCC_CLK_CTRL        => DCC_CLKCTRL,
+             SAMPLE_CLK_SLIP     => SAMPLE_CLK_SLIP,
+             IOCLK_SEL           => IOCLK_SEL,
+             WL_STEP             => CLK0_STEP,  
+             CLK1_STEP           => CLK1_STEP,
+             RST                 => RST,
+             IOCLK[1]            => IOCLK1,
+             IOCLK[0]            => IOCLK0,
+             SAMPLE_CLK          => SAMPLE_CLK,
+             PROBE_CLK           => PROBE_CLK,
+             SAMPLE_CLK_DIV      => SAMPLE_CLKDIV
+        );
+
+}; // end of implementation impl_dqs of gopDQS_DCC
+

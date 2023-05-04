@@ -1,0 +1,352 @@
+*******************************************************************
+
+  Operator    [gopPLL]
+
+  Abstract  []
+
+  Revision History:
+
+ ********************************************************************************/
+gate
+operator gopPLL
+{
+    parameter
+    (
+            string CLKIN_FREQ        = "50MHZ"              ,
+            string DYN_CLKIN_EN      = "FALSE"              ,  // enable selection mode for input clkin1 and clkin2
+                                                               // 1'b0:clkin_sel =sc_clkin_sel  static mode;
+                                                               // 1'b1:clkin_sel =dyn_clkin_sel  dynamic mode
+            string CLKIN_SEL         = "0"                  ,  // static selection mode for input clkin1 and clkin2
+                                                               // 1'b0:clkin =clkmuxout1; 1'b1:clkin =clkmuxout2
+            bit    DYN_IDIV_EN       = 1'b0                 ,  // enable selection mode for input counter
+                                                               // 1'b0:idiv_sel<0:5>=sc_idiv<0:5> static mode 
+                                                               // 1'b1:idiv_sel=dyn_idiv<0:5>  dynamic mode
+            int    STATIC_IDIV       = 63                    ,  // IDIV ratio for input clk divider
+                                                               // "1"~"64":111111~000000;
+            bit DYN_FDIV_EN          = 1'b0                 ,  // enable selection mode for feedback signals                 
+                                                               // 1'b0:fdiv_sel<0:5> =sc_fdiv<0:5> statc mode
+                                                               // 1'b1:div_sel<0:5>=dyn_fdiv<0:5> dynamic mode
+            int STATIC_FDIV          = 63                    ,  // FDIV ratio for feedback clk divider;
+                                                               // setting same as sc_idiv<5:0>
+            bit TESTSEL[1:0]         = 2'b00                ,  // used for testing the function for input div, feedback div and output div by cim routing to IO
+                                                               // 2'b00: test_clk_o=1'b0 
+                                                               // 2'b01: test_clk_o=clkout0 
+                                                               // 2'b10: test_clk_o=output from IDIV
+                                                               // 2'b11: test_clk_o=output from FDIV
+            bit OFDDN               = 1'b0                  ,  // enable obsrving the signal dn from PFD  by cim routing to IO
+                                                               // 1'b0: o_fddn=1'b0  disable; 1'b1: o_fddn=dn     enable
+            bit OFDUP               = 1'b0                  ,  // enable the signal up from PFD testing by cim routing to IO
+                                                               // 1'b0: o_fdup=1'b0  disable;  1'b1: o_fdup=up     enable
+            bit EN_FLD               = 1'b0                 ,  // enable frequency lock detection
+                                                               // 1'b0: pll_lock=1'b0 disable       "0" for frequency unlock
+                                                               // 1'b1: pll_lock=compared result    "1" for frequency lock                 
+            bit EN_PLD               = 1'b0                 ,  // enable phase lock detection
+                                                               // 1'b0: pll_lock=1'b0 disable            "0" for phase unlock
+                                                               // 1'b1: pll_lock=comared result in phase "1" for phase lock
+            bit FLD_COUNT[3:0]       = 4'b0000              ,  // counter number in FLD(frequency lock detection)
+                                                               // 4'b1111: counter num=16    4'b1110: counter num=32     4'b1101: counter num=48;
+                                                               // 4'b1100: counter num=64    4'b1011: counter num=80   ....     4'b0000: counter num=256     
+            bit CRIPPLE[1:0]         = 2'b00                ,  // alleviating high frequency ripple on control line
+                                                               // 2'b00: cap_ripple=1.61pf  2'b01: cap_ripple=3.76pf 
+                                                               // 2'b10: cap_ripple=4.65pf  2'b11: cap_ripple=8.10pf
+            bit KVOG[2:0]            = 3'b000               ,  // sc_kvog<x>=1'b0, increase KVCOcoarse, sc_kvog<x>=1'b1, increase KVCOfine
+                                                               // 3'b000:~3'b111:  increment number will be gotten based on silicon testing
+            bit FLT_OP               = 1'b0                 ,  // enable op on control line
+                                                               // 1'b0:   disable op     
+            int ICP                 = 140                    ,  // selecting icp number
+                                                               // 5'b00000:icp =10ua; 5'b00001:icp =20ua; 5'b00010:icp =30ua; 5'b00011:icp =40ua
+                                                               // 5'b00100:icp =50ua; 5'b00101:icp =60ua; 5'b00110:icp =70ua; 5'b00111:icp =80ua
+                                                               // .....  5'b11111:icp = 320       
+            bit PLLPD                = 1'b0                 ,  // reserved
+            bit GMC_PROG[2:0]        = 3'b100               ,  // used for adjusting gmc gain. (only used for internal trimming)
+            bit GMC_SEL[3:0]         = 4'b1111              ,  // used as a backup for gmc cell (not open to users)
+            bit LPF_REF[6:0]         = 7'b000_1000          ,  // select resistance on LPF
+                                                               // 7'b0000000: r=1x; 7'b0000001  r=1x; 7'b0000010  r=2x; 7'b0000100  r=4x
+                                                               // 7'b0001000  r=8x; 7'b0010000  r=16x; 7'b0100000  r=32x; 7'b1000000  r=48x
+            bit RST_LF               = 1'b0                 ,  // reset the fine tunning control line voltage to "0"
+                                                               // 1'b0: vhf=depended on CP        1'b1: vhf= "0" 
+            bit EN_IUP               = 1'b0                 , // Testing current for iup and idn     
+            bit TEST_ICP             = 1'b0                 , // 2'bx0: disable iup and idn testing  
+                                                              // 2'b11: enable iup testing;          
+                                                              // 2'b01: enable idn testing           
+            bit PRESET_GMC           = 1'b0                 , // preset coarse tunning control line to "1"(only for internal testing)
+                                                              // 1'b1: preset vlf to "1";  1'b0: disable preset
+            bit RESET_GMC            = 1'b0                 , // reset coarse tunning control line to "0" (only for internal testing)
+                                                              // 1'b1: reset vlf to "0";  1'b0: disable reset
+            bit GMC_REF[2:0]         = 3'b100               , // setting for the reference voltage of GMC
+                                                              // 3'b000:  gmc_ref=0.45V;  3'b001:  gmc_ref=0.5V;  3'b010:  gmc_ref=0.55V;   3'b011:  gmc_ref=0.6V
+                                                              // 3'b100:  gmc_ref=0.2V ;  3'b101:  gmc_ref=0.25V; 3'b110:  gmc_ref=0.3V ;   3'b111:  gmc_ref=0.35V
+           
+            bit VCP_TEST_EN          = 1'b0                 , // testing voltage on the control line (only for internal testing)
+            bit VCP_P                = 1'b0                 , // 2'b11: enable testing voltage on the control line
+                                                              // 2'b0x: disable testing voltage on the control line
+                                                              // 2'bx0: disable testing voltage on the control line
+                                                              
+            bit FDELAY_PWD           = 1'b0                 , // reserved
+            bit IRSTEN               = 1'b0                 ,
+            bit PLLPDN               = 1'b1                 , // gate if pll can be on after chip wakeup
+                                                              // 1'b0: disable pll on
+                                                              // 1'b1: enable pll on
+            bit PWDEN                = 1'b0                 , // dynamicall control pll on or off
+                                                              // 1'b0: disable dynamtic control function 
+                                                              // 1'b1: enable dynamtic control function
+            bit RSTEN                = 1'b0                 , // gate if pll_rst can reset pll
+                                                              // 1'b0: disable pll_rst action
+                                                              // 1'b1: enable pll_rst action
+            bit ORSTEN               = 1'b0                 , // gate if reset_odiv can reset odiv0,2,3,4
+                                                              // 1'b0: disable reset_odiv action
+                                                              // 1'b1: enable  reset_odiv action
+                                                              
+            bit DYNP16S1_EN          = 1'b0                 , // gate if dynamic selection for phase and duty adjustment on the first~fourth output is available.
+            bit DYNP16S2_EN          = 1'b0                 , // 1'b0:  static selection                 1'b1:  dynamtic selection
+            bit DYNP16S3_EN          = 1'b0                 , // 1'b0:  static selection                 1'b1:  dynamtic selection
+            bit DYNP16S4_EN          = 1'b0                 , // 1'b0:  static selection                 1'b1:  dynamtic selection
+           
+            string GATEO_EN          = "FALSE"              , // gate clks on five outputs   
+            string GATE1_EN          = "FALSE"              , // 1'b0 : disable gate function
+            string GATE2_EN          = "FALSE"              , // 1'b1:  enable  gate function
+            string GATE3_EN          = "FALSE"              , // CLKOUT_GATE[4:0]
+            string GATE4_EN          = "FALSE"              ,
+                                                              
+            int CLKOUTMUX2           = 0                , //2'b00: clkout2=bypass  2'b01: clkout2= clkout0/div    2'b10: clkout2= psdiv2    2'b11: clkout2=vcc
+            int CLKOUTMUX3           = 0                , //2'b00: clkout3 = bypass   2'b01: clkout3= clkout0/div  2'b10: clkout3 = psdiv3    2'b11: clkout3 = mp125div   
+            int CLKOUTMUX4           = 0                , //2'b00: clkout4 = bypass   2'b01: clkout4 = clkout0/div  2'b10: clkout4 = psdiv4   2'b11: clkout4 = count32             
+          
+            int STATIC_PS1           = 0                  , // setting for clkout1  phase-shift
+                                                              // phase-shft=0\45\90\135\180\225\270\315\360:default
+            int STATIC_DU1           = 0                 ,   
+                                                          
+            int STATIC_PS2           = 0                 ,
+            int STATIC_DU2           = 0                 ,
+            
+            int STATIC_PS3           = 0                 ,
+            int STATIC_DU3           = 0                 ,
+            
+            int STATIC_PS4           = 0                 ,
+            int STATIC_DU4           = 0                 ,            
+           
+            bit DYN_ODIV0_SEL        = 1'b0                 , // gate if ratio of odiv can be changed
+                                                              // 1'b0 : disable dynamic adjustment function
+                                                              // 1'b1:  enable  dynamic adjustment function
+            bit DYN_ODIV2_SEL        = 1'b0                 ,
+            bit DYN_ODIV3_SEL        = 1'b0                 ,
+            bit DYN_ODIV4_SEL        = 1'b0                 ,
+           
+            bit FD_SEL0[4:0]         = 5'b0_0000            , // gate fine adjustment on internal feedback path
+                                                              // 5'b0xxxx:  bypass; 5'b10011: delay =75ps@falling edge;
+                                                              // 5'b10101: delay =100ps@falling edge; 5'b10110: delay = 50ps@falling edge      
+            bit FD_SEL1[4:0]         = 5'b0_0000            ,
+            bit FD_SEL2[4:0]         = 5'b0_0000            ,
+            bit FD_SEL3[4:0]         = 5'b0_0000            ,
+            bit FD_SEL4[4:0]         = 5'b0_0000            ,
+           
+            int STATIC_ODIV          = 0                    , // odiv0 division ratio
+                                                              // 6'b000000: division ratio=/2; 6'b000001: division ratio=/4;
+                                                              // 6'b000010: division ratio=/6; 6'b000011: division ratio=/8 ~ 6'b111111: division ratio=/128
+            int STATIC_O2DIV         = 0                    ,
+            int STATIC_O3DIV         = 0                    ,
+            int STATIC_O4DIV         = 0                    ,
+           
+            //string SFTINDLYSEL       = "BYPASS"             , // setting for odiv0 output delay
+                                                              // 2'b00:  bypass; 2'b01: 50ps ;2'b10: 100ps ;3'b11: 150ps     
+            string FB_SEL            = "DISABLE"            , // "CLKOUT0"; "CLKOUT1"; "CLKOUT2"; "DISABLE"
+                                                              // selection for internal feedback path
+                                                              // 2'b00: feedback=clkout0; 2'b01: feedback=clkout1; 2'b10: feedback=clkout2;2'b11: feedback=vss!                
+            bit TEST_SEL             = 1'b0                 , // digital block testing
+                                                              // 1'b0:    disable testing function; 1'b1:    enable  testing function                                                              
+            int DIV125_M             = 1,                     // 1~63
+            int DIV125_N             = 0,                     // 0~7           
+            int DIVK                 = 0                    , // pll_count_32bit divider parameter
+                                                              // fout=K* clkin/(8*1024*1024*1024)   
+           
+            bit LDO_TEST_EN          = 1'b0                 ,
+            bit LDO_TESTSEL          = 1'b0                 ,
+            bit LDO_VREF_TRIM[1:0]   = 2'b11                ,
+            bit PD                   = 1'b0                 ,
+            string EXTERNAL_FB       = "DISABLE"            /* DISABLE | CLKOUT0 | CLKOUT1 | CLKOUT2 | CLKOUT3 | CLKOUT4 */
+    );
+
+    port
+    (
+        output  O_FDDN, 
+        output  O_FDUP, 
+        output  PLL_LOCK, 
+        output  TEST_CLK_O,
+        
+        input   CIM_MFG_VCP, 
+        input   PLL_RST /* pragma PAP_ARC_GOP_CTRL_PIN = RST*/,
+        input   PLLPWD, 
+        input   RESET_IDIV /* pragma PAP_ARC_GOP_CTRL_PIN = RST*/,
+        input   RESET_ODIV /* pragma PAP_ARC_GOP_CTRL_PIN = RST*/,
+        input   TEST_CLKIN, 
+        input   VCP,
+        input   CIM_DYN_CLKIN_SEL,
+        
+        output  CLKOUT[4:0] /* pragma PAP_ARC_GOP_CTRL_PIN = "GCLK|RCLK|IOCLK"*/,
+        input   CLKFB /* pragma PAP_ARC_GOP_CTRL_PIN = "GCLK|RCLK"*/,
+        input   CLKIN2 /* pragma PAP_ARC_GOP_CTRL_PIN = "GCLK|RCLK"*/,
+        input   CIM_DYNPS3[3:0],
+        input   GATEO[4:0],
+        input   CIM_DYNDU3[3:0],
+        input   DYN_ODIV4_SEL_IN[5:0],
+        input   DYN_ODIV3_SEL_IN[5:0],
+        input   DYN_ODIV2_SEL_IN[5:0],
+        input   DYN_IDIV[5:0],
+        input   DYN_FDIV[5:0],
+        input   CIM_DYNPS4[3:0],
+        input   CIM_DYNPS2[3:0],
+        input   CIM_DYNPS1[3:0],
+        input   CIM_DYNODIV[5:0],
+        input   CIM_DYNDU4[3:0],
+        input   CIM_DYNDU2[3:0],
+        input   CIM_DYNDU1[3:0],
+        input   CLKIN1 /* pragma PAP_ARC_GOP_CTRL_PIN = "GCLK|RCLK"*/
+    );
+};
+
+/**Implementation Body*******************************************************************
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_pll of gopPLL
+{
+    string SFTINDLYSEL = "BYPASS";
+    if (STATIC_ODIV == 2)
+    {
+        SFTINDLYSEL = "50PS";
+    }
+    else if (STATIC_ODIV >= 4 && STATIC_ODIV <= 16)
+    {
+        SFTINDLYSEL = "BYPASS";
+    }
+    else if (STATIC_ODIV > 16 && STATIC_ODIV <= 128)
+    {
+        SFTINDLYSEL = "100PS";
+    }
+    
+    device PLL pll_inst
+        parameter map
+        (                           
+            DYN_CLKIN_EN    =>  DYN_CLKIN_EN   ,                                 
+            CLKIN_SEL       =>  CLKIN_SEL      ,                              
+            DYN_IDIV_EN     =>  DYN_IDIV_EN    , 
+            STATIC_IDIV     => STATIC_IDIV     ,                      
+            DYN_FDIV_EN     =>  DYN_FDIV_EN    , 
+            STATIC_FDIV     => STATIC_FDIV     ,
+            TESTSEL         =>  TESTSEL        , 
+            OFDDN           =>  OFDDN          ,     
+            OFDUP           =>  OFDUP          ,    
+            EN_FLD          =>  EN_FLD         ,    
+            EN_PLD          =>  EN_PLD         ,    
+            FLD_COUNT       =>  FLD_COUNT      , 
+            CRIPPLE         =>  CRIPPLE        , 
+            KVOG            =>  KVOG           , 
+            FLT_OP          =>  FLT_OP         ,   
+            ICP             =>  ICP            ,   
+            PLLPD           =>  PLLPD          , 
+            GMC_PROG        =>  GMC_PROG       , 
+            GMC_SEL         =>  GMC_SEL        , 
+            LPF_REF         =>  LPF_REF        ,   
+            RST_LF          =>  RST_LF         ,     
+            EN_IUP          =>  EN_IUP         ,     
+            TEST_ICP        =>  TEST_ICP       ,    
+            PRESET_GMC      =>  PRESET_GMC     ,     
+            RESET_GMC       =>  RESET_GMC      ,     
+            GMC_REF         =>  GMC_REF        , 
+            VCP_TEST_EN     =>  VCP_TEST_EN    ,     
+            VCP_P           =>  VCP_P          ,   
+            FDELAY_PWD      =>  FDELAY_PWD     ,     
+            IRSTEN          =>  IRSTEN         ,     
+            PLLPDN          =>  PLLPDN         ,    
+            PWDEN           =>  PWDEN          ,     
+            RSTEN           =>  RSTEN          ,    
+            ORSTEN          =>  ORSTEN         ,    
+            DYNP16S1_EN     =>  DYNP16S1_EN    ,     
+            DYNP16S2_EN     =>  DYNP16S2_EN    ,     
+            DYNP16S3_EN     =>  DYNP16S3_EN    ,     
+            DYNP16S4_EN     =>  DYNP16S4_EN    , 
+            GATEO_EN        =>  GATEO_EN       ,
+            GATE1_EN        =>  GATE1_EN       ,
+            GATE2_EN        =>  GATE2_EN       ,
+            GATE3_EN        =>  GATE3_EN       ,
+            GATE4_EN        =>  GATE4_EN       ,            
+            CLKOUTMUX2      =>  CLKOUTMUX2     , 
+            CLKOUTMUX3      =>  CLKOUTMUX3     , 
+            CLKOUTMUX4      =>  CLKOUTMUX4     ,
+            STATIC_PS1      => STATIC_PS1      ,
+            STATIC_DU1      => STATIC_DU1      ,
+            STATIC_PS2      => STATIC_PS2      ,
+            STATIC_DU2      => STATIC_DU2      ,              
+            STATIC_PS3      => STATIC_PS3      ,
+            STATIC_DU3      => STATIC_DU3      ,                 
+            STATIC_PS4      => STATIC_PS4      ,
+            STATIC_DU4      => STATIC_DU4      ,              
+            DYN_ODIV0_SEL   =>  DYN_ODIV0_SEL  ,    
+            DYN_ODIV2_SEL   =>  DYN_ODIV2_SEL  ,     
+            DYN_ODIV3_SEL   =>  DYN_ODIV3_SEL  ,     
+            DYN_ODIV4_SEL   =>  DYN_ODIV4_SEL  , 
+            FD_SEL0         =>  FD_SEL0        ,    
+            FD_SEL1         =>  FD_SEL1        , 
+            FD_SEL2         =>  FD_SEL2        , 
+            FD_SEL3         =>  FD_SEL3        , 
+            FD_SEL4         =>  FD_SEL4        , 
+            STATIC_ODIV     => STATIC_ODIV     ,
+            STATIC_O2DIV    => STATIC_O2DIV    ,
+            STATIC_O3DIV    => STATIC_O3DIV    ,
+            STATIC_O4DIV    => STATIC_O4DIV    , 
+            SFTINDLYSEL     =>  SFTINDLYSEL    ,    
+            FB_SEL          =>  FB_SEL         , 
+            TEST_SEL        =>  TEST_SEL       ,    
+            DIV125_M        =>  DIV125_M       ,
+            DIV125_N        =>  DIV125_N       ,
+            DIVK            =>  DIVK           , 
+            LDO_TEST_EN     =>  LDO_TEST_EN    ,     
+            LDO_TESTSEL     =>  LDO_TESTSEL    ,     
+            LDO_VREF_TRIM   =>  LDO_VREF_TRIM  , 
+            PD              =>  PD             ,
+            EXTERNAL_FB     =>  EXTERNAL_FB
+        )
+        port map
+        (
+            O_FDDN                     => O_FDDN           , 
+            O_FDUP                     => O_FDUP           , 
+            PLL_LOCK                   => PLL_LOCK         , 
+            TEST_CLK_O                 => TEST_CLK_O       ,
+                                                           
+            CIM_MFG_VCP                => CIM_MFG_VCP      , 
+            PLL_RST                    => PLL_RST          , 
+            PLLPWD                     => PLLPWD           , 
+            RESET_IDIV                 => RESET_IDIV       , 
+            RESET_ODIV                 => RESET_ODIV       ,
+            TEST_CLKIN                 => TEST_CLKIN       , 
+            VCP                        => VCP              ,
+            CIM_DYN_CLKIN_SEL          => CIM_DYN_CLKIN_SEL,                                                           
+            CLKOUT                     => CLKOUT           ,    
+            CLKFB                       => CLKFB           ,                        
+            CLKIN2                   => CLKIN2             ,  
+                           
+            CIM_DYNPS3                 => CIM_DYNPS3       ,
+            GATEO                      => GATEO            ,
+            CIM_DYNDU3                 => CIM_DYNDU3       ,
+            DYN_ODIV4_SEL_IN           => DYN_ODIV4_SEL_IN ,
+            DYN_ODIV3_SEL_IN           => DYN_ODIV3_SEL_IN ,
+            DYN_ODIV2_SEL_IN           => DYN_ODIV2_SEL_IN ,
+            DYN_IDIV                   => DYN_IDIV         ,
+            DYN_FDIV                   => DYN_FDIV         ,
+            CIM_DYNPS4                 => CIM_DYNPS4       ,
+            CIM_DYNPS2                 => CIM_DYNPS2       ,
+            CIM_DYNPS1                 => CIM_DYNPS1       ,
+            CIM_DYNODIV                => CIM_DYNODIV      ,
+            CIM_DYNDU4                 => CIM_DYNDU4       ,
+            CIM_DYNDU2                 => CIM_DYNDU2       ,
+            CIM_DYNDU1                 => CIM_DYNDU1       ,    
+            CLKIN1                     => CLKIN1
+        );
+
+}; // end of implementation impl_pll of gopPLL
+

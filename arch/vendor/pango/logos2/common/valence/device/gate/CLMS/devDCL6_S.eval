@@ -1,0 +1,123 @@
+evDCL6_S.val
+ * @brief .
+ * @author zpfeng(file creator)
+ * @date 2019/07/18
+ * @copyright (c) Copyright 2013~2019 - PANGO MICROSYSTEMS, INC.
+ * ALL RIGHTS RESERVED.
+ *
+ * THE SOURCE CODE CONTAINED HEREIN IS PROPRIETARY TO PANGO MICROSYSTEMS, INC.
+ * IT SHALL NOT BE REPRODUCED OR DISCLOSED IN WHOLE OR IN PART OR USED BY PARTIES
+ * WITHOUT WRITTEN AUTHORIZATION FROM THE OWNER.
+ */
+
+
+gate
+device devDCL6_S : device CLMS
+{
+    parameter
+    (
+        config bit CP_INITD[63:0] = 64'hFFFFFFFFFFFFFFFF,
+        config string CP_MODED = "LUT6",
+        config string CP_RAM_LUTD_DIL = "LI",
+        config string CP_MASK_LUT6D = "FALSE",
+        config string CP_RAM_MODE = "LRAM",
+        config string CP_RAM32_EN = "TRUE",
+        config string CP_CR3PREMUX_SEL = "YX",
+        config string CP_CR3POSTMUX_SEL = "CX"
+    );
+    port
+    (
+        input D0,
+        input D1,
+        input D2,
+        input D3,
+        input D4,
+        input D5,
+        output Y3,
+        output CR3,
+ logic  input  FGD_CIN,
+        output COUT
+    );
+}; // end of device devDCL6_S
+
+
+structure netlist of devDCL6_S
+{
+    wire  ntCYC     ;
+    wire  ntD5      ;
+    wire  ntD4      ;
+    wire  ntD3      ;
+    wire  ntD2      ;
+    wire  ntD1      ;
+    wire  ntD0      ;
+    wire  ntCYD     ;
+    wire  ntL6D     ;
+    wire  ntL5D     ;
+    wire  ntQC3     ;
+    wire  ntCR3     ;
+
+    ntD5        <= D5      ;
+    ntD4        <= D4      ;
+    ntD3        <= D3      ;
+    ntD2        <= D2      ;
+    ntD1        <= D1      ;
+    ntD0        <= D0      ;
+    Y3          <= ntL6D   ;
+    CR3         <= ntCR3   ;
+    ntCYC       <= FGD_CIN ;
+    ntCYD       <= COUT    ;
+
+    device LUT6S FYD
+    parameter map
+    (
+        CP_INIT         => CP_INITD       ,
+        CP_MODE         => CP_MODED       ,
+        CP_MASK_LUT6    => CP_MASK_LUT6D  ,
+        CP_RAM_LUT_DIL  => CP_RAM_LUTD_DIL,
+        CP_RAM_LUT_DIH  => "LI"           ,
+        CP_M1_SEL       => 1'b1           ,
+        CP_M2_SEL       => 1'b1           ,
+        CP_RAM32_EN     => CP_RAM32_EN    ,
+        CP_RAM_MODE     => CP_RAM_MODE
+    )
+    port map
+    (
+        A0      => ntD0                   ,
+        A1      => ntD1                   ,
+        A2      => ntD2                   ,
+        A3      => ntD3                   ,
+        A4      => ntD4                   ,
+        A5      => ntD5                   ,
+        CIN     => ntCYC                  ,
+        COUT    => ntCYD                  ,
+        L5      => ntL5D                  , 
+        L6      => ntL6D
+    );
+    
+    device CRPREMUX CR3PREMUX
+    parameter map
+    (
+        CP_CRPREMUX_SEL     =>    CP_CR3PREMUX_SEL
+    )
+    port map
+    (
+        YX                  =>    ntL5D,
+        CYX                 =>    ntCYD,
+        Q                   =>    ntQC3
+    );
+    
+    device CRPOSTMUX CR3POSTMUX
+    parameter map
+    (
+        CP_CRPOSTMUX_SEL     =>    CP_CR3POSTMUX_SEL
+    )
+    port map
+    (
+        CX                   =>    ntQC3,
+        Q                    =>    ntCR3
+    );
+
+}; // end of structure netlist of devDCL6_S
+
+
+

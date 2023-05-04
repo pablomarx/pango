@@ -1,0 +1,70 @@
+*****************************************************************
+
+  Device    [IBUFD]
+
+  Author    [yqtan]
+
+  Abstract  [The Prim Device For IBUFD
+
+  Revision History:
+
+********************************************************************************/
+prim
+device IBUFD
+{
+    parameter
+    (  
+        config string CP_IOB_MODE     = "IBUFHP",      //"IBUFHP" "IBUFHP_DS" "IOBUFHP" "IOBUFHP_DS"      
+        config string CP_DYN_IN       = "OFF",        
+        config string CP_IO_STANDARD  = "SLVS"   //IO standard: lvcmos18 lvcmos15 lvcmos12
+    );
+    port
+    (
+       output OUT,
+       output OUT_N, 
+       input  MIPI_SW_DYN,  
+       output DIN_MIPI_LP,  
+       input  DYN_EN,
+       input  IN,
+       input  DIFFI_IN
+    );
+
+}// end of device IBUFD
+
+/**Device***********************************************************************
+
+  Device    [IBUFD]
+
+  Abstract  [This specified how to propagate the input signal to the outputs based on
+             configuration]
+
+  Revision History:
+
+********************************************************************************/
+propagation pop of IBUFD
+{
+    if (CP_DYN_IN == "ON")
+    {
+        propagate ( DYN_EN |-> OUT );
+        propagate ( DYN_EN |-> OUT_N );
+    }
+    if (CP_IO_STANDARD == "SLVS" || CP_IO_STANDARD == "MIPI")
+    {
+        propagate ( MIPI_SW_DYN |-> OUT );
+        propagate ( MIPI_SW_DYN |-> OUT_N );
+        propagate ( MIPI_SW_DYN |-> DIN_MIPI_LP );
+    }
+
+    if (CP_IOB_MODE == "IBUFHR" || CP_IOB_MODE == "IOBUFHR")
+    {
+        propagate ( IN --> OUT);
+        propagate ( IN ~-> OUT_N);
+    }
+    else if (CP_IOB_MODE == "IBUFHR_DS" || CP_IOB_MODE == "IOBUFHR_DS")
+    {
+        propagate ( IN |-> OUT);
+        propagate ( DIFFI_IN |-> OUT);
+        propagate ( IN |-> OUT_N);
+        propagate ( DIFFI_IN |-> OUT_N);
+    }
+}; // end of propagation for IBUFD

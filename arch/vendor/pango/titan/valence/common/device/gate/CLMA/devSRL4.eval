@@ -1,0 +1,281 @@
+*******************************************************************
+
+  Device    [devSRL4]
+
+  Author    [clwang]
+
+  Abstract  [4-Bit Shift Register Look-Up-Table With FF0, FFAB, FF1 and FF2]
+
+  Revision History:
+
+********************************************************************************/
+gate 
+device devSRL4 : device CLMA
+{
+
+    parameter
+    (
+        config string GRS_EN        = "FALSE",             // "TRUE" "FALSE"
+        config string LRS_EN        = "TRUE",              // "TRUE" "FALSE"
+        config string Q2MUX_SEL     = "FF1",               // "Y2"   "FF1" "M1"
+        config string CEMUX_SEL     = "CE",                // "CE" "CEIN" 
+        config string RSMUX_SEL     = "RS",                // "RS" "RSIN"
+        config bit    CLK_POS       = 1'b0,                // 1'b0: "CLK"; 1'b1: "CLK_B"   
+        config bit    CE_POS        = 1'b0,                // 1'b0: "CE";  1'b1: "CE_B"
+        config bit    RS_POS        = 1'b0,                // 1'b0: "RS"   1'b1:  "RS_B"                                   
+                
+        config string SYNC_MODE     = "SYNC",              // "SYNC" "ASYNC"
+        config string FF2_SET       = "RESET"              // "RESET" "SET"
+    );
+    port
+    (
+              output   Q2,        
+              input    M1, 
+              input    RS, CE, CLK,
+        logic input    SHIFTIN,
+        logic output   SHIFTOUT,
+              input    RSIN,
+              output   RSOUT,
+              input    CEIN,
+              output   CEOUT
+    );
+
+}// end of device devSRL4
+
+/*******************************************************************************
+
+  Device    [devSRL4]
+
+  Author    [clwang]
+
+  Abstract  [The structure netlist of devSRL4 is described in the similar fashion 
+             as in HDL. In unit instantiation statement, the formal pin may be 
+             connected to net which is declared explicitly. 
+             
+             In Valence, the connection can also be made from formal pin to other 
+             pin or port, in which case Valence compiler shall create the net to 
+             fulfil the connection. The built-in naming convention is kicked in 
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devSRL4
+{
+    // Wires for input ports
+    wire ntM1;
+
+    wire ntRS, ntCE, ntCLK;
+    wire ntRSIN;
+    wire ntCEIN;
+
+    // Wires connecting to output ports
+    wire ntFF2_Q;
+    wire ntFF1_Q;
+    wire ntRSMUX;
+    wire ntCEMUX;
+    // Internal wires
+    wire ntQ2MUX;
+    wire ntRSPOLMUX, ntCEPOLMUX, ntCLKPOLMUX;
+    //
+    // Connection to ports
+    //
+    ntM1      <= M1;
+    ntRS      <= RS;
+    ntCE      <= CE;
+    ntCLK     <= CLK;
+    ntFF1_Q   <= SHIFTIN;
+    ntRSIN    <= RSIN;
+    ntCEIN    <= CEIN;
+
+    Q2        <= ntFF2_Q;
+    RSOUT     <= ntRSMUX;
+    CEOUT     <= ntCEMUX;
+    SHIFTOUT  <= ntFF2_Q;
+    //
+    // Instances. FGC section
+    //       
+    device Q2MUX Q2MUX
+        parameter map
+        (
+            CFG  => Q2MUX_SEL
+        )      
+        port map
+        (
+            FF1  => ntFF1_Q, M1  => ntM1,
+            Z   => ntQ2MUX
+        );    
+    
+    device FF FF2
+        parameter map
+        (
+            GRS_EN => GRS_EN,
+            LRS_EN => LRS_EN,
+            SET   => FF2_SET,
+            SYNC  => SYNC_MODE
+        )
+        port map
+        (
+            D  => ntQ2MUX,
+            RS => ntRSMUX, CE => ntCEMUX, CK => ntCLKPOLMUX,
+            Q  => ntFF2_Q
+        );
+
+
+    device RSMUX RSMUX
+        parameter map
+        (
+            CFG  => RSMUX_SEL
+        )     
+        port map
+        (
+            RS  => ntRSPOLMUX, RSIN => ntRSIN,
+            Y   => ntRSMUX
+        );
+
+    device CEMUX CEMUX
+        parameter map
+        (
+            CFG  => CEMUX_SEL
+        )     
+        port map
+        (
+            CE  => ntCEPOLMUX, CEIN => ntCEIN,
+            Y   => ntCEMUX
+        );
+
+
+    device RSPOLMUX RSPOLMUX
+        parameter map
+        (
+            CFG  => RS_POS
+        )     
+        port map
+        (
+            RS  => ntRS, RS_B => ntRS,
+            Y   => ntRSPOLMUX
+        );
+
+    device CEPOLMUX CEPOLMUX
+        parameter map
+        (
+            CFG  => CE_POS
+        )     
+        port map
+        (
+            CE  => ntCE, CE_B => ntCE,
+            Y   => ntCEPOLMUX
+        );
+
+    device CLKPOLMUX CLKPOLMUX
+        parameter map
+        (
+            CFG  => CLK_POS
+        )      
+        port map
+        (
+            CLK => ntCLK, CLK_B => ntCLK,
+            Y   => ntCLKPOLMUX
+        );
+}; // end of structure netlist of devSRL4
+
+
+timing tnl of devSRL4
+{
+    // the delay CEIN->CEOUT RSIN->RSOUT describe in the cell timing file.
+    wire ntCLK;
+    wire ntRS;
+    wire ntCE;
+    
+    
+    
+    if (CLK_POS == 1'b1)
+    {
+        operator V_INV V_CLKPOLMUX
+            parameter map
+            (
+                SECTION => "CLK_INV_DUMY"
+            )
+            port map 
+            (
+                 I => CLK,
+                 Z => ntCLK
+            );    
+    }
+    
+    if (CE_POS == 1'b1)
+    {
+        operator V_INV V_CEPOLMUX
+            parameter map
+            (
+                SECTION => "CE_INV_DUMY"
+            )
+            port map 
+            (
+                 I => CE,
+                 Z => ntCE
+            );    
+    }
+    
+    if (RS_POS == 1'b1)
+    {
+        operator V_INV V_RSPOLMUX
+            parameter map
+            (
+                SECTION => "RS_INV_DUMY"
+            )
+            port map 
+            (
+                 I => RS,
+                 Z => ntRS
+            );    
+    }    
+                    
+    if ( SYNC_MODE == "SYNC" )
+    {
+        
+        operator V_FFSYN FF2_FF
+            parameter map 
+            (
+                GRS_EN    => GRS_EN,
+                LRS_EN    => LRS_EN,
+                SET_RESET => FF2_SET,
+                SECTION  => "C"
+            )
+            port map 
+            (
+                Q  => Q2,
+                D  => M1,
+                SR => (LRS_EN == "TRUE") ?(( RSMUX_SEL == "RS") ? (RS_POS == 1'b1 ? ntRS : RS) : RSIN) : 1'b0,
+                CK => (CLK_POS == 1'b1) ? ntCLK : CLK,
+                CE => ( CEMUX_SEL == "CE") ? ((CE_POS == 1'b1) ? ntCE : CE) : CEIN
+            );
+
+    } else if ( SYNC_MODE == "ASYNC" ) {
+
+        operator V_FFASYN FF2_FF
+            parameter map 
+            (
+                GRS_EN    => GRS_EN,
+                LRS_EN    => LRS_EN,
+                SET_RESET => FF2_SET,
+                SECTION  => "C"
+            )
+            port map 
+            (
+                Q  => Q2,
+                D  => M1,
+                SR => (LRS_EN == "TRUE") ?(( RSMUX_SEL == "RS") ? (RS_POS == 1'b1 ? ntRS : RS) : RSIN) : 1'b0,
+                CK => (CLK_POS == 1'b1) ? ntCLK : CLK,
+                CE => ( CEMUX_SEL == "CE") ? ((CE_POS == 1'b1) ? ntCE : CE) : CEIN
+            );
+
+    }
+   
+}
+
+
+

@@ -1,0 +1,114 @@
+*******************************************************************
+
+  Operator    [gopIBUF]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+gate
+operator gopIBUF
+{
+    parameter
+    (
+        string MIPI_MODE          = "FALSE",
+        string TERMINATED         = "PULLUP",    /* "UNUSED" , "PULLUP" , "PULLDOWN" , "KEEPER" */
+        string HOT_SOCKET         = "ON",        // ON: 1'b0; OFF: 1'b1
+        string VCCIO              = "3.3",       // "3.3" "2.5" "1.8" "1.5" "1.2"
+
+        string HYS_DRIVE_MODE     = "NOHYS" ,    // "NOHYS","SMHYS_I","SMHYS_II","LGHYS","OD","UD" 
+        string VREF_PIN_LOC       = "NA"    ,    // "NA" "VREF1" "VREF2" "VREF3",
+                                                 // This Parameter is used for PCE and report.
+        string VREF_MODE          = "IN"    ,    // "IN": VREF_IN; "OUT": VREF_OUT
+        string VREF_IN_MODE       = "OFF",    // "OFF" "0.45" "0.50" "0.55"
+        string DDR_TERM_MODE      = "OFF",     // "TERM": "ON" "OFF"     
+        string VREF_OUT_MODE      = "VREF",  // "VREF"         
+        string DIFF_IN_TERM_MODE  = "OFF",      // "ON" "OFF"
+        string IOSTANDARD         = "LVCMOS33",
+        string IOB_MODE           = "IBUFHR"
+    );
+    port
+    (
+        input I,
+        input T,
+        input MI,
+        output DIFFI_OUT,
+        output O
+    );
+};
+
+
+implementation impl_R of gopIBUF
+{
+    device devIBUFAR gate_ibufb
+        parameter map
+        (
+            CP_PORT_STATUS       =>  TERMINATED,
+            CP_HOT_SOCKET        =>  HOT_SOCKET,
+            CP_VCCIO             =>  VCCIO,
+            CP_IOB_MODE          =>  IOB_MODE,
+         
+            CP_W_VOLT_R_IN       =>  HYS_DRIVE_MODE,
+            CP_DDRIN_TERM        =>  DDR_TERM_MODE,
+            CP_DIFFIN_TERM       =>  DIFF_IN_TERM_MODE,
+            CP_IO_STANDARD       =>  IOSTANDARD 
+        )
+        port map 
+        (
+            TS  => T,
+            PAD => I,
+            DIN => O,
+            MIPI_SW_DYN   => MI
+        ); 
+};
+
+implementation impl_D of gopIBUF
+{
+    device devIBUFAD gate_ibufa
+        parameter map
+        (
+            CP_PORT_STATUS       =>  TERMINATED,
+            CP_HOT_SOCKET        =>  HOT_SOCKET,
+            CP_VCCIO             =>  VCCIO,
+            CP_IOB_MODE          =>  MIPI_MODE == "FALSE" ?  "IBUFHR" : "IBUFHR_DS",
+            CP_W_VOLT_R_IN       =>  HYS_DRIVE_MODE,
+            CP_DDRIN_TERM        =>  DDR_TERM_MODE,
+            CP_DIFFIN_TERM       =>  DIFF_IN_TERM_MODE,
+            CP_IO_STANDARD       =>  IOSTANDARD
+        )
+        port map 
+        (
+            TS            => T,
+            PAD           => I,
+            DIN           => O,
+            MIPI_SW_DYN   => MI,
+            DIFFI_OUT     => DIFFI_OUT
+
+        );
+};
+
+implementation impl_S of gopIBUF
+{
+    device devIBUFBS gate_ibufc
+        parameter map
+        (
+            CP_PORT_STATUS       =>  TERMINATED,
+            CP_HOT_SOCKET        =>  HOT_SOCKET,
+            CP_VCCIO             =>  VCCIO,
+            CP_IOB_MODE          =>  IOB_MODE,
+         
+            CP_W_VOLT_R_IN       =>  HYS_DRIVE_MODE,
+            CP_DDRIN_TERM        =>  DDR_TERM_MODE,
+            CP_DIFFIN_TERM       =>  DIFF_IN_TERM_MODE,
+            CP_IO_STANDARD       =>  IOSTANDARD
+        )
+        port map 
+        (
+            TS            => T,
+            PAD           => I,
+            DIN           => O,
+            MIPI_SW_DYN   => MI,
+            DIFFI_OUT     => DIFFI_OUT
+        );
+};

@@ -1,0 +1,279 @@
+*******************************************************************
+
+  Device    [devL6CD]
+
+  Author    [clwang]
+
+  Abstract  [LUT-6 by L6CDMUX]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devL6CD : device CLMA
+{
+
+    parameter
+    (
+        config bit INITC[31:0]     = 32'h0000_0000,
+        config bit INITD[31:0]     = 32'h0000_0000,
+        config string FGC_MODE     = "LUT5",               // "LUT5" "ROM" "WMUX" "ARITH"
+        config string FGD_MODE     = "LUT5",               // "LUT5" "ROM" "WMUX" "ARITH"
+        config string Y3MUX_SEL    := "FG",                 // "L8"  "FG" "CY"
+        config string Y2MUX_SEL    := "FG"               // "FFCD" "FG" "CY"
+    );
+    port
+    (
+        // These are the ports of FGD.
+        input    D0, D1, D2, D3, D4, DD,
+        output   Y3,
+
+        // These are the ports of FGC.
+        input    C0, C1, C2, C3, C4, CD,
+        output   Y2,
+
+        // These are the ports shared with FGC and FGD.
+        output   Y6CD,
+
+        // These are the ports of RAM.
+        // Here are the ports of RAM write adress( WA[3:0] ), and shared with ROM.
+        input    M1
+    );
+
+}// end of device devL6CD
+
+/*******************************************************************************
+
+  Device    [devL6CD]
+
+  Author    [clwang]
+
+  Abstract  [The structure netlist of devL6CD is described in the similar fashion
+             as in HDL. In unit instantiation statement, the formal pin may be
+             connected to net which is declared explicitly.
+
+             In Valence, the connection can also be made from formal pin to other
+             pin or port, in which case Valence compiler shall create the net to
+             fulfil the connection. The built-in naming convention is kicked in
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devL6CD
+{
+    // Wires for input ports
+    wire ntD0,ntD1,ntD2,ntD3,ntD4,ntDD;
+    wire ntC0,ntC1,ntC2,ntC3,ntC4,ntCD;
+
+    wire ntM1;
+
+    // Wires connecting to output ports
+    wire ntY3MUX;
+    wire ntY2MUX;
+    wire ntL6CDMUX;
+    // Internal wires
+    wire ntFGD_Z;
+
+    wire ntFGC_Z;
+    //
+    // Connection to ports
+    //
+    ntD0      <= D0;
+    ntD1      <= D1;
+    ntD2      <= D2;
+    ntD3      <= D3;
+    ntD4      <= D4;
+    ntDD      <= DD;
+
+    ntC0      <= C0;
+    ntC1      <= C1;
+    ntC2      <= C2;
+    ntC3      <= C3;
+    ntC4      <= C4;
+    ntCD      <= CD;
+
+    ntM1      <= M1;
+
+
+    Y3        <= ntY3MUX;
+    Y2        <= ntY2MUX;
+    Y6CD      <= ntL6CDMUX;
+
+    //
+    // Instances. FGD section
+    //
+
+    device FGA FGD
+        parameter map
+        (
+            INIT        => INITD,
+            MODE        => FGD_MODE
+        )
+        port map
+        (
+            A0  => ntD0,A1  => ntD1,A2  => ntD2,A3  => ntD3,A4  => ntD4,A5  => ntDD,
+            Z    => ntFGD_Z
+        );
+    device Y3MUX Y3MUX
+        parameter map
+        (
+            CFG  => Y3MUX_SEL
+        )
+        port map
+        (
+            FG  => ntFGD_Z,
+            Z   => ntY3MUX
+        );
+    //
+    // Instances. FGC section
+    //
+
+    device FGA FGC
+        parameter map
+        (
+            INIT        => INITC,
+            MODE        => FGC_MODE
+        )
+        port map
+        (
+            A0  => ntC0,A1  => ntC1,A2  => ntC2,A3  => ntC3,A4  => ntC4,A5  => ntCD,
+            Z    => ntFGC_Z
+        );
+    device Y2MUX Y2MUX
+        parameter map
+        (
+            CFG  => Y2MUX_SEL
+        )
+        port map
+        (
+            FG  => ntFGC_Z,
+            Z     => ntY2MUX
+        );
+
+    //
+    // Instances. Common to FGC and FGD sections
+    //
+
+    device L6CDMUX L6CDMUX
+        port map
+        (
+            I1   => ntFGD_Z, I0  => ntFGC_Z,
+            SEL  => ntM1,
+            Z    => ntL6CDMUX
+        );
+}; // end of structure netlist of devL6CD
+
+
+timing tnl of devL6CD
+{
+    if(INITC == 32'hFFFF_FFFF &&
+       INITD == 32'h0000_0000 )
+    {
+       operator V_BUF V_L6CDMUX
+       parameter map
+       (
+           SECTION  => "CD"
+       )
+        port map
+        (
+            I => M1,
+            Z => Y6CD
+        );
+    }
+    else
+    {
+
+  if(FGC_MODE == "WMUX" )
+  {
+       operator V_LUT5M V_FGC
+          parameter map
+          (
+              SECTION  => "C",
+              INIT     => INITC
+          )
+          port map
+          (
+              I0  => C0,
+              ID  => CD,
+              I1  => C1,
+              I2  => C2,
+              I3  => C3,
+              I4  => C4,
+              Z   => Y2
+          );
+  }
+  else
+  {
+
+        operator V_LUT5 V_FGC
+            parameter map
+            (
+                INIT  => INITC,
+                SECTION  => "C"
+             )
+             port map
+             (
+                 I0 => C0,
+                 I1 => C1,
+                 I2 => C2,
+                 I3 => C3,
+                 I4 => C4,
+                 Y => Y2
+             );
+     }
+
+  if(FGD_MODE == "WMUX" )
+  {
+       operator V_LUT5M V_FGD
+          parameter map
+          (
+              SECTION  => "D",
+              INIT     => INITD
+          )
+          port map
+          (
+              I0  => D0,
+              ID  => DD,
+              I1  => D1,
+              I2  => D2,
+              I3  => D3,
+              I4  => D4,
+              Z   => Y3
+          );
+  }
+  else
+  {
+        operator V_LUT5 V_FGD
+            parameter map
+            (
+                INIT  => INITD,
+                SECTION  => "D"
+             )
+             port map
+             (
+                 I0 => D0,
+                 I1 => D1,
+                 I2 => D2,
+                 I3 => D3,
+                 I4 => D4,
+                  Y => Y3
+             );
+     }
+        operator V_MUX2LUT6 V_L6CDMUX
+            parameter map
+            (
+                SECTION  => "CD"
+            )
+            port map
+            (
+                I0 => Y2,
+                I1 => Y3,
+                S => M1,
+                Z  => Y6CD
+            );
+        }
+}

@@ -1,0 +1,265 @@
+*************************************************************************
+****************************************************************************************/
+library work;
+use pg2l_defs,pg2t330h_defs;
+use pg2l_funcs_connect_io_bank;
+
+structure arch_nl connect_iob_tiles of PG2T330H
+{
+    unsigned int tx,rx;
+    unsigned int l_tx[];
+    
+
+    int tx_ccs = CCS_330H_TILE_X;
+    int ty_ccs = CCS_330H_TILE_Y;
+
+    foreach rx( {[0:6]} )
+    {
+      l_tx = ((rx==3)||(rx==4)||(rx==5)||(rx==6)) ? L_IOB_TILES_X_R3 : L_IOB_TILES_X_R0;
+      foreach tx( l_tx )
+      {
+        connect_io_data(tx, rx, "IOBHR_TILE", "IOLHR_TILE");
+      }
+    }
+
+    foreach rx( {[0:2]} )
+    {
+      l_tx = L_IOB_HP_TILES_X_R0;
+      foreach tx( l_tx )
+      {
+        connect_io_hp_data(tx, rx, tx_ccs, ty_ccs, "IOBHP_TILE", "IOLHP_TILE");
+      }
+    }
+
+
+
+    
+    string l_banks[] = {"L1", "L2", "L3", "L4", "L5", "L6", "L7", "R5", "R6", "R7"};
+    string lr;
+    int bank;
+    int l_bank[];
+
+    foreach lr( {"L"} )
+    {
+      l_bank = {[1:7]};
+      foreach bank( l_bank )
+      {
+        connect_pad_bank( lr, bank, NUM_TILE_X, NUM_REGION, "IOBHR_TILE");
+      }
+    }
+
+
+    foreach lr( {"R"} )
+    {
+      l_bank = {[5:7]};
+      foreach bank( l_bank )
+      {
+        connect_pad_bank( lr, bank, NUM_TILE_X, NUM_REGION, "IOBHP_TILE");
+      }
+    }
+
+
+//    int tx_ccs = CCS_330H_TILE_X;
+//    int ty_ccs = CCS_330H_TILE_Y;
+    int tx_hsst = HSST_TILE_X;
+    int ty_hsst_4 = HSST_TILE3_Y;
+    int ty_hsst_3 = HSST_TILE2_Y;
+    int ty_hsst_2 = HSST_TILE1_Y;
+    int ty_hsst_1 = HSST_TILE0_Y;
+
+
+
+
+ 
+    foreach lr( {"L","R"} )
+    {
+      l_bank = (lr=="L") ? {[1:7]} : {[5:7]};
+
+      foreach bank( l_bank )
+      {
+        connect_iob_scanchain( lr, bank, tx_ccs, ty_ccs, tx_hsst, ty_hsst_4, ty_hsst_1, ESD_330H_TILE_X, ESD_330H_TILE_Y,  
+                               NUM_TILE_X, NUM_REGION, "IOBHR_TILE", "HSSTHP_TILE", "ESD_330H_TILE");
+     }
+    }
+
+
+    int bank_pad_state = 5;
+    foreach lr( {"L","R"} )
+    {
+      l_bank = (lr=="L") ? {[1:7]} : {[5:7]};
+
+      foreach bank( l_bank )
+      {
+        connect_io_state( lr, bank, bank_pad_state, ESD_330H_TILE_X, ESD_330H_TILE_Y,  NUM_TILE_X, NUM_REGION, "IOBHR_TILE", "ESD_330H_TILE");
+      }
+    }
+
+};
+/***************************************************************************************
+****************************************************************************************/
+library work;
+use pg2l_defs,pg2t330h_defs,pg2l_funcs_place,pg2l_funcs_connect_io_bank;
+
+structure arch_nl connect_iol_dqs of PG2T330H
+{
+    int L_REGIONS[] = {[0:6]};
+    int rx;
+    int l_tx[];
+    int tx,tx_pll;
+    int loc_iol;
+
+    foreach rx( L_REGIONS )
+    {
+      l_tx = ((rx==0)||(rx==1)||(rx==2)) ? L_IOL_TILES_X_R0 : {2};
+      foreach tx( l_tx )
+      {
+        tx_pll = (tx<USCM_TILE_X) ? tx-1 : tx+1;
+        foreach loc_iol({0,1})
+        {
+          connect_iol_dqs_input(rx, tx, tx_pll, loc_iol, "IOLHR_TILE");
+        }
+      }
+    }
+
+};//end of arch_nl connect_iol_dqs of PG2T330H
+
+/***************************************************************************************
+****************************************************************************************/
+library work;
+use pg2l_defs,pg2t330h_defs,pg2l_funcs_place,pg2l_funcs_connect_io_bank;
+ 
+structure arch_nl connect_iol_hp_dqs of PG2T330H
+{
+    int R_REGIONS[] = {[0:2]};
+    int rx;
+    int r_tx[];
+    int tx,tx_pll;
+    int loc_iol;
+ 
+    foreach rx( R_REGIONS )
+    {
+      r_tx = ((rx==0)||(rx==1)||(rx==2)) ? L_IOL_HP_TILES_X_R0 : {2};
+      foreach tx( r_tx )
+      {
+        tx_pll = (tx<USCM_TILE_X) ? tx-1 : tx+1;
+        foreach loc_iol({0,1})
+        {
+          connect_iol_hp_dqs_input(rx, tx, tx_pll, loc_iol, "IOLHP_TILE");
+        }
+      }
+    }
+ 
+};//end of arch_nl connect_iol_hp_dqs of PG2T330H
+
+
+
+
+/***************************************************************************************
+****************************************************************************************/
+library work;
+use pg2l_defs,pg2t330h_defs,pg2l_funcs_place,pg2l_funcs_connect_io_bank;
+structure arch_nl connect_iol_cascade of PG2T330H
+{
+    unsigned int tx,rx,loc_iol;
+    unsigned int l_tx[];
+
+    foreach rx ( {[0:6]} )
+    {
+      foreach loc_iol({0,1})
+      {
+        l_tx = ((rx==0)||(rx==1)||(rx==2)) ? L_IOL_TILES_X_R0 : {2};
+        foreach tx(l_tx)
+        {
+          connect_iol_cascade(tx, rx, loc_iol, "IOLHR_TILE");
+        }
+      }
+    }
+};// end of structure arch_nl connect_iol_cascade of PG2T330H
+
+
+
+/***************************************************************************************
+****************************************************************************************/
+library work;
+use pg2l_defs,pg2t330h_defs,pg2l_funcs_place,pg2l_funcs_connect_io_bank;
+structure arch_nl connect_iol_hp_cascade of PG2T330H
+{
+    unsigned int tx,rx,loc_iol;
+    unsigned int r_tx[];
+ 
+    foreach rx ( {[0:2]} )
+    {
+      foreach loc_iol({0,1})
+      {
+        r_tx = L_IOL_HP_TILES_X_R0;
+        foreach tx(r_tx)
+        {
+          connect_iol_cascade(tx, rx, loc_iol, "IOLHP_TILE");
+        }
+      }
+    }
+};// end of structure arch_nl connect_iol_cascade of PG2T330H
+
+
+
+/***************************************************************************************
+****************************************************************************************/
+//library work;
+//use pg2l_defs,pg2t330h_defs;
+//use pg2l_funcs_connect_io_bank;
+//
+//structure arch_nl connect_IOL_TILES of PG2T330H
+//{
+//    unsigned int L_REGIONS[] = {0,1,2};
+//    unsigned int s_hmemc = 0;
+//    unsigned int n_hmemc = 46;
+//    unsigned int ty_dqs0 = 24;
+//    unsigned int ty_dqs1 = 13;
+//    unsigned int ty_dqs2 = 6;
+//    unsigned int ty_iol_comp0 = 1;
+//    unsigned int ty_iol_comp1 = 29;
+//    unsigned int ty_iol_iol_pll0_out = 19;
+//    unsigned int ty_iol_iol_pll1_out = 11;
+//
+//    unsigned int l_ty_dqs0[] = {[21:22,25:29]};
+//    unsigned int l_ty_dqs1[] = {[10:12,18:20]};
+//    unsigned int l_ty_dqs2[] = {[1:5,8:9]};
+//
+//    unsigned int rx,tx;
+//    string type_lr;
+//
+//    foreach rx(L_REGIONS)
+//    {
+//        foreach tx(L_IOL_TILES_X)
+//        {
+//          connect_iol_BANK(rx, tx, ty_dqs0, l_ty_dqs0, ty_iol_comp0, ty_iol_comp1, ty_iol_iol_pll0_out, ty_iol_iol_pll1_out, S_HMEMC_TILE, N_HMEMC_TILE, 1);
+//          connect_iol_BANK(rx, tx, ty_dqs1, l_ty_dqs1, ty_iol_comp0, ty_iol_comp1, ty_iol_iol_pll0_out, ty_iol_iol_pll1_out, S_HMEMC_TILE, N_HMEMC_TILE, 1);
+//          connect_iol_BANK(rx, tx, ty_dqs2, l_ty_dqs2, ty_iol_comp0, ty_iol_comp1, ty_iol_iol_pll0_out, ty_iol_iol_pll1_out, S_HMEMC_TILE, N_HMEMC_TILE, 1);
+//
+//          connect_dqs_BANK(rx, tx, NUM_REGION, S_HMEMC_TILE, N_HMEMC_TILE, 1);
+//        }
+//    }
+//    
+//};
+//
+///***************************************************************************************
+//****************************************************************************************/
+//library work;
+//use pg2l_defs,pg2t330h_defs,pg2l_funcs_place,pg2l_funcs_connect_logic;
+//use pg2l_funcs_connect_io_bank,pg2l_funcs_connect_clk;
+//
+//structure arch_nl connect_HMEMC_TILES of PG2T330H
+//{
+//    unsigned int tx_hmemc1 = 33;
+//    unsigned int tx_hmemc0 = 2;
+//    unsigned int ty_hmemc = 0;
+//
+//    connect_hmemc_tiles( "l", tx_hmemc0, tx_hmemc1, ty_hmemc, NUM_TILE_X);
+//    connect_hmemc_tiles( "r", tx_hmemc0, tx_hmemc1, ty_hmemc, NUM_TILE_X);
+//
+//
+//};
+
+
+
+

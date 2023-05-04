@@ -1,0 +1,356 @@
+*******************************************************************
+
+  Operator    [gopDRM]
+
+  Abstract  []
+
+  Revision History:
+
+ ********************************************************************************/
+gate
+operator gopDRM
+{
+    parameter
+    (
+        bit    DRM_EN           = 1'b1, // 0: disabled 1: enabled
+        string DRM_MODE         = "TDP",// "TDP" : TRUE DOUBLE PORT RAM
+                                        // "SDP" : SIMPLE DOUBLE PORT RAM
+                                        // "SPR" : SINGLE PORT RAM
+                                        // "ROM" : ROM
+        bit    CS_POL_A[2:0]    = 3'b000,     
+        bit    CE_POL_A         = 1'b0,
+        bit    WE_POL_A         = 1'b0,
+        bit    OCE_POL_A        = 1'b0,
+        bit    CLK_POL_A        = 1'b0,
+        bit    RST_POL_A        = 1'b0,
+        bit    BEL_POL_A        = 1'b0, 
+        bit    BEH_POL_A        = 1'b0, 
+        bit    BEL_SET_A        = 1'b0,   
+        bit    BEH_SET_A        = 1'b0, 
+        bit    CS2_SET_A        = 1'b0,  
+        bit    ORCK_POL_A       = 1'b0,     // sc_ckqa_inv
+        string WRITE_MODE_A     = "NORMAL_WRITE", //  : No-change mode
+                               // "TRANSPARENT_WRITE" : Write-first mode
+                               // "READ_BEFORE_WRITE" : Read-first mode
+                                              // "BW" : Byte write mode       
+        string WRITE_COLLISION_ARBITER = "NULL", // "NULL" "PORTA" "PORTB"
+        int    DATA_WIDTH_A     = 18,   // 1 2 4 8/9 16/18 32/36
+        bit    OR_USED_A        = 1'b0, // 1'b0 : disabled
+                                        // 1'b1 : enabled 
+        bit    CS_POL_B[2:0]    = 3'b000,     
+        bit    CE_POL_B         = 1'b0,
+        bit    WE_POL_B         = 1'b0,
+        bit    OCE_POL_B        = 1'b0,
+        bit    CLK_POL_B        = 1'b0,
+        bit    RST_POL_B        = 1'b0,
+        bit    BEL_POL_B        = 1'b0, 
+        bit    BEH_POL_B        = 1'b0, 
+        bit    BEL_SET_B        = 1'b0,   
+        bit    BEH_SET_B        = 1'b0, 
+        bit    CS2_SET_B        = 1'b0,  
+        bit    ORCK_POL_B       = 1'b0,     // sc_ckqa_inv
+        string WRITE_MODE_B     = "NORMAL_WRITE", //  : No-change mode
+                               // "TRANSPARENT_WRITE" : Write-first mode
+                               // "READ_BEFORE_WRITE" : Read-first mode
+                                              // "BW" : Byte write mode 
+        int    DATA_WIDTH_B     = 18,   // 1 2 4 8/9 16/18 32/36
+        bit    OR_USED_B        = 1'b0, // 1'b0 : disabled
+                                        // 1'b1 : enabled 
+        string GRS_EN           = "TRUE",
+
+// xctrl.xscbox.sc_async    Async reset setting
+        //      0:          sync reset and sync release
+        //      1:          async reset and sync release
+// xctrl.xscbox.sc_sync_dis     Sync reset setting
+        //      0:              sync/async reset and sync release
+        //      1:              async reset and async release
+        string RESET_TYPE = "SYNC_RESET",
+        //  00  sync reset and sync release   <= "SYNC_RESET"
+        //  01  async reset and sync release  <= "ASYNC_RESET_SYNC_RELEASE"
+        //  1x  async reset and async release <= "ASYNC_RESET"
+
+        // MFG settings bits
+        // Don't Care (as default)
+        bit RD_PW[3:0]    = 4'b0000,
+        bit WR_PW[3:0]    = 4'b0000,
+        bit SAE_PW[3:0]   = 4'b0000,
+        bit SAE_DEL[3:0]  = 4'b0000,
+        bit  ALMOST_FULL_OFFSET[13:0]  =   14'h0000,
+        bit  ALMOST_EMPTY_OFFSET[13:0] =   14'h0000,
+        //int  ASIZE               =   12,//8 9 10 11 12 13          
+        //int  DSIZE               =   2, //1 2 4 8 9 16 18 32 36    
+        string  REWRITE_EN          =   "FALSE", //"TRUE": enable the rewrite   "FALSE":disable the rewrite
+        string  RESEND_EN           =   "FALSE", //"TRUE": enable the resend    "FALSE":disable the resend
+        string  SYNC_FIFO           =   "FALSE", //"TRUE": sync_fifo             "FALSE": async_fifo
+        string  FIFO_EN             =   "FALSE", //"TRUE": enable fifo             "FALSE": disable fifo
+        string  FLAGEMPTY_EN        =   "FALSE", //"TRUE": enable the flagempty "FALSE":disable the flagempty
+        string  FLAGFULL_EN         =   "FALSE", //"TRUE": enable the flagfull  "FALSE":disable the flagfull
+        string  DOUT_REG_EN         =   "FALSE", //"TRUE": enable the dout_reg  "FALSE":disable the dout_reg
+
+        bit INIT_00[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_01[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_02[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_03[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_04[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_05[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_06[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_07[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_08[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_09[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_0A[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_0B[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_0C[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_0D[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_0E[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_0F[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_10[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_11[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_12[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_13[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_14[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_15[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_16[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_17[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_18[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_19[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_1A[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_1B[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_1C[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_1D[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_1E[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_1F[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_20[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_21[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_22[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_23[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_24[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_25[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_26[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_27[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_28[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_29[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_2A[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_2B[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_2C[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_2D[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_2E[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_2F[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_30[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_31[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_32[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_33[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_34[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_35[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_36[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_37[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_38[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_39[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_3A[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_3B[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_3C[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_3D[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_3E[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        bit INIT_3F[287:0] = 288'h000000000000000000000000000000000000000000000000000000000000000000000000 
+    );
+
+    port
+    (
+        input  ADA[13:0],
+        input  ADSA,
+        input  DA[17:0],
+        input  CEA /* pragma PAP_ARC_GOP_CTRL_PIN = CE*/,
+        input  CLKA /* pragma PAP_ARC_GOP_CTRL_PIN = "GCLK|RCLK"*/,
+        input  CSA[2:0],
+        input  WEA /* pragma PAP_ARC_GOP_CTRL_PIN = "GCLK|RCLK"*/,
+        input  OCEA,
+        input  RSTA /* pragma PAP_ARC_GOP_CTRL_PIN = RST*/,
+
+        input  ADB[13:0],
+        input  ADSB,
+        input  DB[17:0],
+        input  CEB /* pragma PAP_ARC_GOP_CTRL_PIN = CE*/,
+        input  CLKB /* pragma PAP_ARC_GOP_CTRL_PIN = "GCLK|RCLK"*/,
+        input  CSB[2:0],
+        input  WEB /* pragma PAP_ARC_GOP_CTRL_PIN = "GCLK|RCLK"*/,
+        input  OCEB,
+        input  RSTB /* pragma PAP_ARC_GOP_CTRL_PIN = RST*/,
+        
+        output WWCONF,
+        output QA[17:0],
+        output QB[17:0],
+        input     WR_ERR,
+        input     WR_EOP,
+        input     RD_NAK,
+        output    AE,
+        output    AF,
+        output    FULL,
+        output    EMPTY
+    );
+};
+
+/**Implementation Body*******************************************************************
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_drm of gopDRM
+{  
+    device DRM drm_inst
+    parameter map
+    (
+        DRM_EN          => DRM_EN       ,
+        DRM_MODE        => DRM_MODE     ,
+        WRITE_COLLISION_ARBITER => WRITE_COLLISION_ARBITER,
+        CS_POL_A        => CS_POL_A     ,
+        CE_POL_A        => CE_POL_A     ,
+        WE_POL_A        => WE_POL_A     ,
+        OCE_POL_A       => OCE_POL_A    ,
+        CLK_POL_A       => CLK_POL_A    ,
+        RST_POL_A       => RST_POL_A    ,
+        BEL_POL_A       => BEL_POL_A    ,
+        BEH_POL_A       => BEH_POL_A    ,
+        BEL_SET_A       => BEL_SET_A    ,
+        BEH_SET_A       => BEH_SET_A    ,
+        CS2_SET_A       => CS2_SET_A    ,
+        ORCK_POL_A      => ORCK_POL_A   ,
+        WRITE_MODE_A    => WRITE_MODE_A ,
+        DATA_WIDTH_A    => DATA_WIDTH_A ,
+        OR_USED_A       => OR_USED_A    ,
+        CS_POL_B        => CS_POL_B     ,
+        CE_POL_B        => CE_POL_B     ,
+        WE_POL_B        => WE_POL_B     ,
+        OCE_POL_B       => OCE_POL_B    ,
+        CLK_POL_B       => CLK_POL_B    ,
+        RST_POL_B       => RST_POL_B    ,
+        BEL_POL_B       => BEL_POL_B    ,
+        BEH_POL_B       => BEH_POL_B    ,
+        BEL_SET_B       => BEL_SET_B    ,
+        BEH_SET_B       => BEH_SET_B    ,
+        CS2_SET_B       => CS2_SET_B    ,
+        ORCK_POL_B      => ORCK_POL_B   ,
+        WRITE_MODE_B    => WRITE_MODE_B ,
+        DATA_WIDTH_B    => DATA_WIDTH_B ,
+        OR_USED_B       => OR_USED_B    ,
+        GRS_EN          => GRS_EN       ,
+        RESET_TYPE      => RESET_TYPE ,
+        RD_PW           => RD_PW        ,
+        WR_PW           => WR_PW        ,
+        SAE_PW          => SAE_PW       ,
+        SAE_DEL         => SAE_DEL      ,
+        INIT_00 => INIT_00 ,
+        INIT_01 => INIT_01 ,
+        INIT_02 => INIT_02 ,
+        INIT_03 => INIT_03 ,
+        INIT_04 => INIT_04 ,
+        INIT_05 => INIT_05 ,
+        INIT_06 => INIT_06 ,
+        INIT_07 => INIT_07 ,
+        INIT_08 => INIT_08 ,
+        INIT_09 => INIT_09 ,
+        INIT_0A => INIT_0A ,
+        INIT_0B => INIT_0B ,
+        INIT_0C => INIT_0C ,
+        INIT_0D => INIT_0D ,
+        INIT_0E => INIT_0E ,
+        INIT_0F => INIT_0F ,
+        INIT_10 => INIT_10 ,
+        INIT_11 => INIT_11 ,
+        INIT_12 => INIT_12 ,
+        INIT_13 => INIT_13 ,
+        INIT_14 => INIT_14 ,
+        INIT_15 => INIT_15 ,
+        INIT_16 => INIT_16 ,
+        INIT_17 => INIT_17 ,
+        INIT_18 => INIT_18 ,
+        INIT_19 => INIT_19 ,
+        INIT_1A => INIT_1A ,
+        INIT_1B => INIT_1B ,
+        INIT_1C => INIT_1C ,
+        INIT_1D => INIT_1D ,
+        INIT_1E => INIT_1E ,
+        INIT_1F => INIT_1F ,
+        INIT_20 => INIT_20 ,
+        INIT_21 => INIT_21 ,
+        INIT_22 => INIT_22 ,
+        INIT_23 => INIT_23 ,
+        INIT_24 => INIT_24 ,
+        INIT_25 => INIT_25 ,
+        INIT_26 => INIT_26 ,
+        INIT_27 => INIT_27 ,
+        INIT_28 => INIT_28 ,
+        INIT_29 => INIT_29 ,
+        INIT_2A => INIT_2A ,
+        INIT_2B => INIT_2B ,
+        INIT_2C => INIT_2C ,
+        INIT_2D => INIT_2D ,
+        INIT_2E => INIT_2E ,
+        INIT_2F => INIT_2F ,
+        INIT_30 => INIT_30 ,
+        INIT_31 => INIT_31 ,
+        INIT_32 => INIT_32 ,
+        INIT_33 => INIT_33 ,
+        INIT_34 => INIT_34 ,
+        INIT_35 => INIT_35 ,
+        INIT_36 => INIT_36 ,
+        INIT_37 => INIT_37 ,
+        INIT_38 => INIT_38 ,
+        INIT_39 => INIT_39 ,
+        INIT_3A => INIT_3A ,
+        INIT_3B => INIT_3B ,
+        INIT_3C => INIT_3C ,
+        INIT_3D => INIT_3D ,
+        INIT_3E => INIT_3E ,
+        INIT_3F => INIT_3F ,
+        //ASIZE                     =>       ASIZE              ,             
+        //DSIZE                     =>       DSIZE              ,
+        ALMOST_FULL_OFFSET        =>       ALMOST_FULL_OFFSET ,
+        ALMOST_EMPTY_OFFSET       =>       ALMOST_EMPTY_OFFSET,
+        REWRITE_EN                =>       REWRITE_EN         ,
+        RESEND_EN                 =>       RESEND_EN          ,
+        SYNC_FIFO                 =>       SYNC_FIFO          ,
+        FIFO_EN                   =>       FIFO_EN            ,
+        FLAGEMPTY_EN              =>       FLAGEMPTY_EN       ,
+        FLAGFULL_EN               =>       FLAGFULL_EN                  
+
+    )
+    port map
+    (
+        ADA    => ADA    ,
+        ADSA   => ADSA   ,
+        DA     => DA     ,
+        CEA    => CEA    ,
+        CLKA   => CLKA   ,
+        CSA    => CSA    ,
+        WEA    => WEA    ,
+        OCEA   => OCEA   ,
+        RSTA   => RSTA   ,
+
+        ADB    => ADB    ,
+        ADSB   => ADSB   ,
+        DB     => DB     ,
+        CEB    => CEB    ,
+        CLKB   => CLKB   ,
+        CSB    => CSB    ,
+        WEB    => WEB    ,
+        OCEB   => OCEB   ,
+        RSTB   => RSTB   ,
+
+        WWCONF => WWCONF ,
+        QA     => QA     ,
+        QB     => QB     ,
+        WR_ERR => WR_ERR ,
+        WR_EOP => WR_EOP ,
+        RD_NAK => RD_NAK , 
+        AE     => AE     ,
+        AF     => AF     ,
+        FULL   => FULL   ,
+        EMPTY  => EMPTY 
+
+    );
+
+}; // end of implementation impl_drm of gopDRM
+

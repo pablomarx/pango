@@ -1,0 +1,96 @@
+******************************************************************
+//
+//  Device    [devIOBUFDSBS]
+//
+//  project   []
+//  
+//  Author    [guoxi]
+//
+//  Abstract  [ ]
+//
+//  Revision History:
+//                       
+//********************************************************************************/
+
+gate device devIOBUFDSBS : device IOBS
+{
+    parameter 
+    (
+        config string CP_IOB_MODE      = "OBUFHR",     //"IBUFHR","OBUFHR","IOBUFHR","OBUFHR_T","IBUFHR_DS"
+        config string CP_PORT_STATUS   = "PUP3325",    //"PULL_UP","PULL_DOWN","KEEPER" on input pad
+        config string CP_IO_STANDARD   = "LVCMOS25",   //IO standard: lvcmos33 lvcmos25 lvcmos18 lvcmos15 lvcmos12
+        config string CP_DIFFIN_TERM   = "OFF",        //differential input terminal resistor: "ON", "OFF"
+        config string CP_DDRIN_TERM    = "OFF",        //terminal resistor for DDR input:"OFF","ON"
+        config string CP_W_VOLT_R_IN   = "NOHYS",      //"NOHYS","SHYS_I","SHYS_II","LHYS","OD33","OD25","OD18","UD12","UD18","UD25"
+        config string CP_DRV_STRENGTH  = "8",          // output drvier strength: 2,4,6,8,12,16,24
+        config string CP_SLEW_MODE     = "F",          //slew rate: "FAST"->"F", "SLOW"->"S"
+        config string CP_HOT_SOCKET    = "ON",         //hot_socket feature, "ON", "OFF"
+        config string CP_VCCIO         = "2.5"         //bank power supply, "2.5", "3.3"
+    );
+    port
+    (   
+        input  DIFFO_IN,
+        
+        // add Port DO & TO for the io set to Pseudo-DS , such as IOSTANDARD == "SSTL25D_I". 
+        input  DO, 
+        input  TS,
+        inout  PAD,
+        output DIFFI_OUT
+     );
+};  // end of device devIOBUFDSBS
+
+
+/*******************************************************************************
+
+  Device    [devIOBUFDSBS]
+
+  Author    []
+
+  Abstract  [gate grid devIOBUFDSBS. structure nestlist]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devIOBUFDSBS
+{
+    // Wires connecting to ports. 
+    wire ntPAD;
+    wire ntDIFFO_IN;
+    wire ntDO;
+    wire ntTS;
+    wire ntOBUFO_IN;
+
+    DIFFI_OUT     <= ntPAD;
+    PAD           <= ntPAD;
+    
+    ntDIFFO_IN    <= DIFFO_IN;  
+    ntDO          <= DO;
+    ntTS          <= TS;
+    
+    device OBUFS OBUFS
+        parameter map
+        (
+            CP_IOB_MODE    => CP_IOB_MODE,
+            CP_IO_STANDARD => CP_IO_STANDARD
+        )
+        port map
+        (
+            OUT => ntOBUFO_IN,  
+            DO  => ntDO,
+            TS  => ntTS
+        );
+
+    device DIFFOSMUX DIFFOSMUX
+        parameter map
+        (
+            CP_IOB_MODE    => CP_IOB_MODE
+        )
+        port map
+        (
+            OUT      => ntPAD,
+            DIFFO_IN => ntDIFFO_IN,
+            OBUFO_IN => ntOBUFO_IN
+        );
+    
+};  // end of structure netlist of devIOBUFDSBS            
+          

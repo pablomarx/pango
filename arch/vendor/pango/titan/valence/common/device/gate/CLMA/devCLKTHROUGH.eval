@@ -1,0 +1,91 @@
+*****************************************************************
+
+  Device    [devCLKTHROUGH]
+
+  Author    []
+
+  Abstract  [A Part of CLMA]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devCLKTHROUGH : device CLMA
+{
+    parameter
+    (
+        config bit    CLK_POS        = 1'b0                // 1'b0: "CLK"; 1'b1: "CLK_B"
+    );   
+    port
+    (
+        output   CLKOUT,
+        input    CLK
+
+    );
+}; // end of device devCLKTHROUGH
+
+
+/*******************************************************************************
+
+  Device    [devCLKTHROUGH]
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devCLKTHROUGH
+{
+    // Wires for input ports
+    wire ntCLK;
+    wire ntCLKPOLMUX;
+
+    ntCLK     <= CLK;
+    CLKOUT    <= ntCLKPOLMUX;
+
+    device CLKPOLMUX CLKPOLMUX
+        parameter map
+        (
+            CFG    => CLK_POS
+        )        
+        port map
+        (
+            CLK  => ntCLK, CLK_B => ntCLK,
+            Y    => ntCLKPOLMUX
+        );
+}; // end of structure netlist of devCLKTHROUGH
+
+timing tnl of devCLKTHROUGH
+{    
+   //wire ntCLK;
+ 
+   if (CLK_POS == 1'b1)
+   {
+       operator V_INV V_CLKPOLMUX
+           parameter map
+           (
+               SECTION => "CLK_POS"
+           )
+           port map 
+           (
+                I => CLK,
+                Z => CLKOUT
+           );    
+   }
+   else
+   {
+       operator V_BUF V_CLKPOLMUX
+           parameter map
+           (
+               SECTION => "CLK_POS"
+           )
+           port map
+           (
+               I => CLK,
+               Z => CLKOUT
+           );
+   }
+   
+}

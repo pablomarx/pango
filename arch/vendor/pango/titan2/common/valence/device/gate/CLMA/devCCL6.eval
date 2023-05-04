@@ -1,0 +1,130 @@
+evCCL6.val
+ * @brief .
+ * @author zpfeng(file creator)
+ * @date 2019/07/18
+ * @copyright (c) Copyright 2013~2019 - PANGO MICROSYSTEMS, INC.
+ * ALL RIGHTS RESERVED.
+ *
+ * THE SOURCE CODE CONTAINED HEREIN IS PROPRIETARY TO PANGO MICROSYSTEMS, INC.
+ * IT SHALL NOT BE REPRODUCED OR DISCLOSED IN WHOLE OR IN PART OR USED BY PARTIES
+ * WITHOUT WRITTEN AUTHORIZATION FROM THE OWNER.
+ */
+
+
+gate
+device devCCL6 : device CLMA
+{
+    parameter
+    (
+        config bit CP_INITC[63:0] = 64'hFFFFFFFFFFFFFFFF,
+        config string CP_MODEC = "LUT6",
+        config string CP_CR2PREMUX_SEL = "YX",
+        config string CP_CR2POSTMUX_SEL = "CX"
+    );
+
+    port
+    (
+        input C0,
+        input C1,
+        input C2,
+        input C3,
+        input C4,
+        input C5,
+
+        output Y2,
+        output CR2,
+        
+  logic input  FGC_CIN,
+  logic output FGC_COUT
+
+    );
+
+}; // end of device devCCL6
+
+
+structure netlist of devCCL6
+{
+    wire  ntCYB     ;
+    wire  ntC5      ;
+    wire  ntC4      ;
+    wire  ntC3      ;
+    wire  ntC2      ;
+    wire  ntC1      ;
+    wire  ntC0      ;
+
+    wire  ntQC2     ;
+    wire  ntCYC     ;
+    wire  ntL5C     ;
+    wire  ntL6C     ;
+    wire  ntCR2     ;
+
+    ntC5        <= C5      ;
+    ntC4        <= C4      ;
+    ntC3        <= C3      ;
+    ntC2        <= C2      ;
+    ntC1        <= C1      ;
+    ntC0        <= C0      ;
+
+    CR2         <= ntCR2   ;
+    Y2          <= ntL6C   ;
+
+    ntCYB       <= FGC_CIN ;
+    FGC_COUT    <= ntCYC   ;
+
+    device LUT6 FYC
+    parameter map
+    (
+        CP_INIT         => CP_INITC       ,
+        CP_MODE         => CP_MODEC
+    )
+    port map
+    (
+        A0      => ntC0                                 ,
+        A1      => ntC1                                 ,
+        A2      => ntC2                                 ,
+        A3      => ntC3                                 ,
+        A4      => ntC4                                 ,
+        A5      => ntC5                                 ,
+
+        CIN     => ntCYB                                ,
+        COUT    => ntCYC                                ,
+        L5      => ntL5C                                ,
+        L6      => ntL6C
+
+    );
+    
+    device CRPREMUX CR2PREMUX
+    parameter map
+    (
+         CP_CRPREMUX_SEL     =>    CP_CR2PREMUX_SEL
+    )
+    port map
+    (
+         YX                  =>    ntL5C,
+         CYX                 =>    ntCYC,
+         Q                   =>    ntQC2
+    );
+    
+    device CRPOSTMUX CR2POSTMUX
+    parameter map
+    (
+        CP_CRPOSTMUX_SEL     =>    CP_CR2POSTMUX_SEL
+    )
+    port map
+    (
+        CX                   =>    ntQC2,
+        Q                    =>    ntCR2
+    );
+
+}; // end of structure netlist of devCCL6
+
+
+
+
+
+
+
+
+
+
+

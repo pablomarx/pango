@@ -1,0 +1,3629 @@
+*******************************************************************
+
+  Package   [pango_floorplan_funcs]
+
+  Author    [jiang tao]
+
+  Abstract  [Floorplan description common to pango architecture]
+
+  Revision History:
+
+********************************************************************************/
+library work;
+USE pgc_defs, pgc7k_defs, pango_defs;
+
+package pgc_floorplan_funcs
+{
+    unsigned int fsx = 0;
+    unsigned int fsy = 0;
+    
+    function get_coordinate_of_clm
+    (
+        unsigned int lsx,
+        unsigned int lsy
+    )
+    {
+        unsigned int col_gap = 13;
+        unsigned int tmp_x = lsx;
+        unsigned int tmp_y = lsy;
+        
+        //adjust floorplan gap
+        if(lsx > 77)//blank column
+        {
+            tmp_x = lsx - NUM_GRID_X;
+        }
+        
+        if(lsy > 131)//blank column
+        {
+            tmp_y = lsy - NUM_GRID_Y;
+        }
+        
+        fsx = 2 * ( tmp_x / NUM_GRID_X) + 10 + tmp_y % 2;
+        fsy = tmp_y / NUM_GRID_Y + 6;
+        
+        if (tmp_x >= col_gap * NUM_GRID_X)//blank column
+        {
+            fsx = fsx + 2;
+        }
+        
+        fsy = fsy + 2;
+    }
+    
+    function get_coordinate_of_drm
+    (
+        unsigned int lsx,
+        unsigned int lsy
+    )
+    {
+        unsigned int tmp_x = lsx;
+        unsigned int tmp_y = lsy;
+        
+        if(lsx > 77)//blank column
+        {
+            tmp_x = lsx - NUM_GRID_X;
+        }
+        
+        if(lsy >= 138)//blank column
+        {
+            tmp_y = lsy - NUM_GRID_Y;
+        }
+    
+        fsx = 2 * ( tmp_x / 6) + 11 + ((tmp_x / 6) % 2) * 2;
+        fsy = tmp_y / 6 + 8;
+    }
+    
+    function get_coordinate_of_dll
+    (
+        unsigned int lsx,
+        unsigned int lsy
+    )
+    {
+        unsigned int tmp_x = lsx;
+        unsigned int tmp_y = lsy;
+    
+        if(tmp_x == 9)
+        {
+            fsx = 13;
+            fsy = 43;
+        }
+        else
+        {
+            fsx = 60;
+            fsy = 9;
+        }
+    }
+    
+    function get_coordinate_of_pll
+    (
+        unsigned int lsx,
+        unsigned int lsy
+    )
+    {
+        unsigned int tmp_x = lsx;
+        unsigned int tmp_y = lsy;
+        
+        fsx = 13;
+        fsy = tmp_y / NUM_GRID_Y + 6;
+    }
+    
+    function get_coordinate_of_uscmd
+    (
+        unsigned int lsx,
+        unsigned int lsy
+    )
+    {
+        unsigned int tmp_x = lsx;
+        unsigned int tmp_y = lsy;
+        
+        fsx = tmp_x / 3 + 10;
+        fsy = tmp_y % 3 + 31;
+    }
+    
+    function get_coordinate_of_uscmdc
+    (
+        unsigned int lsx,
+        unsigned int lsy
+    )
+    {
+        unsigned int tmp_x = lsx;
+        unsigned int tmp_y = lsy;
+        
+        fsx = tmp_x / 3 + 10;
+        fsy = tmp_y / 6 + tmp_y % 6 + ((tmp_x - 1) % 2) * 8 - 4;
+    }
+    
+    function get_coordinate_of_iockbrg
+    (
+        unsigned int lsx,
+        unsigned int lsy
+    )
+    {
+        unsigned int tmp_x = lsx;
+        unsigned int tmp_y = lsy;
+        
+        fsx = tmp_x / 3 + 10;
+        fsy = tmp_y / 6 - 3;
+    }
+    
+    function get_coordinate_of_iockgate
+    (
+        unsigned int lsx,
+        unsigned int lsy
+    )
+    {
+        unsigned int tmp_x = lsx;
+        unsigned int tmp_y = lsy;
+        
+        if (tmp_x < 56)
+        {
+            fsx = 13;
+        }
+        else
+        {
+            fsx = 72;
+        }
+        fsy = 26;
+    }
+    
+    function get_coordinate_of_clkdiv
+    (
+        unsigned int lsx,
+        unsigned int lsy
+    )
+    {
+        unsigned int tmp_x = lsx;
+        unsigned int tmp_y = lsy;
+        
+        if(tmp_x < 56)
+        {
+            fsx = 13;
+        }
+        else
+        {
+            fsx = 72;
+        }
+        
+        fsy = 25;
+    }
+    
+    function get_coordinate_of_clkdly
+    (
+        unsigned int lsx,
+        unsigned int lsy
+    )
+    {
+        unsigned int tmp_x = lsx;
+        unsigned int tmp_y = lsy;
+        
+        if(tmp_x < 54)
+        {
+            fsx = 13;
+            fsy = 22 - (tmp_y % 2);
+        }
+        else if((tmp_x == 78 || tmp_x == 79) && tmp_y < 12)
+        {
+            fsx = 35 + (tmp_y % 3);
+            fsy = 8;
+        }
+        else if ((tmp_x == 78 || tmp_x == 79) && tmp_y >= 240)
+        {
+            fsx = 36;
+            fsy = 47;
+        }
+        else
+        {
+            fsx = 72;
+            fsy = 22 - (tmp_y % 2);
+        }
+    }
+    
+    function get_coordinate_of_iol
+    (
+        unsigned int lsx,
+        unsigned int lsy
+    )
+    {
+        unsigned int tmp_x = lsx;
+        unsigned int tmp_y = lsy;
+        
+        //adjust floorplan gap
+        if(lsx > 77)//blank column
+        {
+            tmp_x = lsx - NUM_GRID_X;
+        }
+        
+        if(lsy > 131)//blank column
+        {
+            tmp_y = lsy - NUM_GRID_Y;
+        }
+        if (lsy <= 10)
+        {
+            int tem = tmp_x / NUM_GRID_X - 1;
+            if (lsx >= 88 && lsx <= 118)
+            {
+                tem += 1;
+            }
+            else if (lsx >= 130 && lsx <= 148)
+            {
+                tem += 2;
+            }
+            
+            if (lsx == 10)
+            {
+                fsx = 12;
+                fsy = tmp_y - 3;
+            }
+            else if (lsx == 154)
+            {
+                fsx = 64;
+                fsy = tmp_y - 3;
+            }
+            else if (tem % 2 == 1)
+            {
+                fsx = 16 + ((tem - 1) / 2) * 4;
+                fsy = tmp_y - 7;
+            }
+            else
+            {
+                fsx = 16 + ((tem - 1) / 2) * 4;
+                fsy = tmp_y - 3;
+            }
+            
+            fsx = fsx - 2;
+            if (lsx >= 130 && lsx <= 148)
+            {
+                fsx = fsx - 2;
+            }
+            else
+            {
+                fsx = fsx + 2;
+            }
+            
+            //Fix P/N reverse
+            if (lsy % 2 == 0)
+            {
+                fsy = fsy - 1;
+            }
+            else
+            {
+                fsy = fsy + 1;
+            }
+        }
+        else if (lsy > 240)
+        {
+            int tem = tmp_x / NUM_GRID_X - 1;
+            if (lsx >= 88 && lsx <= 118)
+            {
+                tem += 1;
+            }
+            else if (lsx >= 130 && lsx <= 148)
+            {
+                tem += 2;
+            }
+            
+            if (lsx == 10)
+            {
+                fsx = 12;
+                fsy = tmp_y - 190;
+            }
+            else if (lsx == 154)
+            {
+                fsx = 64;
+                fsy = tmp_y - 190;
+            }
+            else if (tem % 2 == 1)
+            {
+                fsx = 16 + ((tem - 1) / 2) * 4;
+                fsy = tmp_y - 190;
+            }
+            else
+            {
+                fsx = 16 + ((tem - 1) / 2) * 4;
+                fsy = tmp_y - 186;
+            }
+            fsy = fsy + 3;
+            fsx = fsx - 2;
+            if (lsx >= 130 && lsx <= 148)
+            {
+                fsx = fsx - 2;
+            }
+            else
+            {
+                fsx = fsx + 2;
+            }
+            
+            //Fix P/N reverse
+            if (lsy % 2 == 0)
+            {
+                fsy = fsy - 1;
+            }
+            else
+            {
+                fsy = fsy + 1;
+            }
+        }
+        else if (lsx < 11)
+        {
+            fsx = (lsy / 6 % 4) * 4;
+            int tmp_i = lsy / 6;
+            if ((tmp_i >= 13 && tmp_i <= 15) || tmp_i >= 33)
+            {
+                fsx = (lsy / 6 % 4 - 1) * 4;
+            }
+            else if ((tmp_i >= 18 && tmp_i < 20) || (tmp_i >= 30 && tmp_i <= 31))
+            {
+                fsx = (lsy / 6 % 4 - 2) * 4;
+            }
+            else if (tmp_i == 20)
+            {
+                fsx = (lsy / 6 % 4 + 2) * 4;
+            }
+            
+            int tmp_j = lsy / 6 / 4;
+            if (lsy >= 121)
+            {
+                tmp_j = tmp_j - 1;
+            }
+            fsy = 10 + 4 * (tmp_j - 1) + lsy % 6 - 1;
+            if (lsy >= 145)
+            {
+                fsy = fsy + 4;
+            }
+        }
+        else if (lsx > 90)
+        {
+            fsx = (lsy / 6 % 4) *4;
+            int tmp_i = lsy / 6;
+            if ((tmp_i >= 13 && tmp_i <= 15) || tmp_i >= 33)
+            {
+                fsx = (lsy / 6 % 4 - 1) * 4;
+            }
+            else if ((tmp_i >= 18 && tmp_i < 20) || (tmp_i >= 30 && tmp_i <= 31))
+            {
+                fsx = (lsy / 6 % 4 - 2) * 4;
+            }
+            else if (tmp_i == 20)
+            {
+                fsx = (lsy / 6 % 4 + 2) * 4;
+            }
+            
+            int tmp_j = lsy / 6 / 4;
+            if (lsy >= 121)
+            {
+                tmp_j = tmp_j - 1;
+            }
+            fsx = fsx + 60;
+            fsy = 10 + 4 * (tmp_j - 1) + lsy % 6 - 1;
+            if (lsy >= 145)
+            {
+                fsy = fsy + 4;
+            }
+        }
+    }  
+    
+    function get_coordinate_of_ioldly
+    (
+        unsigned int lsx,
+        unsigned int lsy
+    )
+    {
+        unsigned int tmp_x = lsx;
+        unsigned int tmp_y = lsy;
+        
+        //adjust floorplan gap
+        if(lsx > 77)//blank column
+        {
+            tmp_x = lsx - NUM_GRID_X;
+        }
+        
+        if(lsy > 131)//blank column
+        {
+            tmp_y = lsy - NUM_GRID_Y;
+        }
+        if (lsy <= 10)
+        {
+            int tem = tmp_x / NUM_GRID_X - 1;
+            if (lsx >= 87 && lsx <= 117)
+            {
+                tem += 1;
+            }
+            else if (lsx >= 129 && lsx <= 147)
+            {
+                tem += 2;
+            }
+            
+            if (lsx == 9)
+            {
+                fsx = 14;
+                fsy = tmp_y - 3;
+            }
+            else if (lsx == 153)
+            {
+                fsx = 66;
+                fsy = tmp_y - 3;
+            }
+            else if (tem % 2 == 1)
+            {
+                fsx = 18 + ((tem - 1) / 2) * 4;
+                fsy = tmp_y - 7;
+            }
+            else
+            {
+                fsx = 18 + ((tem - 1) / 2) * 4;
+                fsy = tmp_y - 3;
+            }
+            
+            fsx = fsx - 2;
+            if (lsx >= 129 && lsx <= 147)
+            {
+                fsx = fsx - 2;
+            }
+            else 
+            {
+                fsx = fsx + 2;
+            }
+            
+            //Fix P/N reverse
+            if (lsy % 2 == 0)
+            {
+                fsy = fsy - 1;
+            }
+            else
+            {
+                fsy = fsy + 1;
+            }
+        }
+        else if (lsy > 240)
+        {
+            int tem = tmp_x / NUM_GRID_X - 1;
+            if (lsx >= 87 && lsx <= 117)
+            {
+                tem += 1;
+            }
+            else if (lsx >= 129 && lsx <= 147)
+            {
+                tem += 2;
+            }
+            
+            if (lsx == 9)
+            {
+                fsx = 14;
+                fsy = tmp_y - 191;
+            }
+            else if (lsx == 153)
+            {
+                fsx = 66;
+                fsy = tmp_y - 191;
+            }
+            else if (tem % 2 == 1)
+            {
+                fsx = 18 + ((tem - 1) / 2) * 4;
+                fsy = tmp_y - 191;
+            }
+            else
+            {
+                fsx = 18 + ((tem - 1) / 2) * 4;
+                fsy = tmp_y - 187;
+            }
+            fsy = fsy + 4;
+            fsx = fsx - 2;
+            if (lsx >= 129 && lsx <= 147)
+            {
+                fsx = fsx - 2;
+            }
+            else 
+            {
+                fsx = fsx + 2;
+            }
+            
+            //Fix P/N reverse
+            if (lsy % 2 == 0)
+            {
+                fsy = fsy - 1;
+            }
+            else
+            {
+                fsy = fsy + 1;
+            }
+        }
+        else if (lsx < 11)
+        {
+            fsx = (lsy / 6 % 4) *4;
+            int tmp_i = lsy / 6;
+            if ((tmp_i >= 13 && tmp_i <= 15) || tmp_i >= 33)
+            {
+                fsx = (lsy / 6 % 4 - 1) * 4;
+            }
+            else if ((tmp_i >= 18 && tmp_i < 20) || (tmp_i >= 30 && tmp_i <= 31))
+            {
+                fsx = (lsy / 6 % 4 - 2) * 4;
+            }
+            else if (tmp_i == 20)
+            {
+                fsx = (lsy / 6 % 4 + 2) * 4;
+            }
+            
+            int tmp_j = lsy / 6 / 4;
+            if (lsy >= 121)
+            {
+                tmp_j = tmp_j - 1;
+            }
+            fsx = fsx + 2;
+            fsy = 10 + 4 * (tmp_j - 1) + lsy % 6 - 1;
+            if (lsy >= 145)
+            {
+                fsy = fsy + 4;
+            }
+        }
+        else if (lsx > 90)
+        {
+            fsx = (lsy / 6 % 4) *4;
+            int tmp_i = lsy / 6;
+            if ((tmp_i >= 13 && tmp_i <= 15) || tmp_i >= 33)
+            {
+                fsx = (lsy / 6 % 4 - 1) * 4;
+            }
+            else if ((tmp_i >= 18 && tmp_i < 20) || (tmp_i >= 30 && tmp_i <= 31))
+            {
+                fsx = (lsy / 6 % 4 - 2) * 4;
+            }
+            else if (tmp_i == 20)
+            {
+                fsx = (lsy / 6 % 4 + 2) * 4;
+            }
+            
+            int tmp_j = lsy / 6 / 4;
+            if (lsy >= 121)
+            {
+                tmp_j = tmp_j - 1;
+            }
+            fsx = fsx + 2;
+            fsx = fsx + 60;
+            fsy = 10 + 4 * (tmp_j - 1) + lsy % 6 - 1;
+            if (lsy >= 145)
+            {
+                fsy = fsy + 4;
+            }
+        }
+    } 
+    
+    function get_coordinate_of_oserdes
+    (
+        unsigned int lsx,
+        unsigned int lsy
+    )
+    {
+        unsigned int tmp_x = lsx;
+        unsigned int tmp_y = lsy;
+        
+        tmp_x = lsx;
+        tmp_y = lsy - 4;
+        fsx = (tmp_y / 6 % 4) *4;
+        int tmp_i = tmp_y / 6;
+        if ((tmp_i >= 13 && tmp_i <= 15) || tmp_i >= 33)
+        {
+            fsx = (tmp_y / 6 % 4 - 1) * 4;
+        }
+        else if ((tmp_i >= 18 && tmp_i < 20) || (tmp_i >= 30 && tmp_i <= 31))
+        {
+            fsx = (tmp_y / 6 % 4 - 2) * 4;
+        }
+        else if (tmp_i == 20)
+        {
+            fsx = (tmp_y / 6 % 4 + 2) * 4;
+        }
+        
+        int tmp_j = tmp_y / 6 / 4;
+        if (tmp_y >= 121)
+        {
+            tmp_j = tmp_j - 1;
+        }
+        fsx = fsx + 3;
+        fsy = 10 + 4 * (tmp_j - 1) + tmp_y % 6 - 1;
+        if (tmp_y >= 145)
+        {
+            fsy = fsy + 4;
+        }
+    }   
+    
+    function get_coordinate_of_iserdes
+    (
+        unsigned int lsx,
+        unsigned int lsy
+    )
+    {
+        unsigned int tmp_x = lsx;
+        unsigned int tmp_y = lsy;
+        
+        tmp_y = lsy - 4;
+        fsx = (tmp_y / 6 % 4) *4;
+        int tmp_i = tmp_y / 6;
+        if ((tmp_i >= 13 && tmp_i <= 15) || tmp_i >= 33)
+        {
+            fsx = (tmp_y / 6 % 4 - 1) * 4;
+        }
+        else if ((tmp_i >= 18 && tmp_i < 20) || (tmp_i >= 30 && tmp_i <= 31))
+        {
+            fsx = (tmp_y / 6 % 4 - 2) * 4;
+        }
+        else if (tmp_i == 20)
+        {
+            fsx = (tmp_y / 6 % 4 + 2) * 4;
+        }
+        
+        int tmp_j = tmp_y / 6 / 4;
+        if (tmp_y >= 121)
+        {
+            tmp_j = tmp_j - 1;
+        }
+        fsx = fsx + 60;
+        fsx = fsx + 3;
+        fsy = 10 + 4 * (tmp_j - 1) + tmp_y % 6 - 1;
+        if (tmp_y >= 145)
+        {
+            fsy = fsy + 4;
+        }
+    }  
+    
+    function get_coordinate_of_iob
+    (
+        unsigned int lsx,
+        unsigned int lsy
+    )
+    {
+        unsigned int tmp_x = lsx;
+        unsigned int tmp_y = lsy;
+        
+        if(lsx > 77)
+        {
+            tmp_x = lsx - NUM_GRID_X;
+        }
+        
+        if(lsy > 131)
+        {
+            tmp_y = lsy - NUM_GRID_Y;
+        }
+        
+        if (lsy < 5)
+        {
+            int tmp = tmp_x / 6 - 1;
+            if (lsx >= 84 && lsx <= 117)
+            {
+                tmp = tmp + 1;
+            }
+            else if (lsx >= 126 && lsx <= 147)
+            {
+                tmp = tmp + 2;
+            }
+            
+            if (lsx < 10)
+            {
+                fsx = 13;
+                fsy = 7 - tmp_x % 6;
+            }
+            else if (lsx >= 150)
+            {
+                fsx = 65;
+                fsy = 7 - tmp_x % 6;
+            }
+            else if (tmp % 2 == 1)
+            {
+                fsx = 17 + ((tmp - 1) / 2) * 4;
+                fsy = 3- tmp_x % 6;
+            }
+            else
+            {
+                fsx = 17 + ((tmp - 1) / 2) * 4;
+                fsy = 7 - tmp_x % 6;
+            }
+            
+            fsx = fsx - 2;
+            if (lsx >= 126 && lsx <= 147)
+            {
+                fsx = fsx - 2;
+            }
+            else 
+            {
+                fsx = fsx + 2;
+            }
+            
+            //Fix P/N reverse
+            if (lsx % 2 == 0)
+            {
+                fsy = fsy - 1;
+            }
+            else
+            {
+                fsy = fsy + 1;
+            }
+        }
+        else if (lsy >= 246)
+        {
+            int tmp = tmp_x / 6 - 1;
+            if (lsx >= 84 && lsx <= 117)
+            {
+                tmp = tmp + 1;
+            }
+            else if (lsx >= 126 && lsx <= 147)
+            {
+                tmp = tmp + 2;
+            }
+            
+            if (lsx < 10)
+            {
+                fsx = 13;
+                fsy = 47 - tmp_x % 6;
+            }
+            else if (lsx >= 150)
+            {
+                fsx = 65;
+                fsy = 47 - tmp_x % 6;
+            }
+            else if (tmp % 2 == 1)
+            {
+                fsx = 17 + ((tmp - 1) / 2) * 4;
+                fsy = 47- tmp_x % 6;
+            }
+            else
+            {
+                fsx = 17 + ((tmp - 1) / 2) * 4;
+                fsy = 51 - tmp_x % 6;
+            }
+            
+            fsx = fsx - 2;
+            if (lsx >= 126 && lsx <= 147)
+            {
+                fsx = fsx - 2;
+            }
+            else 
+            {
+                fsx = fsx + 2;
+            }
+            fsy = fsy + 4;
+            
+            //Fix P/N reverse
+            if (lsx % 2 == 0)
+            {
+                fsy = fsy - 1;
+            }
+            else
+            {
+                fsy = fsy + 1;
+            }
+        }
+        else if (lsx < 5)
+        {
+            int lsy0 = lsy + 1;
+            fsx = (lsy0 / 6 % 4) * 4;
+            int tmp_i = lsy0 / 6;
+            if ((tmp_i >= 13 && tmp_i <= 15) || tmp_i >= 33)
+            {
+                fsx = (lsy0 / 6 % 4 - 1) * 4;
+            }
+            else if((tmp_i >= 18 && tmp_i < 20) || (tmp_i >= 30 && tmp_i <= 31))
+            {
+                fsx = (lsy0 / 6 % 4 - 2) * 4;
+            }
+            else if(tmp_i == 20)
+            {
+                fsx = (lsy0 / 6 % 4 + 2) * 4;
+            }
+            
+            int tmp_j = lsy0 / 6 / 4;
+            if (lsy0 >= 121)
+            {
+                tmp_j = tmp_j - 1;
+            }
+            
+            fsy = 10 + 4 * (tmp_j - 1) + lsy0 % 6 - 1;
+            fsx = fsx + 1;
+            if (lsy0 >= 145)
+            {
+                fsy = fsy + 4;
+            }
+        }
+        else if (lsx >= 156)
+        {
+            int lsy0 = lsy + 1;
+            fsx = (lsy0 / 6 % 4) * 4;
+            int tmp_i = lsy0 / 6;
+            if ((tmp_i >= 13 && tmp_i <= 15) || tmp_i >= 33)
+            {
+                fsx = (lsy0 / 6 % 4 - 1) * 4;
+            }
+            else if((tmp_i >= 18 && tmp_i < 20) || (tmp_i >= 30 && tmp_i <= 31))
+            {
+                fsx = (lsy0 / 6 % 4 - 2) * 4;
+            }
+            else if(tmp_i == 20)
+            {
+                fsx = (lsy0 / 6 % 4 + 2) * 4;
+            }
+            
+            int tmp_j = lsy0 / 6 / 4;
+            if (lsy0 >= 121)
+            {
+                tmp_j = tmp_j - 1;
+            }
+            
+            fsx = fsx + 60;
+            fsy = 10 + 4 * (tmp_j - 1) + lsy0 % 6 - 1;
+            fsx = fsx + 1;
+            if (lsy0 >= 145)
+            {
+                fsy = fsy + 4;
+            }
+        }
+    }
+    
+    function get_coordinate_of_bkcl
+    (
+        unsigned int lsx,
+        unsigned int lsy
+    )
+    {
+        unsigned int tmp_x = lsx;
+        unsigned int tmp_y = lsy;
+        
+        if (lsy < 5)
+        {
+            fsx = 37;
+            if (lsx < 48)
+            {
+                fsx = 17;
+            }
+            else if (lsx > 82)
+            {
+                fsx = 54;
+            }
+            
+            fsy = 9;
+        }
+        else if (lsy > 160)
+        {
+            fsx = 33;
+            fsy = 47;
+        }
+        else
+        {
+            fsx = 13 + ((lsx + 1) % 2) * 59;
+            fsy = 29;
+        }
+        
+    }
+    
+    function get_coordinate_of_ccs
+    (
+        unsigned int lsx,
+        unsigned int lsy
+    )
+    {
+        unsigned int tmp_x = lsx;
+        unsigned int tmp_y = lsy;
+       
+        fsx = 13;
+        fsy = 34;
+    } 
+    
+    ///*****Place CLM*****/
+    function place_clm_tile_fp
+    ( 
+        unsigned int tx,
+        unsigned int ty
+    )
+    {
+        // Site index variable. The X index for logic and GUI are declared separately
+        unsigned int lsx, lsy, lsx1, lsy1;
+        unsigned int lsx0, lsy0, fsx0, fsy0; 
+    
+        // device reference variables
+        &device s0Ref, s0fl;
+        &device s1Ref, s1fl;
+        
+        string strVar;
+        
+        lsx = tx * NUM_GRID_X + 3;
+        lsy = ty * NUM_GRID_Y;
+        
+        lsx0 = lsx;
+        lsy0 = lsy + 1;
+        
+        s0Ref  = <device CLMS  @[lsx0, lsy0]     of ARCHITECTURE>;
+        sprintf(strVar, "CLMS_%d_%d", lsx0, lsy0);
+        
+        get_coordinate_of_clm(lsx0, lsy0);
+        
+        s0fl = device CLMS ( structure fp_struct ) *strVar @[fsx, fsy];
+        //printf("%s: %d, %d.", strVar, fsx, fsy);
+        
+        lsx1 = lsx;
+        lsy1 = lsy;
+        
+        s1Ref  = <device CLMA  @[lsx1, lsy1]     of ARCHITECTURE>;
+        sprintf(strVar, "CLMA_%d_%d", lsx1, lsy1);
+        
+        get_coordinate_of_clm(lsx1, lsy1);
+        
+        //printf("%s: %d, %d.", strVar, fsx, fsy);
+        s1fl = device CLMA ( structure fp_struct ) *strVar @[fsx, fsy];
+        map ( s0fl => s0Ref,
+              s1fl => s1Ref );
+        
+    }; // end of function place_clm_tile_fp
+    
+    
+    function draw_clm_tile_fp
+    ( 
+        unsigned int tx,
+        unsigned int ty
+    )
+    {
+        unsigned int lsx, lsy;
+        unsigned int lsx0, lsy0, lsx1, lsy1;
+    
+        // device reference variables
+        &device s0Ref, s0fl;
+        &device s1Ref, s1fl;
+        
+        string strVar;
+        
+        lsx = tx * NUM_GRID_X + 3;
+        lsy = ty * NUM_GRID_Y;
+        
+        lsx0 = lsx;
+        lsy0 = lsy;
+        
+        unsigned int offset_y = 0;
+        get_coordinate_of_clm(lsx0, lsy0);
+        if (fsy > 29)
+        {
+            offset_y = 320;
+        }
+        
+        // Instantiate the device. 
+        sprintf(strVar, "CLMA_%d_%d", lsx0, lsy0);
+        s0Ref = <instance *strVar   of ARCHITECTURE (structure fp_struct)>;
+        s0fl = device CLMA ( schematic floorplan_view ) *strVar @[(fsx+1)*160, (fsy+1)*320+offset_y];
+         
+        lsx1 = lsx;
+        lsy1 = lsy + 1;
+        
+        offset_y = 0;
+        get_coordinate_of_clm(lsx1, lsy1);
+        if (fsy > 29)
+        {
+            offset_y = 320;
+        }
+        
+        // Instantiate the device. 
+        sprintf(strVar, "CLMS_%d_%d", lsx1, lsy1);
+        s1Ref = <instance *strVar   of ARCHITECTURE (structure fp_struct)>;
+        s1fl = device CLMS ( schematic floorplan_view ) *strVar @[(fsx+1)*160, (fsy+1)*320+offset_y];
+        
+        map ( s0fl => s0Ref,
+              s1fl => s1Ref );
+              
+    }; // end of function draw_clm_tile_fp
+    
+    function place_clmss_tile_fp
+    ( 
+        unsigned int tx,
+        unsigned int ty
+    )
+    {
+        // Site index variable. The X index for logic and GUI are declared separately
+        unsigned int lsx, lsy;
+        unsigned int lsx0, lsy0;
+        unsigned int lsx1, lsy1; 
+    
+        // device reference variables
+        &device s0Ref, s0fl;
+        &device s1Ref, s1fl;
+        
+        string strVar;
+        
+        lsx = tx * NUM_GRID_X + 3;
+        lsy = ty * NUM_GRID_Y;
+        
+        lsx0 = lsx;
+        lsy0 = lsy + 1;
+        
+        s0Ref  = <device CLMS  @[lsx0, lsy0]     of ARCHITECTURE>;
+        sprintf(strVar, "CLMS_%d_%d", lsx0, lsy0);
+        
+        get_coordinate_of_clm(lsx0, lsy0);
+        
+        s0fl = device CLMS ( structure fp_struct ) *strVar @[fsx, fsy];
+        //printf("%s: %d, %d.", strVar, fsx, fsy);
+        
+        lsx1 = lsx;
+        lsy1 = lsy;
+        
+        s1Ref  = <device CLMS  @[lsx1, lsy1]     of ARCHITECTURE>;
+        sprintf(strVar, "CLMS_%d_%d", lsx1, lsy1);
+        
+        get_coordinate_of_clm(lsx1, lsy1);
+        
+        //printf("%s: %d, %d.", strVar, fsx, fsy);
+        s1fl = device CLMS ( structure fp_struct ) *strVar @[fsx, fsy];
+        map ( s0fl => s0Ref,
+              s1fl => s1Ref );
+        
+    }; // end of function place_clmss_tile_fp
+    
+    
+    function draw_clmss_tile_fp
+    ( 
+        unsigned int tx,
+        unsigned int ty
+    )
+    {
+        unsigned int lsx, lsy;
+        unsigned int lsx0, lsy0, lsx1, lsy1;
+    
+        // device reference variables
+        &device s0Ref, s0fl;
+        &device s1Ref, s1fl;
+        
+        string strVar;
+        
+        lsx = tx * NUM_GRID_X + 3;
+        lsy = ty * NUM_GRID_Y;
+        
+        lsx0 = lsx;
+        lsy0 = lsy;
+        
+        lsx1 = lsx;
+        lsy1 = lsy + 1;
+        
+        unsigned int offset_y = 0;
+        get_coordinate_of_clm(lsx0, lsy0);
+        if (fsy > 29)
+        {
+            offset_y = 320;
+        }
+        
+        // Instantiate the device. 
+        sprintf(strVar, "CLMS_%d_%d", lsx0, lsy0);
+        s0Ref = <instance *strVar   of ARCHITECTURE (structure fp_struct)>;
+        s0fl = device CLMS ( schematic floorplan_view ) *strVar @[(fsx+1)*160, (fsy+1)*320+offset_y];
+         
+        offset_y = 0;
+        get_coordinate_of_clm(lsx1, lsy1);
+        if (fsy > 29)
+        {
+            offset_y = 320;
+        }
+        
+        // Instantiate the device. 
+        sprintf(strVar, "CLMS_%d_%d", lsx1, lsy1);
+        s1Ref = <instance *strVar   of ARCHITECTURE (structure fp_struct)>;
+        s1fl = device CLMS ( schematic floorplan_view ) *strVar @[(fsx+1)*160, (fsy+1)*320+offset_y];
+        
+        map ( s0fl => s0Ref,
+              s1fl => s1Ref );
+              
+    }; // end of function draw_clmSS_tile_fp
+    
+    //    ///*****Place DRM*****/
+    function place_drm_tile_fp
+    ( 
+        unsigned int tx,
+        unsigned int ty
+    )
+    {
+        // Site index variable. The X index for logic and GUI are declared separately
+        unsigned int lsx, lsy;
+        unsigned int lsx0, lsy0;
+    
+        // device reference variables
+        &device s0Ref, s0fl;
+        
+        string strVar;
+        
+        lsx0 = tx * NUM_GRID_X + 3;
+        lsy0 = ty * NUM_GRID_Y;
+        
+        lsx = lsx0 + 2;
+        lsy = lsy0;
+        
+        s0Ref  = <device DRM  @[lsx,lsy]     of ARCHITECTURE>;
+        
+        sprintf(strVar, "DRM_%d_%d", lsx, lsy);
+        
+        get_coordinate_of_drm(lsx, lsy);
+        
+        //printf("%s: %d, %d.", strVar, fsx, fsy);
+        s0fl = device DRM ( structure fp_struct ) *strVar @[fsx, fsy];
+        map ( s0fl => s0Ref);
+    } // end of function place_drm_tile_fp
+    
+    ///*****Draw DRM*****/
+    function draw_drm_tile_fp
+    ( 
+        unsigned int tx,
+        unsigned int ty
+    )
+    {
+        unsigned int lsx, lsy;
+        unsigned int lsx0, lsy0;
+        unsigned int offset_x = 0;
+    
+        // device reference variables
+        &device s0Ref, s0fl;
+        
+        string strVar;
+        
+        lsx0 = tx * NUM_GRID_X + 3;
+        lsy0 = ty * NUM_GRID_Y;
+        
+        lsx = lsx0 + 2;
+        lsy = lsy0;
+        
+        unsigned int offset_y = 0;
+        get_coordinate_of_drm(lsx, lsy);
+        if (fsy > 29)
+        {
+            offset_y = 320;
+        }
+        
+        // Instantiate the device. 
+        sprintf(strVar, "DRM_%d_%d", lsx, lsy);
+        s0Ref = <instance *strVar   of ARCHITECTURE (structure fp_struct)>;
+        s0fl = device DRM ( symbol fpsym ) *strVar @[(fsx+1)*160, (fsy+1)*320+offset_y];
+        map ( s0fl => s0Ref);
+    }; // end of function draw_drm_tile_fp
+    
+    
+    ///*****Place DLL*****/
+    function place_dll_tile_fp
+    ( 
+        unsigned int tx,
+        unsigned int ty
+    )
+    {
+        // Site index variable. The X index for logic and GUI are declared separately
+        unsigned int lsx, lsy;
+        unsigned int lsx0, lsy0;
+    
+        // device reference variables
+        &device s0Ref, s0fl;
+        
+        string strVar;
+        
+        lsx0 = tx * NUM_GRID_X + 3;
+        lsy0 = ty * NUM_GRID_Y;
+        
+        lsx = lsx0;
+        lsy = lsy0;
+        
+        s0Ref  = <device DLL  @[lsx,lsy]     of ARCHITECTURE>;
+        
+        sprintf(strVar, "DLL_%d_%d", lsx, lsy);
+    
+        get_coordinate_of_dll(lsx, lsy);
+        
+        //printf("%s: %d, %d.", strVar, fsx, fsy);
+        s0fl = device DLL ( structure fp_struct ) *strVar @[fsx, fsy];
+        map ( s0fl => s0Ref);
+        
+        
+    }; // end of function place_dll_tile_fp
+    
+    ///*****Draw DLL*****/
+    function draw_dll_tile_fp
+    ( 
+        unsigned int tx,
+        unsigned int ty
+    )
+    {
+        unsigned int lsx, lsy;
+        unsigned int lsx0, lsy0;
+        
+        // device reference variables
+        &device s0Ref, s0fl;
+        
+        string strVar;
+        lsx0 = tx * NUM_GRID_X + 3;
+        lsy0 = ty * NUM_GRID_Y;
+        
+        lsx = lsx0;
+        lsy = lsy0;
+        unsigned int offset_y = 0;
+        get_coordinate_of_dll(lsx, lsy);
+        if (fsy > 29)
+        {
+            offset_y = 320;
+        }
+        
+        // Instantiate the device. 
+        sprintf(strVar, "DLL_%d_%d", lsx, lsy);
+        s0Ref = <instance *strVar   of ARCHITECTURE (structure fp_struct)>;
+        s0fl = device DLL ( symbol fpsym ) *strVar @[(fsx+1)*160, (fsy+1)*320+offset_y];
+        map ( s0fl => s0Ref);
+   }; // end of function draw_dll_tile_fp
+   
+   
+    ///*****Place PLL*****/
+    function place_pll_tile_fp
+    ( 
+        unsigned int PLL_TILE_X,
+        unsigned int PLL_TILE_Y
+    )
+    {
+        // Site index variable. The X index for logic and GUI are declared separately
+        unsigned int lsx, lsy;
+        unsigned int lsx0, lsy0;
+    
+        // device reference variables
+        &device s0Ref, s0fl;
+        
+        string strVar;
+        
+        lsx0 = PLL_TILE_X * NUM_GRID_X + 3;
+        lsy0 = PLL_TILE_Y * NUM_GRID_Y;
+        
+        lsx = lsx0 + 2;
+        lsy = lsy0 + 8;
+        
+        s0Ref  = <device PLL  @[lsx,lsy]     of ARCHITECTURE>;
+        
+        sprintf(strVar, "PLL_%d_%d", lsx, lsy);
+    
+        get_coordinate_of_pll(lsx, lsy);
+        
+        //printf("%s: %d, %d.", strVar, fsx, fsy);
+        s0fl = device PLL ( structure fp_struct ) *strVar @[fsx, fsy];
+        map ( s0fl => s0Ref);
+    } // end of function place_drm_tile_fp
+    
+    ///*****Draw PLL*****/
+    function draw_pll_tile_fp
+    ( 
+        unsigned int PLL_TILE_X,
+        unsigned int PLL_TILE_Y
+    )
+    {
+        unsigned int lsx, lsy;
+        unsigned int lsx0, lsy0;
+    
+        // device reference variables
+        &device s0Ref, s0fl;
+        
+        string strVar;
+        
+        lsx0 = PLL_TILE_X * NUM_GRID_X + 3;
+        lsy0 = PLL_TILE_Y * NUM_GRID_Y;
+        
+        lsx = lsx0 + 2;
+        lsy = lsy0 + 8;
+        
+        unsigned int offset_y = 0;
+        get_coordinate_of_pll(lsx, lsy);
+        if (fsy > 29)
+        {
+            offset_y = 320;
+        }
+        
+        // Instantiate the device. 
+        sprintf(strVar, "PLL_%d_%d", lsx, lsy);
+        s0Ref = <instance *strVar   of ARCHITECTURE (structure fp_struct)>;
+        s0fl = device PLL ( symbol fpsym ) *strVar @[(fsx+1)*160, (fsy+1)*320+offset_y];
+        map ( s0fl => s0Ref);
+    }; // end of function draw_pll_tile_fp
+    
+    
+    ///*****place USCM*****/
+    unsigned int L_USCM_TILES_X[] = {USCM_TILE_X};
+    unsigned int L_USCM_TILES_Y[] = {USCM_TILE_Y};
+    int tx_srb = USCM_TILE_X - 1;
+    int ty_srb = USCM_TILE_Y - 2;
+    
+    function place_uscm_tile_fp
+    ( 
+        unsigned int tx, 
+        unsigned int ty, 
+        unsigned int tx_srb, 
+        unsigned int ty_srb
+    )     
+    {
+        // Site index variable. The X index for logic and GUI are declared separately
+        unsigned int lsx, lsy;
+        unsigned int lsx0, lsy0;
+        unsigned int indexs_USCMD[] = {0, 1};
+        unsigned int indexs_USCMDC[] = {0, 1, 2, 3, 4, 5, 6, 7};
+        unsigned int indexs_USCMMUX_TEST[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+        unsigned int indexs_IOCKBRGMUX_TEST[] = {0, 1, 2, 3};
+        unsigned int i;
+    
+        // device reference variables
+        &device s0Ref, s0fl;
+        
+        string strVar;
+        
+        lsx0 = tx * NUM_GRID_X;
+        lsy0 = ty * NUM_GRID_Y;
+        
+        ///***USCMD***/
+        foreach i (indexs_USCMD)
+        {
+            lsx = lsx0 + 1;
+            lsy = lsy0 + 12 + i;
+            
+            s0Ref  = <device USCMD  @[lsx, lsy]     of ARCHITECTURE>;
+            
+            sprintf(strVar, "USCMD_%d_%d", lsx, lsy);
+            
+            get_coordinate_of_uscmd(lsx, lsy);
+            
+            //printf("%s: %d, %d.", strVar, fsx, fsy);
+            s0fl = device USCMD ( structure fp_struct ) *strVar @[fsx, fsy];
+            map ( s0fl => s0Ref);
+        }
+        
+        ///***USCMDC***/
+        foreach i (indexs_USCMDC)
+        {
+            
+            if (i < 4)
+            {
+                lsx = lsx0 + 1;
+                lsy = lsy0 + 14 + i;
+            }
+            else
+            {
+                lsx = lsx0 + 2;
+                lsy = lsy0 + (i - 4);
+            }
+            
+            s0Ref  = <device USCMDC  @[lsx,lsy]     of ARCHITECTURE>;
+            
+            sprintf(strVar, "USCMDC_%d_%d", lsx, lsy);
+            
+            get_coordinate_of_uscmdc(lsx, lsy);
+            
+            //printf("%s: %d, %d.", strVar, fsx, fsy);
+            s0fl = device USCMDC ( structure fp_struct ) *strVar @[fsx, fsy];
+            map ( s0fl => s0Ref);
+        }
+        
+        ///***IOCKBRG***/
+        foreach i (indexs_USCMD)
+        {
+            lsx = lsx0 + 4;
+            lsy = lsy0 + 5 + i;
+            
+            s0Ref  = <device IOCKBRG  @[lsx,lsy]     of ARCHITECTURE>;
+            
+            sprintf(strVar, "IOCKBRG_%d_%d", lsx, lsy);
+            
+            get_coordinate_of_iockbrg(lsx, lsy);
+            
+            //printf("%s: %d, %d.", strVar, fsx, fsy);
+            s0fl = device IOCKBRG ( structure fp_struct ) *strVar @[fsx, fsy];
+            map ( s0fl => s0Ref);
+        }
+    };
+    
+    ///*****draw USCM*****/
+    function draw_uscm_tile_fp
+    ( 
+        unsigned int tx, 
+        unsigned int ty, 
+        unsigned int tx_srb, 
+        unsigned int ty_srb
+    )     
+    {
+        unsigned int lsx, lsy;
+        unsigned int lsx0, lsy0;
+        unsigned int indexs1[] = {0, 1};
+        unsigned int indexs2[] = {0, 1, 2, 3, 4, 5, 6, 7};
+        unsigned int indexs3[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+        unsigned int indexs4[] = {0, 1, 2, 3};
+        unsigned int i;
+    
+        // device reference variables
+        &device s0Ref, s0fl;
+        
+        string strVar;
+        
+        lsx0 = tx * NUM_GRID_X;
+        lsy0 = ty * NUM_GRID_Y;
+        
+        ///***USCMD***/
+        foreach i (indexs1)
+        {
+            lsx = lsx0 + 1;
+            lsy = lsy0 + 12 + i;
+            
+            unsigned int offset_y = 0;
+            get_coordinate_of_uscmd(lsx, lsy);
+            if (fsy > 29)
+            {
+                offset_y = 320;
+            }
+            
+            // Instantiate the device. 
+            sprintf(strVar, "USCMD_%d_%d", lsx, lsy);
+            s0Ref = <instance *strVar   of ARCHITECTURE (structure fp_struct)>;
+            s0fl = device USCMD ( symbol fpsym ) *strVar @[(fsx+1)*160, (fsy+1)*320+offset_y];
+            map ( s0fl => s0Ref);
+        }
+        
+        ///***USCMDC***/
+        foreach i (indexs2)
+        {
+            if (i < 4)
+            {
+                lsx = lsx0 + 1;
+                lsy = lsy0 + 14 + i;
+            }
+            else
+            {
+                lsx = lsx0 + 2;
+                lsy = lsy0 + (i - 4);
+            }
+            
+            unsigned int offset_y = 0;
+            get_coordinate_of_uscmdc(lsx, lsy);
+            if (fsy > 29)
+            {
+                offset_y = 320;
+            }
+            
+            // Instantiate the device. 
+            sprintf(strVar, "USCMDC_%d_%d", lsx, lsy);
+            s0Ref = <instance *strVar   of ARCHITECTURE (structure fp_struct)>;
+            s0fl = device USCMDC ( symbol fpsym ) *strVar @[(fsx+1)*160, (fsy+1)*320+offset_y];
+            map ( s0fl => s0Ref);
+        }
+        
+        ///***IOCKBRG***/
+        foreach i (indexs1)
+        {
+            lsx = lsx0 + 4;
+            lsy = lsy0 + 5 + i;
+            
+            s0Ref  = <device IOCKBRG  @[lsx,lsy]     of ARCHITECTURE>;
+            
+            sprintf(strVar, "IOCKBRG_%d_%d", lsx, lsy);
+            
+            unsigned int offset_y = 0;
+            get_coordinate_of_iockbrg(lsx, lsy);
+            if (fsy > 29)
+            {
+                offset_y = 320;
+            }
+            
+            // Instantiate the device. 
+            s0Ref = <instance *strVar   of ARCHITECTURE (structure fp_struct)>;
+            s0fl = device IOCKBRG ( symbol fpsym ) *strVar @[(fsx+1)*160, (fsy+1)*320+offset_y];
+            map ( s0fl => s0Ref);
+            
+        }
+    }
+    
+    
+    ///*****Place IOCK RIGHT*****/
+    function place_iock_tile_fp
+    ( 
+        unsigned int tx,
+        unsigned int ty
+    )
+    {
+        // Site index variable. The X index for logic and GUI are declared separately
+        unsigned int lsx, lsy;
+        unsigned int lsx0, lsy0;
+        unsigned int indexs0[] = {0, 1};
+        unsigned int i;
+    
+        // device reference variables
+        &device s0Ref, s0fl;
+        
+        string strVar;
+        
+        lsx0 = tx * NUM_GRID_X + 3;
+        lsy0 = ty * NUM_GRID_Y;
+        
+        /***IOCKGATE***/
+        foreach i (indexs0)
+        {
+            lsx = lsx0;
+            lsy = lsy0 + 15 + i;
+            
+            s0Ref  = <device IOCKGATE  @[lsx,lsy]     of ARCHITECTURE>;
+            
+            sprintf(strVar, "IOCKGATE_%d_%d", lsx, lsy);
+            
+            get_coordinate_of_iockgate(lsx, lsy);
+            
+            //printf("%s: %d, %d.", strVar, fsx, fsy);
+            s0fl = device IOCKGATE ( structure fp_struct ) *strVar @[fsx, fsy];
+            map ( s0fl => s0Ref);
+        }
+        
+        ///***CLKDIV***/
+        foreach i (indexs0)
+        {
+            lsx = lsx0 + i;
+            lsy = lsy0 + 17 * (1 - i);
+            
+            s0Ref  = <device CLKDIV  @[lsx,lsy]     of ARCHITECTURE>;
+            
+            sprintf(strVar, "CLKDIV_%d_%d", lsx, lsy);
+            
+            get_coordinate_of_clkdiv(lsx, lsy);
+            
+            //printf("%s: %d, %d.", strVar, fsx, fsy);
+            s0fl = device CLKDIV ( structure fp_struct ) *strVar @[fsx, fsy];
+            map ( s0fl => s0Ref);
+        }
+        
+        ///***CLKDLY***/
+        foreach i (indexs0)
+        {
+            lsx = lsx0 + 1;
+            lsy = lsy0 + 1 + i;
+            
+            s0Ref  = <device CLKDLY  @[lsx,lsy]     of ARCHITECTURE>;
+            
+            sprintf(strVar, "CLKDLY_%d_%d", lsx, lsy);
+             
+            get_coordinate_of_clkdly(lsx, lsy);  
+            
+            //printf("%s: %d, %d.", strVar, fsx, fsy);
+            s0fl = device CLKDLY ( structure fp_struct ) *strVar @[fsx, fsy];
+            map ( s0fl => s0Ref);
+        }
+    }; // end of function place_ckeb_tile_fp
+    
+    ///*****Draw IOCK RIGHT*****/
+    function draw_iock_tile_fp
+    ( 
+        unsigned int tx,
+        unsigned int ty
+    )
+    {
+        unsigned int lsx, lsy;
+        unsigned int lsx0, lsy0;
+        unsigned int indexs0[] = {0, 1};
+        unsigned int i;
+        int offset_x;
+        
+        // device reference variables
+        &device s0Ref, s0fl;
+        
+        string strVar;
+        
+        lsx0 = tx * NUM_GRID_X + 3;
+        lsy0 = ty * NUM_GRID_Y;
+       
+        ///***IOCKGATE***/
+        foreach i (indexs0)
+        {
+            lsx = lsx0;
+            lsy = lsy0 + 15 + i;
+            
+            s0Ref  = <device IOCKGATE  @[lsx,lsy]     of ARCHITECTURE>;
+            
+            sprintf(strVar, "IOCKGATE_%d_%d", lsx, lsy);
+            
+            unsigned int offset_y = 0;
+            get_coordinate_of_iockgate(lsx, lsy);
+            if (fsy > 29)
+            {
+                offset_y = 320;
+            }
+        
+            // Instantiate the device. 
+            sprintf(strVar, "IOCKGATE_%d_%d", lsx, lsy);
+            s0Ref = <instance *strVar   of ARCHITECTURE (structure fp_struct)>;
+            s0fl = device IOCKGATE ( symbol fpsym ) *strVar @[(fsx+1)*160+80*i, (fsy+1)*320+offset_y];
+            map ( s0fl => s0Ref);
+        }
+        
+        ///***CLKDIV***/
+        foreach i (indexs0)
+        {
+            lsx = lsx0 + i;
+            lsy = lsy0 + 17 * (1 - i);
+            
+            s0Ref  = <device CLKDIV  @[lsx,lsy]     of ARCHITECTURE>;
+            sprintf(strVar, "CLKDIV_%d_%d", lsx, lsy);
+            
+            unsigned int offset_y = 0;
+            get_coordinate_of_clkdiv(lsx, lsy);
+            if (fsy > 29)
+            {
+                offset_y = 320;
+            }
+            
+            s0Ref = <instance *strVar   of ARCHITECTURE (structure fp_struct)>;
+            s0fl = device CLKDIV ( symbol fpsym ) *strVar @[(fsx+1)*160+80*i, (fsy+1)*320+offset_y];
+            map ( s0fl => s0Ref);
+        }
+        
+        ///***CLKDLY***/
+        foreach i (indexs0)
+        {
+            lsx = lsx0 + 1;
+            lsy = lsy0 + 1 + i;
+            
+            s0Ref  = <device CLKDLY  @[lsx,lsy]     of ARCHITECTURE>;
+            sprintf(strVar, "CLKDLY_%d_%d", lsx, lsy);
+            
+            unsigned int offset_y = 0;
+            get_coordinate_of_clkdly(lsx, lsy);
+            if (fsy > 29)
+            {
+                offset_y = 320;
+            }
+            
+            s0Ref = <instance *strVar   of ARCHITECTURE (structure fp_struct)>;
+            s0fl = device CLKDLY ( symbol fpsym ) *strVar @[(fsx+1)*160, (fsy+1)*320+offset_y];
+            map ( s0fl => s0Ref);
+        }
+    }; // end of function draw_iock_tile_fp
+    
+    
+    ///*****Place IOCK LEFT*****/
+    function place_iock_7k_tile_fp
+    ( 
+        unsigned int tx,
+        unsigned int ty
+    )
+    {
+        // Site index variable. The X index for logic and GUI are declared separately
+        unsigned int lsx, lsy;
+        unsigned int lsx0, lsy0;
+        unsigned int indexs0[] = {0, 1};
+        unsigned int i;
+    
+        // device reference variables
+        &device s0Ref, s0fl;
+        
+        string strVar;
+        
+        lsx0 = tx * NUM_GRID_X + 3;
+        lsy0 = ty * NUM_GRID_Y;
+        
+        /***IOCKGATE***/
+        foreach i (indexs0)
+        {
+            lsx = lsx0;
+            lsy = lsy0 + 15 + i;
+            
+            s0Ref  = <device IOCKGATE  @[lsx,lsy]     of ARCHITECTURE>;
+            
+            sprintf(strVar, "IOCKGATE_%d_%d", lsx, lsy);
+            
+            get_coordinate_of_iockgate(lsx, lsy);
+            
+            //printf("%s: %d, %d.", strVar, fsx, fsy);
+            s0fl = device IOCKGATE ( structure fp_struct ) *strVar @[fsx, fsy];
+            map ( s0fl => s0Ref);
+        }
+        
+        ///***CLKDIV***/
+        foreach i (indexs0)
+        {
+            lsx = lsx0 + i;
+            lsy = lsy0 + 17 * (1 - i);
+            
+            s0Ref  = <device CLKDIV  @[lsx,lsy]     of ARCHITECTURE>;
+            
+            sprintf(strVar, "CLKDIV_%d_%d", lsx, lsy);
+            
+            get_coordinate_of_clkdiv(lsx, lsy);
+            
+            //printf("%s: %d, %d.", strVar, fsx, fsy);
+            s0fl = device CLKDIV ( structure fp_struct ) *strVar @[fsx, fsy];
+            map ( s0fl => s0Ref);
+        }
+        
+        ///***CLKDLY***/
+        foreach i (indexs0)
+        {
+            lsx = lsx0 + 1;
+            lsy = lsy0 + 1 + i;
+            
+            s0Ref  = <device CLKDLY  @[lsx,lsy]     of ARCHITECTURE>;
+            
+            sprintf(strVar, "CLKDLY_%d_%d", lsx, lsy);
+            
+            get_coordinate_of_clkdly(lsx, lsy);
+            
+            //printf("%s: %d, %d.", strVar, fsx, fsy);
+            s0fl = device CLKDLY ( structure fp_struct ) *strVar @[fsx, fsy];
+            map ( s0fl => s0Ref);
+        }
+    }; // end of function place_ckeb_7k_tile_fp
+    
+    ///*****Draw IOCK LEFT*****/
+    function draw_iock_7k_tile_fp
+    ( 
+        unsigned int tx,
+        unsigned int ty
+    )
+    {
+        unsigned int lsx, lsy;
+        unsigned int lsx0, lsy0;
+        unsigned int indexs0[] = {0, 1};
+        unsigned int i;
+        int offset_x;
+        
+        // device reference variables
+        &device s0Ref, s0fl;
+        
+        string strVar;
+        
+        lsx0 = tx * NUM_GRID_X + 3;
+        lsy0 = ty * NUM_GRID_Y;
+       
+        ///***IOCKGATE***/
+        foreach i (indexs0)
+        {
+            lsx = lsx0;
+            lsy = lsy0 + 15 + i;
+            
+            s0Ref  = <device IOCKGATE  @[lsx,lsy]     of ARCHITECTURE>;
+            
+            sprintf(strVar, "IOCKGATE_%d_%d", lsx, lsy);
+            
+            unsigned int offset_y = 0;
+            get_coordinate_of_iockgate(lsx, lsy);
+            if (fsy > 29)
+            {
+                offset_y = 320;
+            }
+            
+            // Instantiate the device. 
+            s0Ref = <instance *strVar   of ARCHITECTURE (structure fp_struct)>;
+            s0fl = device IOCKGATE ( symbol fpsym ) *strVar @[(fsx+1)*160+80*i, (fsy+1)*320+offset_y];
+            map ( s0fl => s0Ref);
+        }
+        
+        ///***CLKDIV***/
+        foreach i (indexs0)
+        {
+            lsx = lsx0 + i;
+            lsy = lsy0 + 17 * (1 - i);
+            
+            s0Ref  = <device CLKDIV  @[lsx,lsy]     of ARCHITECTURE>;
+           
+            // Instantiate the device. 
+            sprintf(strVar, "CLKDIV_%d_%d", lsx, lsy);
+            
+            unsigned int offset_y = 0;
+            get_coordinate_of_clkdiv(lsx, lsy);
+            if (fsy > 29)
+            {
+                offset_y = 320;
+            }
+            
+            s0Ref = <instance *strVar   of ARCHITECTURE (structure fp_struct)>;
+            s0fl = device CLKDIV ( symbol fpsym ) *strVar @[(fsx+1)*160+80*i, (fsy+1)*320+offset_y];
+            map ( s0fl => s0Ref);
+        }
+        
+        ///***CLKDLY***/
+        foreach i (indexs0)
+        {
+            lsx = lsx0 + 1;
+            lsy = lsy0 + 1 + i;
+            
+            s0Ref  = <device CLKDLY  @[lsx,lsy]     of ARCHITECTURE>;
+            
+            // Instantiate the device. 
+            sprintf(strVar, "CLKDLY_%d_%d", lsx, lsy);
+            
+            unsigned int offset_y = 0;
+            get_coordinate_of_clkdly(lsx, lsy);
+            if (fsy > 29)
+            {
+                offset_y = 320;
+            }
+            
+            s0Ref = <instance *strVar   of ARCHITECTURE (structure fp_struct)>;
+            s0fl = device CLKDLY ( symbol fpsym ) *strVar @[(fsx+1)*160, (fsy+1)*320+offset_y];
+            map ( s0fl => s0Ref);
+        }
+    }; // end of function draw_iock_7k_tile_fp
+    
+    
+    ///*****Place CLKDLY*****/
+    function place_clkdlyb_tile_fp
+    ( 
+        unsigned int CLKDLY_TILE_X, 
+        unsigned int CLKDLYB_TILE_Y
+    )
+    {
+        // Site index variable. The X index for logic and GUI are declared separately
+        unsigned int lsx, lsy;
+        unsigned int lsx0, lsy0;
+        unsigned int offset_x[2:0] = {1, 0, 0};
+        unsigned int offset_y[2:0] = {2, 4, 0};
+        unsigned int indexs[] = {0, 1, 2};
+        unsigned int i;
+    
+        // device reference variables
+        &device s0Ref, s0fl;
+        
+        string strVar;
+        
+        lsx0 = CLKDLY_TILE_X * NUM_GRID_X;
+        lsy0 = CLKDLYB_TILE_Y * NUM_GRID_Y;
+        
+        ///***CLKDLY***/
+        foreach i (indexs)
+        {
+            lsx = lsx0 + offset_x[i];
+            lsy = lsy0 + offset_y[i];
+            
+            s0Ref  = <device CLKDLY  @[lsx,lsy]     of ARCHITECTURE>;
+            sprintf(strVar, "CLKDLY_%d_%d", lsx, lsy);
+            
+            get_coordinate_of_clkdly(lsx, lsy);
+        
+            //printf("%s: %d, %d.", strVar, fsx, fsy);
+            s0fl = device CLKDLY ( structure fp_struct ) *strVar @[fsx, fsy];
+            map ( s0fl => s0Ref);
+        }
+    };
+    
+    ///*****draw CLKDLY*****/
+    function draw_clkdlyb_tile_fp
+    ( 
+        unsigned int CLKDLY_TILE_X, 
+        unsigned int CLKDLYB_TILE_Y
+    )
+    {
+        unsigned int lsx, lsy;
+        unsigned int lsx0, lsy0;
+        unsigned int offset_x[2:0] = {1, 0, 0};
+        unsigned int offset_y[2:0] = {2, 4, 0};
+        unsigned int indexs[] = {0, 1, 2};
+        unsigned int i;
+    
+        // device reference variables
+        &device s0Ref, s0fl;
+        
+        string strVar;
+        
+        ///***CLKDLY***/
+        foreach i (indexs)
+        {
+            lsx0 = CLKDLY_TILE_X * NUM_GRID_X;
+            lsy0 = CLKDLYB_TILE_Y * NUM_GRID_Y;
+            
+            lsx = lsx0 + offset_x[i];
+            lsy = lsy0 + offset_y[i];
+            
+            // Instantiate the device. 
+            sprintf(strVar, "CLKDLY_%d_%d", lsx, lsy);
+            
+            unsigned int offset_y = 0;
+            get_coordinate_of_clkdly(lsx, lsy);
+            if (fsy > 29)
+            {
+                offset_y = 320;
+            }
+            
+            s0Ref = <instance *strVar   of ARCHITECTURE (structure fp_struct)>;
+            s0fl = device CLKDLY ( symbol fpsym ) *strVar @[(fsx+1)*160, (fsy+1)*320+offset_y];
+            map ( s0fl => s0Ref);
+        }
+    };
+    
+    function place_clkdlyt_tile_fp
+    ( 
+        unsigned int CLKDLY_TILE_X, 
+        unsigned int CLKDLYT_TILE_Y
+    )
+    {
+        // Site index variable. The X index for logic and GUI are declared separately
+        unsigned int lsx, lsy;
+        unsigned int lsx0, lsy0;
+    
+        // device reference variables
+        &device s0Ref, s0fl;
+        
+        string strVar;
+        
+        lsx0 = CLKDLY_TILE_X * NUM_GRID_X;
+        lsy0 = CLKDLYT_TILE_Y * NUM_GRID_Y;
+        
+        ///***CLKDLY***/
+        lsx = lsx0;
+        lsy = lsy0;
+        
+        s0Ref  = <device CLKDLY  @[lsx,lsy]     of ARCHITECTURE>;
+        sprintf(strVar, "CLKDLY_%d_%d", lsx, lsy);
+    
+        get_coordinate_of_clkdly(lsx, lsy);
+        
+        //printf("%s: %d, %d.", strVar, fsx, fsy);
+        s0fl = device CLKDLY ( structure fp_struct ) *strVar @[fsx, fsy];
+        map ( s0fl => s0Ref);
+    };
+    
+    function draw_clkdlyt_tile_fp
+    ( 
+        unsigned int CLKDLY_TILE_X, 
+        unsigned int CLKDLYT_TILE_Y
+    )
+    {
+        unsigned int lsx, lsy;
+        unsigned int lsx0, lsy0;
+    
+        // device reference variables
+        &device s0Ref, s0fl;
+        
+        string strVar;
+        
+        ///***CLKDLY***/
+        lsx0 = CLKDLY_TILE_X * NUM_GRID_X;
+        lsy0 = CLKDLYT_TILE_Y * NUM_GRID_Y;
+        
+        lsx = lsx0;
+        lsy = lsy0;
+        
+        // Instantiate the device. 
+        sprintf(strVar, "CLKDLY_%d_%d", lsx, lsy);
+        
+        unsigned int offset_y = 0;
+        get_coordinate_of_clkdly(lsx, lsy);
+        if (fsy > 29)
+        {
+            offset_y = 320;
+        }
+        
+        s0Ref = <instance *strVar   of ARCHITECTURE (structure fp_struct)>;
+        s0fl = device CLKDLY ( symbol fpsym ) *strVar @[(fsx+1)*160, (fsy+1)*320+offset_y];
+        map ( s0fl => s0Ref);
+    };
+
+  
+    ///*****Place IOL*****/
+    function place_iol_tile_fp
+    ( 
+        unsigned int tx,
+        unsigned int ty,
+        unsigned int flag
+    )
+    {
+        // device reference variables
+        &device s0Ref, s1Ref, s2Ref, s3Ref, s0fl, s1fl, s2fl, s3fl;
+        
+        string strVar;
+        if (flag == 2)
+        {
+            // Site index variable. The X index for logic and GUI are declared separately
+            unsigned int gsx, gsy, lsx, lsy;
+            unsigned int i;
+            unsigned int indexs[] = {1, 2, 3, 4};
+        
+            unsigned int lsx1, lsy1;
+            ///*****IOL*****/
+            foreach i (indexs)
+            {
+                lsx1 = tx * NUM_GRID_X + 3;
+                lsy1 = ty * NUM_GRID_Y;
+                
+                lsx = lsx1 + 1;
+                lsy = lsy1 + i;
+                
+                s0Ref  = <device IOL  @[lsx, lsy]     of ARCHITECTURE>;
+                sprintf(strVar, "IOL_%d_%d", lsx, lsy);
+                
+                get_coordinate_of_iol(lsx, lsy);
+                
+                //printf("%s: %d, %d.", strVar, fsx, fsy);
+                s0fl = device IOL ( structure fp_struct ) *strVar @[fsx, fsy];
+                map ( s0fl => s0Ref);
+            }
+            
+            ///*****IOLDLYS*****///
+            foreach i (indexs)
+            {
+                lsx1 = tx * NUM_GRID_X + 3;
+                lsy1 = ty * NUM_GRID_Y;
+                
+                lsx = lsx1;
+                lsy = lsy1 + i;
+                
+                s0Ref  = <device IOLDLYS  @[lsx, lsy]     of ARCHITECTURE>;
+                sprintf(strVar, "IOLDLYS_%d_%d", lsx, lsy);
+            
+                get_coordinate_of_ioldly(lsx, lsy);
+                
+                //printf("%s: %d, %d.", strVar, fsx, fsy);
+                s0fl = device IOLDLYS ( structure fp_struct ) *strVar @[fsx, fsy];
+                map ( s0fl => s0Ref);
+            }
+            
+            ///*****OSERDES*****///
+            lsx1 = tx * NUM_GRID_X + 3;
+            lsy1 = ty * NUM_GRID_Y;
+            
+            lsx = lsx1 + 1;
+            lsy = lsy1 + 5;
+            
+            s0Ref  = <device OSERDES  @[lsx, lsy]     of ARCHITECTURE>;
+            sprintf(strVar, "OSERDES_%d_%d", lsx, lsy);
+            
+            get_coordinate_of_oserdes(lsx, lsy);
+            
+            //printf("%s: %d, %d.", strVar, fsx, fsy);
+            s0fl = device OSERDES ( structure fp_struct ) *strVar @[fsx, fsy];
+            map ( s0fl => s0Ref);
+        }
+        ///*****RIGHT*****///
+        else if (flag == 3)
+        {
+            // Site index variable. The X index for logic and GUI are declared separately
+            unsigned int gsx, gsy, lsx, lsy;
+            unsigned int i;
+            unsigned int indexs[] = {1, 2, 3, 4};
+        
+            unsigned int lsx1, lsy1;
+            ///*****IOL*****/
+            foreach i (indexs)
+            {
+                lsx1 = tx * NUM_GRID_X + 3;
+                lsy1 = ty * NUM_GRID_Y;
+                
+                lsx = lsx1 + 1;
+                lsy = lsy1 + i;
+                
+                s0Ref  = <device IOL  @[lsx, lsy]     of ARCHITECTURE>;
+                sprintf(strVar, "IOL_%d_%d", lsx, lsy);
+                
+                get_coordinate_of_iol(lsx, lsy);
+                
+                //printf("%s: %d, %d.", strVar, fsx, fsy);
+                s0fl = device IOL ( structure fp_struct ) *strVar @[fsx, fsy];
+                map ( s0fl => s0Ref);
+            }
+            
+            ///*****IOLDLY*****///
+            foreach i (indexs)
+            {
+                lsx1 = tx * NUM_GRID_X + 3;
+                lsy1 = ty * NUM_GRID_Y;
+                
+                lsx = lsx1;
+                lsy = lsy1 + i;
+                
+                s0Ref  = <device IOLDLY  @[lsx, lsy]     of ARCHITECTURE>;
+                sprintf(strVar, "IOLDLY_%d_%d", lsx, lsy);
+            
+                get_coordinate_of_ioldly(lsx, lsy);
+                
+                //printf("%s: %d, %d.", strVar, fsx, fsy);
+                s0fl = device IOLDLY ( structure fp_struct ) *strVar @[fsx, fsy];
+                map ( s0fl => s0Ref);
+            }
+            
+            ///*****ISERDES*****///
+            lsx1 = tx * NUM_GRID_X + 3;
+            lsy1 = ty * NUM_GRID_Y;
+            
+            lsx = lsx1 + 1;
+            lsy = lsy1 + 5;
+            
+            s0Ref  = <device ISERDES  @[lsx, lsy]     of ARCHITECTURE>;
+            sprintf(strVar, "ISERDES_%d_%d", lsx, lsy);
+            
+            get_coordinate_of_iserdes(lsx, lsy);
+            
+            //printf("%s: %d, %d.", strVar, fsx, fsy);
+            s0fl = device ISERDES ( structure fp_struct ) *strVar @[fsx, fsy];
+            map ( s0fl => s0Ref);
+        }
+        else if (flag == 0 || flag == 1 || flag == 4 || flag == 5)
+        {
+            // Site index variable. The X index for logic and GUI are declared separately
+            unsigned int gsx, gsy, lsx, lsy;
+            unsigned int i;
+            unsigned int indexs[] = {1, 2, 3, 4};
+        
+            unsigned int lsx1, lsy1;
+            
+            ///*****IOL*****/
+            foreach i (indexs)
+            {
+                lsx1 = tx * NUM_GRID_X + 3;
+                lsy1 = ty * NUM_GRID_Y;
+                
+                lsx = lsx1 + 1;
+                lsy = lsy1 + i;
+                
+                s0Ref  = <device IOL  @[lsx, lsy]     of ARCHITECTURE>;
+                sprintf(strVar, "IOL_%d_%d", lsx, lsy);
+
+                get_coordinate_of_iol(lsx, lsy);
+                
+                //printf("%s: %d, %d.", strVar, fsx, fsy);
+                s0fl = device IOL ( structure fp_struct ) *strVar @[fsx, fsy];
+                map ( s0fl => s0Ref);
+            }
+            
+            ///*****IOLDLYS*****///
+            foreach i (indexs)
+            {
+                lsx1 = tx * NUM_GRID_X + 3;
+                lsy1 = ty * NUM_GRID_Y;
+                
+                lsx = lsx1;
+                lsy = lsy1 + i;
+                
+                s0Ref  = <device IOLDLYS  @[lsx, lsy]     of ARCHITECTURE>;
+                sprintf(strVar, "IOLDLYS_%d_%d", lsx, lsy);
+            
+                get_coordinate_of_ioldly(lsx, lsy);
+                
+                //printf("%s: %d, %d.", strVar, fsx, fsy);
+                s0fl = device IOLDLYS ( structure fp_struct ) *strVar @[fsx, fsy];
+                map ( s0fl => s0Ref);
+            }
+        }
+    }; // end of function place_iol_tile_fp
+    
+    
+    function draw_iol_tile_fp
+    ( 
+        unsigned int tx,
+        unsigned int ty,
+        unsigned int flag
+    )
+    {
+        unsigned int lsx, lsy;
+        
+        // device reference variables
+        &device s0Ref, s1Ref, s2Ref, s0fl, s1fl, s2fl;
+        
+        lsx = tx * NUM_GRID_X + 3;
+        lsy = ty * NUM_GRID_Y;
+        
+        string strVar;
+        
+        // Instantiate the device.
+        unsigned int i; 
+        unsigned int indexs[] = {1, 2, 3, 4};
+        unsigned int lsx1, lsy1;
+        
+        if (flag == 2)
+        {
+            foreach i (indexs)
+            {
+                lsx1 = lsx + 1;
+                lsy1 = lsy + i;
+                
+                unsigned int offset_y = 0;
+                get_coordinate_of_iol(lsx1, lsy1);
+                if (fsy > 29)
+                {
+                    offset_y = 320;
+                }
+                
+                sprintf(strVar, "IOL_%d_%d", lsx1, lsy1);
+                s0Ref = <instance *strVar   of ARCHITECTURE (structure fp_struct)>;
+                s0fl = device IOL ( schematic floorplan_view ) *strVar @[(fsx+1)*160, (fsy+1)*320+offset_y];
+                
+                offset_y = 0;
+                get_coordinate_of_ioldly(lsx, lsy1);
+                if (fsy > 29)
+                {
+                    offset_y = 320;
+                }
+                
+                sprintf(strVar, "IOLDLYS_%d_%d", lsx, lsy1);
+                s1Ref = <instance *strVar   of ARCHITECTURE (structure fp_struct)>;
+                s1fl = device IOLDLYS ( symbol fpsym ) *strVar @[(fsx+1)*160, (fsy+1)*320+offset_y];
+                map ( s0fl => s0Ref,
+                      s1fl => s1Ref);
+                      
+                if (i == 1) 
+                {
+                    lsx1 = lsx + 1;
+                    lsy1 = lsy + 5; 
+                    
+                    unsigned int offset_y = 0;
+                    get_coordinate_of_oserdes(lsx1, lsy1);
+                    if (fsy > 29)
+                    {
+                        offset_y = 320;
+                    }
+                    
+                    sprintf(strVar, "OSERDES_%d_%d", lsx1, lsy1);
+                    s2Ref = <instance *strVar   of ARCHITECTURE (structure fp_struct)>;
+                    s2fl = device OSERDES ( schematic floorplan_view ) *strVar @[(fsx+1)*160, (fsy+1)*320+offset_y];
+                    map ( s2fl => s2Ref);
+                }
+            }
+        }
+        else if (flag == 3)
+        {
+            foreach i (indexs)
+            {
+                lsx1 = lsx + 1;
+                lsy1 = lsy + i;
+                
+                unsigned int tmp_x = lsx1;
+                unsigned int tmp_y = lsy1;
+                
+                
+                unsigned int offset_y = 0;
+                get_coordinate_of_iol(lsx1, lsy1);
+                if (fsy > 29)
+                {
+                    offset_y = 320;
+                }
+                
+                sprintf(strVar, "IOL_%d_%d", lsx1, lsy1);
+                s0Ref = <instance *strVar   of ARCHITECTURE (structure fp_struct)>;
+                s0fl = device IOL ( schematic floorplan_view ) *strVar @[(fsx+1)*160, (fsy+1)*320+offset_y];
+                
+                offset_y = 0;
+                get_coordinate_of_ioldly(lsx, lsy1);
+                if (fsy > 29)
+                {
+                    offset_y = 320;
+                }
+                
+                sprintf(strVar, "IOLDLY_%d_%d", lsx, lsy1);
+                s1Ref = <instance *strVar   of ARCHITECTURE (structure fp_struct)>;
+                s1fl = device IOLDLY ( symbol fpsym ) *strVar @[(fsx+1)*160, (fsy+1)*320+offset_y];
+                map ( s0fl => s0Ref,
+                      s1fl => s1Ref);
+                      
+                if (i == 1) 
+                {
+                    lsx1 = lsx + 1;
+                    lsy1 = lsy + 5; 
+                    
+                    unsigned int offset_y = 0;
+                    get_coordinate_of_iserdes(lsx1, lsy1);
+                    if (fsy > 29)
+                    {
+                        offset_y = 320;
+                    }
+                    
+                    sprintf(strVar, "ISERDES_%d_%d", lsx1, lsy1);
+                    s2Ref = <instance *strVar   of ARCHITECTURE (structure fp_struct)>;
+                    s2fl = device ISERDES ( schematic floorplan_view ) *strVar @[(fsx+1)*160, (fsy+1)*320+offset_y];
+                    map ( s2fl => s2Ref);
+                }
+            }
+        }
+        else if (flag == 0 || flag == 1 || flag == 4 || flag == 5)
+        {
+            unsigned int offset_x = 0;
+            foreach i (indexs)
+            {
+                lsx1 = lsx + 1;
+                lsy1 = lsy + i;
+                
+                unsigned int offset_y = 0;
+                get_coordinate_of_iol(lsx1, lsy1);
+                if (fsy > 29)
+                {
+                    offset_y = 320;
+                }
+                
+                sprintf(strVar, "IOL_%d_%d", lsx1, lsy1);
+                s0Ref = <instance *strVar   of ARCHITECTURE (structure fp_struct)>;
+                s0fl = device IOL ( schematic floorplan_view ) *strVar @[(fsx+1)*160, (fsy+1)*320+offset_y];
+                
+                offset_y = 0;
+                get_coordinate_of_ioldly(lsx, lsy1);
+                if (fsy > 29)
+                {
+                    offset_y = 320;
+                }    
+                
+                sprintf(strVar, "IOLDLYS_%d_%d", lsx, lsy1);
+                s1Ref = <instance *strVar   of ARCHITECTURE (structure fp_struct)>;
+                s1fl = device IOLDLYS ( symbol fpsym ) *strVar @[(fsx+1)*160, (fsy+1)*320+offset_y];
+                
+                map ( s0fl => s0Ref,
+                      s1fl => s1Ref);
+            }
+        }  
+    }; // end of function draw_iol_tile_fp
+    
+
+    ///*****IOBS *BSD_N**** */
+    function place_iobs_bsd_n
+    (
+        unsigned int tx,
+        unsigned int ty,
+        unsigned int indexs[]
+    )
+    {
+        unsigned int lsx1, lsy1;
+        unsigned int lsx, lsy;
+        unsigned int i;
+        unsigned int offset_iobsdn[20:0] = {19, 25, 31, 43, 49, 55, 73, 79, 85, 103, 109, 115, 139, 145, 151, 175, 181, 193, 199, 205, 217};
+        
+        // device reference variables
+        &device s0Ref, s0fl;
+        
+        foreach i (indexs)
+        {
+            lsx1 = tx * NUM_GRID_X;
+            lsy1 = ty * NUM_GRID_Y;
+            
+            lsx = lsx1;
+            lsy = lsy1 + offset_iobsdn[i];
+            
+            s0Ref  = <device IOBS  @[lsx, lsy]     of ARCHITECTURE>;
+            string strVar;
+            sprintf(strVar, "IOBS_%d_%d", lsx, lsy); 
+            
+            get_coordinate_of_iob(lsx, lsy);
+                
+            //printf("%s: %d, %d.", strVar, fsx, fsy);                 
+            s0fl = device IOBS ( structure fp_struct ) *strVar @[fsx, fsy];
+            map ( s0fl => s0Ref);
+        }
+    };
+    
+    ///***IOBD***///
+    function place_iobs_bsd_p
+    (
+        unsigned int tx,
+        unsigned int ty,
+        unsigned int indexs[]
+    )
+    {
+        unsigned int lsx1, lsy1;
+        unsigned int lsx, lsy;
+        unsigned int i;
+        unsigned int offset_iobsdp[20:0] = {18, 24, 30, 42, 48, 54, 72, 78, 84, 102, 108, 114, 138, 144, 150, 174, 180, 192, 198, 204, 216};
+        
+        // device reference variables
+        &device s0Ref, s0fl;
+        string strVar;
+        
+        foreach i (indexs)
+        {
+            lsx1 = tx * NUM_GRID_X;
+            lsy1 = ty * NUM_GRID_Y;
+            
+            lsx = lsx1;
+            lsy = lsy1 + offset_iobsdp[i];
+            
+            s0Ref  = <device IOBD  @[lsx, lsy]     of ARCHITECTURE>;
+            sprintf(strVar, "IOBD_%d_%d", lsx, lsy);
+               
+            get_coordinate_of_iob(lsx, lsy);
+            
+            //printf("%s: %d, %d.", strVar, fsx, fsy);
+            s0fl = device IOBD ( structure fp_struct ) *strVar @[fsx, fsy];
+            map ( s0fl => s0Ref);
+        }
+        
+        
+        lsx = tx * NUM_GRID_X;
+        lsy = ty * NUM_GRID_Y;
+        
+        lsx = lsx + 1;
+        lsy = lsy + 120;
+            
+        s0Ref  = <device BKCL  @[lsx, lsy]     of ARCHITECTURE>;
+        sprintf(strVar, "BKCL_%d_%d", lsx, lsy);
+        
+        get_coordinate_of_bkcl(lsx, lsy);
+        
+        //printf("%s: %d, %d.", strVar, fsx, fsy);
+        s0fl = device BKCL ( structure fp_struct ) *strVar @[fsx, fsy];
+        map ( s0fl => s0Ref);
+    };
+    
+    ///*****IOBS *BSS_P*****/
+    function place_iobs_bss_p
+    (
+        unsigned int tx,
+        unsigned int ty,
+        unsigned int indexs[]
+    )
+    {
+        unsigned int lsx1, lsy1;
+        unsigned int lsx, lsy;
+        unsigned int i;
+        unsigned int offset_iobssp[20:0] = {20, 26, 32, 44, 50, 56, 74, 80, 86, 104, 110, 116, 140, 146, 152, 176, 182, 194, 200, 206, 218};
+        
+        // device reference variables
+        &device s0Ref, s0fl;
+        string strVar;
+        
+        foreach i (indexs)
+        {
+            lsx1 = tx * NUM_GRID_X;
+            lsy1 = ty * NUM_GRID_Y;
+            
+            lsx = lsx1;
+            lsy = lsy1 + offset_iobssp[i];
+            
+            s0Ref  = <device IOBS  @[lsx, lsy]     of ARCHITECTURE>;
+            sprintf(strVar, "IOBS_%d_%d", lsx, lsy);
+               
+            get_coordinate_of_iob(lsx, lsy);
+            
+            //printf("%s: %d, %d.", strVar, fsx, fsy);
+            s0fl = device IOBS ( structure fp_struct ) *strVar @[fsx, fsy];
+            map ( s0fl => s0Ref);
+        }
+    };
+    
+    ///*****IOBS *BSS_N*****/
+    function place_iobs_bss_n
+    (
+        unsigned int tx,
+        unsigned int ty,
+        unsigned int indexs[]
+    )
+    {
+        unsigned int lsx1, lsy1;
+        unsigned int lsx, lsy;
+        unsigned int i;
+        unsigned int offset_iobssn[20:0] = {21, 27, 33, 45, 51, 57, 75, 81, 87, 105, 111, 117, 141, 147, 153, 177, 183, 195, 201, 207, 219};
+        
+        // device reference variables
+        &device s0Ref, s0fl;
+        string strVar;
+        foreach i (indexs)
+        {
+            lsx1 = tx * NUM_GRID_X;
+            lsy1 = ty * NUM_GRID_Y;
+            
+            lsx = lsx1;
+            lsy = lsy1 + offset_iobssn[i];
+            
+            s0Ref  = <device IOBS  @[lsx, lsy]     of ARCHITECTURE>;
+            sprintf(strVar, "IOBS_%d_%d", lsx, lsy);
+               
+            get_coordinate_of_iob(lsx, lsy);
+            
+            //printf("%s: %d, %d.", strVar, fsx, fsy);
+            s0fl = device IOBS ( structure fp_struct ) *strVar @[fsx, fsy];
+            map ( s0fl => s0Ref);
+        }
+    };
+    
+     ///*****IOB Left/
+    function place_iobl_tile_fp
+    (
+        unsigned int tx,
+        unsigned int ty
+    )
+    {
+        unsigned int indexs[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
+        ///*****IOBS *BSD_N*****/
+        place_iobs_bsd_n(tx, ty, indexs);
+        
+        ///*****IOBD *BSD_P*****/
+        place_iobs_bsd_p(tx, ty, indexs);
+        
+        ///*****IOBS *BSS_P*****/
+        place_iobs_bss_p(tx, ty, indexs);
+        
+        ///*****IOBS *BSS_N*****/
+        place_iobs_bss_n(tx, ty, indexs);
+    }
+    
+    ///*****IOBR *BSR_N*****/
+    function place_iobr_bsr_n
+    (
+        unsigned int tx,
+        unsigned int ty,
+        unsigned int indexs[]
+    )
+    {
+        // Site index variable. The X index for logic and GUI are declared separately
+        unsigned int lsx, lsy;
+        unsigned int lsx1, lsy1;
+        unsigned int i;
+        unsigned int offset_iobsrn[41:0] = {19, 21, 25, 27, 31, 33, 43, 45, 49, 51, 55, 57, 73, 75, 79, 81, 85, 87, 103, 105, 109, 111, 115, 117, 139, 141, 145, 147, 151, 153, 175, 177, 181, 183, 193, 195, 199, 201, 205, 207, 217, 219};
+    
+        // device reference variables
+        &device s0Ref, s0fl;         
+        string strVar;
+        foreach i (indexs)
+        {
+            lsx1 = tx * NUM_GRID_X;
+            lsy1 = ty * NUM_GRID_Y;
+            
+            lsx = lsx1;
+            lsy = lsy1 + offset_iobsrn[i];
+            
+            s0Ref  = <device IOBS  @[lsx, lsy]     of ARCHITECTURE>;
+            string strVar;
+            sprintf(strVar, "IOBS_%d_%d", lsx, lsy);
+            
+            get_coordinate_of_iob(lsx, lsy);
+            
+            //printf("%s: %d, %d.", strVar, fsx, fsy);
+            s0fl = device IOBS ( structure fp_struct ) *strVar @[fsx, fsy];
+            map ( s0fl => s0Ref);
+        }
+    };
+    
+    ///*****IOBR *BSR_P*****/
+    function place_iobr_bsr_p
+    (  
+        unsigned int tx,
+        unsigned int ty,
+        unsigned int indexs[]
+    )  
+    {  
+        // Site index variable. The X index for logic and GUI are declared separately
+        unsigned int lsx, lsy;
+        unsigned int lsx1, lsy1;
+        unsigned int i;
+        unsigned int offset_iobsrn[41:0] = {19, 21, 25, 27, 31, 33, 43, 45, 49, 51, 55, 57, 73, 75, 79, 81, 85, 87, 103, 105, 109, 111, 115, 117, 139, 141, 145, 147, 151, 153, 175, 177, 181, 183, 193, 195, 199, 201, 205, 207, 217, 219};
+       
+        // device reference variables
+        &device s0Ref, s0fl;         
+        string strVar;
+        foreach i (indexs)
+        {
+            lsx1 = tx * NUM_GRID_X;
+            lsy1 = ty * NUM_GRID_Y;
+            
+            lsx = lsx1;
+            lsy = lsy1 + offset_iobsrn[i] - 1;
+            
+            s0Ref  = <device IOBR  @[lsx, lsy]     of ARCHITECTURE>;
+            string strVar;
+            sprintf(strVar, "IOBR_%d_%d", lsx, lsy);
+               
+            get_coordinate_of_iob(lsx, lsy);
+            
+            //printf("%s: %d, %d.", strVar, fsx, fsy);
+            s0fl = device IOBR ( structure fp_struct ) *strVar @[fsx, fsy];
+            map ( s0fl => s0Ref);
+        }
+        
+        lsx = tx * NUM_GRID_X;
+        lsy = ty * NUM_GRID_Y;
+        
+        lsx = lsx + 0;
+        lsy = lsy + 134;
+            
+        s0Ref  = <device BKCL  @[lsx, lsy]     of ARCHITECTURE>;
+        sprintf(strVar, "BKCL_%d_%d", lsx, lsy);
+        
+        get_coordinate_of_bkcl(lsx, lsy);
+        
+        //printf("%s: %d, %d.", strVar, fsx, fsy);
+        s0fl = device BKCL ( structure fp_struct ) *strVar @[fsx, fsy];
+        map ( s0fl => s0Ref);
+    }; 
+    
+    ///*****IOB Right/
+    function place_iobr_tile_fp
+    (
+        unsigned int tx,
+        unsigned int ty
+    )
+    {
+        unsigned int indexs[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41};
+        
+        ///*****IOBS *BSR_N*****/
+        place_iobr_bsr_n(tx, ty, indexs);
+        
+        ///*****IOBR *BSR_P*****/
+        place_iobr_bsr_p(tx, ty, indexs);
+    };
+    
+    ///*****Place IOB*****/  
+    function place_ioblr_tile_fp
+    ( 
+        unsigned int tx,
+        unsigned int ty,
+        unsigned int flag
+    )
+    {
+        if (flag == 0)
+        {       
+            place_iobl_tile_fp(tx, ty);
+        }
+        else if (flag == 1)
+        {
+            place_iobr_tile_fp(tx, ty);  
+        }
+    } // end of function place_ioblr_tile_fp
+    
+    
+    ///*****Draw IOB*****/  
+    ///*****Right*****/
+    function draw_ioblr_tile_fp
+    ( 
+        unsigned int tx,
+        unsigned int ty,
+        unsigned int flag
+    )
+    {
+        unsigned int lsx, lsy;
+        unsigned int lsx1, lsy1;
+        string strVar;
+        unsigned int i;
+        
+        // device reference variables
+        &device s0Ref, s0fl;
+        
+        lsx = tx * NUM_GRID_X;
+        lsy = ty * NUM_GRID_Y;
+        if (flag == 0)
+        {   
+            unsigned int indexs[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
+            unsigned int offset_iobssn[20:0] = {21, 27, 33, 45, 51, 57, 75, 81, 87, 105, 111, 117, 141, 147, 153, 177, 183, 195, 201, 207, 219};
+            unsigned int offset_iobssp[20:0] = {20, 26, 32, 44, 50, 56, 74, 80, 86, 104, 110, 116, 140, 146, 152, 176, 182, 194, 200, 206, 218};
+            unsigned int offset_iobsdp[20:0] = {18, 24, 30, 42, 48, 54, 72, 78, 84, 102, 108, 114, 138, 144, 150, 174, 180, 192, 198, 204, 216};
+            unsigned int offset_iobsdn[20:0] = {19, 25, 31, 43, 49, 55, 73, 79, 85, 103, 109, 115, 139, 145, 151, 175, 181, 193, 199, 205, 217};
+        
+            ///*****IOBS *BSS_N*****/
+            foreach i (indexs)
+            {
+                lsx1 = lsx;
+                lsy1 = lsy + offset_iobssn[i];                                                                                                                                                                                          
+                   
+                // Instantiate the device.
+                sprintf(strVar, "IOBS_%d_%d", lsx1, lsy1);
+                s0Ref  = <instance  *strVar     of ARCHITECTURE (structure fp_struct)>;
+                
+                unsigned int offset_y = 0;
+                get_coordinate_of_iob(lsx1, lsy1);
+                if (fsy > 29)
+                {
+                    offset_y = 320;
+                }
+                                                                                                                                                          
+                s0fl = device IOBS ( schematic floorplan_view ) *strVar @[(fsx+1)*160, (fsy+1)*320+offset_y];
+                map ( s0fl => s0Ref);
+            }
+            
+            ///*****IOBS *BSS_P*****/
+            foreach i (indexs)
+            {
+                lsx1 = lsx;
+                lsy1 = lsy + offset_iobssp[i];  
+                
+                // Instantiate the device.
+                sprintf(strVar, "IOBS_%d_%d", lsx1, lsy1);
+                s0Ref  = <instance  *strVar     of ARCHITECTURE (structure fp_struct)>;
+                
+                unsigned int offset_y = 0;
+                get_coordinate_of_iob(lsx1, lsy1);
+                if (fsy > 29)
+                {
+                    offset_y = 320;
+                }
+                     
+                s0fl = device IOBS ( schematic floorplan_view ) *strVar @[(fsx+1)*160, (fsy+1)*320+offset_y];
+                map ( s0fl => s0Ref);
+            }
+            
+            /////*****IOBS *BSD_N*****/
+            foreach i (indexs)
+            {
+                lsx1 = lsx;
+                lsy1 = lsy + offset_iobsdn[i];     
+                
+                // Instantiate the device.
+                sprintf(strVar, "IOBS_%d_%d", lsx1, lsy1);
+                s0Ref  = <instance  *strVar     of ARCHITECTURE (structure fp_struct)>;
+                
+                unsigned int offset_y = 0;
+                get_coordinate_of_iob(lsx1, lsy1);
+                if (fsy > 29)
+                {
+                    offset_y = 320;
+                }
+                  
+                s0fl = device IOBS ( schematic floorplan_view ) *strVar @[(fsx+1)*160, (fsy+1)*320+offset_y];
+                map ( s0fl => s0Ref);
+            }
+            
+            ///*****IOBS *BSD_P*****/
+            foreach i (indexs)
+            {
+                lsx1 = lsx;
+                lsy1 = lsy + offset_iobsdp[i];    
+                
+                // Instantiate the device.
+                sprintf(strVar, "IOBD_%d_%d", lsx1, lsy1);
+                s0Ref  = <instance  *strVar     of ARCHITECTURE (structure fp_struct)>;
+                
+                unsigned int offset_y = 0;
+                get_coordinate_of_iob(lsx1, lsy1);
+                if (fsy > 29)
+                {
+                    offset_y = 320;
+                }
+                   
+                s0fl = device IOBD ( schematic floorplan_view ) *strVar @[(fsx+1)*160, (fsy+1)*320+offset_y];
+                map ( s0fl => s0Ref);
+            }
+            
+            lsx1 = lsx + 1;
+            lsy1 = lsy + 120;
+                
+            // Instantiate the device.
+            sprintf(strVar, "BKCL_%d_%d", lsx1, lsy1);
+            s0Ref  = <instance  *strVar          of ARCHITECTURE (structure fp_struct)>;
+            
+            unsigned int offset_y = 0;
+            get_coordinate_of_bkcl(lsx1, lsy1);
+            if (fsy > 29)
+            {
+                offset_y = 320;
+            }
+                
+            s0fl = device BKCL ( symbol fpsym ) *strVar @[(fsx+1)*160, (fsy+1)*320+offset_y];  
+            map ( s0fl => s0Ref);  
+        }
+        else if (flag == 1)
+        {
+            unsigned int indexs[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41};
+            unsigned int offset_iobsrn[41:0] = {19, 21, 25, 27, 31, 33, 43, 45, 49, 51, 55, 57, 73, 75, 79, 81, 85, 87, 103, 105, 109, 111, 115, 117, 139, 141, 145, 147, 151, 153, 175, 177, 181, 183, 193, 195, 199, 201, 205, 207, 217, 219};
+       
+            ///*****IOBS *BSR_N*****/
+            foreach i (indexs)
+            {
+                lsx1 = lsx;
+                lsy1 = lsy + offset_iobsrn[i];                                                                                                                                                                                          
+                                           
+                // Instantiate the device.
+                sprintf(strVar, "IOBS_%d_%d", lsx1, lsy1);
+                s0Ref  = <instance  *strVar          of ARCHITECTURE (structure fp_struct)>;
+                
+                unsigned int offset_y = 0;
+                get_coordinate_of_iob(lsx1, lsy1);
+                if (fsy > 29)
+                {
+                    offset_y = 320;
+                }
+                
+                s0fl = device IOBS ( schematic floorplan_view ) *strVar @[(fsx+1)*160, (fsy+1)*320+offset_y];
+                
+                map ( s0fl => s0Ref);
+            }
+            
+            ///*****IOBR *BSR_P*****/
+            foreach i (indexs)
+            {
+                lsx1 = lsx;
+                lsy1 = lsy + offset_iobsrn[i] - 1;                                                                                                                                                                                          
+                                           
+                // Instantiate the device.
+                sprintf(strVar, "IOBR_%d_%d", lsx1, lsy1);
+                s0Ref  = <instance  *strVar          of ARCHITECTURE (structure fp_struct)>;
+                
+                unsigned int offset_y = 0;
+                get_coordinate_of_iob(lsx1, lsy1);
+                if (fsy > 29)
+                {
+                    offset_y = 320;
+                }
+                
+                s0fl = device IOBR ( schematic floorplan_view ) *strVar @[(fsx+1)*160, (fsy+1)*320+offset_y];
+                
+                map ( s0fl => s0Ref);
+            }
+            
+            lsx1 = lsx + 0;
+            lsy1 = lsy + 134;
+                
+            // Instantiate the device.
+            sprintf(strVar, "BKCL_%d_%d", lsx1, lsy1);
+            s0Ref  = <instance  *strVar          of ARCHITECTURE (structure fp_struct)>;
+            
+            unsigned int offset_y = 0;
+            get_coordinate_of_bkcl(lsx1, lsy1);
+            if (fsy > 29)
+            {
+                offset_y = 320;
+            }
+            
+            s0fl = device BKCL ( symbol fpsym ) *strVar @[(fsx+1)*160, (fsy+1)*320+offset_y];
+            map ( s0fl => s0Ref);  
+        }
+    }// end of function draw_ioblr_tile_fp
+      
+      
+    ///*****iob1_2k_tile*****/ 
+    function place_iobt_tile_fp
+    ( 
+        unsigned int tx,
+        unsigned int ty
+    )
+    {
+        // Site index variable. The X index for logic and GUI are declared separately
+        unsigned int lsx, lsy;
+        unsigned int lsx1, lsy1;
+    
+        // device reference variables
+        &device s0Ref, s0fl;
+        
+        ///*****IOBS *BSS_N*****/
+        unsigned int i;
+        unsigned int indexs[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41};
+        unsigned int offset_iobssn[41:0] = {1, 3, 7, 9, 13, 15, 19, 21, 25, 27, 31, 33, 37, 39, 43, 45, 49, 51, 55, 57, 61, 63, 79, 81, 85, 87, 91, 93, 97, 99, 103, 105, 109, 111, 121, 123, 127, 129, 133, 135, 139, 141};
+        foreach i (indexs)
+        {
+            lsx1 = tx * NUM_GRID_X;
+            lsy1 = ty * NUM_GRID_Y;
+            
+            lsx = lsx1 + offset_iobssn[i];
+            lsy = lsy1; 
+            
+            s0Ref  = <device IOBS  @[lsx, lsy]     of ARCHITECTURE>;
+            string strVar;
+            sprintf(strVar, "IOBS_%d_%d", lsx, lsy);
+            
+            get_coordinate_of_iob(lsx, lsy);
+            
+            //printf("%s: %d, %d.", strVar, fsx, fsy);
+            s0fl = device IOBS ( structure fp_struct ) *strVar @[fsx, fsy];
+            map ( s0fl => s0Ref);
+        }
+    
+        ///*****IOBS *BSS_P*****/
+        foreach i (indexs)
+        {
+            lsx1 = tx * NUM_GRID_X;
+            lsy1 = ty * NUM_GRID_Y;
+            
+            lsx = lsx1 + offset_iobssn[i] - 1;
+            lsy = lsy1;
+            
+            s0Ref  = <device IOBS  @[lsx, lsy]     of ARCHITECTURE>;
+            string strVar;
+            sprintf(strVar, "IOBS_%d_%d", lsx, lsy);
+               
+            get_coordinate_of_iob(lsx, lsy);
+            
+            //printf("%s: %d, %d.", strVar, fsx, fsy);
+            s0fl = device IOBS ( structure fp_struct ) *strVar @[fsx, fsy];
+            map ( s0fl => s0Ref);
+        }
+        
+        lsx = tx * NUM_GRID_X;
+        lsy = ty * NUM_GRID_Y;
+        
+        lsx = lsx + 64;
+        lsy = lsy + 0;
+            
+        s0Ref  = <device BKCL  @[lsx, lsy]     of ARCHITECTURE>;
+        string strVar;
+        sprintf(strVar, "BKCL_%d_%d", lsx, lsy);
+        
+        get_coordinate_of_bkcl(lsx, lsy);
+        
+        //printf("%s: %d, %d.", strVar, fsx, fsy);
+        s0fl = device BKCL ( structure fp_struct ) *strVar @[fsx, fsy];
+        map ( s0fl => s0Ref);
+    } // end of function place_iobt_tile_fp
+    
+    function draw_iobt_tile_fp
+    ( 
+        unsigned int tx,
+        unsigned int ty
+    )
+    {
+        unsigned int lsx, lsy;
+        unsigned int lsx1, lsy1;
+        string strVar;
+        unsigned int i;
+        unsigned int indexs[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41};
+        unsigned int offset_iobssp[41:0] = {140, 138, 134, 132, 128, 126, 122, 120, 110, 108, 104, 102, 98, 96, 92, 90, 86, 84, 80, 78, 62, 60, 56, 54, 50, 48, 44, 42, 38, 36, 32, 30, 26, 24, 20, 18, 14, 12, 8, 6, 2, 0};
+        
+        // device reference variables
+        &device s0Ref, s0fl;
+        
+        ///*****IOBS *BSS_N*****///
+        ///*****For odd X_number*****///
+        foreach i (indexs)
+        {
+            lsx = tx * NUM_GRID_X;
+            lsy = ty * NUM_GRID_Y;
+            lsx1 = lsx + offset_iobssp[i] + 1;
+            lsy1 = lsy;
+            
+            // Instantiate the device.
+            sprintf(strVar, "IOBS_%d_%d", lsx1, lsy1);
+            
+            s0Ref  = <instance  *strVar     of ARCHITECTURE (structure fp_struct)>;
+            
+            unsigned int offset_y = 0;
+            get_coordinate_of_iob(lsx1, lsy1);
+            if (fsy > 29)
+            {
+                offset_y = 320;
+            }
+            
+            s0fl = device IOBS ( schematic floorplan_view ) *strVar @[(fsx+1)*160, (fsy+1)*320+offset_y];
+            map ( s0fl => s0Ref);
+        }
+        
+        /*****IOBS *BSS_P*****/
+        foreach i (indexs)
+        {
+            lsx = tx * NUM_GRID_X;
+            lsy = ty * NUM_GRID_Y;
+            lsx1 = lsx + offset_iobssp[i];
+            lsy1 = lsy;
+            
+            // Instantiate the device.
+            sprintf(strVar, "IOBS_%d_%d", lsx1, lsy1);
+            s0Ref  = <instance  *strVar     of ARCHITECTURE (structure fp_struct)>;
+            
+            unsigned int offset_y = 0;
+            get_coordinate_of_iob(lsx1, lsy1);
+            if (fsy > 29)
+            {
+                offset_y = 320;
+            }
+            
+            s0fl = device IOBS ( schematic floorplan_view ) *strVar @[(fsx+1)*160, (fsy+1)*320+offset_y];
+            map ( s0fl => s0Ref);
+        }
+                
+        lsx1 = lsx + 64;
+        lsy1 = lsy + 0;
+            
+        // Instantiate the device.
+        sprintf(strVar, "BKCL_%d_%d", lsx1, lsy1);
+        s0Ref  = <instance  *strVar          of ARCHITECTURE (structure fp_struct)>;
+        
+        unsigned int offset_y = 0;
+        get_coordinate_of_bkcl(lsx1, lsy1);
+        if (fsy > 29)
+        {
+            offset_y = 320;
+        }
+            
+        s0fl = device BKCL ( symbol fpsym ) *strVar @[(fsx+1)*160, (fsy+1)*320+offset_y];
+        map ( s0fl => s0Ref);  
+    }// end of function draw_iobt_tile_fp
+    
+    
+    function place_iobb_tile_fp
+    ( 
+        unsigned int tx,
+        unsigned int ty,
+        unsigned int flag
+    )
+    {
+        // Site index variable. The X index for logic and GUI are declared separately
+        unsigned int lsx, lsy;
+        unsigned int lsx1, lsy1;
+    
+        // device reference variables
+        &device s0Ref, s0fl;
+        
+        if (flag == 0)
+        {
+            ///*****IOBS *BSS_N*****/
+            unsigned int i;
+            unsigned int indexs[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13};
+            unsigned int offset_iobssn[13:0] = {45, 43, 39, 37, 33, 31, 27, 25, 15, 13, 9, 7, 3, 1};
+            foreach i (indexs)
+            {
+                lsx1 = tx * NUM_GRID_X;
+                lsy1 = ty * NUM_GRID_Y;
+                
+                lsx = lsx1 + offset_iobssn[i];
+                lsy = lsy1;
+                
+                s0Ref  = <device IOBS  @[lsx, lsy]     of ARCHITECTURE>;
+                string strVar;
+                sprintf(strVar, "IOBS_%d_%d", lsx, lsy); 
+               
+                get_coordinate_of_iob(lsx, lsy);
+                
+                //printf("%s: %d, %d.", strVar, fsx, fsy);  
+                s0fl = device IOBS ( structure fp_struct ) *strVar @[fsx, fsy];
+                map ( s0fl => s0Ref);
+            }
+            
+            /*****IOBS *BSS_P*****/
+            foreach i (indexs)
+            {
+                lsx1 = tx * NUM_GRID_X;
+                lsy1 = ty * NUM_GRID_Y;
+                
+                lsx = lsx1 + offset_iobssn[i] - 1;
+                lsy = lsy1;
+                
+                s0Ref  = <device IOBS  @[lsx, lsy]     of ARCHITECTURE>;
+                string strVar;
+                sprintf(strVar, "IOBS_%d_%d", lsx, lsy);
+               
+                get_coordinate_of_iob(lsx, lsy);
+                
+                //printf("%s: %d, %d.", strVar, fsx, fsy);
+                s0fl = device IOBS ( structure fp_struct ) *strVar @[fsx, fsy];
+                map ( s0fl => s0Ref);
+            }
+            
+            lsx = tx * NUM_GRID_X;
+            lsy = ty * NUM_GRID_Y;
+            
+            lsx = lsx + 20;
+            lsy = lsy;
+                
+            s0Ref  = <device BKCL  @[lsx, lsy]     of ARCHITECTURE>;
+            string strVar;
+            sprintf(strVar, "BKCL_%d_%d", lsx, lsy);
+            
+            get_coordinate_of_bkcl(lsx, lsy);
+            
+            //printf("%s: %d, %d.", strVar, fsx, fsy);
+            s0fl = device BKCL ( structure fp_struct ) *strVar @[fsx, fsy];
+            map ( s0fl => s0Ref);
+        }
+        else if (flag == 1)
+        {
+            unsigned int i;
+            unsigned int indexs[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
+            unsigned int offset_iobs[11:0] = {45, 43, 39, 37, 33, 31, 15, 13, 9, 7, 3, 1};
+            foreach i (indexs)
+            {
+                lsx1 = tx * NUM_GRID_X;
+                lsy1 = ty * NUM_GRID_Y;
+                
+                lsx = lsx1 + offset_iobs[i];
+                lsy = lsy1;
+                
+                s0Ref  = <device IOBS  @[lsx, lsy]     of ARCHITECTURE>;
+                string strVar;
+                sprintf(strVar, "IOBS_%d_%d", lsx, lsy);
+               
+                get_coordinate_of_iob(lsx, lsy);
+                
+                //printf("%s: %d, %d.", strVar, fsx, fsy);
+                s0fl = device IOBS ( structure fp_struct ) *strVar @[fsx, fsy];
+                map ( s0fl => s0Ref);
+            }
+            
+            ///*****IOBS *BSS_P*****/
+            foreach i (indexs)
+            {
+                lsx1 = tx * NUM_GRID_X;
+                lsy1 = ty * NUM_GRID_Y;
+                
+                lsx = lsx1 + offset_iobs[i] - 1;
+                lsy = lsy1;
+                
+                s0Ref  = <device IOBS  @[lsx, lsy]     of ARCHITECTURE>;
+                string strVar;
+                sprintf(strVar, "IOBS_%d_%d", lsx, lsy);
+               
+                get_coordinate_of_iob(lsx, lsy);
+                
+                //printf("%s: %d, %d.", strVar, fsx, fsy);
+                s0fl = device IOBS ( structure fp_struct ) *strVar @[fsx, fsy];
+                map ( s0fl => s0Ref);
+            }
+            
+            lsx = tx * NUM_GRID_X;
+            lsy = ty * NUM_GRID_Y;
+            
+            lsx = lsx + 28;
+            lsy = lsy + 0;
+                
+            s0Ref  = <device BKCL  @[lsx, lsy]     of ARCHITECTURE>;
+            string strVar;
+            sprintf(strVar, "BKCL_%d_%d", lsx, lsy);
+            
+            get_coordinate_of_bkcl(lsx, lsy);
+            
+            //printf("%s: %d, %d.", strVar, fsx, fsy);
+            s0fl = device BKCL ( structure fp_struct ) *strVar @[fsx, fsy];
+            map ( s0fl => s0Ref);
+        }
+        else if (flag == 2)
+        {
+            unsigned int indexs1[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+            unsigned int offset_iobssn[15:0] = {45, 43, 39, 37, 33, 31, 27, 25, 21, 19, 15, 13, 9, 7, 3, 1};
+            unsigned int i;
+            foreach i (indexs1)
+            {
+                lsx1 = tx * NUM_GRID_X;
+                lsy1 = ty * NUM_GRID_Y;
+                
+                lsx = lsx1 + offset_iobssn[i];
+                lsy = lsy1;
+                
+                s0Ref  = <device IOBS  @[lsx, lsy]     of ARCHITECTURE>;
+                string strVar;
+                sprintf(strVar, "IOBS_%d_%d", lsx, lsy);
+               
+                get_coordinate_of_iob(lsx, lsy);
+                
+                //printf("%s: %d, %d.", strVar, fsx, fsy);
+                s0fl = device IOBS ( structure fp_struct ) *strVar @[fsx, fsy];
+                map ( s0fl => s0Ref);
+            }
+            
+            ///*****IOBS *BSS_P*****/
+            foreach i (indexs1)
+            {
+                lsx1 = tx * NUM_GRID_X;
+                lsy1 = ty * NUM_GRID_Y; 
+                
+                lsx = lsx1 + offset_iobssn[i] - 1;
+                lsy = lsy1;
+                
+                s0Ref  = <device IOBS  @[lsx, lsy]     of ARCHITECTURE>;
+                string strVar;
+                sprintf(strVar, "IOBS_%d_%d", lsx, lsy);
+               
+                get_coordinate_of_iob(lsx, lsy);
+                
+                //printf("%s: %d, %d.", strVar, fsx, fsy);
+                s0fl = device IOBS ( structure fp_struct ) *strVar @[fsx, fsy];
+                map ( s0fl => s0Ref);
+            }
+            
+            lsx = tx * NUM_GRID_X;
+            lsy = ty * NUM_GRID_Y;
+            
+            lsx = lsx + 25;
+            lsy = lsy + 1;
+                
+            s0Ref  = <device BKCL  @[lsx, lsy]     of ARCHITECTURE>;
+            string strVar;
+            sprintf(strVar, "BKCL_%d_%d", lsx, lsy);
+            
+            get_coordinate_of_bkcl(lsx, lsy);
+            
+            //printf("%s: %d, %d.", strVar, fsx, fsy);
+            s0fl = device BKCL ( structure fp_struct ) *strVar @[fsx, fsy];
+            map ( s0fl => s0Ref);
+        }
+        
+    }; // end of function place_iobb_tile_fp
+    
+    function draw_iobb_tile_fp
+    ( 
+        unsigned int tx,
+        unsigned int ty,
+        unsigned int flag
+    )
+    {
+        unsigned int lsx, lsy, gsx, gsy;
+        unsigned int lsx1, lsy1;
+        string strVar;
+        unsigned int i;
+        
+        // device reference variables
+        &device s0Ref, s0fl;
+        
+        if (flag == 0)
+        {
+            unsigned int indexs[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13};
+            unsigned int offset_iobssn[13:0] = {45, 43, 39, 37, 33, 31, 27, 25, 15, 13, 9, 7, 3, 1};
+            ///*****IOBS *BSS_N*****/
+            foreach i (indexs)
+            {
+                lsx = tx * NUM_GRID_X;
+                lsy = ty * NUM_GRID_Y;
+                lsx1 = lsx + offset_iobssn[i];
+                lsy1 = lsy;
+                
+                // Instantiate the device.
+                sprintf(strVar, "IOBS_%d_%d", lsx1, lsy1);
+                s0Ref  = <instance  *strVar     of ARCHITECTURE (structure fp_struct)>;
+                
+                unsigned int offset_y = 0;
+                get_coordinate_of_iob(lsx1, lsy1);
+                if (fsy > 29)
+                {
+                    offset_y = 320;
+                }
+                
+                s0fl = device IOBS ( schematic floorplan_view ) *strVar @[(fsx+1)*160, (fsy+1)*320+offset_y];
+                map ( s0fl => s0Ref);
+            }
+            
+            /*****IOBS *BSS_P*****/
+            foreach i (indexs)
+            {
+                lsx = tx * NUM_GRID_X;
+                lsy = ty * NUM_GRID_Y;
+                lsx1 = lsx + offset_iobssn[i] - 1;
+                lsy1 = lsy;
+                
+                // Instantiate the device.
+                sprintf(strVar, "IOBS_%d_%d", lsx1, lsy1);
+                s0Ref  = <instance  *strVar     of ARCHITECTURE (structure fp_struct)>;
+                
+                unsigned int offset_y = 0;
+                get_coordinate_of_iob(lsx1, lsy1);
+                if (fsy > 29)
+                {
+                    offset_y = 320;
+                }
+                
+                s0fl = device IOBS ( schematic floorplan_view ) *strVar @[(fsx+1)*160, (fsy+1)*320+offset_y];
+                map ( s0fl => s0Ref);
+            } 
+                  
+            lsx1 = lsx + 20;
+            lsy1 = lsy + 0;
+                
+            // Instantiate the device.
+            sprintf(strVar, "BKCL_%d_%d", lsx1, lsy1);
+            s0Ref  = <instance  *strVar          of ARCHITECTURE (structure fp_struct)>;
+            
+            unsigned int offset_y = 0;
+            get_coordinate_of_bkcl(lsx1, lsy1);
+            if (fsy > 29)
+            {
+                offset_y = 320;
+            }
+                
+            s0fl = device BKCL ( symbol fpsym ) *strVar @[(fsx+1)*160, (fsy+1)*320+offset_y];
+            map ( s0fl => s0Ref);  
+        }
+        else if (flag == 1)
+        {
+            unsigned int indexs[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
+            unsigned int offset_iobssn[11:0] = {45, 43, 39, 37, 33, 31, 15, 13, 9, 7, 3, 1};
+            ///*****IOBS *BSS_N*****/
+            foreach i (indexs)
+            {
+                lsx = tx * NUM_GRID_X;
+                lsy = ty * NUM_GRID_Y;
+                lsx1 = lsx + offset_iobssn[i];
+                lsy1 = lsy;
+                
+                // Instantiate the device.
+                sprintf(strVar, "IOBS_%d_%d", lsx1, lsy1);
+                s0Ref  = <instance  *strVar     of ARCHITECTURE (structure fp_struct)>;
+                
+                unsigned int offset_y = 0;
+                get_coordinate_of_iob(lsx1, lsy1);
+                if (fsy > 29)
+                {
+                    offset_y = 320;
+                }
+                
+                s0fl = device IOBS ( schematic floorplan_view ) *strVar @[(fsx+1)*160, (fsy+1)*320+offset_y];
+                
+                map ( s0fl => s0Ref);
+            }
+            
+            ///*****IOBS *BSS_P*****/
+            foreach i (indexs)
+            {
+                lsx = tx * NUM_GRID_X;
+                lsy = ty * NUM_GRID_Y;
+                lsx1 = lsx + offset_iobssn[i] - 1;
+                lsy1 = lsy;
+                
+                // Instantiate the device.
+                sprintf(strVar, "IOBS_%d_%d", lsx1, lsy1);
+                s0Ref  = <instance  *strVar     of ARCHITECTURE (structure fp_struct)>;
+                
+                unsigned int offset_y = 0;
+                get_coordinate_of_iob(lsx1, lsy1);
+                if (fsy > 29)
+                {
+                    offset_y = 320;
+                }
+                
+                s0fl = device IOBS ( schematic floorplan_view ) *strVar @[(fsx+1)*160, (fsy+1)*320+offset_y];
+
+                map ( s0fl => s0Ref);
+            }
+                  
+            lsx1 = lsx + 28;
+            lsy1 = lsy + 0;
+                
+            // Instantiate the device.
+            sprintf(strVar, "BKCL_%d_%d", lsx1, lsy1);
+            s0Ref  = <instance  *strVar          of ARCHITECTURE (structure fp_struct)>;
+            
+            unsigned int offset_y = 0;
+            get_coordinate_of_bkcl(lsx1, lsy1);
+            if (fsy > 29)
+            {
+                offset_y = 320;
+            }
+            s0fl = device BKCL ( symbol fpsym ) *strVar @[(fsx+1)*160, (fsy+1)*320+offset_y];
+            map ( s0fl => s0Ref); 
+        }
+        else if (flag == 2)
+        {
+            unsigned int indexs1[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+            unsigned int offset_iobssn[15:0] = {45, 43, 39, 37, 33, 31, 27, 25, 21, 19, 15, 13, 9, 7, 3, 1};
+            ///*****IOBS *BSS_N*****/
+            foreach i (indexs1)
+            {
+                lsx = tx * NUM_GRID_X;
+                lsy = ty * NUM_GRID_Y;
+                lsx1 = lsx + offset_iobssn[i];
+                lsy1 = lsy;
+                
+                // Instantiate the device.
+                sprintf(strVar, "IOBS_%d_%d", lsx1, lsy1);
+                s0Ref  = <instance  *strVar     of ARCHITECTURE (structure fp_struct)>;
+                
+                unsigned int offset_y = 0;
+                get_coordinate_of_iob(lsx1, lsy1);
+                if (fsy > 29)
+                {
+                    offset_y = 320;
+                }
+                
+                s0fl = device IOBS ( schematic floorplan_view ) *strVar @[(fsx+1)*160, (fsy+1)*320+offset_y];
+                
+                map ( s0fl => s0Ref);
+            }
+            
+            ///*****IOBS *BSS_P*****/
+            foreach i (indexs1)
+            {
+                lsx = tx * NUM_GRID_X;
+                lsy = ty * NUM_GRID_Y;
+                lsx1 = lsx + offset_iobssn[i] - 1;
+                lsy1 = lsy;
+                
+                // Instantiate the device.
+                sprintf(strVar, "IOBS_%d_%d", lsx1, lsy1);
+                s0Ref  = <instance  *strVar     of ARCHITECTURE (structure fp_struct)>;
+                
+                unsigned int offset_y = 0;
+                get_coordinate_of_iob(lsx1, lsy1);
+                if (fsy > 29)
+                {
+                    offset_y = 320;
+                }
+                
+                s0fl = device IOBS ( schematic floorplan_view ) *strVar @[(fsx+1)*160, (fsy+1)*320+offset_y];
+                
+                map ( s0fl => s0Ref);
+            }
+                  
+            lsx1 = lsx + 25;
+            lsy1 = lsy + 1;
+                
+            // Instantiate the device.
+            sprintf(strVar, "BKCL_%d_%d", lsx1, lsy1);
+            s0Ref  = <instance  *strVar          of ARCHITECTURE (structure fp_struct)>;
+            
+            unsigned int offset_y = 0;
+            get_coordinate_of_bkcl(lsx1, lsy1);
+            if (fsy > 29)
+            {
+                offset_y = 320;
+            }
+            s0fl = device BKCL ( symbol fpsym ) *strVar @[(fsx+1)*160, (fsy+1)*320+offset_y];
+            map ( s0fl => s0Ref); 
+        }
+    };// end of function draw_iobb_tile_fp
+
+    
+    ///*****Place CCS*****/
+    function place_ccs_7k_tile_fp
+    ( 
+        unsigned int CCS_TILE_X,
+        unsigned int CCS_TILE_Y,
+        unsigned int PLL_TILE_X,
+        unsigned int ccs_value1,
+        unsigned int ccs_value2,
+        unsigned int ccs_value3
+    )
+    {
+        // Site index variable. The X index for logic and GUI are declared separately
+        unsigned int lsx, lsy;
+        unsigned int lsx0, lsy0;
+    
+        // device reference variables
+        &device s0Ref, s0fl;
+        
+        string strVar;
+        
+        lsx0 = CCS_TILE_X * NUM_GRID_X + 3;
+        lsy0 = CCS_TILE_Y * NUM_GRID_Y;
+        
+        lsx = lsx0 + 1;
+        lsy = lsy0;
+        
+        s0Ref  = <device CCS  @[lsx,lsy]     of ARCHITECTURE>;
+        sprintf(strVar, "CCS_%d_%d", lsx, lsy);
+    
+        get_coordinate_of_ccs(lsx, lsy);
+        
+        //printf("%s: %d, %d.", strVar, fsx, fsy);
+        s0fl = device CCS ( structure fp_struct ) *strVar @[fsx, fsy];
+        map ( s0fl => s0Ref);
+    } // end of function place_drm_tile_fp
+    
+    ///*****Draw CCS*****/
+    function draw_ccs_7k_tile_fp
+    ( 
+        unsigned int CCS_TILE_X,
+        unsigned int CCS_TILE_Y,
+        unsigned int PLL_TILE_X,
+        unsigned int ccs_value1,
+        unsigned int ccs_value2,
+        unsigned int ccs_value3
+    )
+    {
+        unsigned int lsx, lsy;
+        unsigned int lsx0, lsy0;
+    
+        // device reference variables
+        &device s0Ref, s0fl;
+        
+        string strVar;
+        
+        lsx0 = CCS_TILE_X * NUM_GRID_X + 3;
+        lsy0 = CCS_TILE_Y * NUM_GRID_Y;
+        
+        lsx = lsx0 + 1;
+        lsy = lsy0;
+        
+        unsigned int offset_y = 0;
+        get_coordinate_of_ccs(lsx, lsy);
+        if (fsy > 29)
+        {
+            offset_y = 320;
+        }
+        
+        // Instantiate the device. 
+        sprintf(strVar, "CCS_%d_%d", lsx, lsy);
+        s0Ref = <instance *strVar   of ARCHITECTURE (structure fp_struct)>;
+        s0fl = device CCS ( symbol fpsym ) *strVar @[(fsx+1)*160, (fsy+1)*320+offset_y];
+        map ( s0fl => s0Ref);
+    }; // end of function draw_ccs_tile_fp
+ 
+     
+    function get_coordinate_of_osc
+    (
+        unsigned int lsx,
+        unsigned int lsy
+    )
+    {
+        fsx = 13;
+        fsy = lsy / 6 + 6;
+    }
+    
+    function get_coordinate_of_mfgtest
+    (
+        unsigned int lsx,
+        unsigned int lsy
+    )
+    {
+        fsx = 13;
+        fsy = 33;
+    }
+    
+    // place OSC and MFG_TEST
+    function place_analog_tile_fp 
+    ( 
+        unsigned int ANALOG_2K_TILE_X, 
+        unsigned int ANALOG_2K_TILE_Y, 
+        unsigned int CCS_TILE_Y, 
+        unsigned int analog_value
+    )
+    {
+        unsigned int lsx, lsy;
+        unsigned int lsx0, lsy0;
+        unsigned int indexs[] = {0, 1};
+        unsigned int i;
+    
+        // device reference variables
+        &device s0Ref, s0fl;
+        
+        string strVar;
+        
+        lsx0 = ANALOG_2K_TILE_X * NUM_GRID_X + 3;
+        lsy0 = ANALOG_2K_TILE_Y * NUM_GRID_Y;
+        
+        foreach i (indexs)
+        {
+            if (i == 0)
+            {
+                lsx = lsx0 + 2;
+                lsy = lsy0;
+                
+                s0Ref  = <device OSC  @[lsx,lsy]     of ARCHITECTURE>;
+                sprintf(strVar, "OSC_%d_%d", lsx, lsy);
+                
+                get_coordinate_of_osc(lsx, lsy);
+                
+                //printf("%s: %d, %d.", strVar, fsx, fsy);
+                s0fl = device OSC ( structure fp_struct ) *strVar @[fsx, fsy];
+                map ( s0fl => s0Ref);
+            }
+            else if (i == 1)
+            {
+                lsx = lsx0 + 2;
+                lsy = lsy0 + 1;
+                
+                s0Ref  = <device MFG_TEST  @[lsx,lsy]     of ARCHITECTURE>;
+                sprintf(strVar, "MFG_TEST_%d_%d", lsx, lsy);
+                
+                get_coordinate_of_mfgtest(lsx, lsy);
+                
+                //printf("%s: %d, %d.", strVar, fsx, fsy);
+                s0fl = device MFG_TEST ( structure fp_struct ) *strVar @[fsx, fsy];
+                map ( s0fl => s0Ref);
+            }
+        }
+    };
+    
+    // draw OSC and MFG_TEST
+    function draw_analog_tile_fp 
+    ( 
+        unsigned int ANALOG_2K_TILE_X, 
+        unsigned int ANALOG_2K_TILE_Y, 
+        unsigned int CCS_TILE_Y, 
+        unsigned int analog_value
+    )
+    {
+        unsigned int lsx, lsy;
+        unsigned int lsx0, lsy0;
+        unsigned int indexs[] = {0, 1};
+        unsigned int i;
+    
+        // device reference variables
+        &device s0Ref, s0fl;
+        
+        string strVar;
+        
+        lsx0 = ANALOG_2K_TILE_X * NUM_GRID_X + 3;
+        lsy0 = ANALOG_2K_TILE_Y * NUM_GRID_Y;
+        
+        foreach i (indexs)
+        {
+            ///***OSC***/
+            if (i == 0)
+            {
+                lsx = lsx0 + 2;
+                lsy = lsy0;
+                
+                unsigned int offset_y = 0;
+                get_coordinate_of_osc(lsx, lsy);
+                if (fsy > 29)
+                {
+                    offset_y = 320;
+                }
+        
+                // Instantiate the device. 
+                sprintf(strVar, "OSC_%d_%d", lsx, lsy);
+                s0Ref = <instance *strVar   of ARCHITECTURE (structure fp_struct)>;
+                s0fl = device OSC ( symbol fpsym ) *strVar @[(fsx+1)*160, (fsy+1)*320+offset_y];
+                map ( s0fl => s0Ref);
+            }
+            else if (i == 1)
+            {
+                lsx = lsx0 + 2;
+                lsy = lsy0 + 1;
+                
+                unsigned int offset_y = 0;
+                get_coordinate_of_mfgtest(lsx, lsy);
+                if (fsy > 29)
+                {
+                    offset_y = 320;
+                }
+                
+                // Instantiate the device. 
+                sprintf(strVar, "MFG_TEST_%d_%d", lsx, lsy);
+                s0Ref = <instance *strVar   of ARCHITECTURE (structure fp_struct)>;
+                s0fl = device MFG_TEST ( symbol fpsym ) *strVar @[(fsx+1)*160, (fsy+1)*320+offset_y];
+                map ( s0fl => s0Ref);
+            }
+        }
+    };
+
+}; // end of package pgc_schm_funcs

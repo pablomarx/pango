@@ -1,0 +1,165 @@
+*******************************************************************
+
+  Device    [IOB_LA]
+
+  Author    [tangqiang]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+symbol logsym of IOB_LA // pragma PAP_ARC_COLOR="64:64:128"
+{
+    // The bounding box
+    generate ( 60 # 60 );
+
+    //
+    // Poloygon declaration
+    //
+    shape
+    [ 0, 0 ]  ->  [ ,60]  < 
+
+                             DIN  @[,10],
+                             DO   @[,30],
+                             TO   @[,50]
+
+                           >
+              ->  [60, ]  < 
+                             DIFFI_IN    @[40,],
+                             DIFFI_OUT   @[20,]
+                          > 
+              ->  [  ,0]  < 
+
+                             PAD  @[,30]
+
+                          >
+              ->  [ 0, ] ;
+
+}; // symbol logsym of IOB_LA
+
+/*******************************************************************************
+
+  Device    [IOB_LA]
+
+  Author    [tangqiang]
+
+  Abstract  [The schematic for IOB_LA]
+
+  Revision History:
+
+********************************************************************************/
+schematic schm of IOB_LA
+{
+    // The bounding box
+      generate (176 # 128);
+
+    //
+    // Layout all symbols.
+    //
+    device IOB_INBUFLA (symbol logsym) INBUFLA
+        @[112,32];
+
+    device IOB_OBUFLA (symbol logsym) OBUFLA
+        @[32,48];
+
+    map (
+         <instance INBUFLA>     => <instance INBUFLA    of device IOB_LA (structure netlist)> ,
+         <instance OBUFLA>      => <instance OBUFLA     of device IOB_LA (structure netlist)>
+         );
+
+    //
+    // Layout all ports.
+    //
+    // Since ports drive or are driven by pins of symbol instance, derive the port
+    // location from those pins
+    //
+
+    port DIFFI_IN  @[16,40];
+    port DO        @[16,56];
+    port TO        @[16,66];
+    port DIN       @[160,48];
+    port DIFFI_OUT @[160,80];
+    port PAD       @[96,95]; // pragma PAP_UI_ORIENTATION="NORTH"
+
+    //
+    // Layout all lines
+    //
+
+    line lnDIFFI_IN
+        <port DIFFI_IN> ->
+        <pin DIFFI_IN of <instance INBUFLA>>;
+
+    line lnDO
+        <port DO> ->
+        <pin IN of <instance OBUFLA>>;
+
+    line lnTO
+        <port TO> ->
+        [40,66] ->
+        <pin TS of <instance OBUFLA>>;
+
+    line lnPAD
+        <pin OUT of <instance OBUFLA>> ->
+        [96,56] ->
+        <pin IN of <instance INBUFLA>>,
+
+        [96,56] ->
+        [96,80] ->
+        <port PAD>,
+
+        [96,80] ->
+        <port DIFFI_OUT>;
+    line lnDIN
+        <pin O of <instance INBUFLA>> ->
+        <port DIN>;
+
+
+    map  (
+           <line lnDIFFI_IN>    => <wire ntDIFFI_IN     of device IOB_LA (structure netlist)>,
+           <line lnDO>          => <wire ntDO           of device IOB_LA (structure netlist)>,
+           <line lnTO>          => <wire ntTO           of device IOB_LA (structure netlist)>,
+           <line lnPAD>         => <wire ntPAD          of device IOB_LA (structure netlist)>,
+           <line lnDIN>         => <wire ntINBUF        of device IOB_LA (structure netlist)>
+         );
+
+};// end of schematic schm of IOB_LA
+
+
+/*******************************************************************************
+
+  Device    [IOB_LA]
+
+  Author    [tangqiang]
+
+  Abstract  [The floorplan schematic for IOB_LA]
+
+  Revision History:
+
+********************************************************************************/
+floorplan
+schematic floorplan_view of IOB_LA // pragma PAP_ARC_SHOW_BOUNDING_BOX
+{
+    generate ( 20*8 # 20*8 );
+
+    device IOB_INBUFLA (symbol fpsym)  INBUFLA
+        @[8*8, 4*8];
+    device IOB_OBUFLA (symbol fpsym) OBUFLA
+        @[8*8,12*8];
+
+    map (
+         <instance INBUFLA>     => <instance INBUFLA    of device IOB_LA (structure fp_struct)> ,
+         <instance OBUFLA>      => <instance OBUFLA     of device IOB_LA (structure fp_struct)>
+         );
+};
+
+
+
+
+
+
+
+
+
+
+

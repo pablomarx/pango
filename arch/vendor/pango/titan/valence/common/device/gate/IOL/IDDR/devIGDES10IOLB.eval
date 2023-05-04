@@ -1,0 +1,180 @@
+*****************************************************************
+
+  Device    [devIGDES10IOLB]
+
+  Author    [hzhang]
+
+  Abstract  [devIGDES10IOLB on the TOP/RIGHT/BOTTOM of Arch.]
+
+  Revision History:
+
+********************************************************************************/
+
+gate
+device devIGDES10IOLB : device IOL
+{
+    parameter
+    (
+        config string DES_SER_CLK    = "IOCLK",        // "IOCLK", "SAMPLE_CLK", "PROBE_CLK"
+        config string IN_MUX_SEL     = "DIN_CDR",      // "DIN"     : IN_FROM_PAD
+                                                       // "DIN_CDR" : IN_PAD_FOR_CDR
+        
+        config bit    IDDR_LRS_EN    = 1'b0,
+        config string IDDR_ICLK      = "DQSDEL",       // "DQSDEL", "DESCLK", "SYSCLK"
+        config string IDDR_MODE     := "IDDRB",      //"IGDDR", "IGDES4", "IGDES7", "IGDES8", "IGDES10"
+                                                       //"IMDDR", "IMDES4", "IMDES8", "DISABLE"
+
+        config bit    GRS_EN         = 1'b0,
+        config bit    CLK_I_INV      = 1'b0,
+        config bit    LRS_INV        = 1'b0,
+
+        config bit    TRI_FORCE[1:0]  := 2'b00
+    );
+    port
+    (
+        output  RX_DATA[5:2],
+
+        input   IOCLK,
+
+        input   SAMPLE_CLK,
+        input   PROBE_CLK,
+
+        input   SYSCLK,
+        input   LRS,
+        input   SLIP,
+        output  TO,
+        input   IDDR_CIN[6:0],
+        output  IDDR_COUT[6:0]
+    );
+
+}// end of device devIGDES10IOLB
+
+/*******************************************************************************
+
+  Device    [devIGDES10IOLB]
+
+  Author    []
+
+  Abstract  [The structure netlist of devIGDES10IOLB is described in the similar fashion
+             as in HDL. In unit instantiation statement, the formal pin may be
+             connected to net which is declared explicitly.
+
+             In Valence, the connection can also be made from formal pin to other
+             pin or port, in which case Valence compiler shall create the net to
+             fulfil the connection. The built-in naming convention is kicked in
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devIGDES10IOLB
+{
+    // Wires for input ports
+
+    wire ntSYSCLK, ntLRS;
+    wire ntSAMPLE_CLK;
+    wire ntPROBE_CLK;
+    ntSYSCLK          <= SYSCLK;
+    ntLRS             <= LRS;
+
+    ntSAMPLE_CLK      <= SAMPLE_CLK;
+    ntPROBE_CLK       <= PROBE_CLK;
+    
+    // Internal wires
+    wire ntLRS_MUX;
+
+    wire ntSYSCLK_MUX_I;
+
+    wire ntIOCLK;
+    ntIOCLK <= IOCLK;
+
+    wire ntIDDR_DESCLK_MUX;
+    wire ntIDDR_ICLK_MUX;
+    wire ntIDDR_LRS_MUX;
+
+    device LRS_MUX LRS_MUX
+        parameter map
+        (
+            LRS_INV => LRS_INV
+        )
+        port map
+        (
+            I1  => ntLRS,
+            I0  => ntLRS,
+            Y   => ntLRS_MUX
+        );
+
+    device SYSCLK_MUX_I SYSCLK_MUX_I
+        parameter map
+        (
+            CLK_INV => CLK_I_INV
+        )
+        port map
+        (
+            I1   => ntSYSCLK,
+            I0   => ntSYSCLK,
+            Y    => ntSYSCLK_MUX_I
+        );
+
+   // IDDR
+    device IDDR_DESCLK_MUX IDDR_DESCLK_MUX
+        parameter map
+        (
+            DESCLK => DES_SER_CLK
+        )
+        port map
+        (
+            I2  => ntIOCLK,
+            I1  => ntSAMPLE_CLK,
+            I0  => ntPROBE_CLK,
+            Y   => ntIDDR_DESCLK_MUX
+        );
+
+    device IDDR_ICLK_MUX IDDR_ICLK_MUX
+        parameter map
+        (
+            ICLK => IDDR_ICLK
+        )
+        port map
+        (
+            I2  => ntIDDR_DESCLK_MUX,
+            I0  => ntSYSCLK_MUX_I,
+            Y   => ntIDDR_ICLK_MUX
+        );
+
+    device IDDR_LRS_MUX IDDR_LRS_MUX
+        parameter map
+        (
+            LRS_USED => IDDR_LRS_EN
+        )
+        port map
+        (
+            LRS   => ntLRS_MUX,
+            ZERO  => 1'b0,
+            Y     => ntIDDR_LRS_MUX
+        );
+
+    device IDDR IDDR
+        parameter map
+        (
+            IDDR_MODE    => IDDR_MODE
+        )
+        port map
+        (
+            DATAOUT[5:2]   => RX_DATA[5:2],
+            ICLK           => ntIDDR_ICLK_MUX,
+            DESCLK         => ntIDDR_DESCLK_MUX,
+            SYSCLK         => ntSYSCLK_MUX_I,
+        
+            LRS            => ntIDDR_LRS_MUX,
+
+            //for cascaded parts
+            CIN            => IDDR_CIN,
+            COUT           => IDDR_COUT
+        );
+
+
+}; // end of structure netlist of devIGDES10IOLB

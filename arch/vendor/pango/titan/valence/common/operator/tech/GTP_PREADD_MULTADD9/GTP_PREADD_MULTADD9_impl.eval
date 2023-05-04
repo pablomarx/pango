@@ -1,0 +1,75 @@
+*************************************************************
+
+Copyright (c) 2014 by PANGO MICROSYSTEMS, INC
+ALL RIGHTS RESERVED.
+
+THE SOURCE CODE CONTAINED HEREIN IS PROPRIETARY TO PANGO MICROSYSTEMS, INC.
+IT SHALL NOT BE REPRODUCED OR DISCLOSED IN WHOLE OR IN PART OR USED BY
+PARTIES WITHOUT WRITTEN AUTHORIZATION FROM THE OWNER.
+
+  Operator  [GTP_PREADD_MULTADD9]
+
+  Author    [Peifu Shen]
+
+  Abstract  []
+
+  Revision History:
+
+***************************************************************************/
+
+implementation impl of GTP_PREADD_MULTADD9
+{
+    string SIB1_EN = "FALSE";
+    string SIC0_EN = "FALSE";
+    operator gopAPM32 madd9
+    parameter map
+    (
+        CTRL_IRBYP_1_OP7 => (INREG_EN == "FALSE") ? 1'h1 : 1'b0,
+        CTRL_IRBYP_2_OPA => (INREG_EN == "FALSE") ? 1'h1 : 1'b0,
+        CTRL_IRBYP_3_OPB => (INREG_EN == "FALSE") ? 1'h1 : 1'b0,
+        CTRL_PRBYP_1_OP7 => (PIPEREG_EN == "FALSE") ? 1'b1 : 1'b0,
+        IREG_BYP => (INREG_EN == "FALSE") ? 1'b1 : 1'b0,
+        AREG_BYP => (PREREG_EN == "FALSE") ? 1'b1 : 1'b0,
+        MREG_BYP => (PIPEREG_EN == "FALSE") ? 1'b1 : 1'b0,
+        OREG_BYP => (OUTREG_EN == "FALSE") ? 1'b1 : 1'b0,
+        IREG_SYNC => (SYNC_RST == "FALSE") ? 1'b0 : 1'b1,
+        AREG_SYNC => (SYNC_RST == "FALSE") ? 1'b0 : 1'b1,
+        MREG_SYNC => (SYNC_RST == "FALSE") ? 1'b0 : 1'b1,
+        OREG_SYNC => (SYNC_RST == "FALSE") ? 1'b0 : 1'b1,
+        ALU_MODE => "ADD9",
+        OPCD         => {3'b010, ADDSUB_OP, 7'b000_0101},
+        OPCD_DYN_SEL => {3'b000, DYN_ADDSUB_OP, 7'h00},
+        OPCD_BYP  => (SIC0_EN == "FALSE") ? 9'b0 : 9'b001100000,
+        SOURCEB   => (SIB1_EN == "FALSE") ? 2'b00 : 2'b10,
+        SOURCEC   => (SIC0_EN == "FALSE") ? 2'b00 : 2'b11,
+        IRB_SHFEN => (SIB1_EN == "FALSE") ? 2'b00 : 2'b01,
+        IRC_SHFEN => (SIC0_EN == "FALSE") ? 2'b00 : 2'b10,
+        OP_PRAD_A => 9,
+        OP_PRAD_B => 9,
+        GRS_DISABLED => (GRS_EN == "FALSE") ? 1'b1 : 1'b0
+    )
+    port map
+    (
+        CLK => CLK,
+        CE  => CE,
+        RST => RST,
+        OP_IR_6 => (SIC0_EN == "FALSE") ? 1'by : 1'b1,
+        OP_IR_5 => (SIC0_EN == "FALSE") ? 1'by : 1'b1,
+        OP_PRAD => PREADDSUB,
+        OP_POST_7 => ADDSUB,
+        DXA      => A0,
+        DYA[7:0] => B0,
+        DZA[7:0] => C0,
+        DXA_SIGNED => A_SIGNED,
+        DYA_SIGNED => B_SIGNED,
+        DZA_SIGNED => C_SIGNED,
+        DXB      => A1,
+        DYB[7:0] => B1,
+        DZB[7:0] => C1,
+        DXB_SIGNED => A_SIGNED,
+        DYB_SIGNED => B_SIGNED,
+        DZB_SIGNED => C_SIGNED,
+        DP[18:0] => P
+    );
+};
+

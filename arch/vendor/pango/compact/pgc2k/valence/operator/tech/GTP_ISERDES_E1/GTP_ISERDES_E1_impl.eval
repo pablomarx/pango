@@ -1,0 +1,88 @@
+*****************************************************************
+
+  Operator   [GTP_ISERDES_E1]
+
+  Author      []
+
+  Abstract    []
+
+  Copyright 2014 (c). SHENZHEN PANGO MICROSYSTEMS CO.,LTD.
+  All Right Reserved.
+
+  Revision History:
+     06/18/14 - Initial version.
+
+********************************************************************************/
+implementation impl of GTP_ISERDES_E1
+{   
+    wire ntRCLK, ntDI, ntRST; 
+    if (ISERDES_MODE == "IDES8")
+    {
+        operator gopISERDES gateop
+        parameter map
+        (
+            CP_IDDR_MODE => ISERDES_MODE,
+            CP_GRS_DIS   => GRS_EN == "FALSE" ? "TRUE" : "FALSE"
+        )
+        port map
+        (
+            RX_DATA[7:0] => DO[7:0],     
+            DIN          => ntDI,    
+            CLK_SYS      => ntRCLK,   
+            CLK_IO       => ICLK,   
+            ALIGNWD      => ALIGNWD,
+            RST_ISERDES  => ntRST     
+        );
+    }
+    else if (ISERDES_MODE == "IDES7")
+    {
+        operator gopISERDES gateop
+        parameter map
+        (
+            CP_IDDR_MODE => ISERDES_MODE,
+            CP_GRS_DIS   => GRS_EN == "FALSE" ? "TRUE" : "FALSE"
+        )
+        port map
+        (
+            RX_DATA[6:0] => DO[6:0],     
+            DIN          => ntDI,    
+            CLK_SYS      => ntRCLK,   
+            CLK_IO       => ICLK,   
+            ALIGNWD      => ALIGNWD,
+            RST_ISERDES  => ntRST     
+        );
+    }
+    else
+    {
+        operator gopISERDES4 gateop
+        parameter map
+        (
+            CP_IDDR_MODE => ISERDES_MODE,
+            CP_GRS_DIS   => GRS_EN == "FALSE" ? "TRUE" : "FALSE"
+        )
+        port map
+        (
+            RX_DATA[3:0] => DO[7:4],     
+            DIN          => ntDI,    
+            CLK_SYS      => ntRCLK,   
+            CLK_IO       => ICLK,   
+            ALIGNWD      => ALIGNWD,
+            RST_ISERDES  => ntRST     
+        );
+    }
+    operator gopIOL iola
+        parameter map
+        (
+            CP_SCLK_EN  => "ENABLE",
+            CP_IREG_SEL => "FALSE"
+        )
+        port map
+        (
+            CLK               =>    RCLK    ,   
+            CLK_SYS_SERDES    =>    ntRCLK  ,
+            SR                =>    RST     ,
+            SR_O              =>    ntRST   ,
+            DIN_ISERDES       =>    ntDI    ,
+            DIN               =>    DI
+        ); 
+};

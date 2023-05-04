@@ -1,0 +1,51 @@
+*****************************************************************
+
+  Operator   [GTP_INBUF]
+
+  Author      []
+
+  Abstract    []
+
+  Copyright 2014 (c). SHENZHEN PANGO MICROSYSTEMS CO.,LTD.
+  All Right Reserved.
+
+  Revision History:
+     06/18/14 - Initial version.
+
+********************************************************************************/
+fabric
+implementation impl of GTP_INBUF @ (2,0 # 1,0)
+{
+    wire ntD;
+    wire ntDO,ntDO_N;
+    
+    operator gopIBUF
+        parameter map
+        (
+            IOSTANDARD      => IOSTANDARD == "DEFAULT" ? "LVCMOS33" : IOSTANDARD,
+            DDR_TERM_MODE   => TERM_DDR
+        )        
+        port map
+        (
+            I       => I,
+            DO      => ntDO,
+            DO_NDRV => ntDO_N,
+            O       => ntD
+        )@[1,0];
+    
+    operator gopIOL
+        parameter map
+        (
+            BUF_MODE   => "IBUF",
+            CP_D_SEL5  => 2'b01,
+            CP_TRI_EN  => "TRUE"
+        ) 
+        port map
+        (
+            DI          => ntD,
+            DO_P        => ntDO,
+            DO_N        => ntDO_N,
+            DI_TO_CLK   => O
+        )@[0,0];     
+
+};

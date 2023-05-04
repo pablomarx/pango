@@ -1,0 +1,323 @@
+*************************************************************************
+****************************************************************************************/
+library work;
+use pg2l_defs,pg2t330h_defs,pg2l_funcs_place,pg2l_funcs_connect_logic;
+//use pg2l_funcs_connect_io_bank,
+use pg2l_funcs_connect_clk;
+
+
+structure arch_nl connect_CLKTREE of PG2T330H
+{
+    int L_REGIONS[] = {[0:6]};
+
+    string attribute_LR;
+    int rx;
+    foreach attribute_LR({"L"})
+    {
+        foreach rx( L_REGIONS )
+        { 
+          connect_iolclk_input(attribute_LR, rx, NUM_TILE_X, "IOLHR_TILE");
+        }
+    }
+
+    foreach attribute_LR({"R"})
+    {
+        foreach rx( {0,1,2} )
+        { 
+          connect_iolclk_hp_input(attribute_LR, rx, NUM_TILE_X, "IOLHP_TILE");
+        }
+    }
+
+
+    int tx_ckeb2_l = CKEB2_TILE_L;
+    int tx_ckeb2_r = CKEB2_TILE_R;
+    int tx_uscm,ty_uscm;
+    string tile_uscm;
+    foreach rx ({[0:6]})
+    {
+      tile_uscm = ((rx==0)||(rx==1)||(rx==4)||(rx==5)||(rx==6)) ? "PREGMUXC_TILE" : "USCM_TILE";
+      ty_uscm = ((rx==0)||(rx==1)||(rx==4)||(rx==5)||(rx==6)) ? rx * NUM_TILES_REGION : USCM_TILE_Y;
+      connect_pregmuxc_horizontal(rx, CKEB2_TILE_L, CKEB2_TILE_R, USCM_TILE_X, ty_uscm, tile_uscm);
+    }
+
+    int num_rx = NUM_REGION;
+    int rx_uscm = REGION_USCM;
+    foreach rx ({[0:6]})
+    {
+      connect_pregmuxc_vertical(rx, USCM_TILE_X, rx_uscm , num_rx);
+    }
+
+    int l_tx_ckeb2;
+    int l_tx_ckeb[];
+
+    string lr_ckeb;
+    int tx_iock,tx_hsst;
+
+    foreach rx( {[0:6]} )
+    {
+      foreach lr_ckeb( {"L","R"} )
+      {
+          tx_uscm = USCM_TILE_X;
+          tx_hsst = HSST_TILE_X;
+          l_tx_ckeb2 = (lr_ckeb=="L") ? {CKEB2_TILE_L} : {CKEB2_TILE_R};
+          l_tx_ckeb = (((rx==2)||(rx==3))&&(lr_ckeb=="L")) ? {3,5,7,9,11,13,26,28,30,32,34,36,38,40,42,44,46,48,50,52,54} :
+                      (((rx==2)||(rx==3))&&(lr_ckeb=="R")) ? {56,58,60,62,64,66,68,70,72,74,76,78,80,82,84,86,88,90,92,94,96,98,100,101} :
+                                            (lr_ckeb=="L") ? {3,5,7,9,11,13,15,17,19,21,23,26,28,30,32,34,36,38,40,42,44,46,48,50,52,54} :
+                                                             {56,58,60,62,64,66,68,70,72,74,76,78,80,82,84,86,88,90,92,94,96,98,100,101};
+          tx_iock = ((lr_ckeb=="R")&&(((rx==3)||(rx==4)||(rx==5)||(rx==6)))) ? 0 : (lr_ckeb=="R") ? 102 : 1;
+          connect_ckeb_buf1_hp(rx, l_tx_ckeb2, l_tx_ckeb, tx_uscm, tx_iock, tx_hsst);
+
+          ty_uscm = ((rx==2)||(rx==3)) ? USCM_TILE_Y : rx * NUM_TILES_REGION;
+          tile_uscm = ((rx==2)||(rx==3)) ? "USCM_TILE" : "PREGMUXC_TILE";
+          connect_ckeb_buf2(rx, l_tx_ckeb2, l_tx_ckeb, tx_uscm, ty_uscm, tile_uscm);
+      }
+    }
+   
+      int l_tx[];
+      int tx,tx_ckeb,loc_srb;
+      string ckeb;
+      
+      foreach rx({0,1,2,5,6})
+      {
+        l_tx = (rx==0) ? L_SRB_TILES_X_R0 : (rx==1) ? L_SRB_TILES_X_R1 : (rx==2) ? L_SRB_TILES_X_R2 : (rx==5) ? L_SRB_TILES_X_R5 : L_SRB_TILES_X_R6;
+        foreach tx( l_tx )
+        {
+          tx_ckeb = (tx==102) ? tx-1 : (tx==101) ? tx :
+                    (((tx%2==0)&&(tx<CRAM_CTRL_TILE_X))||((tx%2==1)&&(tx>CRAM_CTRL_TILE_X))) ? tx+1 :  tx;
+          ckeb = ((tx_ckeb==CKEB2_TILE_L)||(tx_ckeb==CKEB2_TILE_R)) ? "CKEB2_TILE" : "CKEB_TILE";
+          foreach loc_srb({0,1})
+          {
+            connect_srb_clk_input(rx, tx, tx_ckeb, ckeb, "SRB_TILE", loc_srb);
+          }
+        }
+      }
+
+      foreach rx({0,1,2,5,6})
+      {
+        l_tx = (rx==0) ? L_CLMS_TILES_X_R0 : (rx==1) ? L_CLMS_TILES_X_R1 : (rx==2) ? L_CLMS_TILES_X_R2 : (rx==5) ? L_CLMS_TILES_X_R5 : L_CLMS_TILES_X_R6;
+        foreach tx( l_tx )
+        {
+          tx_ckeb = (tx==102) ? tx-1 : (tx==101) ? tx :
+                    (((tx%2==0)&&(tx<CRAM_CTRL_TILE_X))||((tx%2==1)&&(tx>CRAM_CTRL_TILE_X))) ? tx+1 :  tx;
+          ckeb = ((tx_ckeb==CKEB2_TILE_L)||(tx_ckeb==CKEB2_TILE_R)) ? "CKEB2_TILE" : "CKEB_TILE";
+          foreach loc_srb({0,1})
+          {
+            connect_srb_clk_input(rx, tx, tx_ckeb, ckeb, "CLMS_TILE", loc_srb);
+          }
+        }
+      }
+
+      foreach rx({0,1,2,5,6})
+      {
+        l_tx = (rx==0) ? L_CLMA_TILES_X_R0 : (rx==1) ? L_CLMA_TILES_X_R1 : (rx==2) ? L_CLMA_TILES_X_R2 : (rx==5) ? L_CLMA_TILES_X_R5 : L_CLMA_TILES_X_R6;
+        foreach tx( l_tx )
+        {
+          tx_ckeb = (tx==102) ? tx-1 : (tx==101) ? tx :
+                    (((tx%2==0)&&(tx<CRAM_CTRL_TILE_X))||((tx%2==1)&&(tx>CRAM_CTRL_TILE_X))) ? tx+1 :  tx;
+          ckeb = ((tx_ckeb==CKEB2_TILE_L)||(tx_ckeb==CKEB2_TILE_R)) ? "CKEB2_TILE" : "CKEB_TILE";
+          foreach loc_srb({0,1})
+          {
+            connect_srb_clk_input(rx, tx, tx_ckeb, ckeb, "CLMA_TILE", loc_srb);
+          }
+        }
+      }
+
+      foreach rx({3})
+      {
+      foreach loc_srb({0,1})
+      {
+        l_tx = ((rx==3)&&(loc_srb==0)) ? L_SRB_TILES_X_R3_D : L_SRB_TILES_X_R3_U;
+        foreach tx( l_tx )
+        {
+           tx_ckeb = (tx==102) ? tx-1 : (tx==101) ? tx :
+                     (((tx%2==0)&&(tx<CRAM_CTRL_TILE_X))||((tx%2==1)&&(tx>CRAM_CTRL_TILE_X))) ? tx+1 :  tx;
+           ckeb = ((tx_ckeb==CKEB2_TILE_L)||(tx_ckeb==CKEB2_TILE_R)) ? "CKEB2_TILE" : "CKEB_TILE";
+           connect_srb_clk_input(3, tx, tx_ckeb, ckeb, "SRB_TILE", loc_srb);
+        }
+      }
+      }
+      foreach rx({4})
+      {
+      foreach loc_srb({0,1})
+      {
+        l_tx = ((rx==4)&&(loc_srb==0)) ? L_SRB_TILES_X_R4_D : L_SRB_TILES_X_R4_U;
+        foreach tx( l_tx )
+        {
+           tx_ckeb = (tx==102) ? tx-1 : (tx==101) ? tx :
+                     (((tx%2==0)&&(tx<CRAM_CTRL_TILE_X))||((tx%2==1)&&(tx>CRAM_CTRL_TILE_X))) ? tx+1 :  tx;
+           ckeb = ((tx_ckeb==CKEB2_TILE_L)||(tx_ckeb==CKEB2_TILE_R)) ? "CKEB2_TILE" : "CKEB_TILE";
+           connect_srb_clk_input(4, tx, tx_ckeb, ckeb, "SRB_TILE", loc_srb);
+        }
+      }
+      }
+
+      foreach rx({3})
+      {
+      foreach loc_srb({0,1})
+      {
+        l_tx = ((rx==3)&&(loc_srb==0)) ? L_CLMS_TILES_X_R3_D : L_CLMS_TILES_X_R3_U;
+        foreach tx( l_tx )
+        {
+           tx_ckeb = (tx==102) ? tx-1 : (tx==101) ? tx :
+                     (((tx%2==0)&&(tx<CRAM_CTRL_TILE_X))||((tx%2==1)&&(tx>CRAM_CTRL_TILE_X))) ? tx+1 :  tx;
+           ckeb = ((tx_ckeb==CKEB2_TILE_L)||(tx_ckeb==CKEB2_TILE_R)) ? "CKEB2_TILE" : "CKEB_TILE";
+           connect_srb_clk_input(3, tx, tx_ckeb, ckeb, "CLMS_TILE", loc_srb);
+        }
+      }
+      }
+
+      foreach rx({4})
+      {
+      foreach loc_srb({0,1})
+      {
+        l_tx = ((rx==4)&&(loc_srb==0)) ? L_CLMS_TILES_X_R4_D : L_CLMS_TILES_X_R4_U;
+        foreach tx( l_tx )
+        {
+           tx_ckeb = (tx==102) ? tx-1 : (tx==101) ? tx :
+                     (((tx%2==0)&&(tx<CRAM_CTRL_TILE_X))||((tx%2==1)&&(tx>CRAM_CTRL_TILE_X))) ? tx+1 :  tx;
+           ckeb = ((tx_ckeb==CKEB2_TILE_L)||(tx_ckeb==CKEB2_TILE_R)) ? "CKEB2_TILE" : "CKEB_TILE";
+           connect_srb_clk_input(4, tx, tx_ckeb, ckeb, "CLMS_TILE", loc_srb);
+        }
+      }
+      }
+
+
+      foreach rx({3})
+      {
+      foreach loc_srb({0,1})
+      {
+        l_tx = ((rx==3)&&(loc_srb==0)) ? L_CLMA_TILES_X_R3_D : L_CLMA_TILES_X_R3_U;
+        foreach tx( l_tx )
+        {
+           tx_ckeb = (tx==102) ? tx-1 : (tx==101) ? tx :
+                     (((tx%2==0)&&(tx<CRAM_CTRL_TILE_X))||((tx%2==1)&&(tx>CRAM_CTRL_TILE_X))) ? tx+1 :  tx;
+           ckeb = ((tx_ckeb==CKEB2_TILE_L)||(tx_ckeb==CKEB2_TILE_R)) ? "CKEB2_TILE" : "CKEB_TILE";
+           connect_srb_clk_input(3, tx, tx_ckeb, ckeb, "CLMA_TILE", loc_srb);
+        }
+      }
+      }
+
+      foreach rx({4})
+      {
+      foreach loc_srb({0,1})
+      {
+        l_tx = ((rx==4)&&(loc_srb==0)) ? L_CLMA_TILES_X_R4_D : L_CLMA_TILES_X_R4_U;
+        foreach tx( l_tx )
+        {
+           tx_ckeb = (tx==102) ? tx-1 : (tx==101) ? tx :
+                     (((tx%2==0)&&(tx<CRAM_CTRL_TILE_X))||((tx%2==1)&&(tx>CRAM_CTRL_TILE_X))) ? tx+1 :  tx;
+           ckeb = ((tx_ckeb==CKEB2_TILE_L)||(tx_ckeb==CKEB2_TILE_R)) ? "CKEB2_TILE" : "CKEB_TILE";
+           connect_srb_clk_input(4, tx, tx_ckeb, ckeb, "CLMA_TILE", loc_srb);
+        }
+      }
+      }
+
+      int tx_iol;
+      int tx_pll;
+      foreach rx({[0:6]})
+      {
+        l_tx = ((rx==0)||(rx==1)||(rx==2)) ? L_IOCK_TILES_X_R0 : L_IOCK_TILES_X_R3;
+        foreach tx( l_tx )
+        {
+          tx_iol = (tx==1) ? tx+1 : tx;
+          tx_pll = (tx==1) ? tx : tx+1;
+        if (tx<24)
+           {
+          connect_iock_pclk_input(rx, tx, tx_iol, tx_pll, "IOLHR_TILE");
+           }
+        }
+      }
+
+      foreach rx({[0:2]})
+      {
+        l_tx = L_IOCK_HP_TILES_X_R0 ;
+        foreach tx( l_tx )
+        {
+          tx_iol = (tx==1) ? tx+1 : tx;
+          tx_pll = (tx==1) ? tx : tx+1;
+        if (tx>24)
+           {
+          connect_iock_hp_pclk_input(rx, tx, tx_iol, tx_pll, "IOLHP_TILE");
+           }
+        }
+      }
+      int rx_d,rx_u;
+      foreach rx({[0:6]})
+      {
+        l_tx = ((rx==0)||(rx==1)||(rx==2)) ? L_IOCK_TILES_X_R0 : L_IOCK_TILES_X_R3;
+        foreach tx( l_tx )
+        {
+          tx_pll = (tx==1) ? tx : tx+1;
+          rx_d = (tx==1) ? 0 : 0;
+          rx_u = (tx==1) ? 6 : 2;
+          connect_iock_pll_clk(rx, tx, tx_pll, rx_d, rx_u);
+        }
+      }
+
+      foreach rx({[0:2]})
+      {
+        l_tx = L_IOCK_HP_TILES_X_R0;
+        foreach tx( l_tx )
+        {
+          tx_pll = (tx==1) ? tx : tx+1;
+          rx_d = (tx==1) ? 0 : 0;
+          rx_u = (tx==1) ? 6 : 2;
+          connect_iock_pll_hp_clk(rx, tx, tx_pll, rx_d, rx_u);
+        }
+      }
+
+//
+//
+//    foreach ty ( L_IOCKGATEDLL_TILES_Y )
+//    {
+//        foreach tx ( L_IOL_TILES_X )
+//        {
+//            connect_hsst_clk_iockgate ( tx, ty, "IOCKGATEDLL_TILE", "DLL_TIHI");
+//          
+//        } 
+//    }
+//
+//    foreach ty ( L_HMEMCIOCKGATEDLL_TILES_Y )
+//    {
+//        foreach tx ( L_IOL_TILES_X )
+//        {
+//            connect_hsst_clk_iockgate ( tx, ty, "HMEMCIOCKGATEDLL_TILE", "DLL_TIHI");
+//          
+//        } 
+//    }
+
+
+};//end of structure arch_nl connect_CLKTREE of PG2T330H
+
+/***************************************************************************************
+****************************************************************************************/
+//library work;
+//use pg2l_defs,pg2t330h_defs,pg2l_funcs_place,pg2l_funcs_connect_clk;
+//use pg2t330h_funcs;
+//structure arch_nl connect_rlybufs_tile of PG2T330H
+//{
+//    unsigned int tx_pll = 20;
+//    unsigned int ty_pll0 = 78;
+//    unsigned int ty_pll1 = 73;
+//    unsigned int tx_blsr = 18;
+//    unsigned int ty_blsr0 = 1;
+//    unsigned int ty_blsr1 = 2;
+//    unsigned int tx_wlsr2 = 20;
+//    unsigned int ty_wlsr2 = 46;
+//
+//    connect_rlybufs_tile(RLYBUFS_TILE_X, RLYBUFS_TILE_Y, tx_pll, ty_pll0, ty_pll1, 
+//                         tx_blsr, ty_blsr0, ty_blsr1, tx_wlsr2, ty_wlsr2);
+//
+//
+//    int tx, ty;
+//    foreach tx( L_IOL_TILES_X )
+//    {
+//      foreach ty( L_RLYBUFS5_TILES_Y )
+//      {
+//        connect_rlybufs5_tile(tx, ty, S_HMEMC_TILE, N_HMEMC_TILE, 1);
+//      }
+//    }
+
+//};//end of structure arch_nl connect_rlybufs_tile of PG2T330H
+
+

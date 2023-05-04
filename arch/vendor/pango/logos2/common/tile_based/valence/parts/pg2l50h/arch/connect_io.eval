@@ -1,0 +1,162 @@
+*************************************************************************
+****************************************************************************************/
+library work;
+use pg2l_defs, pg2l50h_defs;
+use pg2l_funcs_connect_io_bank;
+use pg2l50h_funcs_connect_io_bank;
+
+structure arch_nl connect_iob_tiles of PG2L50H
+{
+    string type_lr;
+    unsigned int bank;
+    unsigned int l_bank[];
+    int rx_min_r = 0;
+    int bank_pad_state = 5;
+    int bank_top = 3;
+    int bank_bottom = 5;
+    int ty_hsst = LOC_HSST_REGION * NUM_TILES_REGION + HSST_TILE_Y;
+
+    string device_iob = "IOBHR_TILE";
+    string device_hsst = "HSSTLP_TILE";
+    string device_esd = "ESD_50HR_TILE";
+    string device_ccs = "CCS_TILE";
+    string device_iol = "IOLHR_TILE";
+
+//connect_pad_bank
+
+    foreach type_lr( {"L", "R"} )
+    {
+        l_bank = (type_lr=="L") ? {[3:5]} : {[4:5]};
+        foreach bank( l_bank )
+        {
+            connect_pad_bank(type_lr, bank, NUM_TILE_X, NUM_REGION, bank_top, device_iob);
+        }
+    }
+
+//connect_io_state
+
+    foreach type_lr( {"L", "R"} )
+    {
+        l_bank = (type_lr == "L") ? {[3:5]} : {[4:5]};
+        foreach bank( l_bank )
+        {
+            connect_io_state(type_lr, bank, bank_pad_state, ESD_TILE_X, ESD_TILE_Y, 
+                             NUM_TILE_X, NUM_REGION, bank_top, rx_min_r, device_iob, device_esd);
+        }
+    }
+
+///connect_iob_scanchain_50h
+
+
+    foreach type_lr( {"L", "R"} )
+    {
+        l_bank = (type_lr=="L") ? {[3:5]} : {[4:5]};
+        foreach bank( l_bank )
+        {
+            string port_tck_out_l, port_tck_out_r;
+            port_tck_out_l = (bank==bank_top) ? "TCK_OUT_T" : (bank==4) ? "TCK_OUT_L34" : "TCK_OUT_L45";
+            port_tck_out_r = (bank==bank_bottom) ? "TCK_OUT_B" : (bank==4) ? "TCK_OUT_R45" : "TCK_OUT_TO_PMA";
+
+            connect_iob_scanchain_50h(type_lr, bank, CCS_TILE_X, CCS_TILE_Y, HSST_TILE_X, ty_hsst, ty_hsst, ESD_TILE_X, ESD_TILE_Y, 
+                                      bank_top, rx_min_r, NUM_TILE_X, NUM_REGION, device_iob, device_hsst, device_esd, 
+                                      port_tck_out_l, port_tck_out_r);
+        }
+    }
+
+
+//connect_io_scanchain_50h
+
+//  foreach type_lr( {"L", "R"} )
+//  {
+//      l_bank = (type_lr=="L") ? {[3:5]} : {[4:5]};
+
+//      foreach bank( l_bank )
+//      {
+//          connect_iob_scanchain_50h(type_lr, bank, CCS_TILE_X, CCS_TILE_Y, LOC_CCS_REGION, HSST_TILE_X, HSST_TILE_Y, 0, LOC_HSST_REGION, ESD_TILE_X, ESD_TILE_Y, 
+//                                NUM_TILE_X, NUM_REGION, rx_min_r, bank_top, bank_bottom, device_iob, device_hsst, device_esd, device_ccs);
+//      }
+//  }
+   
+
+
+};//end of structure arch_nl connect_iob_tiles of PG2L50H
+/***************************************************************************************
+****************************************************************************************/
+library work;
+use pg2l_defs, pg2l50h_defs;
+use pg2l_funcs_connect_io_bank;
+use pg2l50h_funcs_connect_io_bank;
+use pg2l_funcs_place;
+
+structure arch_nl connect_iol_tile of PG2L50H
+{
+    unsigned int rx;
+    unsigned int loc_iol;
+    unsigned int l_tx[];
+    unsigned int tx, tx_pll;
+
+    string device_iol = "IOLHR_TILE";
+
+    foreach rx( L_REGION )
+    {
+        foreach loc_iol( {0,1} )
+        {
+            l_tx = (rx==0) ? L_IOL_TILES_X_R0 :
+                   (rx==1) ? L_IOL_TILES_X_R1 : L_IOL_TILES_X_R2;
+
+            foreach tx( l_tx )
+            {
+                tx_pll = (tx<USCM_TILE_X) ? (tx - 1) : (tx + 1);
+
+                connect_iol_dqs_input(rx, tx, tx_pll, loc_iol, device_iol);
+            }
+        }
+    }
+
+    foreach rx( L_REGION )
+    {
+        foreach loc_iol( {0,1} )
+        {
+            l_tx = (rx==0) ? L_IOL_TILES_X_R0 :
+                   (rx==1) ? L_IOL_TILES_X_R1 : L_IOL_TILES_X_R2;
+
+            foreach tx( l_tx )
+            {
+                connect_iol_cascade(tx, rx, loc_iol, device_iol);
+
+            }
+        }
+    }
+
+
+};//end of structure arch_nl connect_iol_tile of PG2L50H
+
+/***************************************************************************************
+****************************************************************************************/
+library work;
+use pg2l_defs, pg2l50h_defs;
+use pg2l_funcs_connect_io_bank;
+//use pg2l50h_funcs_connect_io_bank;
+
+structure arch_nl connect_io_data of PG2L50H
+{
+    unsigned int rx;
+    unsigned int tx;
+    unsigned int l_tx[];
+
+    string device_iob = "IOBHR_TILE";
+    string device_iol = "IOLHR_TILE";
+
+    foreach rx( L_REGION )
+    {
+        l_tx = (rx==0) ? L_IOB_TILES_X_R0 :
+               (rx==1) ? L_IOB_TILES_X_R1 : L_IOB_TILES_X_R2;
+        foreach tx( l_tx )
+        {
+            connect_io_data(tx, rx, device_iob, device_iol);
+        }
+    }
+
+};// end of structure arch_nl connect_io_data of PG2L50H
+
+

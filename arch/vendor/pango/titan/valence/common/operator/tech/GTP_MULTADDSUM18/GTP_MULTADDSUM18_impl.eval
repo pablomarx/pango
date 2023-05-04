@@ -1,0 +1,143 @@
+*************************************************************
+
+Copyright (c) 2014 by PANGO MICROSYSTEMS, INC
+ALL RIGHTS RESERVED.
+
+THE SOURCE CODE CONTAINED HEREIN IS PROPRIETARY TO PANGO MICROSYSTEMS, INC.
+IT SHALL NOT BE REPRODUCED OR DISCLOSED IN WHOLE OR IN PART OR USED BY
+PARTIES WITHOUT WRITTEN AUTHORIZATION FROM THE OWNER.
+
+  Operator  [GTP_MULTADDSUM18]
+
+  Author    [Peifu Shen]
+
+  Abstract  []
+
+  Revision History:
+
+***************************************************************************/
+fabric
+implementation impl of GTP_MULTADDSUM18 @(1,0 # 4,1)
+{
+    string SIB1_EN = "FALSE";
+    string SIB3_EN = "FALSE";
+    wire cpo[64:0];
+    wire cpo_signed;
+
+    operator gopAPM64 maddsum18o
+    parameter map
+    (
+        CTRL_IRBYP_1_OP7 => (INREG_EN == "FALSE") ? 1'b1 : 1'b0,
+        CTRL_IRBYP_4_OP8 => (INREG_EN == "FALSE") ? 1'b1 : 1'b0,
+        CTRL_PRBYP_1_OP7 => (PIPEREG_EN == "FALSE") ? 1'b1 : 1'b0,
+        CTRL_PRBYP_2_OP8 => (PIPEREG_EN == "FALSE") ? 1'b1 : 1'b0,
+        IREG_BYP => (INREG_EN == "FALSE") ? 1'b1 : 1'b0,
+        IREG_BYP_ZA => (INREG_EN == "FALSE") ? 1'b1 : 1'b0,
+        IREG_BYP_ZB => (INREG_EN == "FALSE") ? 1'b1 : 1'b0,
+        AREG_BYP => 1'b1,
+        MREG_BYP => (PIPEREG_EN == "FALSE") ? 1'b1 : 1'b0,
+        OREG_BYP => (OUTREG_EN == "FALSE") ? 1'b1 : 1'b0,
+        IREG_SYNC => (SYNC_RST == "FALSE") ? 1'b0 : 1'b1,
+        AREG_SYNC => 1'b0,
+        MREG_SYNC => (SYNC_RST == "FALSE") ? 1'b0 : 1'b1,
+        OREG_SYNC => (SYNC_RST == "FALSE") ? 1'b0 : 1'b1,
+        OP_PRAD_A => 0,
+        OP_PRAD_B => 0,
+        OP_MULT_A => 18,
+        OP_MULT_B => 18,
+        ALU_MODE => "ADDSUM18",
+        OPCD         => {2'b01, SUM_ADDSUB_OP, ADDSUB_OP[0], 7'b010_0101},
+        OPCD_DYN_SEL => {2'b00, DYN_SUM_ADDSUB_OP, DYN_ADDSUB_OP[0], 7'h00},
+        SOURCEB   => (SIB1_EN == "FALSE") ? 2'b00 : 2'b10,
+        IRB_SHFEN => (SIB1_EN == "FALSE") ? 2'b00 : 2'b01,
+        GRS_DISABLED => (GRS_EN == "FALSE") ? 1'b1 : 1'b0
+    )
+    port map
+    (
+        CLK => CLK,
+        CE  => CE,
+        RST => RST,
+    //  OP_PRAD => PREADDSUB[1:0],
+        OP_POST_7 => ADDSUB[0],
+        OP_POST_8 => SUM_ADDSUB,
+        DXA => A0,
+        DYA => B0,
+    //  DZA => C0,
+        DXA_SIGNED => A_SIGNED[0],
+        DYA_SIGNED => B_SIGNED[0],
+    //  DZA_SIGNED => C_SIGNED[0],
+        DXB => A1,
+        DYB => B1,
+    //  DZB => C1,
+        DXB_SIGNED => A_SIGNED[0],
+        DYB_SIGNED => B_SIGNED[0],
+    //  DZB_SIGNED => C_SIGNED[0],
+        DP[37:0]  => P,
+        CPI => cpo,
+        CPI_SIGNED => cpo_signed
+    )@[0,4];
+
+    operator gopAPM64 maddsum18i
+    parameter map
+    (
+        CTRL_IRBYP_1_OP7 => (INREG_EN == "FALSE") ? 1'b1 : 1'b0,
+        CTRL_PRBYP_1_OP7 => (PIPEREG_EN == "FALSE") ? 1'b1 : 1'b0,
+        IREG_BYP => (INREG_EN == "FALSE") ? 1'b1 : 1'b0,
+        IREG_BYP_ZA => (INREG_EN == "FALSE") ? 1'b1 : 1'b0,
+        IREG_BYP_ZB => (INREG_EN == "FALSE") ? 1'b1 : 1'b0,
+        AREG_BYP => 1'b1,
+        MREG_BYP => (PIPEREG_EN == "FALSE") ? 1'b1 : 1'b0,
+        OREG_BYP => 1'b1,
+        IREG_SYNC => (SYNC_RST == "FALSE") ? 1'b0 : 1'b1,
+        AREG_SYNC => 1'b0,
+        MREG_SYNC => (SYNC_RST == "FALSE") ? 1'b0 : 1'b1,
+        OREG_SYNC => 1'b0,
+        OP_PRAD_A => 0,
+        OP_PRAD_B => 0,
+        OP_MULT_A => 18,
+        OP_MULT_B => 18,
+        ALU_MODE => "ADD18",
+        OR2CASCADE_EN => 1'b1,
+        OPCD         => {3'b010, ADDSUB_OP[1], 7'b000_0101},
+        OPCD_DYN_SEL => {3'b000, DYN_ADDSUB_OP[1], 7'h00},
+        // => SIB2_EN,
+        SOURCEB   => (SIB3_EN == "FALSE") ? 2'b00 : 2'b10,
+        IRB_SHFEN => (SIB3_EN == "FALSE") ? 2'b00 : 2'b01,
+        GRS_DISABLED => (GRS_EN == "FALSE") ? 1'b1 : 1'b0
+    )
+    port map
+    (
+        CLK => CLK,
+        CE  => CE,
+        RST => RST,
+    //  OP_PRAD => PREADDSUB[3:2],
+        OP_POST_7 => ADDSUB[1],
+    //  OP_POST_8 =>,
+        DXA => A2,
+        DYA => B2,
+    //  DZA => C2,
+        DXA_SIGNED => A_SIGNED[1],
+        DYA_SIGNED => B_SIGNED[1],
+    //  DZA_SIGNED => C_SIGNED[1],
+        DXB => A3,
+        DYB => B3,
+    //  DZB => C3,
+        DXB_SIGNED => A_SIGNED[1],
+        DYB_SIGNED => B_SIGNED[1],
+    //  DZB_SIGNED => C_SIGNED[1],
+    //  DP =>,
+        CPO => cpo,
+        CPO_SIGNED => cpo_signed
+    )@[0,0];
+};
+
+
+
+
+
+
+
+
+
+
+

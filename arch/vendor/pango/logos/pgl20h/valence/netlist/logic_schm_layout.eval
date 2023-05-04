@@ -1,0 +1,216 @@
+
+use pgl_defs, pgl_schm_funcs, pgl20h_defs;
+
+schematic schm_view draw_logic_resource of device PGL20H
+{
+    // Tile index variable
+    unsigned int tx, ty;
+
+    // draw srb tile
+    foreach tx ( L_SRB_TILES_X )
+    {
+        foreach ty ( L_SRB_TILES_Y )
+        {
+           if(!((tx>BLSR_TILE_X_L ) && (tx<BLSR_TILE_X_R) && (ty>=HSST_TILE_Y )))
+           {
+              draw_srb_tile ( tx, ty);
+           }
+        } 
+    }
+
+    // draw clm tile
+    foreach tx ( L_CLMA_TILES_X )
+    {
+        foreach ty ( L_CLM_TILES_Y )
+        {
+           if((tx>BLSR_TILE_X_L ) && (tx<BLSR_TILE_X_R) && (ty>=HSST_TILE_Y-1))
+           {
+           }
+           else
+           {         
+               draw_clma_tile( tx, ty );
+           }
+        }
+    }
+    foreach tx ( L_CLMS_TILES_X )
+    {
+        foreach ty ( L_CLM_TILES_Y )
+        {
+           if(!((tx>BLSR_TILE_X_L ) && (tx<BLSR_TILE_X_R) && (ty>=HSST_TILE_Y-1)))
+           {
+                if(!(tx==59&&ty<4))
+                {
+                    if(!((tx==PLL_TILE_X)&&((ty>=PLL0_TILE_Y&&ty<=PLL0_TILE_Y+NUM_GRID_PLL_Y)||(ty>=PLL2_TILE_Y&&ty<=PLL2_TILE_Y+5)||(ty>=USCM0_TILE_Y&&ty<USCM0_TILE_Y+NUM_GRID_USCM_Y))))
+                    {
+                        draw_clms_tile( tx, ty );
+                    }
+                }
+            }
+        }
+    }
+
+    // draw drm tile
+    foreach tx ( L_DRM_TILES_X )
+    {
+        foreach ty ( L_DRM_TILES_Y )
+        {
+           if((tx>BLSR_TILE_X_L ) && (tx<BLSR_TILE_X_R) && (ty>=HSST_TILE_Y-1 ))
+           {
+           }
+           else
+           {
+            draw_drm_tile( tx, ty );
+           }
+        }
+    } 
+
+    // draw apm tile
+    foreach tx ( L_APM_TILES_X )
+    {
+        foreach ty ( L_APM_TILES_Y )
+        {
+           if((tx>BLSR_TILE_X_L ) && (tx<BLSR_TILE_X_R) && (ty>=HSST_TILE_Y-3))
+           {
+           }
+           else
+           {
+            draw_apm_tile( tx, ty);
+           }
+        }
+    } 
+
+    // draw pll tile
+    unsigned int L_PLL_TILES_X[] = {PLL_TILE_X};
+    unsigned int L_PLL_B_TILES_Y[] = {PLL0_TILE_Y,PLL2_TILE_Y};
+    unsigned int L_PLL_T_TILES_Y[] = {PLL1_TILE_Y};
+
+    foreach tx ( L_PLL_TILES_X )
+    {
+        foreach ty ( L_PLL_B_TILES_Y )
+        {
+            draw_pll_tile( tx, ty, 0);
+        }
+        foreach ty ( L_PLL_T_TILES_Y )
+        {
+            draw_pll_tile( tx, ty, 1);
+        }
+    }
+
+    // draw uscm tile
+    unsigned int L_USCM_TILES_X[] = {USCM_TILE_LOC_X};
+    unsigned int L_USCM_TILES_Y[] = {USCM0_TILE_LOC_Y, USCM1_TILE_LOC_Y};
+    int tx_srb = USCM_TILE_X;
+    
+    foreach tx ( L_USCM_TILES_X )
+    {
+        foreach ty ( L_USCM_TILES_Y )
+        {
+            int ty_srb = (ty<NUM_TILES_REGION) ? USCM0_TILE_Y : USCM1_TILE_Y;
+            draw_uscm_tile( tx, ty); //, tx_srb, ty_srb);
+        }
+    }
+
+    // draw iol up/down tile
+    foreach ty ( {IOL_TILE_Y_U} )
+    {
+        foreach tx ( L_IOL_TILES_X_U )
+        {
+          if(!((tx>BLSR_TILE_X_L ) && (tx<BLSR_TILE_X_R)))
+          {
+            draw_iol_tile_ud( tx, ty, 1);
+          }
+        }  
+    }
+
+    foreach ty ( {IOL_TILE_Y_D} )
+    {
+        foreach tx ( L_IOL_TILES_X_D )
+        {
+            draw_iol_tile_ud( tx, ty, 0);
+        }  
+    }
+
+    foreach tx ( {IOL_TILE_X_L,IOL_TILE_X_R} )
+    {
+        foreach ty ( L_IOCKGATEDLL_TILES_Y )
+        {
+            draw_iockgatedll_tile( tx, ty);
+        } 
+    }
+
+    foreach tx ( {IOL_TILE_X_L,IOL_TILE_X_R} )
+    {
+        foreach ty ( L_IOL_TILES_Y_LR )
+        {
+            draw_iol_tile( tx, ty);
+        }  
+        foreach ty ( L_DQSL_TILES_Y )
+        {
+            int flag_ccs = (ty==7&&tx==IOL_TILE_X_R) ? 1 : 0 ;
+
+            draw_dqsl_tile( tx, ty, flag_ccs);
+        }
+    }
+
+    // draw ccs tile
+    draw_ccs_tile_pgl20h(CCS_TILE_X,CCS_TILE_Y);
+
+    draw_iob_tile_u( IOB0_TILE_X, IOB0_TILE_Y);  // iob0_tile
+    draw_iob_tile_d( IOB2_TILE_X, IOB2_TILE_Y);  // iob2_tile
+    draw_iob_tile_r( IOB1_TILE_X, IOB1_TILE_Y);  // iob1_tile
+    draw_iob_tile_l( IOB3_TILE_X, IOB3_TILE_Y);  // iob3_tile
+
+    foreach ty ( L_WLSR_TILES_Y )
+    {
+        foreach tx ( L_WLSR_TILES_X )
+        {
+            draw_wlsr_tile( tx, ty);
+        }  
+        foreach tx ( L_WLSR1_TILES_X )
+        {
+            draw_wlsr1_tile( tx, ty);
+        } 
+        foreach tx ( L_WLSRA_TILES_X )
+        {
+            draw_wlsra_tile( tx,ty);
+        }
+        foreach tx ( L_WLSRD_TILES_X )
+        {
+            draw_wlsrd_tile( tx, ty);
+        }
+        foreach tx ( {WLSR2_TILE_X} )
+        {
+            draw_wlsr2_tile( tx, ty);
+        }
+    }
+
+    draw_analog_tile(ANALOG_TILE_X, ANALOG_TILE_Y);
+
+    draw_hsst_tile(HSST_TILE_X, HSST_TILE_Y);
+
+    foreach ty ( L_IOCKDLL_TILES_LOC_Y )
+    {
+         int ty_iockdll = (ty < PLL0_TILE_Y) ? IOL_TILE_Y_D : IOL_TILE_Y_U ;
+
+        foreach tx( L_IOCKDLL_TILES_LOC_X )
+        {
+            if(ty < PLL0_TILE_Y)
+            {
+                int tx_iockdll = (tx < PLL_TILE_X) ? IOCKDLL_TILE_X_D_L : IOCKDLL_TILE_X_D_R ;
+
+                draw_iockdll_tile(tx, ty, tx_iockdll, ty_iockdll );
+            }
+            else
+            { 
+                int tx_iockdll = (tx < PLL_TILE_X) ? IOCKDLL_TILE_X_U_L : IOCKDLL_TILE_X_U_R ;
+
+                draw_iockdll_tile(tx, ty, tx_iockdll, ty_iockdll );
+            }
+        }
+
+    }
+
+
+    draw_clkmux_tile(PLL_TILE_X , CLKMUX_TILE_Y);
+
+};

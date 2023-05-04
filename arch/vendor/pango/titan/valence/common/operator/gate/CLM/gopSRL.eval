@@ -1,0 +1,572 @@
+*********************************************************************
+
+  Operator    [gopSRL]
+  
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+ ********************************************************************************/
+gate
+operator gopSRL
+{
+    parameter
+    (
+        string GRS_EN          = "FALSE",           // "TRUE" "FALSE"
+        string LRS_EN          = "TRUE",              // "TRUE"   "FALSE"
+        string PMUX_SEL        = "AC",                 // "AC" --> "AD" OR "CD"; "BD" --> "BD" OR "DD"
+        string DATA_FROM_CHAIN = "YES",                // "YES" --> "SHIFTIN"; "NO" --> "M0" "M1" 
+        string CEMUX_SEL       = "CE",                 // "CE" "CEIN"
+        string RSMUX_SEL       = "RS",                 // "RS" "RSIN"
+        bit    CLK_POS         = 1'b0,                // 1'b0: "CLK"; 1'b1: "CLK_B"
+        bit    CE_POS          = 1'b0,                // 1'b0: "CE";  1'b1: "CE_B"
+        bit    RS_POS          = 1'b0,                // 1'b0: "RS";  1'b1: "RS_B"
+        string CE_USED         = "USED",               // "USED" "UNUSED"
+        string RS_USED         = "USED",               // "USED" "UNUSED"
+        string SYNC_MODE       = "SYNC",               // "SYNC" "ASYNC"
+        string FF_SET          = "RESET"               // "RESET" "SET"
+    );
+
+    port
+    (
+        input  D, 
+        input  CLK /* pragma PAP_ARC_GOP_CTRL_PIN = "GCLK|RCLK"*/,
+        input  CE /* pragma PAP_ARC_GOP_CTRL_PIN = CE*/,
+        input  RS /* pragma PAP_ARC_GOP_CTRL_PIN = RST*/,
+        output CEOUT, 
+        output RSOUT, 
+        output Q,
+        output SHIFTOUT
+    );
+};
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devSRL1_S to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devSRL1_S of gopSRL
+{  
+    string Q0MUX_SEL = (DATA_FROM_CHAIN == "YES") ? "SHIFTIN" : "M0" ;
+    device devSRL1_S gatedev
+        parameter map 
+        (
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,
+            Q0MUX_SEL    => Q0MUX_SEL ,                                           // "Y0" "SHIFTIN" "M0"
+            CEMUX_SEL    => CEMUX_SEL,                                            // "CE" "CEIN" 
+            RSMUX_SEL    => RSMUX_SEL,                                            // "RS" "RSIN"
+            CLK_POS      => CLK_POS,                                              // "CLK" "CLK_B"   
+            CE_POS       => (CE_USED == "USED") ? CE_POS : 1'b0,                  // "CE"  "CE_B"
+            RS_POS       => (RS_USED == "USED") ? RS_POS : 1'b1,                  // "RS"  "RS_B"            
+            SYNC_MODE    => SYNC_MODE,                                            // "SYNC" "ASYNC"
+            FF0_SET      => FF_SET                                                // "RESET" "SET" 
+        )
+        port map 
+        (
+            Q0        => Q                                                              ,
+            M0        => (Q0MUX_SEL == "SHIFTIN") ? 1'bx : D                            ,
+            RS        => (RSMUX_SEL == "RS") ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx,                   
+            CE        => (CEMUX_SEL == "CE") ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx,
+            CLK       => CLK                                                             ,
+            SHIFTIN   => (Q0MUX_SEL == "SHIFTIN") ? D : 1'bx                             ,
+            SHIFTOUT  => SHIFTOUT                                                        ,
+            RSIN      => (RSMUX_SEL == "RS") ? 1'bx : RS                                 ,
+            RSOUT     => RSOUT                                                           ,
+            CEIN      => (CEMUX_SEL == "CE") ? 1'bx : CE                                 ,
+            CEOUT     => CEOUT
+        );
+}; // end of implementation impl_devSRL1_S of gopSRL
+
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devSRL2_S to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devSRL2_S of gopSRL
+{  
+    string QABMUX_SEL = (DATA_FROM_CHAIN == "YES") ? "FF0" : "ABP" ;
+    string ABPMUX_SEL = (PMUX_SEL == "AC") ? "AD" : "BD"  ;
+    device devSRL2_S gatedev
+        parameter map 
+        (
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,
+            QABMUX_SEL   => QABMUX_SEL  ,                                        // "L6" "FF0" "ABP" 
+            ABPMUX_SEL   => ABPMUX_SEL  ,                                        // "BD"   "AD"
+            CEMUX_SEL    => CEMUX_SEL,                                           // "CE" "CEIN" 
+            RSMUX_SEL    => RSMUX_SEL,                                           // "RS" "RSIN"
+            CLK_POS      => CLK_POS,                                             // "CLK" "CLK_B"   
+            CE_POS       => (CE_USED == "USED") ? CE_POS : 1'b0,                 // "CE"  "CE_B"
+            RS_POS       => (RS_USED == "USED") ? RS_POS : 1'b1,                 // "RS"  "RS_B"
+            SYNC_MODE    => SYNC_MODE,                                           // "SYNC" "ASYNC"
+            FFAB_SET     => FF_SET                                               // "RESET" "SET" 
+        )
+        port map 
+        (
+            BD        => (QABMUX_SEL == "ABP") ? ((ABPMUX_SEL == "AD") ? 1'bx : D) : 1'bx,
+            AD        => (QABMUX_SEL == "ABP") ? ((ABPMUX_SEL == "AD") ? D : 1'bx) : 1'bx,
+            Y0        => Q,
+            RS        => (RSMUX_SEL == "RS") ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx,                   
+            CE        => (CEMUX_SEL == "CE") ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx,
+            CLK       => CLK                                                             ,   
+            SHIFTIN   => (QABMUX_SEL == "FF0") ? D : 1'bx                                ,
+            SHIFTOUT  => SHIFTOUT,
+            RSIN      => (RSMUX_SEL == "RS") ? 1'bx : RS                                 ,
+            RSOUT     => RSOUT                                                           ,
+            CEIN      => (CEMUX_SEL == "CE") ? 1'bx : CE                                 ,
+            CEOUT     => CEOUT
+        );
+}; // end of implementation impl_devSRL2_S of gopSRL
+
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devSRL3_S to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devSRL3_S of gopSRL
+{  
+    string Q1MUX_SEL = (DATA_FROM_CHAIN == "YES") ? "FFAB" : "M2"  ;
+    device devSRL3_S gatedev
+        parameter map 
+        (
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,
+            Q1MUX_SEL    => Q1MUX_SEL ,                                           // "Y1"   "FFAB" "M2"
+            CEMUX_SEL    => CEMUX_SEL,                                            // "CE" "CEIN" 
+            RSMUX_SEL    => RSMUX_SEL,                                            // "RS" "RSIN"
+            CLK_POS      => CLK_POS,                                              // "CLK" "CLK_B"   
+            CE_POS       => (CE_USED == "USED") ? CE_POS : 1'b0,                  // "CE"  "CE_B"
+            RS_POS       => (RS_USED == "USED") ? RS_POS : 1'b1,                  // "RS"  "RS_B"            
+            SYNC_MODE    => SYNC_MODE,                                            // "SYNC" "ASYNC"
+            FF1_SET      => FF_SET                                                // "RESET" "SET" 
+        )
+        port map 
+        (      
+            Q1        => Q                                                               ,
+            M2        => (Q1MUX_SEL == "FFAB") ? 1'bx : D                                ,            
+            RS        => (RSMUX_SEL == "RS") ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx,                   
+            CE        => (CEMUX_SEL == "CE") ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx,
+            CLK       => CLK                                                             ,            
+            SHIFTIN   => (Q1MUX_SEL == "FFAB") ? D : 1'bx                                ,
+            SHIFTOUT  => SHIFTOUT                                                        ,
+            RSIN      => (RSMUX_SEL == "RS") ? 1'bx : RS                                 ,
+            RSOUT     => RSOUT                                                           ,
+            CEIN      => (CEMUX_SEL == "CE") ? 1'bx : CE                                 ,
+            CEOUT     => CEOUT
+        );
+}; // end of implementation impl_devSRL3_S of gopSRL
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devSRL4_S to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devSRL4_S of gopSRL
+{  
+    string Q2MUX_SEL = (DATA_FROM_CHAIN == "YES") ? "FF1" : "M1"  ;
+    device devSRL4_S gatedev
+        parameter map 
+        (   
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,     
+            Q2MUX_SEL    => Q2MUX_SEL ,                                           // "Y2"   "FF1" "M1"
+            CEMUX_SEL    => CEMUX_SEL,                                            // "CE" "CEIN" 
+            RSMUX_SEL    => RSMUX_SEL,                                            // "RS" "RSIN"
+            CLK_POS      => CLK_POS,                                              // "CLK" "CLK_B"   
+            CE_POS       => (CE_USED == "USED") ? CE_POS : 1'b0,                  // "CE"  "CE_B"
+            RS_POS       => (RS_USED == "USED") ? RS_POS : 1'b1,                  // "RS"  "RS_B"            
+            SYNC_MODE    => SYNC_MODE,                                            // "SYNC" "ASYNC"
+            FF2_SET      => FF_SET                                                // "RESET" "SET" 
+        )
+        port map 
+        (              
+            Q2        => Q                                                               ,
+            M1        => (Q2MUX_SEL == "FF1") ? 1'bx : D                                 ,            
+            RS        => (RSMUX_SEL == "RS") ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx,                   
+            CE        => (CEMUX_SEL == "CE") ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx,
+            CLK       => CLK                                                             ,            
+            SHIFTIN   => (Q2MUX_SEL == "FF1") ? D : 1'bx                                 ,
+            SHIFTOUT  => SHIFTOUT                                                        ,
+            RSIN      => (RSMUX_SEL == "RS") ? 1'bx : RS                                 ,
+            RSOUT     => RSOUT                                                           ,
+            CEIN      => (CEMUX_SEL == "CE") ? 1'bx : CE                                 ,
+            CEOUT     => CEOUT
+        );
+}; // end of implementation impl_devSRL4_S of gopSRL
+
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devSRL5_S to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devSRL5_S of gopSRL
+{  
+    string QCDMUX_SEL = (DATA_FROM_CHAIN == "YES") ? "FF2" : "CDP"  ;
+    string CDPMUX_SEL = (PMUX_SEL == "AC") ? "CD" : "DD"            ;
+    device devSRL5_S gatedev
+        parameter map 
+        (  
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,
+            QCDMUX_SEL   => QCDMUX_SEL ,                                         // "L6"  "FF2"  "CDP" 
+            CDPMUX_SEL   => CDPMUX_SEL  ,                                        // "BD"   "AD"
+            CEMUX_SEL    => CEMUX_SEL,                                           // "CE" "CEIN" 
+            RSMUX_SEL    => RSMUX_SEL,                                           // "RS" "RSIN"
+            CLK_POS      => CLK_POS,                                             // "CLK" "CLK_B"   
+            CE_POS       => (CE_USED == "USED") ? CE_POS : 1'b0,                 // "CE"  "CE_B"
+            RS_POS       => (RS_USED == "USED") ? RS_POS : 1'b1,                 // "RS"  "RS_B"
+            SYNC_MODE    => SYNC_MODE,                                           // "SYNC" "ASYNC"
+            FFCD_SET     => FF_SET                                               // "RESET" "SET" 
+        )
+        port map 
+        (           
+            DD        => (QCDMUX_SEL == "CDP") ? ((CDPMUX_SEL == "CD") ? 1'bx : D) : 1'bx,
+            CD        => (QCDMUX_SEL == "CDP") ? ((CDPMUX_SEL == "CD") ? D : 1'bx) : 1'bx,
+            Y2        => Q                                                               ,
+            RS        => (RSMUX_SEL == "RS") ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx,                   
+            CE        => (CEMUX_SEL == "CE") ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx,
+            CLK       => CLK                                                             ,   
+            SHIFTIN   => (QCDMUX_SEL == "FF2") ? D : 1'bx                                ,
+            SHIFTOUT  => SHIFTOUT                                                        ,
+            RSIN      => (RSMUX_SEL == "RS") ? 1'bx : RS                                 ,
+            RSOUT     => RSOUT                                                           ,
+            CEIN      => (CEMUX_SEL == "CE") ? 1'bx : CE                                 ,
+            CEOUT     => CEOUT
+        );
+}; // end of implementation impl_devSRL5_S of gopSRL
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devSRL6_S to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devSRL6_S of gopSRL
+{  
+    string Q3MUX_SEL = (DATA_FROM_CHAIN == "YES") ? "FFCD" : "M3" ;
+    device devSRL6_S gatedev
+        parameter map 
+        (  
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,            
+            Q3MUX_SEL    => (DATA_FROM_CHAIN == "YES") ? "FFCD" : "M3" ,           // "Y3"  "FFCD" "M3"
+            CEMUX_SEL    => CEMUX_SEL,                                            // "CE" "CEIN" 
+            RSMUX_SEL    => RSMUX_SEL,                                            // "RS" "RSIN"
+            CLK_POS      => CLK_POS,                                              // "CLK" "CLK_B"   
+            CE_POS       => (CE_USED == "USED") ? CE_POS : 1'b0,                  // "CE"  "CE_B"
+            RS_POS       => (RS_USED == "USED") ? RS_POS : 1'b1,                  // "RS"  "RS_B"            
+            SYNC_MODE    => SYNC_MODE,                                            // "SYNC" "ASYNC"
+            FF3_SET      => FF_SET                                                // "RESET" "SET" 
+        )
+        port map 
+        (                          
+            Q3        => Q                                                               ,
+            M3        => (Q3MUX_SEL == "FFCD") ? 1'bx : D                                ,            
+            RS        => (RSMUX_SEL == "RS") ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx,                   
+            CE        => (CEMUX_SEL == "CE") ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx,
+            CLK       => CLK                                                             ,            
+            SHIFTIN   => (Q3MUX_SEL == "FFCD") ? D : 1'bx                                ,
+            SHIFTOUT  => SHIFTOUT                                                        ,
+            RSIN      => (RSMUX_SEL == "RS") ? 1'bx : RS                                 ,
+            RSOUT     => RSOUT                                                           ,
+            CEIN      => (CEMUX_SEL == "CE") ? 1'bx : CE                                 ,
+            CEOUT     => CEOUT
+        );
+}; // end of implementation impl_devSRL6_S of gopSRL
+
+
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devSRL1 to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devSRL1 of gopSRL
+{  
+    string Q0MUX_SEL = (DATA_FROM_CHAIN == "YES") ? "SHIFTIN" : "M0";
+    device devSRL1 gatedev
+        parameter map 
+        (
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,
+            Q0MUX_SEL    => Q0MUX_SEL,                                            // "Y0" "SHIFTIN" "M0"
+            CEMUX_SEL    => CEMUX_SEL,                                            // "CE" "CEIN" 
+            RSMUX_SEL    => RSMUX_SEL,                                            // "RS" "RSIN"
+            CLK_POS      => CLK_POS,                                              // "CLK" "CLK_B"   
+            CE_POS       => (CE_USED == "USED") ? CE_POS : 1'b0,                  // "CE"  "CE_B"
+            RS_POS       => (RS_USED == "USED") ? RS_POS : 1'b1,                  // "RS"  "RS_B"            
+            SYNC_MODE    => SYNC_MODE,                                            // "SYNC" "ASYNC"
+            FF0_SET      => FF_SET                                                // "RESET" "SET" 
+        )
+        port map 
+        (
+            Q0        => Q                                                               ,
+            M0        => (Q0MUX_SEL == "SHIFTIN") ? 1'bx : D                             ,
+            RS        => (RSMUX_SEL == "RS") ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx,                   
+            CE        => (CEMUX_SEL == "CE") ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx,
+            CLK       => CLK                                                             ,
+            SHIFTIN   => (Q0MUX_SEL == "SHIFTIN") ? D : 1'bx                             ,
+            SHIFTOUT  => SHIFTOUT                                                        ,
+            RSIN      => (RSMUX_SEL == "RS") ? 1'bx : RS                                 ,
+            RSOUT     => RSOUT                                                           ,
+            CEIN      => (CEMUX_SEL == "CE") ? 1'bx : CE                                 ,
+            CEOUT     => CEOUT
+        );
+}; // end of implementation impl_devSRL1 of gopSRL
+
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devSRL2 to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devSRL2 of gopSRL
+{  
+    string QABMUX_SEL = (DATA_FROM_CHAIN == "YES") ? "FF0" : "ABP";
+    string ABPMUX_SEL = (PMUX_SEL == "AC") ? "AD" : "BD" ;
+    device devSRL2 gatedev
+        parameter map 
+        (
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,
+            QABMUX_SEL   => QABMUX_SEL,                                          // "L6" "FF0" "ABP" 
+            ABPMUX_SEL   => ABPMUX_SEL  ,                                        // "BD"   "AD"
+            CEMUX_SEL    => CEMUX_SEL,                                           // "CE" "CEIN" 
+            RSMUX_SEL    => RSMUX_SEL,                                           // "RS" "RSIN"
+            CLK_POS      => CLK_POS,                                             // "CLK" "CLK_B"   
+            CE_POS       => (CE_USED == "USED") ? CE_POS : 1'b0,                 // "CE"  "CE_B"
+            RS_POS       => (RS_USED == "USED") ? RS_POS : 1'b1,                 // "RS"  "RS_B"
+            SYNC_MODE    => SYNC_MODE,                                           // "SYNC" "ASYNC"
+            FFAB_SET     => FF_SET                                               // "RESET" "SET" 
+        )
+        port map 
+        (
+            BD        => (QABMUX_SEL == "ABP") ? ((ABPMUX_SEL == "AD") ? 1'bx : D) : 1'bx,
+            AD        => (QABMUX_SEL == "ABP") ? ((ABPMUX_SEL == "AD") ? D : 1'bx) : 1'bx,
+            Y0        => Q                                                               ,
+            RS        => (RSMUX_SEL == "RS") ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx,                   
+            CE        => (CEMUX_SEL == "CE") ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx,
+            CLK       => CLK                                                             ,   
+            SHIFTIN   => (QABMUX_SEL == "FF0") ? D : 1'bx                                ,
+            SHIFTOUT  => SHIFTOUT                                                        ,
+            RSIN      => (RSMUX_SEL == "RS") ? 1'bx : RS                                 ,
+            RSOUT     => RSOUT                                                           ,
+            CEIN      => (CEMUX_SEL == "CE") ? 1'bx : CE                                 ,
+            CEOUT     => CEOUT
+        );
+}; // end of implementation impl_devSRL2 of gopSRL
+
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devSRL3 to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devSRL3 of gopSRL
+{  
+    string Q1MUX_SEL = (DATA_FROM_CHAIN == "YES") ? "FFAB" : "M2" ;
+    device devSRL3 gatedev
+        parameter map 
+        (
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,
+            Q1MUX_SEL    => Q1MUX_SEL ,                                           // "Y1"   "FFAB" "M2"
+            CEMUX_SEL    => CEMUX_SEL,                                            // "CE" "CEIN" 
+            RSMUX_SEL    => RSMUX_SEL,                                            // "RS" "RSIN"
+            CLK_POS      => CLK_POS,                                              // "CLK" "CLK_B"   
+            CE_POS       => (CE_USED == "USED") ? CE_POS : 1'b0,                  // "CE"  "CE_B"
+            RS_POS       => (RS_USED == "USED") ? RS_POS : 1'b1,                  // "RS"  "RS_B"            
+            SYNC_MODE    => SYNC_MODE,                                            // "SYNC" "ASYNC"
+            FF1_SET      => FF_SET                                                // "RESET" "SET" 
+        )
+        port map 
+        (      
+            Q1        => Q                                                               ,
+            M2        => (Q1MUX_SEL == "FFAB") ? 1'bx : D                                ,            
+            RS        => (RSMUX_SEL == "RS") ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx,                   
+            CE        => (CEMUX_SEL == "CE") ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx,
+            CLK       => CLK                                                             ,            
+            SHIFTIN   => (Q1MUX_SEL == "FFAB") ? D : 1'bx                                ,
+            SHIFTOUT  => SHIFTOUT                                                        ,
+            RSIN      => (RSMUX_SEL == "RS") ? 1'bx : RS                                 ,
+            RSOUT     => RSOUT                                                           ,
+            CEIN      => (CEMUX_SEL == "CE") ? 1'bx : CE                                 ,
+            CEOUT     => CEOUT
+        );
+}; // end of implementation impl_devSRL3 of gopSRL
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devSRL4 to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devSRL4 of gopSRL
+{  
+    string Q2MUX_SEL = (DATA_FROM_CHAIN == "YES") ? "FF1" : "M1";
+    device devSRL4 gatedev
+        parameter map 
+        (   
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,     
+            Q2MUX_SEL    => Q2MUX_SEL ,                                           // "Y2"   "FF1" "M1"
+            CEMUX_SEL    => CEMUX_SEL,                                            // "CE" "CEIN" 
+            RSMUX_SEL    => RSMUX_SEL,                                            // "RS" "RSIN"
+            CLK_POS      => CLK_POS,                                              // "CLK" "CLK_B"   
+            CE_POS       => (CE_USED == "USED") ? CE_POS : 1'b0,                  // "CE"  "CE_B"
+            RS_POS       => (RS_USED == "USED") ? RS_POS : 1'b1,                  // "RS"  "RS_B"            
+            SYNC_MODE    => SYNC_MODE,                                            // "SYNC" "ASYNC"
+            FF2_SET      => FF_SET                                                // "RESET" "SET" 
+        )
+        port map 
+        (              
+            Q2        => Q                                                               ,
+            M1        => (Q2MUX_SEL == "FF1") ? 1'bx : D                                 ,            
+            RS        => (RSMUX_SEL == "RS") ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx,                   
+            CE        => (CEMUX_SEL == "CE") ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx,
+            CLK       => CLK                                                             ,            
+            SHIFTIN   => (Q2MUX_SEL == "FF1") ? D : 1'bx                                 ,
+            SHIFTOUT  => SHIFTOUT                                                        ,
+            RSIN      => (RSMUX_SEL == "RS") ? 1'bx : RS                                 ,
+            RSOUT     => RSOUT                                                           ,
+            CEIN      => (CEMUX_SEL == "CE") ? 1'bx : CE                                 ,
+            CEOUT     => CEOUT
+        );
+}; // end of implementation impl_devSRL4 of gopSRL
+
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devSRL5 to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devSRL5 of gopSRL
+{  
+    string QCDMUX_SEL = (DATA_FROM_CHAIN == "YES") ? "FF2" : "CDP";
+    string CDPMUX_SEL = (PMUX_SEL == "AC") ? "CD" : "DD";
+    device devSRL5 gatedev
+        parameter map 
+        (  
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,
+            QCDMUX_SEL   => QCDMUX_SEL ,                                         // "L6"  "FF2"  "CDP" 
+            CDPMUX_SEL   => CDPMUX_SEL  ,                                        // "BD"   "AD"
+            CEMUX_SEL    => CEMUX_SEL,                                           // "CE" "CEIN" 
+            RSMUX_SEL    => RSMUX_SEL,                                           // "RS" "RSIN"
+            CLK_POS      => CLK_POS,                                             // "CLK" "CLK_B"   
+            CE_POS       => (CE_USED == "USED") ? CE_POS : 1'b0,                 // "CE"  "CE_B"
+            RS_POS       => (RS_USED == "USED") ? RS_POS : 1'b1,                 // "RS"  "RS_B"
+            SYNC_MODE    => SYNC_MODE,                                           // "SYNC" "ASYNC"
+            FFCD_SET     => FF_SET                                               // "RESET" "SET" 
+        )
+        port map 
+        (           
+            DD        => (QCDMUX_SEL == "CDP") ? ((CDPMUX_SEL == "CD") ? 1'bx : D) : 1'bx,
+            CD        => (QCDMUX_SEL == "CDP") ? ((CDPMUX_SEL == "CD") ? D : 1'bx) : 1'bx,
+            Y2        => Q                                                               ,
+            RS        => (RSMUX_SEL == "RS") ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx,                   
+            CE        => (CEMUX_SEL == "CE") ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx,
+            CLK       => CLK                                                             ,   
+            SHIFTIN   => (QCDMUX_SEL == "FF2") ? D : 1'bx                                ,
+            SHIFTOUT  => SHIFTOUT                                                        ,
+            RSIN      => (RSMUX_SEL == "RS") ? 1'bx : RS                                 ,
+            RSOUT     => RSOUT                                                           ,
+            CEIN      => (CEMUX_SEL == "CE") ? 1'bx : CE                                 ,
+            CEOUT     => CEOUT
+        );
+}; // end of implementation impl_devSRL5 of gopSRL
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devSRL6 to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devSRL6 of gopSRL
+{  
+    string Q3MUX_SEL = (DATA_FROM_CHAIN == "YES") ? "FFCD" : "M3";
+    device devSRL6 gatedev
+        parameter map 
+        (    
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,          
+            Q3MUX_SEL    => Q3MUX_SEL ,                                           // "Y3"  "FFCD" "M3"
+            CEMUX_SEL    => CEMUX_SEL,                                            // "CE" "CEIN" 
+            RSMUX_SEL    => RSMUX_SEL,                                            // "RS" "RSIN"
+            CLK_POS      => CLK_POS,                                              // "CLK" "CLK_B"   
+            CE_POS       => (CE_USED == "USED") ? CE_POS : 1'b0,                  // "CE"  "CE_B"
+            RS_POS       => (RS_USED == "USED") ? RS_POS : 1'b1,                  // "RS"  "RS_B"            
+            SYNC_MODE    => SYNC_MODE,                                            // "SYNC" "ASYNC"
+            FF3_SET      => FF_SET                                                // "RESET" "SET" 
+        )
+        port map 
+        (                          
+            Q3        => Q                                                               ,
+            M3        => (Q3MUX_SEL == "FFCD") ? 1'bx : D                                ,            
+            RS        => (RSMUX_SEL == "RS") ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx,                   
+            CE        => (CEMUX_SEL == "CE") ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx,
+            CLK       => CLK                                                             ,            
+            SHIFTIN   => (Q3MUX_SEL == "FFCD") ? D : 1'bx                                ,
+            SHIFTOUT  => SHIFTOUT                                                        ,
+            RSIN      => (RSMUX_SEL == "RS") ? 1'bx : RS                                 ,
+            RSOUT     => RSOUT                                                           ,
+            CEIN      => (CEMUX_SEL == "CE") ? 1'bx : CE                                 ,
+            CEOUT     => CEOUT
+        );
+}; // end of implementation impl_devSRL6 of gopSRL
+
+
+
+
+

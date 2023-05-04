@@ -1,0 +1,90 @@
+*******************************************************************
+
+  Operator    [gopIBUFIOLQ]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+gate
+operator gopIBUFIOLQ
+{
+    parameter
+    (
+        string CP_MIPI_EN      = "DISABLE",
+        string GRS_EN         = "FALSE",           // "TRUE" "FALSE" 
+        string IFF_LRS_EN     = "UNUSED",    //1'b0 => "UNUSED";   1'b1 => "USED"
+        string IFF_SET        = "RESET",     //1'b0 => "RESET"; 1'b1 => "SET"
+        string IFF_SYNC       = "ASYNC",     //1'b0 => "ASYNC";      1'b1 => "SYNC"    
+        string IFF_LATCH      = "FF",        //1'b1 => latch;        1'b0 => flip flop
+        string  CLK_I_INV     = "FALSE",
+        string  LRS_INV       = "FALSE",
+        string  CE_I_INV      = "FALSE",
+        
+        string CP_DIN_POL = "FALSE",
+        string CP_Y_SEL = "STA",
+        string CP_TQMODE = "DD"
+    );
+    port
+    (
+        output  OUT,
+        output  Z,
+        output  T,
+
+        input   SYSCLK /*pragma PAP_ARC_GOP_CTRL_PIN="GCLK|RCLK"*/,
+        input   CE /*pragma PAP_ARC_GOP_CTRL_PIN="CE"*/,
+        input   LRS /*pragma PAP_ARC_GOP_CTRL_PIN="RST"*/,
+        
+        input   MI,
+        input   DIN_MIPI,
+        input  INBUF_DYN_DIS_N_I,
+        output INBUF_DYN_DIS_N_O,
+        output  MO,
+        output DIN_ISERDES,
+
+        // from to IOB
+
+        input   I
+    );
+};
+
+implementation impl of gopIBUFIOLQ
+{
+    device devIOL gate_ibufiolq
+        parameter map
+        (
+            CP_ICLK_EN      => "ENABLE",
+            CP_GRS_DIS      => GRS_EN == "TRUE" ? "FALSE" : "TRUE",
+            CP_ISR_EN       => IFF_LRS_EN == "USED" ? "ENABLE" : "DISABLE",
+            CP_IREG_SET     => IFF_SET,
+            CP_REG_SYNC     => IFF_SYNC,
+            CP_ILATCH_EN    => IFF_LATCH == "FF" ? "DISABLE" : "ENABLE",
+
+            CP_CLK_POL    =>  CLK_I_INV,
+            CP_SR_POL      =>  LRS_INV,
+            CP_MIPI_EN =>  CP_MIPI_EN,
+            CP_DIN_POL =>  CP_DIN_POL,
+            CP_Y_SEL   =>  CP_Y_SEL,
+            CP_TQMODE  =>  CP_TQMODE 
+        )
+        port map 
+        (
+            Y            =>  OUT,
+            Q1           =>  Z,
+
+            CLK          =>  SYSCLK,
+            CE_IREG      =>  CE,
+            SR           =>  LRS,
+            TQ           =>  T,
+            DIN          =>  I,
+            
+            INBUF_DYN_DIS_N_I => INBUF_DYN_DIS_N_I,
+            INBUF_DYN_DIS_N_O => INBUF_DYN_DIS_N_O,
+            MIPI_SW_DYN_O     =>  MO,
+            MIPI_SW_DYN_I     =>  MI,
+            
+            DIN_MIPI      =>  DIN_MIPI,
+            DIN_ISERDES   =>  DIN_ISERDES
+        );
+};        

@@ -1,0 +1,698 @@
+*******************************************************************
+
+  Operator    [gopPLL]
+
+  Abstract  []
+
+  Revision History:
+
+ ********************************************************************************/
+gate
+operator gopPLL
+{
+    parameter
+    (
+        real CLKIN_FREQ = 50.0,
+        string CP_DYN_CLKMOD_SEL_EN = "FALSE" ,
+        bit CP_CLKIN_STASEL = 1'b0 /* 0 | 1 */,
+        string PFDEN_EN = "FALSE" ,
+        bit VCOCLK_DIV2 = 1'b0 /* 0 | 1 */,
+        string DYNAMIC_RATIOI_EN = "FALSE" ,
+        string DYNAMIC_RATIO0_EN = "FALSE" ,
+        string DYNAMIC_RATIO1_EN = "FALSE" ,
+        string DYNAMIC_RATIO2_EN = "FALSE" ,
+        string DYNAMIC_RATIO3_EN = "FALSE" ,
+        string DYNAMIC_RATIO4_EN = "FALSE" ,
+        string DYNAMIC_RATIOF_EN = "FALSE" ,
+        int STATIC_RATIOI = 1 /* 1 ~ 512 */,
+        int STATIC_RATIO0 = 1 /* 1 ~ 512 */,
+        int STATIC_RATIO1 = 1 /* 1 ~ 512 */,
+        int STATIC_RATIO2 = 1 /* 1 ~ 512 */,
+        int STATIC_RATIO3 = 1 /* 1 ~ 512 */,
+        int STATIC_RATIO4 = 1 /* 1 ~ 512 */,
+        int STATIC_RATIOF = 1 /* 1 ~ 512 */,
+        string DYNAMIC_DUTY0_EN = "FALSE" ,
+        string DYNAMIC_DUTY1_EN = "FALSE" ,
+        string DYNAMIC_DUTY2_EN = "FALSE" ,
+        string DYNAMIC_DUTY3_EN = "FALSE" ,
+        string DYNAMIC_DUTY4_EN = "FALSE" ,
+        string DYNAMIC_DUTYF_EN = "FALSE" ,
+        int STATIC_DUTY0 = 1,
+        int STATIC_DUTY1 = 1,
+        int STATIC_DUTY2 = 1,
+        int STATIC_DUTY3 = 1,
+        int STATIC_DUTY4 = 1,
+        int STATIC_DUTYF = 1,
+        string PHASE_ADJUST0_EN = "FALSE" ,
+        string PHASE_ADJUST1_EN = "FALSE" ,
+        string PHASE_ADJUST2_EN = "FALSE" ,
+        string PHASE_ADJUST3_EN = "FALSE" ,
+        string PHASE_ADJUST4_EN = "FALSE" ,
+        string DYNAMIC_PHASE0_EN = "FALSE" ,
+        string DYNAMIC_PHASE1_EN = "FALSE" ,
+        string DYNAMIC_PHASE2_EN = "FALSE" ,
+        string DYNAMIC_PHASE3_EN = "FALSE" ,
+        string DYNAMIC_PHASE4_EN = "FALSE" ,
+        string DYNAMIC_PHASEF_EN = "FALSE" ,
+        int STATIC_PHASE0 = 0 /* 0 ~ 7 */,
+        int STATIC_PHASE1 = 0 /* 0 ~ 7 */,
+        int STATIC_PHASE2 = 0 /* 0 ~ 7 */,
+        int STATIC_PHASE3 = 0 /* 0 ~ 7 */,
+        int STATIC_PHASE4 = 0 /* 0 ~ 7 */,
+        int STATIC_PHASEF = 0 /* 0 ~ 7 */,
+        int STATIC_CPHASE0 = 2 /* 2 ~ 513 */,
+        int STATIC_CPHASE1 = 2 /* 2 ~ 513 */,
+        int STATIC_CPHASE2 = 2 /* 2 ~ 513 */,
+        int STATIC_CPHASE3 = 2 /* 2 ~ 513 */,
+        int STATIC_CPHASE4 = 2 /* 2 ~ 513 */,
+        int STATIC_CPHASEF = 2 /* 2 ~ 513 */,
+        string CLK_CAS0_EN = "FALSE" ,
+        string CLK_CAS1_EN = "FALSE" ,
+        string CLK_CAS2_EN = "FALSE" ,
+        string CLK_CAS3_EN = "FALSE" ,
+        string CLK_CAS4_EN = "FALSE" ,
+        int CLKOUT5_SEL = 0 /* 0 ~ 4 */,
+        string CLKIN_BYPASS_EN = "FALSE" ,
+        string CLKOUT0_SYN_EN = "FALSE" ,
+        string CLKOUT0_EXT_SYN_EN = "FALSE" ,
+        string CLKOUT1_SYN_EN = "FALSE" ,
+        string CLKOUT2_SYN_EN = "FALSE" ,
+        string CLKOUT3_SYN_EN = "FALSE" ,
+        string CLKOUT4_SYN_EN = "FALSE" ,
+        string CLKOUT5_SYN_EN = "FALSE" ,
+        string INTERNAL_FB = "TRUE" ,
+        string EXTERNAL_FB = "FALSE" ,
+        string BANDWIDTH = "OPTIMIZED",
+        string CP_PLL_RST_DISABLE = "TRUE" ,
+        string RSTODIV_PHASE_EN = "FALSE",
+        bit FBDLY_CNTL[7:0] = 8'b00000000,
+        string FBCK_DLY_EN = "FALSE",
+        string CP_PLL_PWD_ENABLE = "TRUE"
+    );
+
+    port
+    (
+        output CLKOUT0 /*pragma PAP_ARC_GOP_CTRL_PIN="GCLK"*/,
+        output CLKOUT0_WL /*pragma PAP_ARC_GOP_CTRL_PIN="RCLK|IOCLK"*/,
+        output CLKOUT0_EXT,
+        output CLKOUT1 /*pragma PAP_ARC_GOP_CTRL_PIN="GCLK"*/,
+        output CLKOUT2 /*pragma PAP_ARC_GOP_CTRL_PIN="GCLK"*/,
+        output CLKOUT3 /*pragma PAP_ARC_GOP_CTRL_PIN="GCLK"*/,
+        output CLKOUT4 /*pragma PAP_ARC_GOP_CTRL_PIN="GCLK"*/,
+        output CLKOUT5 /*pragma PAP_ARC_GOP_CTRL_PIN="RCLK|IOCLK"*/,
+        output CLKSWITCH_FLAG,
+        output LOCK,
+        output CLK_INT_FB,
+        
+        input CLKFB /*pragma PAP_ARC_GOP_CTRL_PIN="GCLK|RCLK"*/,
+        input CLKIN1 /*pragma PAP_ARC_GOP_CTRL_PIN="GCLK|RCLK"*/,
+        input CLKIN2 /*pragma PAP_ARC_GOP_CTRL_PIN="GCLK|RCLK"*/,
+        input CLKIN_SEL,
+        input CLKIN_SEL_EN,
+        input PFDEN,
+        input CLKOUT0_SYN,
+        input CLKOUT0_EXT_SYN,
+        input CLKOUT1_SYN,
+        input CLKOUT2_SYN,
+        input CLKOUT3_SYN,
+        input CLKOUT4_SYN,
+        input CLKOUT5_SYN,
+        input RATIOI[9:0],
+        input RATIO0[9:0] /*pragma PAP_ARC_GOP_CTRL_PIN="7=CE"*/,
+        input RATIO1[9:0],
+        input RATIO2[9:0],
+        input RATIO3[9:0],
+        input RATIO4[9:0],
+        input RATIOF[9:0] /*pragma PAP_ARC_GOP_CTRL_PIN="0=CE"*/,
+        input DUTY0[9:0] /*pragma PAP_ARC_GOP_CTRL_PIN="7=CE"*/,
+        input DUTY1[9:0] /*pragma PAP_ARC_GOP_CTRL_PIN="1=CE"*/,
+        input DUTY2[9:0],
+        input DUTY3[9:0],
+        input DUTY4[9:0],
+        input DUTYF[9:0],
+        input PHASE0[2:0],
+        input PHASE1[2:0],
+        input PHASE2[2:0] /*pragma PAP_ARC_GOP_CTRL_PIN="2=CE"*/,
+        input PHASE3[2:0] /*pragma PAP_ARC_GOP_CTRL_PIN="2=CE"*/,
+        input PHASE4[2:0],
+        input PHASEF[2:0],
+        input CPHASE0[9:0],
+        input CPHASE1[9:0],
+        input CPHASE2[9:0],
+        input CPHASE3[9:0] /*pragma PAP_ARC_GOP_CTRL_PIN="6=CE"*/,
+        input CPHASE4[9:0],
+        input CPHASEF[9:0] /*pragma PAP_ARC_GOP_CTRL_PIN="4=CE"*/,
+        input PLL_PWD,
+        input RST /*pragma PAP_ARC_GOP_CTRL_PIN="RST"*/,
+        input RSTODIV_PHASE /*pragma PAP_ARC_GOP_CTRL_PIN="RST"*/
+    );
+};
+
+/**Implementation Body*******************************************************************
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_pll of gopPLL
+{
+    real PFD = CLKIN_FREQ / STATIC_RATIOI;
+    int divider = 1;
+    bit FBDIV_SEL[2:0] = 3'b000;
+    if (INTERNAL_FB == "ENABLE" && EXTERNAL_FB == "DISABLE")
+    {
+        FBDIV_SEL = 3'b000;
+        divider = STATIC_RATIOF;
+    }
+    else if (INTERNAL_FB == "DISABLE" && EXTERNAL_FB == "CLKOUT0")
+    {
+        FBDIV_SEL = 3'b001;
+        divider = STATIC_RATIO0;
+    }
+    else if (INTERNAL_FB == "DISABLE" && EXTERNAL_FB == "CLKOUT1")
+    {
+        FBDIV_SEL = 3'b010;
+        divider = STATIC_RATIO1;
+    }
+    else if (INTERNAL_FB == "DISABLE" && EXTERNAL_FB == "CLKOUT2")
+    {
+        FBDIV_SEL = 3'b011;
+        divider = STATIC_RATIO2;
+    }
+    else if (INTERNAL_FB == "DISABLE" && EXTERNAL_FB == "CLKOUT3")
+    {
+        FBDIV_SEL = 3'b100;
+        divider = STATIC_RATIO3;
+    }
+    else if (INTERNAL_FB == "DISABLE" && EXTERNAL_FB == "CLKOUT4")
+    {
+        FBDIV_SEL = 3'b101;
+        divider = STATIC_RATIO4;
+    }
+    
+    bit CP_RATIO_IDIV[9:0] = to_unsigned(STATIC_RATIOI, 10);
+    bit CP_RATIO_ODIV0[9:0] = to_unsigned(STATIC_RATIO0, 10);
+    bit CP_RATIO_ODIV1[9:0] = to_unsigned(STATIC_RATIO1, 10);
+    bit CP_RATIO_ODIV2[9:0] = to_unsigned(STATIC_RATIO2, 10);
+    bit CP_RATIO_ODIV3[9:0] = to_unsigned(STATIC_RATIO3, 10);
+    bit CP_RATIO_ODIV4[9:0] = to_unsigned(STATIC_RATIO4, 10);
+    bit CP_RATIO_FDIV[9:0]  = to_unsigned(STATIC_RATIOF, 10);
+    
+    bit CP_DUTY_ODIV0[9:0] = to_unsigned(STATIC_DUTY0, 10);
+    bit CP_DUTY_ODIV1[9:0] = to_unsigned(STATIC_DUTY1, 10);
+    bit CP_DUTY_ODIV2[9:0] = to_unsigned(STATIC_DUTY2, 10);
+    bit CP_DUTY_ODIV3[9:0] = to_unsigned(STATIC_DUTY3, 10);
+    bit CP_DUTY_ODIV4[9:0] = to_unsigned(STATIC_DUTY4, 10);
+    bit CP_DUTY_FDIV[9:0]  = to_unsigned(STATIC_DUTYF, 10);    
+ 
+    bit CP_PHASE_ODIV0[12:0];   
+    CP_PHASE_ODIV0[2:0] = to_unsigned(STATIC_PHASE0, 3);
+    CP_PHASE_ODIV0[12:3] = to_unsigned(STATIC_CPHASE0, 10); 
+    
+    bit CP_PHASE_ODIV1[12:0];
+    CP_PHASE_ODIV1[2:0] = to_unsigned(STATIC_PHASE1, 3);
+    CP_PHASE_ODIV1[12:3] = to_unsigned(STATIC_CPHASE1, 10); 
+    
+    bit CP_PHASE_ODIV2[12:0];
+    CP_PHASE_ODIV2[2:0] = to_unsigned(STATIC_PHASE2, 3);
+    CP_PHASE_ODIV2[12:3] = to_unsigned(STATIC_CPHASE2, 10);
+    
+    bit CP_PHASE_ODIV3[12:0]; 
+    CP_PHASE_ODIV3[2:0] = to_unsigned(STATIC_PHASE3, 3);
+    CP_PHASE_ODIV3[12:3] = to_unsigned(STATIC_CPHASE3, 10); 
+    
+    bit CP_PHASE_ODIV4[12:0];
+    CP_PHASE_ODIV4[2:0] = to_unsigned(STATIC_PHASE4, 3);
+    CP_PHASE_ODIV4[12:3] = to_unsigned(STATIC_CPHASE4, 10);
+    
+    bit CP_PHASE_FDIV[12:0];
+    CP_PHASE_FDIV[2:0] = to_unsigned(STATIC_PHASEF, 3);
+    CP_PHASE_FDIV[12:3] = to_unsigned(STATIC_CPHASEF, 10);
+
+    bit CP_CLKOUT_SEL[2:0] = to_unsigned(CLKOUT5_SEL, 3);
+    bit ICP_BASE_TRIM = 1'b0;
+    bit ICP_SEL[3:0] = 4'b0000;
+    bit LPFRES_SEL[2:0] = 3'b000;
+    if (VCOCLK_DIV2 == 1'b0)
+    {
+        if (BANDWIDTH == "LOW")
+        {          
+            if (PFD >= 5 && PFD <= 20)
+            {
+                ICP_BASE_TRIM = 1'b1;
+                if (divider >= 30 && divider <= 45)
+                {
+                    ICP_SEL = 4'b0000;
+                    LPFRES_SEL = 3'b101;
+                }
+                else if (divider >= 46 && divider <= 60)
+                {
+                    ICP_SEL = 4'b0000;
+                    LPFRES_SEL = 3'b111;
+                }
+                else if (divider >= 61 && divider <= 90)
+                {
+                    ICP_SEL = 4'b0001;
+                    LPFRES_SEL = 3'b101;
+                }
+                else if (divider >= 91 && divider <= 120)
+                {
+                    ICP_SEL = 4'b0010;
+                    LPFRES_SEL = 3'b101;
+                }
+                else if (divider >= 121 && divider <= 180)
+                {
+                    ICP_SEL = 4'b0011;
+                    LPFRES_SEL = 3'b101;
+                }
+                else if (divider >= 181 && divider <= 250)
+                {
+                    ICP_SEL = 4'b0101;
+                    LPFRES_SEL = 3'b101;
+                }
+            }
+        }
+        else if (BANDWIDTH == "OPTIMIZED")
+        {           
+            if (PFD >= 20 && PFD <= 40)
+            {
+                ICP_BASE_TRIM = 1'b0;
+                LPFRES_SEL = 3'b011;
+                if (divider >= 10 && divider <= 19)
+                {
+                    ICP_SEL = 4'b0001;
+                }
+                else if (divider >= 20 && divider <= 29)
+                {
+                    ICP_SEL = 4'b0011;                    
+                }
+                else if (divider >= 30 && divider <= 39)
+                {
+                    ICP_SEL = 4'b0101;
+                }
+                else if (divider >= 40 && divider <= 49)
+                {
+                    ICP_SEL = 4'b0111;
+                }
+                else if (divider >= 50 && divider <= 59)
+                {
+                    ICP_SEL = 4'b1001;
+                }
+                else if (divider >= 60 && divider <= 69)
+                {
+                    ICP_SEL = 4'b1011;
+                }
+            }
+        }
+        else if (BANDWIDTH == "HIGH")
+        {
+            if (PFD >= 40 && PFD < 80)
+            {
+                LPFRES_SEL = 3'b011;
+                if (divider == 7)
+                {
+                    ICP_BASE_TRIM = 1'b1;
+                    ICP_SEL = 4'b0100;
+                }
+                else if (divider >= 8 && divider <= 9)
+                {
+                    ICP_BASE_TRIM = 1'b1;
+                    ICP_SEL = 4'b0101;
+                }
+                else if (divider >= 10 && divider <= 11)
+                {
+                    ICP_BASE_TRIM = 1'b1;
+                    ICP_SEL = 4'b0110;
+                }
+                else if (divider >= 12 && divider <= 14)
+                {
+                    ICP_BASE_TRIM = 1'b1;
+                    ICP_SEL = 4'b0111;
+                }
+                else if (divider >= 15 && divider <= 17)
+                {
+                    ICP_BASE_TRIM = 1'b0;
+                    ICP_SEL = 4'b0100;
+                }
+                else if (divider >= 18 && divider <= 19)
+                {
+                    ICP_BASE_TRIM = 1'b0;
+                    ICP_SEL = 4'b0101;
+                }
+                else if (divider >= 20 && divider <= 24)
+                {
+                    ICP_BASE_TRIM = 1'b0;
+                    ICP_SEL = 4'b0110;
+                }
+                else if (divider >= 25 && divider <= 29)
+                {
+                    ICP_BASE_TRIM = 1'b0;
+                    ICP_SEL = 4'b1000;
+                }
+                else if (divider >= 30 && divider <= 34)
+                {
+                    ICP_BASE_TRIM = 1'b0;
+                    ICP_SEL = 4'b1001;
+                }
+            } 
+            else if (PFD >= 80 && PFD < 160)
+            {
+                LPFRES_SEL = 3'b011;
+                if (divider == 4)
+                {
+                    ICP_BASE_TRIM = 1'b1;
+                    ICP_SEL = 4'b0010;
+                }
+                else if (divider >= 5 && divider <= 6)
+                {
+                    ICP_BASE_TRIM = 1'b1;
+                    ICP_SEL = 4'b0011; 
+                }
+                else if (divider == 7)
+                {
+                    ICP_BASE_TRIM = 1'b1;
+                    ICP_SEL = 4'b0100;
+                }
+                else if (divider >= 8 && divider <= 9)
+                {
+                    ICP_BASE_TRIM = 1'b0;
+                    ICP_SEL = 4'b0010;
+                }
+                else if (divider >= 10 && divider <= 14)
+                {
+                    ICP_BASE_TRIM = 1'b0;
+                    ICP_SEL = 4'b0011;
+                }
+                else if (divider >= 15 && divider <= 19)
+                {
+                    ICP_BASE_TRIM = 1'b0;
+                    ICP_SEL = 4'b0101;
+                }
+            }
+            else if (PFD >= 160 && PFD <= 320)
+            {
+                if (divider >= 2 && divider <= 3)
+                {
+                    ICP_BASE_TRIM = 1'b0;
+                    ICP_SEL = 4'b0000;
+                    LPFRES_SEL = 3'b001;
+                }
+                else if (divider >= 4 && divider <= 6)
+                {
+                    ICP_BASE_TRIM = 1'b0;
+                    ICP_SEL = 4'b0001;
+                    LPFRES_SEL = 3'b011;
+                }
+                else if (divider >= 7 && divider <= 8)
+                {
+                    ICP_BASE_TRIM = 1'b0;
+                    ICP_SEL = 4'b0010;
+                    LPFRES_SEL = 3'b011;
+                }
+            }
+        }
+    }
+    else if (VCOCLK_DIV2 == 1'b1)
+    {
+        if (BANDWIDTH == "LOW")
+        {
+            if (PFD >= 5 && PFD <= 20)
+            {
+                ICP_BASE_TRIM = 1'b1;
+                if (divider >= 15 && divider <= 22)
+                {
+                    ICP_SEL = 4'b0000;
+                    LPFRES_SEL = 3'b101;
+                }
+                else if (divider >= 23 && divider <= 30)
+                {
+                    ICP_SEL = 4'b0000;
+                    LPFRES_SEL = 3'b111;
+                }
+                else if (divider >= 31 && divider <= 45)
+                {
+                    ICP_SEL = 4'b0001;
+                    LPFRES_SEL = 3'b101;
+                }
+                else if (divider >= 46 && divider <= 60)
+                {
+                    ICP_SEL = 4'b0010;
+                    LPFRES_SEL = 3'b101;
+                }
+                else if (divider >= 61 && divider <= 90)
+                {
+                    ICP_SEL = 4'b0011;
+                    LPFRES_SEL = 3'b101;
+                }
+                else if (divider >= 91 && divider <= 125)
+                {
+                    ICP_SEL = 4'b0101;
+                    LPFRES_SEL = 3'b101;
+                }
+            }
+        }
+        else if (BANDWIDTH == "OPTIMIZED")
+        {
+            if (PFD >= 20 && PFD <= 40)
+            {
+                ICP_BASE_TRIM = 1'b0;
+                LPFRES_SEL = 3'b011;
+                if (divider >= 5 && divider <= 9)
+                {
+                    ICP_SEL = 4'b0001;
+                }
+                else if (divider >= 10 && divider <= 14)
+                {
+                    ICP_SEL = 4'b0011;                    
+                }
+                else if (divider >= 15 && divider <= 19)
+                {
+                    ICP_SEL = 4'b0101;
+                }
+                else if (divider >= 20 && divider <= 24)
+                {
+                    ICP_SEL = 4'b0111;
+                }
+                else if (divider >= 25 && divider <= 29)
+                {
+                    ICP_SEL = 4'b1001;
+                }
+                else if (divider >= 30 && divider <= 34)
+                {
+                    ICP_SEL = 4'b1011;
+                }
+            }
+        }
+        else if (BANDWIDTH == "HIGH")
+        {
+            if (PFD >= 40 && PFD < 80)
+            {
+                LPFRES_SEL = 3'b011;
+                if (divider == 4)
+                {
+                    ICP_BASE_TRIM = 1'b1;
+                    ICP_SEL = 4'b0101;
+                }
+                else if (divider == 5)
+                {
+                    ICP_BASE_TRIM = 1'b1;
+                    ICP_SEL = 4'b0110;
+                }
+                else if (divider >= 6 && divider <= 7)
+                {
+                    ICP_BASE_TRIM = 1'b1;
+                    ICP_SEL = 4'b0111;
+                }
+                else if (divider == 8)
+                {
+                    ICP_BASE_TRIM = 1'b0;
+                    ICP_SEL = 4'b0100;
+                }
+                else if (divider == 9)
+                {
+                    ICP_BASE_TRIM = 1'b0;
+                    ICP_SEL = 4'b0101;
+                }
+                else if (divider >= 10 && divider <= 12)
+                {
+                    ICP_BASE_TRIM = 1'b0;
+                    ICP_SEL = 4'b0110;
+                }
+                else if (divider >= 13 && divider <= 14)
+                {
+                    ICP_BASE_TRIM = 1'b0;
+                    ICP_SEL = 4'b1000;
+                }
+                else if (divider >= 15 && divider <= 17)
+                {
+                    ICP_BASE_TRIM = 1'b0;
+                    ICP_SEL = 4'b1001;
+                }
+            } 
+            else if (PFD >= 80 && PFD < 160)
+            {
+                LPFRES_SEL = 3'b011;
+                if (divider == 2)
+                {
+                    ICP_BASE_TRIM = 1'b1;
+                    ICP_SEL = 4'b0010;
+                }
+                else if (divider == 3)
+                {
+                    ICP_BASE_TRIM = 1'b1;
+                    ICP_SEL = 4'b0011;
+                }
+                else if (divider == 4)
+                {
+                    ICP_BASE_TRIM = 1'b0;
+                    ICP_SEL = 4'b0010;
+                }
+                else if (divider >= 5 && divider <= 7)
+                {
+                    ICP_BASE_TRIM = 1'b0;
+                    ICP_SEL = 4'b0011;
+                }
+                else if (divider >= 8 && divider <= 9)
+                {
+                    ICP_BASE_TRIM = 1'b0;
+                    ICP_SEL = 4'b0101;
+                }
+            }
+            else if (PFD >= 160 && PFD <= 320)
+            {
+                ICP_BASE_TRIM = 1'b0;
+                if (divider == 1)
+                {
+                    ICP_SEL = 4'b0000;
+                    LPFRES_SEL = 3'b001;
+                }
+                else if (divider >= 2 && divider <= 3)
+                {
+                    ICP_SEL = 4'b0001;
+                    LPFRES_SEL = 3'b011;
+                }
+                else if (divider == 4)
+                {
+                    ICP_SEL = 4'b0010;
+                    LPFRES_SEL = 3'b011;
+                }
+            }
+        }
+    }
+    
+    device PLL pll_inst
+        parameter map
+        (
+            CP_DYN_CLKMOD_SEL_EN    => CP_DYN_CLKMOD_SEL_EN    ,
+            CP_CLKIN_STASEL         => CP_CLKIN_STASEL    ,
+            CP_PFDENA_DISABLE       => PFDEN_EN == "FALSE" ? "TRUE" : "FALSE"     ,
+            CP_VCOCLK_DIV2          => VCOCLK_DIV2         ,
+            CP_DYN_RATIO_IDIV_EN    => DYNAMIC_RATIOI_EN == "FALSE" ? 1'b0 : 1'b1   ,
+            CP_DYN_RATIO_ODIV_EN    => {DYNAMIC_RATIO4_EN == "FALSE" ? 1'b0 : 1'b1, DYNAMIC_RATIO3_EN == "FALSE" ? 1'b0 : 1'b1, DYNAMIC_RATIO2_EN == "FALSE" ? 1'b0 : 1'b1, DYNAMIC_RATIO1_EN == "FALSE" ? 1'b0 : 1'b1, DYNAMIC_RATIO0_EN == "FALSE" ? 1'b0 : 1'b1},
+            CP_DYN_RATIO_FDIV_EN    => DYNAMIC_RATIOF_EN == "FALSE" ? 1'b0 : 1'b1 ,          
+            
+            CP_RATIO_IDIV         => CP_RATIO_IDIV        ,            
+            CP_RATIO_ODIV0        => CP_RATIO_ODIV0       ,
+            CP_RATIO_ODIV1        => CP_RATIO_ODIV1       ,
+            CP_RATIO_ODIV2        => CP_RATIO_ODIV2       ,
+            CP_RATIO_ODIV3        => CP_RATIO_ODIV3       ,
+            CP_RATIO_ODIV4        => CP_RATIO_ODIV4       ,
+            CP_RATIO_FDIV         => CP_RATIO_FDIV       ,
+
+            CP_DYN_DUTY_ODIV_EN   => {DYNAMIC_DUTY4_EN == "FALSE" ? 1'b0 : 1'b1, DYNAMIC_DUTY3_EN == "FALSE" ? 1'b0 : 1'b1, DYNAMIC_DUTY2_EN == "FALSE" ? 1'b0 : 1'b1, DYNAMIC_DUTY1_EN == "FALSE" ? 1'b0 : 1'b1, DYNAMIC_DUTY0_EN == "FALSE" ? 1'b0 : 1'b1},
+            CP_DYN_DUTY_FDIV_EN   => DYNAMIC_DUTYF_EN == "FALSE" ? 1'b0 : 1'b1    ,
+
+            CP_DUTY_ODIV0         => CP_DUTY_ODIV0        ,
+            CP_DUTY_ODIV1         => CP_DUTY_ODIV1        ,
+            CP_DUTY_ODIV2         => CP_DUTY_ODIV2        ,
+            CP_DUTY_ODIV3         => CP_DUTY_ODIV3        ,
+            CP_DUTY_ODIV4         => CP_DUTY_ODIV4        ,
+            CP_DUTY_FDIV          => CP_DUTY_FDIV        ,
+            
+            CP_ODIV_PHASE_EN     => {PHASE_ADJUST4_EN == "FALSE" ? 1'b0 : 1'b1, PHASE_ADJUST3_EN == "FALSE" ? 1'b0 : 1'b1, PHASE_ADJUST2_EN == "FALSE" ? 1'b0 : 1'b1, PHASE_ADJUST1_EN == "FALSE" ? 1'b0 : 1'b1, PHASE_ADJUST0_EN == "FALSE" ? 1'b0 : 1'b1},
+            
+            CP_DYN_PHASE_ODIV_EN    => {DYNAMIC_PHASE4_EN == "FALSE" ? 1'b0 : 1'b1, DYNAMIC_PHASE3_EN == "FALSE" ? 1'b0 : 1'b1, DYNAMIC_PHASE2_EN == "FALSE" ? 1'b0 : 1'b1, DYNAMIC_PHASE1_EN == "FALSE" ? 1'b0 : 1'b1, DYNAMIC_PHASE0_EN == "FALSE" ? 1'b0 : 1'b1},
+            CP_DYN_PHASE_FDIV_EN    => DYNAMIC_PHASEF_EN == "FALSE" ? 1'b0 : 1'b1   ,           
+            
+            CP_PHASE_ODIV0       =>  CP_PHASE_ODIV0     ,
+            CP_PHASE_ODIV1       =>  CP_PHASE_ODIV1     ,
+            CP_PHASE_ODIV2       =>  CP_PHASE_ODIV2     ,
+            CP_PHASE_ODIV3       =>  CP_PHASE_ODIV3     ,
+            CP_PHASE_ODIV4       =>  CP_PHASE_ODIV4     ,
+            CP_PHASE_FDIV        =>  CP_PHASE_FDIV      ,
+            
+            CP_ODIV_CAS          => {CLK_CAS4_EN == "FALSE" ? 1'b0 : 1'b1, CLK_CAS3_EN == "FALSE" ? 1'b0 : 1'b1, CLK_CAS2_EN == "FALSE" ? 1'b0 : 1'b1, CLK_CAS1_EN == "FALSE" ? 1'b0 : 1'b1, CLK_CAS0_EN == "FALSE" ? 1'b0 : 1'b1}     ,
+            
+            CP_CLKOUT_SEL        => CP_CLKOUT_SEL         ,
+            CP_BYPASS_EN         => CLKIN_BYPASS_EN     ,
+            CP_GATE_EN           => {1'b0, CLKOUT0_EXT_SYN_EN == "FALSE" ? 1'b0 : 1'b1, CLKOUT4_SYN_EN == "FALSE" ? 1'b0 : 1'b1, CLKOUT3_SYN_EN == "FALSE" ? 1'b0 : 1'b1, CLKOUT2_SYN_EN == "FALSE" ? 1'b0 : 1'b1, CLKOUT1_SYN_EN == "FALSE" ? 1'b0 : 1'b1, CLKOUT0_SYN_EN == "FALSE" ? 1'b0 : 1'b1} ,
+            CP_GATE_5MUX1_EN     => CLKOUT5_SYN_EN == "FALSE" ? 1'b0 : 1'b1      ,
+            
+            CP_FBDIV_SEL           => FBDIV_SEL         ,
+            CP_ICP_BASE_TRIM       => ICP_BASE_TRIM     ,
+            CP_ICP_SEL             => ICP_SEL            ,
+            CP_LPFRES_SEL          => LPFRES_SEL          ,
+            CP_CRIPPLE_SEL         => BANDWIDTH == "HIGH" ? 1'b1 : 1'b0   ,
+            CP_PLL_RST_DISABLE     => CP_PLL_RST_DISABLE     ,
+            CP_ODIV_RST_ENABLE     => RSTODIV_PHASE_EN,
+            CP_FBDLY_CNTL          => FBDLY_CNTL,
+            CP_FBCK_DLY_EN         => FBCK_DLY_EN,
+            CP_PLL_PWD_ENABLE      => CP_PLL_PWD_ENABLE,
+            CP_EXTRSTSYN_EN        => RSTODIV_PHASE_EN
+        )
+        port map
+        (
+            CLK_OUT0           => CLKOUT0,
+            CLK_OUT0_WL        => CLKOUT0_WL,
+            CLK_OUT_EXT        => CLKOUT0_EXT,
+            CLK_OUT1           => CLKOUT1,    
+            CLK_OUT2           => CLKOUT2,    
+            CLK_OUT3           => CLKOUT3,    
+            CLK_OUT4           => CLKOUT4,    
+            CLK_OUT_5MUX1      => CLKOUT5,    
+            CLKSWITCH_FLAG     => CLKSWITCH_FLAG,
+            LOCK_LOCAL         => LOCK,
+                   
+            CLK_FBIN            =>  CLKFB, 
+            CLK_INT_FB          =>  CLK_INT_FB,
+            CLK_IN0             =>  CLKIN1,        
+            CLK_IN1             =>  CLKIN2,           
+            DYNSEL_CLKIN        =>  CLKIN_SEL,    
+            DYNSEL_MANNU_EN     =>  CLKIN_SEL_EN,    
+     
+            PFDENA_DYN        =>  PFDEN,      
+            GATE_CLKOUT[5:0]  =>  {CLKOUT0_EXT_SYN, CLKOUT4_SYN, CLKOUT3_SYN, CLKOUT2_SYN, CLKOUT1_SYN, CLKOUT0_SYN},    
+            GATE_5MUX1        =>  CLKOUT5_SYN, 
+              
+            IDIV_RATIO_DYN             =>  RATIOI,
+            ODIV0_RATIO_DYN            =>  RATIO0,
+            ODIV1_RATIO_DYN            =>  RATIO1,
+            ODIV2_RATIO_DYN            =>  RATIO2,
+            ODIV3_RATIO_DYN            =>  RATIO3,
+            ODIV4_RATIO_DYN            =>  RATIO4,
+            FDIV_RATIO_DYN             =>  RATIOF,
+            
+            ODIV0_DUTY_DYN             =>  DUTY0,
+            ODIV1_DUTY_DYN             =>  DUTY1,
+            ODIV2_DUTY_DYN             =>  DUTY2,
+            ODIV3_DUTY_DYN             =>  DUTY3,
+            ODIV4_DUTY_DYN             =>  DUTY4,
+            FDIV_DUTY_DYN              =>  DUTYF,             
+            
+            ODIV0_PHASE_DYN           =>  {CPHASE0, PHASE0},
+            ODIV1_PHASE_DYN           =>  {CPHASE1, PHASE1},
+            ODIV2_PHASE_DYN           =>  {CPHASE2, PHASE2},
+            ODIV3_PHASE_DYN           =>  {CPHASE3, PHASE3},
+            ODIV4_PHASE_DYN           =>  {CPHASE4, PHASE4},
+            FDIV_PHASE_DYN            =>  {CPHASEF, PHASEF},
+            
+            PLL_PWRDOWN           =>  PLL_PWD,
+            RST_PLL               =>  RST,
+            RST_ODIV              =>  RSTODIV_PHASE
+        );
+
+}; // end of implementation impl_pll of gopPLL
+

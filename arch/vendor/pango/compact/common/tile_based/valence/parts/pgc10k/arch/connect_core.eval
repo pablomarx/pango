@@ -1,0 +1,341 @@
+use pgc_defs,pgc10k_defs,pgc_funcs_place,pgc_funcs_connect_logic;
+
+structure arch_nl connect_SRB of devPGC10K
+{
+    unsigned int N_SRB = NUM_TILE_Y - 3;
+    unsigned int S_SRB = 1;
+    unsigned int W_SRB = 1;
+    unsigned int E_SRB = NUM_TILE_X - 2;
+    unsigned int blank_x = CRAM_CTRL_TILE_X;
+    unsigned int blank_y = CRAM_CTRL_TILE_Y;
+    
+
+
+    connect_SRB_inputs( N_SRB, S_SRB, W_SRB, E_SRB, blank_x, blank_y, L_SRB_TILES_X, L_SRB_TILES_Y);
+
+};//end of structure arch_nl connect_SRB of PGC10K
+
+/***************************************************************************************
+****************************************************************************************/
+library work;
+use pgc_defs,pgc10k_defs,pgc_funcs_place,pgc10k_funcs_connect_logic;
+
+structure arch_nl connect_CLM_TILES of devPGC10K
+{
+    unsigned int blank_y = CRAM_CTRL_TILE_Y;
+    unsigned int max_y = MAX_CLM_Y;
+
+
+    unsigned int tx,ty; 
+
+    foreach tx ( L_CLMS_TILES_X )
+    {
+        foreach ty ( L_CLMS_TILES_Y )
+        {
+           pgc10k_connect_CLM_input(tx, ty, blank_y, max_y,"CLMS_TILE");
+        }
+    }
+    foreach tx ( L_CLMSS_TILES_X )
+    {
+        foreach ty ( L_CLMS_TILES_Y )
+        {
+           pgc10k_connect_CLM_input(tx, ty, blank_y, max_y,"CLMSS_TILE");
+        }
+    }
+};
+
+/***************************************************************************************
+****************************************************************************************/
+library work;
+use pgc_defs, pgc10k_defs;
+use pgc_funcs_place,pgc10k_funcs_place,pgc10k_funcs_connect_wl_bl;
+
+structure arch_nl connect_clms_mask of devPGC10K
+{
+    // Tile index variable
+    unsigned int tx, ty;
+
+    string clm ;
+
+    foreach tx ( L_CLMSSS_TILES_X )
+    {
+        foreach ty ( L_CLMSSS_TILES_Y )
+        {
+          connect_clm_mask_data( tx, ty, CRAM_CTRL_TILE_X, CRAM_CTRL_TILE_Y);
+        }
+    }    
+
+    connect_clm_mask_data2cram(14,CRAM_CTRL_TILE_X, CRAM_CTRL_TILE_Y,"CLMS_TILE");
+
+    connect_clm_mask_data2cram(17,CRAM_CTRL_TILE_X, CRAM_CTRL_TILE_Y,"CLMS_TILE");
+
+
+}; // end of structure arch_nl connect_clms_mask of devPGC10K
+/*******************************************************************************
+********************************************************************************/
+library work;
+use pgc_defs, pgc10k_defs, pgc10k_funcs_connect_wl_bl;
+use pgc_funcs_place, pgc10k_funcs_place,pgc10k_funcs_connect_logic;
+
+structure arch_nl connect_cram_ctrl_input of devPGC10K
+{
+    unsigned int tx,ty;
+    
+    foreach tx ( {CRAM_CTRL_TILE_X} )
+    {
+        foreach ty ( {CRAM_CTRL_TILE_Y} )
+        {
+            connect_cram_ctrl_input( tx, ty, CCS_TILE_X, CCS_TILE_Y, ANALOG_TILE_X, ANALOG_TILE_Y);
+        }  
+    } 
+    
+};  // end of structure arch_nl layout_cram_ctrl_tiles of devPGC10K
+/*******************************************************************************
+********************************************************************************/
+library work;
+use pgc_defs, pgc10k_defs;
+use pgc_funcs_place,pgc10k_funcs_connect_logic;
+
+structure arch_nl connect_drm_tile of devPGC10K
+{
+    unsigned int tx,ty;
+
+    int min_y = DRM_TILE_Y_MIN;
+    int max_y = DRM_TILE_Y_MAX;
+    int tx_con = DRM_TILE_X_MID;
+    
+    foreach tx ( L_DRM_TILES_X )
+    {
+        foreach ty ( L_DRM_TILES_Y )
+        {
+          connect_drm_10k_input( tx, ty, CRAM_CTRL_TILE_Y, USCM_TILE_X, CLKDLYT_TILE_Y, CLKDLYB_TILE_Y, tx_con, max_y, min_y);
+          connect_drm_10k_mask_input( tx, ty, CRAM_CTRL_TILE_Y, USCM_TILE_X);
+        }
+    } 
+    
+};  // end of structure arch_nl layout_drm_tile of devPGC10K
+/*******************************************************************************
+********************************************************************************/
+library work;
+use pgc_defs, pgc10k_defs;
+use pgc10k_funcs_place,pgc10k_funcs_connect_logic;
+
+structure arch_nl connect_ccs_tile of devPGC10K
+{
+        
+    connect_ccs_input(CCS_TILE_X,CCS_TILE_Y,ANALOG_TILE_Y,CRAM_CTRL_TILE_X,CRAM_CTRL_TILE_Y,IDCODE_TILE_Y,ESD_TILE_X,ESD_TILE_Y,IOB0_TILE_X,IOB0_TILE_Y);
+
+
+}; // end of structure arch_nl layout_ccs_tile of devPGC10K
+/*******************************************************************************
+********************************************************************************/
+library work;
+use pgc_defs, pgc10k_defs, pgc10k_funcs_connect_wl_bl;
+use pgc_funcs_place, pgc10k_funcs_place,pgc10k_funcs_connect_logic;
+
+structure arch_nl connect_analog_tiles of devPGC10K
+{
+    
+    connect_analog_input(ANALOG_TILE_X, ANALOG_TILE_Y,CCS_TILE_Y,IOB0_TILE_X,IOB0_TILE_Y,IOB1_TILE_Y,IOB2_TILE_X,IOB2_TILE_Y,IOB3_TILE_X,IOB3_TILE_Y,IOB4_TILE_X,IOB4_TILE_Y,IOB5_TILE_X,IOB5_TILE_Y,2,44);
+
+};  // end of structure arch_nl layout_analog_tiles of devPGC10K
+/*******************************************************************************
+********************************************************************************/
+library work;
+use pgc_defs, pgc10k_defs;
+use pgc_funcs_place,pgc10k_funcs_connect_clk;
+
+structure arch_nl connect_uscm_tile of devPGC10K
+{
+   unsigned int tx,ty;
+
+   unsigned int L_USCM_TILES_X[] = {USCM_TILE_X};
+   unsigned int L_USCM_TILES_Y[] = {USCM_TILE_Y};
+   int tx_srb = USCM_TILE_X - 1;
+   int ty_srb = USCM_TILE_Y - 2;
+   int tx_ckeb2 = CKEB2_TILE_X;
+   int ty_ckeb2 = CKEB2_TILE_Y;
+   int tx_ckeb2d = CKEB2D_TILE_X;
+   int ty_ckeb2d = CKEB2D_TILE_Y;
+
+    
+    foreach tx ( L_USCM_TILES_X )
+    {
+        foreach ty ( L_USCM_TILES_Y )
+        {
+            connect_uscm_input(tx, ty, tx_ckeb2, ty_ckeb2,tx_ckeb2d, ty_ckeb2d, CLKDLYT_TILE_Y, CLKDLYB_TILE_Y);
+        }      
+    } 
+    
+};  // end of structure arch_nl layout_uscm_tile of devPGC10K
+/*******************************************************************************
+********************************************************************************/
+library work;
+use pgc_defs, pgc10k_defs;
+use pgc_funcs_place,pgc10k_funcs_connect_clk;
+
+structure arch_nl connect_ckeb_tile of devPGC10K
+{
+   unsigned int tx,ty;
+
+    
+    foreach tx ( L_CKEB_TILES_X )
+    {
+        foreach ty ( {CKEBD_TILE_Y} )
+        {
+            connect_CKEB_10k_input( tx, ty, CKEB2_TILE_X,CKEB2_TILE_Y,CKEB2D_TILE_X,CKEB2D_TILE_Y,USCM_TILE_X,USCM_TILE_Y);
+        }      
+    } 
+
+    foreach tx ( L_CKEBD_TILES_X )
+    {
+        foreach ty ( {CKEBD_TILE_Y} )
+        {
+            connect_CKEB_10k_input( tx, ty, CKEB2_TILE_X,CKEB2_TILE_Y,CKEB2D_TILE_X,CKEB2D_TILE_Y,USCM_TILE_X,USCM_TILE_Y);
+        }      
+    }
+    
+};  // end of structure arch_nl layout_uscm_tile of devPGC10K
+/*******************************************************************************
+********************************************************************************/
+library work;
+use pgc_defs, pgc10k_defs;
+use pgc10k_funcs_connect_clk;
+
+structure arch_nl connect_ckeb2_tile of devPGC10K
+{
+   unsigned int tx, ty;
+
+   unsigned int L_CKEB2_TILES_X[] = {CKEB2_TILE_X, CKEB2D_TILE_X};
+   
+   int tx_uscm = USCM_TILE_X;
+   int ty_uscm = USCM_TILE_Y;
+   int ty_iock = IOCK_TILE_Y;
+
+   foreach tx ( L_CKEB2_TILES_X )
+   {
+        connect_ckeb2_input( tx, CKEB_TILE_Y, ty_iock, tx_uscm, ty_uscm);
+   }
+       
+};  // end of structure arch_nl layout_ckeb2_tile of devPGC10K
+/*******************************************************************************
+********************************************************************************/
+library work;
+use pgc_defs, pgc10k_defs;
+use pgc_funcs_place,pgc10k_funcs_connect_clk;
+
+structure arch_nl connect_iock_tile of devPGC10K
+{
+   unsigned int tx,ty;
+   int tx_ckeb2 = CKEB2_TILE_X;
+   int ty_ckeb2 = CKEB2_TILE_Y;
+   int tx_ckeb2d = CKEB2D_TILE_X;
+   int ty_ckeb2d = CKEB2D_TILE_Y;
+   int ty_analog = ANALOG_TILE_Y; 
+   int tx_iob0 = IOB0_TILE_X;
+   int ty_iob0 = IOB0_TILE_Y;
+   int tx_iob2 = IOB2_TILE_X;
+   int ty_iob2 = IOB2_TILE_Y;
+    
+    foreach tx ( L_IOCK_TILES_X )
+    {
+        foreach ty ( {IOCK_TILE_Y} )
+        {
+            connect_iock_input( tx, ty ,tx_ckeb2, ty_ckeb2, tx_ckeb2d, ty_ckeb2d, ty_analog, tx_iob0, ty_iob0, tx_iob2, ty_iob2, 2, 44, USCM_TILE_X);
+        }      
+    } 
+
+    foreach tx ( L_IOCK_7K_TILES_X )
+    {
+        foreach ty ( {IOCK_7K_TILE_Y} )
+        {
+            connect_iock_input( tx, ty, tx_ckeb2, ty_ckeb2, tx_ckeb2d, ty_ckeb2d, ty_analog, tx_iob0, ty_iob0, tx_iob2, ty_iob2, 2, 44, USCM_TILE_X);
+        }      
+    }
+    
+};  // end of structure arch_nl layout_uscm_tile of devPGC10K
+/*******************************************************************************
+********************************************************************************/
+library work;
+use pgc_defs, pgc10k_defs;
+use pgc_funcs_place,pgc10k_funcs_connect_clk,pgc10k_funcs_connect_wl_bl;
+
+structure arch_nl connect_clkdly_tile of devPGC10K
+{
+   unsigned int tx,ty;
+
+   connect_clkdly_10k_input( CLKDLY_TILE_X, CLKDLYB_TILE_Y, IOB3_TILE_X, IOB3_TILE_Y, IOB4_TILE_X, IOB5_TILE_X, IOB1_TILE_X, IOB1_TILE_Y, USCM_TILE_X, USCM_TILE_Y);
+
+   connect_clkdly_10k_input( CLKDLY_TILE_X, CLKDLYT_TILE_Y, IOB3_TILE_X, IOB3_TILE_Y, IOB4_TILE_X, IOB5_TILE_X, IOB1_TILE_X, IOB1_TILE_Y, USCM_TILE_X, USCM_TILE_Y);
+
+};  // end of structure arch_nl layout_uscm_tile of devPGC10K
+/*******************************************************************************
+********************************************************************************/
+library work;
+use pgc_defs, pgc10k_defs;
+use pgc_funcs_place,pgc10k_funcs_place,pgc10k_funcs_connect_logic;
+
+structure arch_nl connect_iob_tile of devPGC10K
+{
+    unsigned int tx,ty;
+
+
+    connect_ioblr_tile( IOB0_TILE_X, IOB0_TILE_Y, CRAM_CTRL_TILE_X,CRAM_CTRL_TILE_Y,ANALOG_TILE_X,ANALOG_TILE_Y,CCS_TILE_X,CCS_TILE_Y);
+
+    connect_ioblr_tile( IOB2_TILE_X, IOB2_TILE_Y, CRAM_CTRL_TILE_X,CRAM_CTRL_TILE_Y,ANALOG_TILE_X,ANALOG_TILE_Y,CCS_TILE_X,CCS_TILE_Y);
+
+    connect_iobt_tile( IOB1_TILE_X, IOB1_TILE_Y, CRAM_CTRL_TILE_X,CRAM_CTRL_TILE_Y,ANALOG_TILE_X,ANALOG_TILE_Y,CCS_TILE_X,CCS_TILE_Y);
+
+    connect_iobb_tile( IOB3_TILE_X, IOB3_TILE_Y, CRAM_CTRL_TILE_X,CRAM_CTRL_TILE_Y,ANALOG_TILE_X,ANALOG_TILE_Y,CCS_TILE_X,CCS_TILE_Y,0);
+
+    connect_iobb_tile( IOB4_TILE_X, IOB4_TILE_Y, CRAM_CTRL_TILE_X,CRAM_CTRL_TILE_Y,ANALOG_TILE_X,ANALOG_TILE_Y,CCS_TILE_X,CCS_TILE_Y,1);
+
+    connect_iobb_tile( IOB5_TILE_X, IOB5_TILE_Y, CRAM_CTRL_TILE_X,CRAM_CTRL_TILE_Y,ANALOG_TILE_X,ANALOG_TILE_Y,CCS_TILE_X,CCS_TILE_Y,2);
+
+
+};//end of structure arch_nl layout_iob_tiles of devPGC10K
+
+/*******************************************************************************
+********************************************************************************/
+library work;
+use pgc_defs, pgc10k_defs;
+use pgc_funcs_place,pgc10k_funcs_connect_clk,pgc10k_funcs_connect_wl_bl,pgc10k_funcs_connect_logic;
+
+structure arch_nl connect_pll_tile of devPGC10K
+{
+   unsigned int tx,ty;
+
+   foreach ty (  L_PLL_TILES_Y )
+    {
+        foreach tx ( {PLL_TILE_X} )
+        {
+ 
+           connect_pll_input(tx,ty,ANALOG_TILE_Y,IOB1_TILE_X,IOB1_TILE_Y,IOB5_TILE_X,IOB5_TILE_Y,IOCK_TILE_Y);
+
+        }
+    
+    }
+};  // end of structure arch_nl connect_pll_tile of devPGC10K
+
+/*******************************************************************************
+********************************************************************************/
+library work;
+use pgc_defs, pgc10k_defs;
+use pgc10k_funcs_connect_clk,pgc10k_funcs_connect_wl_bl,pgc10k_funcs_connect_logic;
+
+structure arch_nl connect_sfbudc_tile of devPGC10K
+{
+   unsigned int tx,ty;
+
+   foreach ty (  L_SFBUDC_TILES_Y )
+    {
+        foreach tx ( L_SFBUDC_TILES_X )
+        {
+ 
+           connect_sfbudc_input(tx,ty,CRAM_CTRL_TILE_X,CRAM_CTRL_TILE_Y,ANALOG_TILE_X,ANALOG_TILE_Y);
+
+        }
+    
+    }
+};  // end of structure arch_nl connect_sfbudc_tile of devPGC10K
+

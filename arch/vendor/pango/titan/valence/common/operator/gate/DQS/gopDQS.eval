@@ -1,0 +1,141 @@
+*******************************************************************
+
+  Operator    [gopDQS]
+
+  Abstract  []
+
+  Revision History:
+
+ ********************************************************************************/
+gate
+operator gopDQS
+{
+    parameter
+    (
+        string GRS_EN                 = "TRUE",          // "TRUE" : 1'b0; "FALSE" : 1'b1                                           
+        string CLK_GATE_EN            = "TRUE",          // "TRUE" : 1'b1; "FALSE" : 1'b0                                          
+        bit    LRS_POL                = 1'b0,            // 1'b0: noinv; 1'b1: inv                                                     
+        string READ_EN                = "TRUE",          // "TRUE" : 1'b0; "FALSE" : 1'b1                                           
+        string DQS_MODE               = "FULL_RATE",     // "FULL_RATE" "HALF_RATE" "QUAD_RATE"                               
+        string CDR_EN                 = "TRUE",          // "TRUE" : 1'b1; "FALSE" : 1'b0  
+        string WL_CTRL_EN             = "TRUE",          // "TRUE" : 1'b1; "FALSE" : 1'b0                                           
+        bit    CLK_DELAY_STEP[8:0]    = 9'b0_0000_0000,  //                                                                            
+        string CLK_EN                 = "TRUE",          // "TRUE" : 1'b1; "FALSE" : 1'b0                                           
+        string CLKDIV_FACTOR          = "2",             // "2", "3.5", "4", "5"                                                       
+        string DQS_DEL_EN             = "TRUE",          // "TRUE" : 1'b1; "FALSE" : 1'b0                                           
+        string RDEL_CTRL_EN           = "TRUE",          // "TRUE" : 1'b1; "FALSE" : 1'b0                                           
+        bit    DQS_DELAY_STEP[8:0]    = 9'b0_0000_0000,  // "DEFAULT"                                                                  
+        string DQS_DLL_IN_EN          = "TRUE",          // "TRUE" : 1'b0; "FALSE" : 1'b1                                           
+        bit    MARGIN                 = 1'b0,                                                                                          
+        string FIFO_EN                = "TRUE",          // "TRUE" : 1'b1; "FALSE" : 1'b0                                           
+        string FIFO_MODE              = "MDDR",          // "MDDR" : DDR MEM; "GDDR" : GENERIC DDR                                     
+        bit    FIF0_ADDR_INIT[2:0]    = 3'b000,                                                                                             
+        bit    FIFOMODE_SEL           = 1'b0,                                                                                          
+        string DLLCODESEL             = "CODE0",          // "CODE0" "CODE1" "CODE2" "CODE3", TB only used "CODE0"(DLL0) "CODE1"(DLL1) 
+        string DQSI_SEL               = "DQSI0"           // "DQSI0" "DQSI1" 
+
+    );
+
+    port
+    (
+        input  LRS /* pragma PAP_ARC_GOP_CTRL_PIN = RST*/,
+        input  DQSI,
+        input  DCC_CLK_CTRL[2:0],
+        input  SAMPLE_CLK_SLIP,
+        input  IOCLK_SEL[3:0],
+        input  WL_STEP[7:0],
+        input  CLK1_STEP[7:0],
+        input  CLKGATE,
+        input  WL_CTRL[2:0],
+        output WL_OV,
+
+        input  DQS_GATE_CTRL[3:0],
+        input  READ_CLK_CTRL[2:0],
+        output STATUS,
+        output READ_VALID,
+        input  RDEL_CTRL[2:0],
+        output RDEL_OV,
+
+        input   SYSCLK /* pragma PAP_ARC_GOP_CTRL_PIN = "GCLK|RCLK"*/,
+        input   DLL_CODE[7:0],  
+        input   IOCLK[1:0] /* pragma PAP_ARC_GOP_CTRL_PIN = IOCLK*/,
+        output  SAMPLE_CLK /* pragma PAP_ARC_GOP_CTRL_PIN = RCLK*/,
+        output  PROBE_CLK,
+        output  SAMPLE_CLK_DIV,
+        output  WCLK,
+        output  WCLK_DEL,
+        output  DQSI_DEL,
+        output  IFIFO_RADDR[2:0],
+        output  IFIFO_WADDR[2:0]
+    );
+};
+
+/**Implementation Body*******************************************************************
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_dqs of gopDQS
+{  
+    device DQS dqs_inst
+        parameter map
+        (
+            GRS_EN             => GRS_EN              ,               
+            CLK_GATE_EN        => CLK_GATE_EN         ,
+            LRS_POL            => LRS_POL             ,
+            READ_EN            => READ_EN             ,
+            DQS_MODE           => DQS_MODE            ,
+            CDR_EN             => CDR_EN              ,
+            WL_CTRL_EN         => WL_CTRL_EN          ,
+            CLK_DELAY_STEP     => CLK_DELAY_STEP      ,
+            CLK_EN             => CLK_EN              ,
+            CLKDIV_FACTOR      => CLKDIV_FACTOR       ,
+            DQS_DEL_EN         => DQS_DEL_EN          ,
+            RDEL_CTRL_EN       => RDEL_CTRL_EN        ,
+            DQS_DELAY_STEP     => DQS_DELAY_STEP      ,
+            DQS_DLL_IN_EN      => DQS_DLL_IN_EN       ,
+            MARGIN             => MARGIN              ,
+            FIFO_EN            => FIFO_EN             ,
+            FIFO_MODE          => FIFO_MODE           ,
+            FIF0_ADDR_INIT     => FIF0_ADDR_INIT      ,
+            FIFOMODE_SEL       => FIFOMODE_SEL        ,
+            DQSI_SEL           => DQSI_SEL
+        )
+        port map
+        (
+            RST                       =>  LRS,
+            DQSI[0]                   =>  (DQSI_SEL == "DQSI0") ? DQSI : 1'bx,  
+            DQSI[1]                   =>  (DQSI_SEL == "DQSI1") ? DQSI : 1'bx,               
+            DCC_CLK_CTRL              =>  DCC_CLK_CTRL,
+            SAMPLE_CLK_SLIP           =>  SAMPLE_CLK_SLIP,
+            IOCLK_SEL                 =>  IOCLK_SEL,
+            WL_STEP                   =>  WL_STEP,
+            CLK1_STEP                 =>  CLK1_STEP,
+            CLKGATE                   =>  CLKGATE,
+            WL_CTRL                   =>  WL_CTRL,
+            WL_OV                     =>  WL_OV,            
+            DQS_GATE_CTRL             =>  DQS_GATE_CTRL,
+            READ_CLK_CTRL             =>  READ_CLK_CTRL,
+            DQS_GATE_TRAINING_STATUS  =>  STATUS,
+            READ_VALID                =>  READ_VALID,
+            RDEL_CTRL                 =>  RDEL_CTRL,
+            RDEL_OV                   =>  RDEL_OV,             
+            SYSCLK                    =>   SYSCLK,
+            DLL_CODE                  =>   DLL_CODE,
+            IOCLK                     =>   IOCLK,
+            SAMPLE_CLK                =>   SAMPLE_CLK,
+            PROBE_CLK                 =>   PROBE_CLK,
+            SAMPLE_CLK_DIV            =>   SAMPLE_CLK_DIV,
+            WCLK                      =>   WCLK,
+            WCLK_DEL                  =>   WCLK_DEL,
+            DQSI_DEL                  =>   DQSI_DEL,
+            IFIFO_RADDR               =>   IFIFO_RADDR,
+            IFIFO_WADDR               =>   IFIFO_WADDR      
+        );
+
+}; // end of implementation impl_dqs of gopDQS
+

@@ -1,0 +1,207 @@
+*****************************************************************
+
+  Device    [devOGSER7IOLB]
+
+  Author    [hzhang]
+
+  Abstract  [devOGSER7IOLB on the TOP/RIGHT/BOTTOM of Arch.]
+
+  Revision History:
+
+********************************************************************************/
+
+gate
+device devOGSER7IOLB : device IOL
+{
+    parameter
+    (
+        config string DO_SEL         = "DO",   // "DO", "DO_COMP"
+        config string TO_SEL         = "TO",   // "TO", "TO_COMP"
+        config string DES_SER_CLK    = "IOCLK",        // "IOCLK", "SAMPLE_CLK", "PROBE_CLK"
+        
+        config bit    ODDR_LRS_EN    = 1'b0,
+        config string ODDR_OCLK     := "SERCLK",      // "SERCLK", "WCLK", "WCLKDEL", "SYSCLK"
+        config string ODDR_MODE     := "ODDRB",       //"OGDDR", "OGSER4", "OGSER7", "OGSER8", "OGSER10"
+                                                       //"OMDDR", "OMSER4", "OMSER8" ,"DISABLE"
+                                                       //"ODDRB"  -- add this mode for diffrent fusesetting between 
+                                                       // IOL_A and IOL_B, ODDRB refs to "OGSER8", "OGSER7", "OMSER8", 
+                                                       // "OGSER10" 
+
+        config bit    GRS_EN         = 1'b0,
+        config bit    CLK_O_INV      = 1'b0,
+        config bit    LRS_INV        = 1'b0,
+
+        config bit    TRI_FORCE[1:0]  := 2'b11
+    );
+    
+    port
+    (
+        input   TX_DATA[0:0],
+   
+        input   IOCLK,
+
+        input   SAMPLE_CLK,
+        input   PROBE_CLK,
+
+        input   SYSCLK,
+        input   LRS,
+
+        output  ODDR_COUT[16:0],
+        input   ODDR_CIN[16:0],
+
+        output  DO,
+        output  TO,
+        
+        input   DO_IN
+
+    );
+
+}// end of device devOGSER7IOLB
+
+/*******************************************************************************
+
+  Device    [devOGSER7IOLB]
+
+  Author    []
+
+  Abstract  [The structure netlist of devOGSER7IOLB is described in the similar fashion
+             as in HDL. In unit instantiation statement, the formal pin may be
+             connected to net which is declared explicitly.
+
+             In Valence, the connection can also be made from formal pin to other
+             pin or port, in which case Valence compiler shall create the net to
+             fulfil the connection. The built-in naming convention is kicked in
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devOGSER7IOLB
+{
+    // Wires for input ports
+
+    wire ntSYSCLK, ntLRS;
+
+    wire ntSAMPLE_CLK;
+    wire ntPROBE_CLK;
+
+    ntSYSCLK          <= SYSCLK;
+    ntLRS             <= LRS;
+
+    ntSAMPLE_CLK      <= SAMPLE_CLK;
+    ntPROBE_CLK       <= PROBE_CLK;
+
+    wire  ntDO_IN;
+    wire  ntDO_MUX;
+
+    ntDO_IN   <= DO_IN;
+    DO        <= ntDO_MUX;
+
+    // Internal wires
+    wire ntLRS_MUX;
+    
+    wire ntSYSCLK_MUX_O;
+
+    wire ntIOCLK;
+    ntIOCLK <= IOCLK;
+    wire ntODDR_SERCLK_MUX;
+    wire ntODDR_OCLK_MUX;
+    wire ntODDR_LRS_MUX;
+
+    device LRS_MUX LRS_MUX
+        parameter map
+        (
+            LRS_INV => LRS_INV
+        )
+        port map
+        (
+            I1  => ntLRS,
+            I0  => ntLRS,
+            Y   => ntLRS_MUX
+        );
+
+    device SYSCLK_MUX_O SYSCLK_MUX_O
+        parameter map
+        (
+            CLK_INV => CLK_O_INV
+        )
+        port map
+        (
+            I1   => ntSYSCLK,
+            I0   => ntSYSCLK,
+            Y    => ntSYSCLK_MUX_O
+        );
+
+    // ODDR
+    device ODDR_SERCLK_MUX ODDR_SERCLK_MUX
+        parameter map
+        (
+            SERCLK => DES_SER_CLK
+        )
+        port map
+        (
+            I2  => ntIOCLK,
+            I1  => ntSAMPLE_CLK,
+            I0  => ntPROBE_CLK,
+            Y   => ntODDR_SERCLK_MUX
+        );
+
+    device ODDR_OCLK_MUX ODDR_OCLK_MUX
+        parameter map
+        (
+            OCLK => ODDR_OCLK
+        )
+        port map
+        (
+            I3  => ntODDR_SERCLK_MUX,
+
+            Y   => ntODDR_OCLK_MUX
+        );
+
+    device ODDR_LRS_MUX ODDR_LRS_MUX
+        parameter map
+        (
+            LRS_USED => ODDR_LRS_EN
+        )
+        port map
+        (
+            LRS  => ntLRS_MUX,
+            ZERO  => 1'b0,
+            Y     => ntODDR_LRS_MUX
+        );
+
+    device ODDR ODDR
+        parameter map
+        (
+            ODDR_MODE => ODDR_MODE
+        )
+        port map
+        (
+            DATA[0]      => TX_DATA[0],
+
+            OCLK         => ntODDR_OCLK_MUX,
+            SYSCLK         => ntSYSCLK_MUX_O,
+            SERCLK       => ntODDR_SERCLK_MUX,
+
+            LRS          => ntODDR_LRS_MUX,
+        
+            //for cascaded parts
+
+            COUT         => ODDR_COUT,
+            CIN          => ODDR_CIN
+        );
+
+    device DO_MUX DO_MUX
+       parameter map
+       (
+           DO_SEL  => DO_SEL
+       )
+       port map
+       (
+           I1   => ntDO_IN,
+           Y    => ntDO_MUX
+       );
+}; // end of structure netlist of devOGSER7IOLB

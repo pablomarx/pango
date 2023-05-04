@@ -1,0 +1,183 @@
+*****************************************************************
+
+  Device    [devCQ_S]
+
+  Author    [guoxi]
+
+  Abstract  [FF WITH C Part of CLMS]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devCQ_S : device devC_S
+{
+    parameter
+    ( 
+        config string  CP_GRS_EN      = "FALSE",  
+        config string  CP_Q2MUX_SEL   := "MX",             //"YX":Y2 "MX":M1 "SRQ":Q1
+        config string  CP_RS_MODE     = "ASYNC",          //"SYNC" "ASYNC" - CLMS Global
+        config string  CP_FF2_RS      = "SET",            //"RESET" "SET"
+        config string  CP_RSMUX_SEL   = "LOCAL",          //"LOCAL":RS; "CHAIN":RSIN
+        config string  CP_CEMUX_SEL   = "LOCAL",          //"LOCAL":CE; "CHAIN":CEIN
+        config string  CP_LRS_EN  = "TRUE",               //"Disable"; "Enable"
+        config string  CP_LRS_POL = "FALSE",               //"RS"; "Invert RS" - CLMS Global
+        config string  CP_LCE_EN  = "TRUE",               // "Disable"; "Enable"
+        config string  CP_LCE_POL = "FALSE",               // "CE";  "Invert CE" - CLMS Global
+        config string  CP_CLK_POL = "FALSE"                //"CLK"; "Invert CLK" - CLMS Global
+    );
+    
+    port
+    ( 
+        output   Q2,  
+        input    M1,
+        input    RS,
+        input    CE,
+        input    CLK,
+        input    RSCI,
+        input    CECI,
+        output   RSCO,
+        output   CECO
+    );
+}; // end of device devCQ_S
+
+
+/*******************************************************************************
+
+  Device    [devCQ_S]
+
+  Author    [guoxi]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devCQ_S
+{
+    // Wires for input ports
+    wire ntM1;
+    wire ntRS;
+    wire ntCE;
+    wire ntCLK;  
+    wire ntRSCI;
+    wire ntCECI;  
+
+    // Wires connecting to output ports
+    wire ntQ2;
+    wire ntCECO;
+    wire ntRSCO;
+
+    // Internal wires
+    wire ntQD2;
+    wire ntCLKCO;
+    wire ntRS_P;
+    wire ntCE_P;
+    
+    //
+    // Connection to ports
+    //
+    ntM1      <= M1;
+    ntRS      <= RS;
+    ntCE      <= CE;
+    ntCLK     <= CLK;
+
+    ntRSCI    <= RSCI;
+    ntCECI    <= CECI;
+
+    Q2        <= ntQ2;
+    RSCO      <= ntRSCO;
+    CECO      <= ntCECO;
+       
+    //
+    // Instances. FGA section
+    //
+    
+    device QMUX  Q2MUX
+        parameter map
+        (
+            CP_OUT_SEL => CP_Q2MUX_SEL
+        )
+        port map
+        (
+            Q    => ntQD2,
+            MX   => ntM1
+        );
+        
+    device FF FF2
+        parameter map
+        (
+            CP_GRS_EN  => CP_GRS_EN,
+            CP_RS_MODE => CP_RS_MODE,
+            CP_FF_RS   => CP_FF2_RS
+        )
+        port map
+        (
+            Q   => ntQ2,
+            D   => ntQD2,
+            CE  => ntCECO,
+            CLK => ntCLKCO,
+            RS  => ntRSCO
+        );
+
+    device MUX2_P  CEMUX
+        parameter map
+        (
+            SEL => CP_CEMUX_SEL
+        )
+        port map
+        (
+            DOUT  => ntCECO,
+            DI1   => ntCECI,
+            DI0   => ntCE_P
+        );
+    
+    device MUX2_P  RSMUX
+        parameter map
+        (
+            SEL => CP_RSMUX_SEL
+        )
+        port map
+        (
+            DOUT  => ntRSCO,
+            DI1   => ntRSCI,
+            DI0   => ntRS_P
+        );
+
+    device CLK_POLMUX  CLKPOLMUX
+        parameter map
+        (
+            CP_CLK_POL => CP_CLK_POL
+        )
+        port map
+        (
+            Y  => ntCLKCO,
+            IN => ntCLK
+        );
+        
+    device LCE_POLMUX  LCEPOLMUX
+        parameter map
+        (
+            CP_LCE_EN  => CP_LCE_EN,
+            CP_LCE_POL => CP_LCE_POL
+        )
+        port map
+        (
+            Y  => ntCE_P,
+            IN => ntCE
+        );
+        
+    device LRS_POLMUX  LRSPOLMUX
+        parameter map
+        (
+            CP_LRS_EN  => CP_LRS_EN,
+            CP_LRS_POL => CP_LRS_POL
+        )
+        port map
+        (
+            Y  => ntRS_P,
+            IN => ntRS
+        );
+        
+}; // end of structure netlist of devCQ_S
+

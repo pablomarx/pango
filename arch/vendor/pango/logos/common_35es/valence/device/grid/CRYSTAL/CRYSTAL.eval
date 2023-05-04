@@ -1,0 +1,76 @@
+tarted
+grid
+device CRYSTAL
+{
+    // grid_property_def_start
+    // grid_property_def_end
+
+    parameter
+    (
+        config string CP_XTAL_EN = "DISABLE"
+    );
+    port
+    (
+// configuration_body_def_on
+
+
+    config input SC_XTAL_EN = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_XTAL_EN" */,
+
+// configuration_body_def_end
+
+        input XTAL_A = 1'b1,
+        input XTAL_B = 1'b1,
+        input XTAL_ENN = 1'b1,
+        output CLK_XTAL
+    );
+};
+//grid device end
+
+//grid device structure netlist started
+structure netlist of CRYSTAL
+{
+};
+//grid device structure netlist end
+//grid device configure body started
+
+configuration cfg of CRYSTAL
+{
+
+//initial config body0 begin
+    if ( "ENABLE" == CP_XTAL_EN )
+    {
+        SC_XTAL_EN   :=  1'b1;
+    }
+    else if ( "DISABLE" == CP_XTAL_EN )
+    {
+        SC_XTAL_EN   :=  1'b0;
+    }
+    else
+    {
+        error(" Crystal error: illegal setting for CP_XTAL_EN! (Allowed value: ENABLE, DISABLE)");
+        SC_XTAL_EN   :=  1'bx;
+    }
+
+//initial config body0 end
+
+};
+
+//grid device configure body end
+
+timing  crystal_tnl of CRYSTAL
+{
+    operator V_CRYSTAL V_CRYSTAL
+        parameter map
+        (
+            CLK_EN  => (CP_XTAL_EN == "ENABLE") ? "TRUE" : "FALSE"
+        )
+        port map
+        (
+            CLKOUT  => CLK_XTAL,
+            XTALA   => XTAL_A  ,
+            XTALB   => XTAL_B  ,
+            EN_N    => XTAL_ENN
+        );
+};
+

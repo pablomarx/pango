@@ -1,0 +1,66 @@
+*******************************************************************
+
+  Operator    [gopCLKBUFG]
+
+  Abstract  []
+
+  Revision History:
+
+ ********************************************************************************/
+gate
+operator gopCLKBUFG
+{
+    parameter
+    (
+        string SOURCE_CLK = "CLK0"  // "CLK0", "CLK1";
+    );
+
+    port
+    (
+        input   CLK, 
+        output  CLKOUT
+    );
+};
+
+/**Implementation Body*******************************************************************
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_uscm of gopCLKBUFG
+{
+    string CP_USCM_MODE = "BUF_A";
+
+    if( SOURCE_CLK != "CLK0" && SOURCE_CLK != "CLK1" )
+    {
+        error("error config  %s for SOURCE_CLK in device GTP_CLKBUFG, it must be one of CLK0 and CLK1", SOURCE_CLK);
+    }
+
+    if( SOURCE_CLK == "CLK0")
+    {
+        CP_USCM_MODE = "BUF_A";
+    }
+    else if( SOURCE_CLK == "CLK1")
+    {
+        CP_USCM_MODE = "BUF_B";
+    }
+    
+    device USCM uscm_inst
+        parameter map
+        (
+           CP_USCM_MODE => CP_USCM_MODE
+        )
+        port map
+        (
+            CLK_A     => (SOURCE_CLK == "CLK0")? CLK : 1'bx, 
+            CLK_B     => (SOURCE_CLK == "CLK1")? CLK : 1'bx, 
+            CLK_USCM  =>  CLKOUT
+        );
+
+}; // end of implementation impl_uscm of gopCLKBUFG
+
+

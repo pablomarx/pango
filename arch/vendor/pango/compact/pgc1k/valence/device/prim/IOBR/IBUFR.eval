@@ -1,0 +1,75 @@
+*****************************************************************
+
+  Device    [IBUFR]
+
+  Authos    [guoxi]
+
+  Abstract  []
+
+  Revision Hisory:
+
+********************************************************************************/
+prim
+device IBUFR
+{
+    parameter
+    (
+        config string CP_IOB_MODE     = "IBUF" , 
+        config string CP_LP_EN        = "OFF"  , 
+        config string CP_IO_STANDARD  = "LVCMOS33"
+    );
+    port
+    (
+        output OUT             ,
+        output OUT_MIPI_LP     ,
+        input  IN              ,
+        input  TS              ,
+        input  DIFFI_IN        ,
+        input  MIPI_SW_DYN     ,
+        input  INBUF_DYN_DIS_N
+    );
+} // end of device IBUFR
+
+/**Device***********************************************************************
+
+  Device    [IBUFR]
+  
+  Author    [shenqiang]  
+
+  Abstract  [This specified how to propagate the input signal to the outputs based on
+             configuration]
+
+  Revision History:
+
+********************************************************************************/
+propagation pop of IBUFR
+{
+    if (CP_LP_EN == "ON") 
+    {
+        propagate ( INBUF_DYN_DIS_N --> OUT );
+        
+        if (CP_IO_STANDARD == "MIPI"  && (CP_IOB_MODE == "IBUF_DS" || CP_IOB_MODE == "IOBUF_MIPI"))  
+        {
+            if (CP_LP_EN == "ON")
+            {
+            propagate ( INBUF_DYN_DIS_N --> OUT_MIPI_LP );
+            propagate ( IN --> OUT_MIPI_LP );
+            }
+            propagate ( TS --> OUT_MIPI_LP );
+
+            propagate ( MIPI_SW_DYN --> OUT );
+            propagate ( TS --> OUT );
+            propagate ( DIFFI_IN --> OUT );
+        }
+        else if (CP_IO_STANDARD == "IBUF_DS" || CP_IOB_MODE == "IOBUF_MIPI")
+        {
+            propagate ( DIFFI_IN --> OUT );
+            propagate ( IN --> OUT );
+        }
+        else if (CP_IO_STANDARD == "IBUF" || CP_IOB_MODE == "IOBUF")
+        {
+            propagate ( IN --> OUT );
+        }
+    }
+    
+};// end of propagation for IBUFR

@@ -1,0 +1,225 @@
+*****************************************************************
+
+  Device    [devA]
+
+  Author    []
+
+  Abstract  [A Part of CLMA]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devA : device CLMA
+{
+    parameter
+    (
+        config bit INITA[31:0]       = 32'h0000_0000,        
+        config string FGA_MODE       = "LUT5",              // "LUT5" "ROM" "WMUX" "ARITH"
+        config string LATCH_SETA     = "RESET",             // USED it when place it in IOL
+        // Used these parameter for CLM     
+        config string LATCH_CE_EN_A  = "USED",              //"UNUSED" "USED"
+        config string LATCH_LRS_EN_A = "USED",              //"UNUSED" "USED"
+                
+        config string GRS_EN         = "TRUE",              // "TRUE" "FALSE"
+        config string LRS_EN         = "TRUE",              // "TRUE" "FALSE"
+        config string Y0MUX_SEL      = "FFAB",              // "FFAB" "FG" "CY" 
+        config string Q0MUX_SEL      = "Y0"  ,              // "Y0" "SHIFTIN" "M0"
+        config string CEMUX_SEL      = "CE",                // "CE" "CEIN" 
+        config string RSMUX_SEL      = "RS",                // "RS" "RSIN"
+        config bit    CLK_POS        = 1'b0,                // 1'b0: "CLK"; 1'b1: "CLK_B"   
+        config bit    CE_POS         = 1'b0,                // 1'b0: "CE";  1'b1: "CE_B"
+        config bit    RS_POS         = 1'b0,                // 1'b0: "RS"   1'b1:  "RS_B"
+        config string SYNC_MODE      = "SYNC",               // "SYNC" "ASYNC"
+        config string FF0_SET        = "RESET"               // "RESET" "SET"  
+    );
+    
+    port
+    (
+               input    A0, A1, A2, A3, A4, AD,
+               output   Y0, Q0,
+               input    M0,
+               input    RS, CE, CLK,
+               input    CIN,
+        logic  output   FGA_COUT,
+               input    RSIN,
+               output   RSOUT,
+               input    CEIN,
+               output   CEOUT
+
+    );
+}; // end of device devA
+
+
+/*******************************************************************************
+
+  Device    [devA]
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devA
+{
+    // Wires for input ports
+    wire ntA0, ntA1, ntA2, ntA3, ntA4, ntAD; 
+    wire ntM0;
+    wire ntRS, ntCE, ntCLK;
+    wire ntCIN;
+
+    wire ntRSIN;
+    wire ntCEIN;
+
+    // Wires connecting to output ports
+    wire ntY0MUX,ntFF0_Q;
+    wire ntRSMUX;
+    wire ntCEMUX;
+
+    // Internal wires
+    wire ntFGA_Z, ntCYA;
+    wire ntQ0MUX;
+    wire ntRSPOLMUX, ntCEPOLMUX, ntCLKPOLMUX;
+    //
+    // Connection to ports
+    //
+ 
+    ntA0      <= A0;
+    ntA1      <= A1;
+    ntA2      <= A2;
+    ntA3      <= A3;
+    ntA4      <= A4;
+    ntAD      <= AD;
+
+    ntM0      <= M0;
+   
+    ntRS      <= RS;
+    ntCE      <= CE;
+    ntCLK     <= CLK;
+    ntCIN     <= CIN;
+
+    ntRSIN    <= RSIN;
+    ntCEIN    <= CEIN;
+
+    Y0        <= ntY0MUX;
+    Q0        <= ntFF0_Q;
+      
+    FGA_COUT  <= ntCYA;
+
+    RSOUT     <= ntRSMUX;
+    CEOUT     <= ntCEMUX;
+    
+    //
+    // Instances. FGA section
+    //
+
+    device FGA FGA 
+        parameter map
+        (
+            INIT        => INITA,
+            MODE        => FGA_MODE
+        )
+        port map 
+        (
+            A0   => ntA0, A1  => ntA1, A2  => ntA2, A3  => ntA3, A4  => ntA4,       
+            A5   => ntAD,
+            CIN  => ntCIN,
+            COUT => ntCYA,
+            Z    => ntFGA_Z 
+        );
+
+    device Y0MUX Y0MUX
+        parameter map
+        (
+            CFG  => Y0MUX_SEL
+        )
+        port map
+        (
+            FG  => ntFGA_Z, CY => ntCYA,
+            Z   => ntY0MUX
+        );
+    
+    device Q0MUX Q0MUX
+        parameter map
+        (
+            CFG  => Q0MUX_SEL
+        )    
+        port map
+        (
+            Y0  => ntY0MUX, M0 => ntM0,
+            Z   => ntQ0MUX
+        );
+    
+    device FF FF0
+        parameter map
+        (
+            GRS_EN => GRS_EN,
+            LRS_EN => LRS_EN,        
+            SET     => FF0_SET,
+            SYNC    => SYNC_MODE
+        )
+        port map
+        (
+            D  => ntQ0MUX,
+            RS => ntRSMUX, CE => ntCEMUX, CK => ntCLKPOLMUX,
+            Q  => ntFF0_Q
+        );
+
+    device RSMUX RSMUX
+        parameter map
+        (
+            CFG    => RSMUX_SEL
+        )    
+        port map
+        (
+            RS  => ntRSPOLMUX, RSIN => ntRSIN,
+            Y   => ntRSMUX
+        );
+
+    device CEMUX CEMUX
+        parameter map
+        (
+            CFG    => CEMUX_SEL
+        )     
+        port map
+        (
+            CE  => ntCEPOLMUX, CEIN => ntCEIN,
+            Y   => ntCEMUX
+        );
+
+
+    device RSPOLMUX RSPOLMUX
+        parameter map
+        (
+            CFG    => RS_POS
+        )     
+        port map
+        (
+            RS  => ntRS, RS_B => ntRS,
+            Y   => ntRSPOLMUX
+        );
+
+    device CEPOLMUX CEPOLMUX
+        parameter map
+        (
+            CFG    => CE_POS
+        )     
+        port map
+        (
+            CE  => ntCE, CE_B => ntCE,
+            Y   => ntCEPOLMUX
+        );
+
+    device CLKPOLMUX CLKPOLMUX
+        parameter map
+        (
+            CFG    => CLK_POS
+        )        
+        port map
+        (
+            CLK  => ntCLK, CLK_B => ntCLK,
+            Y    => ntCLKPOLMUX
+        );
+}; // end of structure netlist of devA

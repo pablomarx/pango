@@ -1,0 +1,108 @@
+*******************************************************************
+
+  Operator    [gopOBUF]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+gate
+operator gopOBUF
+{
+    parameter
+    (
+        string CP_MIPI_EN         = "DISABLE",
+        string TERMINATED         = "PULLDW",    /* "NONE" , "PULLUP" , "PULLDW" , "KEEPER" */
+        string HOT_SOCKET         = "ON",        // ON: 1'b0; OFF: 1'b1
+        string POWER_MODE         = "ON",        // ON: 1'b0; OFF: 1'b1 ON--> POWER GUARD
+        string VCCIO              = "3.3",       // "3.3" "2.5" "1.8" "1.5" "1.2"
+        string SLEW_MODE          = "F",         // "F" "S"
+        string DRV_CURR_VAL       = "4",
+        string OPENDRAIN          = "OFF",       // OFF: NA; ON: OD
+        string IOSTANDARD         = "LVCMOS33",
+        string DIFF_IN_TERM_MODE  = "OFF"  
+    );
+    port
+    (
+        input I,
+        input T,
+        input MI,
+        output O
+    );
+};
+
+
+implementation impl_R of gopOBUF
+{
+    device devIOBR gate_obufbr
+        parameter map
+        (
+            CP_PORT_STATUS       => TERMINATED,
+            CP_HOT_SOCKET        =>  HOT_SOCKET,
+            CP_VCCIO             =>  VCCIO,
+            CP_IOB_MODE          =>  "OBUF",
+    
+            CP_SLEW_MODE         =>  SLEW_MODE,
+            CP_DRV_STRENGTH      =>  DRV_CURR_VAL,
+            CP_OPENDRAIN         =>  OPENDRAIN,
+            CP_IO_STANDARD       =>  IOSTANDARD,
+            
+            CP_DIFFIN_TERM       =>  DIFF_IN_TERM_MODE
+        )
+        port map 
+        (
+            PAD           => O,
+            TS            => T,
+            DO            => I,
+            MIPI_SW_DYN   => MI
+        );
+};
+
+implementation impl_D of gopOBUF
+{
+    device devIOBD gate_obufad
+        parameter map
+        (
+            CP_PORT_STATUS       =>  TERMINATED,
+            CP_HOT_SOCKET        =>  HOT_SOCKET,
+            CP_VCCIO             =>  VCCIO,
+            CP_IOB_MODE          =>  CP_MIPI_EN == "DISABLE" ?  "OBUF" : "OBUF_DS",
+
+            CP_SLEW_MODE         =>  SLEW_MODE,
+            CP_DRV_STRENGTH      =>  DRV_CURR_VAL,
+            CP_OPENDRAIN         =>  OPENDRAIN,
+            CP_IO_STANDARD       =>  IOSTANDARD
+        )
+        port map 
+        (
+            PAD           => O,
+            MIPI_SW_DYN   => MI,
+            TS            => T,
+            DO            => I
+        );
+};
+
+implementation impl_S of gopOBUF
+{
+    device devIOBS gate_obufbs
+        parameter map
+        (
+            CP_PORT_STATUS       => TERMINATED,
+            CP_HOT_SOCKET        =>  HOT_SOCKET,
+            CP_VCCIO             =>  VCCIO,
+            CP_IOB_MODE          =>  "OBUF",
+
+            CP_SLEW_MODE         =>  SLEW_MODE,
+            CP_DRV_STRENGTH      =>  DRV_CURR_VAL,
+            CP_OPENDRAIN         =>  OPENDRAIN,
+            CP_IO_STANDARD       =>  IOSTANDARD
+        )
+        port map 
+        (
+            PAD           => O,
+            MIPI_SW_DYN   => MI,
+            TS            => T,
+            DO            => I
+        );
+};

@@ -1,0 +1,95 @@
+*******************************************************************
+
+  Operator    [gopOBUFTIOLTQDEL]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+gate
+operator gopOBUFTIOLTQDEL
+{
+    parameter
+    (
+        string GRS_EN          = "FALSE",           // "TRUE" "FALSE"  
+        string DELAY_SEL       = "DEFAULT",
+        bit    IODLY_CTRL_EN   = 1'b0,
+        bit    IODLY_STEP[3:0] = 4'b0000, 
+        
+        string TSFF_CE_EN      = "UNUSED", 
+        string TSFF_LRS_EN     = "UNUSED", 
+        string TSFF_SET        = "RESET",   
+        string TSFF_SYNC       = "ASYNC",   
+        string TSFF_LATCH     = "FF",      
+
+        string CLK_O_INV      = "FALSE",
+        string CE_INV         = "FALSE",
+        string LRS_INV        = "FALSE",
+        string MIPI_MODE      = "FALSE"
+    );
+    port
+    (
+        input   IN,
+        input   TS,
+
+        input   SYSCLK /*pragma PAP_ARC_GOP_CTRL_PIN="GCLK|RCLK"*/,
+        input   CE /*pragma PAP_ARC_GOP_CTRL_PIN="CE"*/,
+        input   LRS /*pragma PAP_ARC_GOP_CTRL_PIN="RST"*/,
+        input   MI,
+        input   IODLY_CTRL[2:0],
+        output  IODLY_OV,
+
+        // from to IOB
+        output  T,
+        output  O,
+        output  MO,
+        output  DO_OUT,
+        output  TO_OUT
+    );
+};
+
+implementation impl of gopOBUFTIOLTQDEL
+{
+    device devOBUFTIOLTQDEL gate_obuftioltqdel
+        parameter map
+        (
+            CP_GRS_DIS     => GRS_EN == "FALSE" ? "TRUE" : "FALSE",
+            //DELAY_SEL       => DELAY_SEL,
+            //IODLY_CTRL_EN   => IODLY_CTRL_EN,
+            CP_IODLY_STEP      => IODLY_STEP,
+
+            CP_OUTCE_EN    => TSFF_CE_EN == "USED" ? "ENABLE" : "DISABLE",
+            CP_OUTLRS_EN   => TSFF_LRS_EN == "USED" ? "ENABLE" : "DISABLE",
+            CP_TSFF_SET    => TSFF_SET,
+            CP_FF_SYNC     => TSFF_SYNC,        
+            CP_TSFF_LATCH   => TSFF_LATCH,
+
+            CP_OUTCLK_POL   =>  CLK_O_INV,
+            CP_CE_POL       =>  CE_INV,
+            CP_LRS_POL      =>  LRS_INV,
+            
+            CP_MIPI_EN      =>  MIPI_MODE == "TRUE" ? "ENABLE" : "DISABLE"
+        )
+        port map
+        (
+            TX_DATA[7]   =>  IN,
+            TS_CTRL[0]   =>  TS,
+
+            CLK_SYS      =>  SYSCLK,
+            CE           =>  CE,
+            LRS          =>  LRS,
+
+            IODLY_CTRL   =>  IODLY_CTRL,
+            IODLY_OV     =>  IODLY_OV,
+
+            TO            =>  T,
+            DO            =>  O,
+
+           DO_OUT       =>  DO_OUT,
+           TO_OUT       =>  TO_OUT,
+           
+           MIPI_SW_DYN_O =>  MO,
+           MIPI_SW_DYN_I =>  MI
+        );
+};

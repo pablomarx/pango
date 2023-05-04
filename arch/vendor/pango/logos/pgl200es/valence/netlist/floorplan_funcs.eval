@@ -1,0 +1,2169 @@
+*******************************************************************
+
+  Package   [pango_floorplan_funcs]
+
+  Author    [Jiang Tao]
+
+  Abstract  [Floorplan description common to pango architecture]
+
+  Revision History:
+
+********************************************************************************/
+library work;
+USE pgl_defs, pgl200es_defs, pango_defs;
+
+package pgl_floorplan_funcs
+{
+    unsigned int fsx_global = 0;
+    unsigned int fsy_global = 0;
+    
+    unsigned int fsx_gap = 0;
+    unsigned int fsy_gap = 0;
+    
+    // delete gap when compute floorplan coordinate
+    function delete_gap_for_floorplan (unsigned int lsx, unsigned int lsy)
+    {
+        fsx_gap = lsx;
+        fsy_gap = lsy;
+        
+        if (lsx > 280)
+        {
+            fsx_gap = lsx - NUM_GRID_X;
+        }
+        
+        if (lsy < 60)
+        {
+            fsy_gap = lsy;
+        }
+        else if (lsy < 184)
+        {
+            fsy_gap = lsy - NUM_GRID_Y;
+        }
+        else if (lsy < 308)
+        {
+            fsy_gap = lsy - NUM_GRID_Y * 2;
+        }
+        else if (lsy < 432)
+        {
+            fsy_gap = lsy - NUM_GRID_Y * 3;
+        }
+        else if (lsy < 556)
+        {
+            fsy_gap = lsy - NUM_GRID_Y * 4;
+        }
+        else if (lsy < 680)
+        {
+            fsy_gap = lsy - NUM_GRID_Y * 5;
+        }
+        else if (lsy < 804)
+        {
+            fsy_gap = lsy - NUM_GRID_Y * 6;
+        }
+        else if (lsy < 928)
+        {
+            fsy_gap = lsy - NUM_GRID_Y * 7;
+        }
+        else
+        {
+            fsy_gap = lsy - NUM_GRID_Y * 8;
+        }
+    }
+    
+    // add gap when compute coordinate of gui
+    function add_gap_for_gui(unsigned int lsx, unsigned int lsy)
+    {
+        fsx_global = lsx;
+        fsy_global = lsy;
+        
+        if (lsx > 157 && lsy > 120)
+        {
+            fsx_global = lsx + 2;
+        }
+        
+        if (lsy < 15)
+        {
+            fsy_global = lsy;
+        }
+        else if (lsy < 45)
+        {
+            fsy_global = lsy + 1;
+        }
+        else if (lsy < 75)
+        {
+            fsy_global = lsy + 2;
+        }
+        else if (lsy < 105)
+        {
+            fsy_global = lsy + 3;
+        }
+        else if (lsy < 135)
+        {
+            fsy_global = lsy + 4;
+        }
+        else if (lsy < 165)
+        {
+            fsy_global = lsy + 5;
+        }
+        else if (lsy < 195)
+        {
+            fsy_global = lsy + 6;
+        }
+        else if (lsy < 225)
+        {
+            fsy_global = lsy + 7;
+        }
+        else
+        {
+            fsy_global = lsy + 8;
+        }
+    }
+    
+    // compute the floorplan coordinate of iol
+    function get_coordinate_of_iol(unsigned int lsx, unsigned int lsy)
+    {
+        unsigned int tmp_x = lsx;
+        unsigned int tmp_y = lsy;
+        unsigned int tmp_val = 0;
+        
+        fsx_global = 0;
+        fsy_global = 0;
+        
+        delete_gap_for_floorplan(tmp_x, tmp_y);
+        
+        if (lsx < 8)
+        {
+            tmp_val = fsy_gap % 8;
+            if (tmp_val < 3)
+            {
+                fsx_global = 0;
+            }
+            else
+            {
+                fsx_global = 2;
+                fsy_gap = fsy_gap - NUM_GRID_Y;
+            }
+            
+            if (fsy_gap % 2 == 1)
+            {
+                fsy_gap = fsy_gap + 1;
+            }
+            else
+            {
+                fsy_gap = fsy_gap - 1;
+            }
+            fsy_global = fsy_gap / NUM_GRID_Y + (fsy_gap - 1) % 2;
+        }
+        else
+        {
+            fsx_global = tmp_x / 2 - 3;
+            tmp_val = fsy_gap % 8;
+            if (tmp_val > 3)
+            {
+                fsx_global = fsx_global + 2;
+                fsy_gap = fsy_gap - NUM_GRID_Y;
+            }
+            
+            if (fsy_gap % 2 == 1)
+            {
+                fsy_gap = fsy_gap + 1;
+            }
+            else
+            {
+                fsy_gap = fsy_gap - 1;
+            }
+            fsy_global = fsy_gap / NUM_GRID_Y + (fsy_gap - 1) % 2;
+        }
+    }
+    
+    // compute the floorplan coordinate of iob
+    function get_coordinate_of_iob(unsigned int lsx, unsigned int lsy)
+    {
+        unsigned int tmp_x = lsx;
+        unsigned int tmp_y = lsy;
+        unsigned int tmp_val = 0;
+        
+        fsx_global = 0;
+        fsy_global = 0;
+        
+        delete_gap_for_floorplan(tmp_x, tmp_y);
+        
+        if (lsx < 8)
+        {
+            tmp_val = fsy_gap % 8;
+            if (tmp_val < 3)
+            {
+                fsx_global = 1;
+            }
+            else
+            {
+                fsx_global = 3;
+                fsy_gap = fsy_gap - NUM_GRID_Y;
+            }
+            
+            if (fsy_gap % 2 == 1)
+            {
+                fsy_gap = fsy_gap + 1;
+            }
+            else
+            {
+                fsy_gap = fsy_gap - 1;
+            }
+            fsy_global = fsy_gap / NUM_GRID_Y + (fsy_gap - 1) % 2;
+        }
+        else
+        {
+            fsx_global = tmp_x / 2 - 3;
+            tmp_val = fsy_gap % 8;
+            if (tmp_val > 3)
+            {
+                fsx_global = fsx_global + 2;
+                fsy_gap = fsy_gap - NUM_GRID_Y;
+            }
+            
+            if (fsy_gap % 2 == 1)
+            {
+                fsy_gap = fsy_gap + 1;
+            }
+            else
+            {
+                fsy_gap = fsy_gap - 1;
+            }
+            fsy_global = fsy_gap / NUM_GRID_Y + (fsy_gap - 1) % 2;
+        }
+    }
+    
+    // compute the floorplan coordinate of uscm
+    function get_coordinate_of_uscm(unsigned int lsx, unsigned int lsy)
+    {
+        unsigned int tmp_x = lsx;
+        unsigned int tmp_y = lsy;
+        
+        fsx_global = 0;
+        fsy_global = 0;
+        
+        delete_gap_for_floorplan(tmp_x, tmp_y);
+        
+        fsx_global = 157;
+        fsy_global = fsy_gap - 356;
+    }
+    
+    // compute the floorplan coordinate of ipal
+    function get_coordinate_of_ipal(unsigned int lsx, unsigned int lsy)
+    {
+        unsigned int tmp_x = lsx;
+        unsigned int tmp_y = lsy;
+        
+        fsx_global = 0;
+        fsy_global = 0;
+        
+        delete_gap_for_floorplan(tmp_x, tmp_y);
+        
+        fsx_global = 124;
+        fsy_global = fsy_gap / NUM_GRID_Y;
+    }
+    
+    // compute the floorplan coordinate of start
+    function get_coordinate_of_start(unsigned int lsx, unsigned int lsy)
+    {
+        unsigned int tmp_x = lsx;
+        unsigned int tmp_y = lsy;
+        
+        fsx_global = 0;
+        fsy_global = 0;
+        
+        delete_gap_for_floorplan(tmp_x, tmp_y);
+        
+        fsx_global = 124;
+        fsy_global = fsy_gap / NUM_GRID_Y - 1;
+    }
+    
+    // compute the floorplan coordinate of scanchain
+    function get_coordinate_of_scanchain(unsigned int lsx, unsigned int lsy)
+    {
+        unsigned int tmp_x = lsx;
+        unsigned int tmp_y = lsy;
+        
+        fsx_global = 0;
+        fsy_global = 0;
+        
+        delete_gap_for_floorplan(tmp_x, tmp_y);
+        
+        fsx_global = 124;
+        fsy_global = fsy_gap / 4 + fsy_gap % 4;
+    }
+    
+    // compute the floorplan coordinate of dll
+    function get_coordinate_of_dll(unsigned int lsx, unsigned int lsy)
+    {
+        unsigned int tmp_x = lsx;
+        unsigned int tmp_y = lsy;
+        
+        fsx_global = 0;
+        fsy_global = 0;
+        
+        delete_gap_for_floorplan(tmp_x, tmp_y);
+        
+        if (lsx < 8)
+        {
+            fsx_global = 2;
+        }
+        else if (lsx < 339)
+        {
+            fsx_global = 159;
+        }
+        else
+        {
+            fsx_global = 319;
+        }
+        
+        fsy_global = (fsy_gap - 4) / 4;
+    }
+    
+    // compute the floorplan coordinate of bkcl
+    function get_coordinate_of_bkcl(unsigned int lsx, unsigned int lsy)
+    {
+        unsigned int tmp_x = lsx;
+        unsigned int tmp_y = lsy;
+        
+        fsx_global = 0;
+        fsy_global = 0;
+        
+        delete_gap_for_floorplan(tmp_x, tmp_y);
+        
+        if (lsx < 8)
+        {
+            fsx_global = 3;
+            fsy_global = (fsy_gap - 4) / 4 + 2;
+        }
+        else if (lsx < 339)
+        {
+            fsx_global = 159;
+            fsy_global = 6 * (lsy / 13);
+        }
+        else
+        {
+            fsx_global = 319;
+            fsy_global = (fsy_gap - 4) / 4 + 2;
+        }
+    }
+    
+    // compute the floorplan coordinate of rescal
+    function get_coordinate_of_rescal(unsigned int lsx, unsigned int lsy)
+    {
+        unsigned int tmp_x = lsx;
+        unsigned int tmp_y = lsy;
+        
+        fsx_global = 0;
+        fsy_global = 0;
+        
+        delete_gap_for_floorplan(tmp_x, tmp_y);
+        
+        if (lsx < 8)
+        {
+            fsx_global = 2;
+            fsy_global = (fsy_gap - 8) / 4 + 3;
+        }
+        else
+        {
+            fsx_global = 318;
+            fsy_global = (fsy_gap - 8) / 4 + 3;
+        }
+    }
+    
+    // compute the floorplan coordinate of crystal
+    function get_coordinate_of_crystal(unsigned int lsx, unsigned int lsy)
+    {
+        unsigned int tmp_x = lsx;
+        unsigned int tmp_y = lsy;
+        
+        fsx_global = 0;
+        fsy_global = 0;
+        
+        delete_gap_for_floorplan(tmp_x, tmp_y);
+        
+        if (lsx < 8)
+        {
+            fsx_global = 3;
+            fsy_global = (fsy_gap - 5) / 4 + 3;
+        }
+        else if (lsx < 339)
+        {
+            fsx_global = 159;
+            fsy_global = 6 * ((lsy - 1) / 13) + 1;
+        }
+        else
+        {
+            fsx_global = 319;
+            fsy_global = (fsy_gap - 5) / 4 + 3;
+        }
+    }
+    
+    // compute the floorplan coordinate of iockdly
+    function get_coordinate_of_iockdly(unsigned int lsx, unsigned int lsy)
+    {
+        unsigned int tmp_x = lsx;
+        unsigned int tmp_y = lsy;
+        
+        fsx_global = 0;
+        fsy_global = 0;
+        
+        delete_gap_for_floorplan(tmp_x, tmp_y);
+        
+        if (fsx_gap < 8)
+        {
+            fsx_global = 17;
+        }
+        else if (fsx_gap < 318)
+        {
+            fsx_global = 160;
+        }
+        else
+        {
+            fsx_global = 307;
+        }
+        
+        fsy_global = fsy_gap / 4 + fsy_gap % 4 - 6;
+    }
+    
+    // compute the floorplan coordinate of rckb
+    function get_coordinate_of_rckb(unsigned int lsx, unsigned int lsy)
+    {
+        unsigned int tmp_x = lsx;
+        unsigned int tmp_y = lsy;
+        
+        fsx_global = 0;
+        fsy_global = 0;
+        
+        delete_gap_for_floorplan(tmp_x, tmp_y);
+        
+        if (fsx_gap < 8)
+        {
+            fsx_global = 17;
+            fsy_global = fsy_gap / 4 + fsy_gap % 4 - 10;
+        }
+        else if (fsx_gap < 50)
+        {
+            fsx_global = 23;
+            fsy_global = fsy_gap / 4 + fsy_gap % 4 - 4;
+        }
+        else if (fsx_gap < 319)
+        {
+            fsx_global = 160;
+            fsy_global = fsy_gap / 4 + fsy_gap % 4 - 2;
+        }
+        else if (fsx_gap < 639)
+        {
+            fsx_global = 307;
+            fsy_global = fsy_gap / 4 + fsy_gap % 4 - 2;
+        }
+    }
+    
+    // compute the floorplan coordinate of iockgate
+    function get_coordinate_of_iockgate(unsigned int lsx, unsigned int lsy)
+    {
+        unsigned int tmp_x = lsx;
+        unsigned int tmp_y = lsy;
+        
+        fsx_global = 0;
+        fsy_global = 0;
+        
+        delete_gap_for_floorplan(tmp_x, tmp_y);
+        
+        if (fsx_gap < 8)
+        {
+            fsx_global = 2;
+        }
+        else if (fsx_gap < 318)
+        {
+            fsx_global = 158;
+        }
+        else
+        {
+            fsx_global = 318;
+        }
+        
+        fsy_global = fsy_gap / 4 + fsy_gap % 4;
+    }
+    
+    // compute the floorplan coordinate of iockdiv
+    function get_coordinate_of_iockdiv(unsigned int lsx, unsigned int lsy)
+    {
+        unsigned int tmp_x = lsx;
+        unsigned int tmp_y = lsy;
+        
+        fsx_global = 0;
+        fsy_global = 0;
+        
+        delete_gap_for_floorplan(tmp_x, tmp_y);
+        
+        if (fsx_gap < 8)
+        {
+            fsx_global = 3;
+        }
+        else if (fsx_gap < 318)
+        {
+            fsx_global = 157;
+        }
+        else
+        {
+            fsx_global = 317;
+        }
+        
+        fsy_global = fsy_gap / 4 + fsy_gap % 4 - 1;
+    }
+    
+    // compute the floorplan coordinate of dqsl
+    function get_coordinate_of_dqsl(unsigned int lsx, unsigned int lsy)
+    {
+        unsigned int tmp_x = lsx;
+        unsigned int tmp_y = lsy;
+        unsigned int tmp_val = 0;
+        
+        fsx_global = 0;
+        fsy_global = 0;
+        
+        delete_gap_for_floorplan(tmp_x, tmp_y);
+        
+        if (lsx < 8)
+        {
+            tmp_val = fsy_gap % 8;
+            if (tmp_val < 3)
+            {
+                fsx_global = 1;
+            }
+            else
+            {
+                fsx_global = 3;
+                fsy_gap = fsy_gap - NUM_GRID_Y;
+            }
+            fsy_global = fsy_gap / NUM_GRID_Y + (fsy_gap + 1) % 2;
+        }
+        else
+        {
+            fsx_global = tmp_x / 2 - 3;
+            tmp_val = fsy_gap % 8;
+            if (tmp_val > 3)
+            {
+                fsx_global = fsx_global + 2;
+                fsy_gap = fsy_gap - NUM_GRID_Y;
+            }
+            
+            fsy_global = fsy_gap / NUM_GRID_Y + (fsy_gap + 1) % 2;
+        }
+    }
+    
+    // compute the floorplan coordinate of drm
+    function get_coordinate_of_drm(unsigned int lsx, unsigned int lsy)
+    {
+        unsigned int tmp_x = lsx;
+        unsigned int tmp_y = lsy;
+        
+        fsx_global = 0;
+        fsy_global = 0;
+        
+        delete_gap_for_floorplan(tmp_x, tmp_y);
+        
+        fsx_global = fsx_gap / 2 + fsy_gap % 2 - 1;
+        fsy_global = fsy_gap / NUM_GRID_Y + 2;
+    }
+    
+    // compute the floorplan coordinate of pll
+    function get_coordinate_of_pll(unsigned int lsx, unsigned int lsy)
+    {
+        unsigned int tmp_x = lsx;
+        unsigned int tmp_y = lsy;
+        
+        fsx_global = 0;
+        fsy_global = 0;
+        
+        delete_gap_for_floorplan(tmp_x, tmp_y);
+        
+        fsx_global = fsx_gap / 2 + fsy_gap % 2 - 2;
+        fsy_global = fsy_gap / NUM_GRID_Y;
+    }
+    
+    // compute the floorplan coordinate of osc
+    function get_coordinate_of_osc(unsigned int lsx, unsigned int lsy)
+    {
+        unsigned int tmp_x = lsx;
+        unsigned int tmp_y = lsy;
+        
+        fsx_global = 0;
+        fsy_global = 0;
+        
+        delete_gap_for_floorplan(tmp_x, tmp_y);
+        
+        fsx_global = 126;
+        fsy_global = fsy_gap / NUM_GRID_Y;
+    }
+    
+    // compute the floorplan coordinate of clm
+    function get_coordinate_of_clm (unsigned int lsx, unsigned int lsy)
+    {
+        unsigned int tmp_x = lsx;
+        unsigned int tmp_y = lsy;
+        
+        fsx_global = 0;
+        fsy_global = 0;
+        
+        delete_gap_for_floorplan(tmp_x, tmp_y);
+        
+        fsx_global = fsx_gap / 2 + fsy_gap % 2 - 1;
+        fsy_global = fsy_gap / NUM_GRID_Y;
+    }
+    
+    // compute the floorplan coordinate of ccs
+    function get_coordinate_of_hsst(unsigned int lsx, unsigned int lsy)
+    {
+        fsx_global = 17;
+        fsy_global = 127;
+    }
+    
+    // compute the floorplan coordinate of cgra
+    function get_coordinate_of_cgra(unsigned int lsx, unsigned int lsy)
+    {
+        fsx_global = 161;
+        fsy_global = 117;
+    }
+    
+    // Place clm tile
+    function place_clm_tile_fp (unsigned int tx, unsigned int ty, unsigned int flag)
+    {
+        unsigned int lsx0, lsy0, lsx1, lsy1;
+        
+        // device reference variables
+        &device s0Ref, s0fl;
+        &device s1Ref, s1fl;
+        
+        string strVar;
+        
+        lsx0 = tx * NUM_GRID_X + 2;
+        lsy0 = ty * NUM_GRID_Y;
+        
+        lsx1 = lsx0;
+        lsy1 = lsy0 + 1;
+        
+        s0Ref  = <device CLMA  @[lsx0, lsy0]     of ARCHITECTURE>;
+        sprintf(strVar, "CLMA_%d_%d", lsx0, lsy0);
+        
+        get_coordinate_of_clm(lsx0, lsy0);
+        
+        s0fl = device CLMA ( structure fp_struct ) *strVar @[fsx_global, fsy_global];
+        //printf("%s: %d, %d.", strVar, fsx_global, fsy_global);
+        
+        if (flag == 1)
+        {
+            s1Ref  = <device CLMA  @[lsx1, lsy1]     of ARCHITECTURE>;
+            sprintf(strVar, "CLMA_%d_%d", lsx1, lsy1);
+        
+            get_coordinate_of_clm(lsx1, lsy1);
+        
+            //printf("%s: %d, %d.", strVar, fsx_global, fsy_global);
+            s1fl = device CLMA ( structure fp_struct ) *strVar @[fsx_global, fsy_global];
+        }
+        else
+        {
+            s1Ref  = <device CLMS  @[lsx1, lsy1]     of ARCHITECTURE>;
+            sprintf(strVar, "CLMS_%d_%d", lsx1, lsy1);
+        
+            get_coordinate_of_clm(lsx1, lsy1);
+        
+            //printf("%s: %d, %d.", strVar, fsx_global, fsy_global);
+            s1fl = device CLMS ( structure fp_struct ) *strVar @[fsx_global, fsy_global];
+        }
+        
+        map ( s0fl => s0Ref, s1fl => s1Ref );
+    } // place clm tile end
+    
+    // Draw clm tile
+    function draw_clm_tile_fp (unsigned int tx, unsigned int ty, unsigned int flag)
+    {
+        unsigned int lsx0, lsy0, lsx1, lsy1;
+        
+        // device reference variables
+        &device s0Ref, s0fl;
+        &device s1Ref, s1fl;
+        
+        string strVar;
+        
+        lsx0 = tx * NUM_GRID_X + 2;
+        lsy0 = ty * NUM_GRID_Y;
+        
+        lsx1 = lsx0;
+        lsy1 = lsy0 + 1;
+        
+        get_coordinate_of_clm(lsx0, lsy0);
+        
+        add_gap_for_gui(fsx_global, fsy_global);
+        
+        sprintf(strVar, "CLMA_%d_%d", lsx0, lsy0);
+        
+        s0Ref = <instance *strVar   of ARCHITECTURE (structure fp_struct)>;
+        //printf("%s: %d, %d, %d, %d.", strVar, fsx_global, fsy_global, (fsx_global+1)*160, (fsy_global+1)*320);
+        s0fl = device CLMA ( schematic floorplan_view ) *strVar @[(fsx_global+9)*160, (fsy_global+9)*320];
+        
+        get_coordinate_of_clm(lsx1, lsy1);
+        
+        add_gap_for_gui(fsx_global, fsy_global);
+        
+        if (flag == 1)
+        {
+            sprintf(strVar, "CLMA_%d_%d", lsx1, lsy1);
+        
+            s1Ref = <instance *strVar   of ARCHITECTURE (structure fp_struct)>;
+            //printf("%s: %d, %d, %d, %d.", strVar, fsx_global, fsy_global, (fsx_global+1)*160, (fsy_global+1)*320);
+            s1fl = device CLMA ( schematic floorplan_view ) *strVar @[(fsx_global+9)*160, (fsy_global+9)*320];
+        }
+        else
+        {
+            sprintf(strVar, "CLMS_%d_%d", lsx1, lsy1);
+        
+            s1Ref = <instance *strVar   of ARCHITECTURE (structure fp_struct)>;
+            //printf("%s: %d, %d, %d, %d.", strVar, fsx_global, fsy_global, (fsx_global+1)*160, (fsy_global+1)*320);
+            s1fl = device CLMS ( schematic floorplan_view ) *strVar @[(fsx_global+9)*160, (fsy_global+9)*320];
+        }
+        
+        map ( s0fl => s0Ref, s1fl => s1Ref );
+    } // draw drm end
+
+    //place ccs tile 
+    function place_ccs_tile_pgl35es_fp(unsigned int tx, unsigned int ty)
+    {
+        unsigned int lsx, lsy, lsx0, lsy0;
+        
+        // device reference variables
+        &device s0Ref, s0fl;
+        string strVar;
+        
+        lsx = tx * NUM_GRID_X + 2;
+        lsy = ty * NUM_GRID_Y;
+        
+        // IPAL
+        lsx0 = lsx + 14;
+        lsy0 = lsy + 15;
+        
+        s0Ref  = <device IPAL  @[lsx0,lsy0]     of ARCHITECTURE>;
+        sprintf(strVar, "IPAL_%d_%d", lsx0, lsy0);
+        get_coordinate_of_ipal(lsx0, lsy0);
+
+        //printf("%s: %d, %d.", strVar, fsx_global, fsy_global);
+        s0fl = device IPAL *strVar @[fsx_global, fsy_global];
+        map ( s0fl => s0Ref);
+        
+        // START
+        lsx0 = lsx + 14;
+        lsy0 = lsy + 14;
+        
+        s0Ref  = <device START  @[lsx0,lsy0]     of ARCHITECTURE>;
+        sprintf(strVar, "START_%d_%d", lsx0, lsy0);
+        get_coordinate_of_start(lsx0, lsy0);
+
+        //printf("%s: %d, %d.", strVar, fsx_global, fsy_global);
+        s0fl = device START *strVar @[fsx_global, fsy_global];
+        map ( s0fl => s0Ref);
+        
+        // SCANCHAIN
+        lsx0 = lsx + 14;
+        lsy0 = lsy + 16;
+        
+        s0Ref  = <device SCANCHAIN  @[lsx0,lsy0]     of ARCHITECTURE>;
+        sprintf(strVar, "SCANCHAIN_%d_%d", lsx0, lsy0);
+        get_coordinate_of_scanchain(lsx0, lsy0);
+
+        //printf("%s: %d, %d.", strVar, fsx_global, fsy_global);
+        s0fl = device SCANCHAIN *strVar @[fsx_global, fsy_global];
+        map ( s0fl => s0Ref);
+        
+        // SCANCHAIN
+        lsx0 = lsx + 14;
+        lsy0 = lsy + 17;
+        
+        s0Ref  = <device SCANCHAIN  @[lsx0,lsy0]     of ARCHITECTURE>;
+        sprintf(strVar, "SCANCHAIN_%d_%d", lsx0, lsy0);
+        get_coordinate_of_scanchain(lsx0, lsy0);
+
+        //printf("%s: %d, %d.", strVar, fsx_global, fsy_global);
+        s0fl = device SCANCHAIN *strVar @[fsx_global, fsy_global];
+        map ( s0fl => s0Ref);
+        
+        // SCANCHAIN
+        lsx0 = lsx + 14;
+        lsy0 = lsy + 18;
+        
+        s0Ref  = <device SCANCHAIN  @[lsx0,lsy0]     of ARCHITECTURE>;
+        sprintf(strVar, "SCANCHAIN_%d_%d", lsx0, lsy0);
+        get_coordinate_of_scanchain(lsx0, lsy0);
+
+        //printf("%s: %d, %d.", strVar, fsx_global, fsy_global);
+        s0fl = device SCANCHAIN *strVar @[fsx_global, fsy_global];
+        map ( s0fl => s0Ref);
+        
+        // SCANCHAIN
+        lsx0 = lsx + 14;
+        lsy0 = lsy + 19;
+        
+        s0Ref  = <device SCANCHAIN  @[lsx0,lsy0]     of ARCHITECTURE>;
+        sprintf(strVar, "SCANCHAIN_%d_%d", lsx0, lsy0);
+        get_coordinate_of_scanchain(lsx0, lsy0);
+
+        //printf("%s: %d, %d.", strVar, fsx_global, fsy_global);
+        s0fl = device SCANCHAIN *strVar @[fsx_global, fsy_global];
+        map ( s0fl => s0Ref);
+        
+        // OSC
+        lsx0 = lsx + 34;
+        lsy0 = lsy;
+        
+        s0Ref  = <device OSC  @[lsx0,lsy0]     of ARCHITECTURE>;
+        sprintf(strVar, "OSC_%d_%d", lsx0, lsy0);
+        get_coordinate_of_osc(lsx0, lsy0);
+
+        //printf("%s: %d, %d.", strVar, fsx_global, fsy_global);
+        s0fl = device OSC *strVar @[fsx_global, fsy_global];
+        map ( s0fl => s0Ref);
+    } // place ccs tile end
+    
+    // draw ccs tile 
+    function draw_ccs_tile_pgl35es_fp(unsigned int tx, unsigned int ty)
+    {
+        unsigned int lsx, lsy, lsx0, lsy0;
+        
+        // device reference variables
+        &device s0Ref, s0fl;
+        string strVar;
+        
+        lsx = tx * NUM_GRID_X + 2;
+        lsy = ty * NUM_GRID_Y;
+        
+        // IPAL
+        lsx0 = lsx + 14;
+        lsy0 = lsy + 15;
+        
+        sprintf(strVar, "IPAL_%d_%d", lsx0, lsy0);
+        s0Ref = <instance *strVar   of ARCHITECTURE (structure fp_struct)>;
+        
+        get_coordinate_of_ipal(lsx0, lsy0);
+        
+        add_gap_for_gui(fsx_global, fsy_global);
+        
+        //printf("%s: %d, %d, %d, %d.", strVar, fsx_global, fsy_global, (fsx_global+1)*160, (fsy_global+1)*320);
+        s0fl = device IPAL ( symbol fpsym ) *strVar @[(fsx_global+9)*160, (fsy_global+9)*320];
+        
+        // START
+        lsx0 = lsx + 14;
+        lsy0 = lsy + 14;
+        
+        sprintf(strVar, "START_%d_%d", lsx0, lsy0);
+        s0Ref = <instance *strVar   of ARCHITECTURE (structure fp_struct)>;
+        
+        get_coordinate_of_start(lsx0, lsy0);
+        
+        add_gap_for_gui(fsx_global, fsy_global);
+        
+        //printf("%s: %d, %d, %d, %d.", strVar, fsx_global, fsy_global, (fsx_global+1)*160, (fsy_global+1)*320);
+        s0fl = device START ( symbol fpsym ) *strVar @[(fsx_global+9)*160, (fsy_global+9)*320];
+        map ( s0fl => s0Ref);
+        
+        // SCANCHAIN
+        lsx0 = lsx + 14;
+        lsy0 = lsy + 16;
+        
+        sprintf(strVar, "SCANCHAIN_%d_%d", lsx0, lsy0);
+        s0Ref = <instance *strVar   of ARCHITECTURE (structure fp_struct)>;
+        
+        get_coordinate_of_scanchain(lsx0, lsy0);
+        
+        add_gap_for_gui(fsx_global, fsy_global);
+        
+        //printf("%s: %d, %d, %d, %d.", strVar, fsx_global, fsy_global, (fsx_global+1)*160, (fsy_global+1)*320);
+        s0fl = device SCANCHAIN ( symbol fpsym ) *strVar @[(fsx_global+9)*160, (fsy_global+9)*320];
+        map ( s0fl => s0Ref);
+        
+        // SCANCHAIN
+        lsx0 = lsx + 14;
+        lsy0 = lsy + 17;
+        
+        sprintf(strVar, "SCANCHAIN_%d_%d", lsx0, lsy0);
+        s0Ref = <instance *strVar   of ARCHITECTURE (structure fp_struct)>;
+        
+        get_coordinate_of_scanchain(lsx0, lsy0);
+        
+        add_gap_for_gui(fsx_global, fsy_global);
+        
+        //printf("%s: %d, %d, %d, %d.", strVar, fsx_global, fsy_global, (fsx_global+1)*160, (fsy_global+1)*320);
+        s0fl = device SCANCHAIN ( symbol fpsym ) *strVar @[(fsx_global+9)*160, (fsy_global+9)*320];
+        map ( s0fl => s0Ref);
+        
+        // SCANCHAIN
+        lsx0 = lsx + 14;
+        lsy0 = lsy + 18;
+        
+        sprintf(strVar, "SCANCHAIN_%d_%d", lsx0, lsy0);
+        s0Ref = <instance *strVar   of ARCHITECTURE (structure fp_struct)>;
+        
+        get_coordinate_of_scanchain(lsx0, lsy0);
+        
+        add_gap_for_gui(fsx_global, fsy_global);
+        
+        //printf("%s: %d, %d, %d, %d.", strVar, fsx_global, fsy_global, (fsx_global+1)*160, (fsy_global+1)*320);
+        s0fl = device SCANCHAIN ( symbol fpsym ) *strVar @[(fsx_global+9)*160, (fsy_global+9)*320];
+        map ( s0fl => s0Ref);
+        
+        // SCANCHAIN
+        lsx0 = lsx + 14;
+        lsy0 = lsy + 19;
+        
+        sprintf(strVar, "SCANCHAIN_%d_%d", lsx0, lsy0);
+        s0Ref = <instance *strVar   of ARCHITECTURE (structure fp_struct)>;
+        
+        get_coordinate_of_scanchain(lsx0, lsy0);
+        
+        add_gap_for_gui(fsx_global, fsy_global);
+        
+        //printf("%s: %d, %d, %d, %d.", strVar, fsx_global, fsy_global, (fsx_global+1)*160, (fsy_global+1)*320);
+        s0fl = device SCANCHAIN ( symbol fpsym ) *strVar @[(fsx_global+9)*160, (fsy_global+9)*320];
+        map ( s0fl => s0Ref);
+        
+        // OSC
+        lsx0 = lsx + 34;
+        lsy0 = lsy;
+        
+        sprintf(strVar, "OSC_%d_%d", lsx0, lsy0);
+        s0Ref = <instance *strVar   of ARCHITECTURE (structure fp_struct)>;
+        
+        get_coordinate_of_scanchain(lsx0, lsy0);
+        
+        add_gap_for_gui(fsx_global, fsy_global);
+        
+        //printf("%s: %d, %d, %d, %d.", strVar, fsx_global, fsy_global, (fsx_global+1)*160, (fsy_global+1)*320);
+        s0fl = device OSC ( symbol fpsym ) *strVar @[(fsx_global+9)*160, (fsy_global+9)*320];
+        map ( s0fl => s0Ref);
+    
+    } // draw ccs tile end
+    
+    // place drm tile
+    function place_drm_tile_fp ( unsigned int tx, unsigned int ty )
+    {
+        // Site index variable. The X index for logic and GUI are declared separately
+        unsigned int lsx, lsy;
+        
+        // device reference variables
+        &device s0Ref, s0fl;
+        string strVar;
+        
+        lsx = tx * NUM_GRID_X + 2;
+        lsy = ty * NUM_GRID_Y;
+        
+        s0Ref  = <device DRM  @[lsx,lsy]     of ARCHITECTURE>;
+        sprintf(strVar, "DRM_%d_%d", lsx, lsy);
+        
+        get_coordinate_of_drm(lsx, lsy);
+
+        //printf("%s: %d, %d.", strVar, fsx_global, fsy_global);
+        s0fl = device DRM ( structure fp_struct ) *strVar @[fsx_global, fsy_global];
+        map ( s0fl => s0Ref);
+    } // place drm tile end
+    
+    // draw drm tile
+    function draw_drm_tile_fp ( unsigned int tx, unsigned int ty )
+    {
+        // Site index variable. The X index for logic and GUI are declared separately
+        unsigned int lsx, lsy;
+        
+        // device reference variables
+        &device s0Ref, s0fl;
+        
+        string strVar;
+        
+        lsx = tx * NUM_GRID_X + 2;
+        lsy = ty * NUM_GRID_Y;
+
+        get_coordinate_of_drm(lsx, lsy);
+        
+        add_gap_for_gui(fsx_global, fsy_global);
+
+        sprintf(strVar, "DRM_%d_%d", lsx, lsy);
+        
+        s0Ref = <instance *strVar    of ARCHITECTURE (structure fp_struct)>;
+        
+        //printf("%s: %d, %d, %d, %d.", strVar, fsx_global, fsy_global, (fsx_global+1)*160, (fsy_global+1)*320);
+        s0fl = device DRM ( schematic floorplan_view ) *strVar @[(fsx_global+9)*160, (fsy_global+8)*320];
+        map ( s0fl => s0Ref);
+    } // draw drm tile end
+    
+    // place pll tile
+    function place_pll_tile_fp(unsigned int tx, unsigned int ty)
+    {
+        // Site index variable. The X index for logic and GUI are declared separately
+        unsigned int lsx, lsy;
+        unsigned int lsx0, lsy0;
+        
+        // device reference variables
+        &device s0Ref, s0fl;
+        string strVar;
+        
+        lsx = tx * NUM_GRID_X + 2;
+        lsy = ty * NUM_GRID_Y;
+        
+        lsx0 = lsx;
+        lsy0 = lsy + 7;
+        
+        s0Ref  = <device PLL  @[lsx0,lsy0]     of ARCHITECTURE>;
+        sprintf(strVar, "PLL_%d_%d", lsx0, lsy0);
+        get_coordinate_of_pll(lsx0, lsy0);
+
+        //printf("%s: %d, %d.", strVar, fsx_global, fsy_global);
+        s0fl = device PLL ( structure fp_struct ) *strVar @[fsx_global, fsy_global];
+        map ( s0fl => s0Ref);
+    } // place pll tile end
+    
+    // draw pll tile
+    function draw_pll_tile_fp(unsigned int tx, unsigned int ty)
+    {
+        unsigned int lsx, lsy, lsx0, lsy0;
+        
+        // device reference variables
+        &device s0Ref, s0fl;
+        
+        string strVar;
+        
+        lsx = tx * NUM_GRID_X + 2;
+        lsy = ty * NUM_GRID_Y;
+
+        lsx0 = lsx;
+        lsy0 = lsy + 7;
+
+        get_coordinate_of_pll(lsx0, lsy0);
+        
+        add_gap_for_gui(fsx_global, fsy_global);
+
+        sprintf(strVar, "PLL_%d_%d", lsx0, lsy0);
+        s0Ref = <instance *strVar    of ARCHITECTURE (structure fp_struct)>;
+        
+        //printf("%s: %d, %d, %d, %d.", strVar, fsx_global, fsy_global, (fsx_global+1)*160, (fsy_global+1)*320);
+        s0fl = device PLL ( symbol fpsym ) *strVar @[(fsx_global+9)*160, (fsy_global+8)*320];
+        map ( s0fl => s0Ref);
+    } // draw pll tile end
+    
+    // place hsst tile
+    function place_hsst_tile_fp(unsigned int tx, unsigned int ty)
+    {
+        // Site index variable. The X index for logic and GUI are declared separately
+        unsigned int lsx, lsy;
+        
+        // device reference variables
+        &device s0Ref, s0fl;
+        string strVar;
+        
+        lsx = tx * NUM_GRID_X;
+        lsy = ty * NUM_GRID_Y;
+        
+        s0Ref  = <device HSST  @[lsx,lsy]     of ARCHITECTURE>;
+        sprintf(strVar, "HSST_%d_%d", lsx, lsy);
+        get_coordinate_of_hsst(lsx, lsy);
+
+        //printf("%s: %d, %d.", strVar, fsx_global, fsy_global);
+        s0fl = device HSST ( structure fp_struct ) *strVar @[fsx_global, fsy_global];
+        map ( s0fl => s0Ref);
+    } //place hsst tile end
+    
+    // draw hsst tile
+    function draw_hsst_tile_fp(unsigned int tx, unsigned int ty)
+    {
+        unsigned int lsx, lsy;
+        
+        // device reference variables
+        &device s0Ref, s0fl;
+        
+        string strVar;
+        
+        lsx = tx * NUM_GRID_X;
+        lsy = ty * NUM_GRID_Y;
+
+        get_coordinate_of_hsst(lsx, lsy);
+        
+        add_gap_for_gui(fsx_global, fsy_global);
+
+        sprintf(strVar, "HSST_%d_%d", lsx, lsy);
+        s0Ref = <instance *strVar    of ARCHITECTURE (structure fp_struct)>;
+        
+        //printf("%s: %d, %d, %d, %d.", strVar, fsx_global, fsy_global, (fsx_global+1)*160, (fsy_global+1)*320);
+        s0fl = device HSST ( symbol fpsym ) *strVar @[(fsx_global-4)*160, (fsy_global-13)*320];
+        map ( s0fl => s0Ref);
+    } // draw hsst tile end
+    
+    // place uscm tile
+    function place_uscm_tile_fp(unsigned int tx, unsigned int ty)
+    {
+        // Site index variable. The X index for logic and GUI are declared separately
+        unsigned int lsx, lsy;
+        unsigned int lsx0, lsy0;
+        
+        // device reference variables
+        &device s0Ref, s0fl;
+        string strVar;
+        
+        lsx = tx * NUM_GRID_X + 2;
+        lsy = ty * NUM_GRID_Y;
+
+        unsigned int indexs[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+        unsigned int i;
+        foreach i(indexs)
+        {
+            lsx0 = lsx;
+            lsy0 = lsy + i;
+            s0Ref  = <device USCM  @[lsx0,lsy0]     of ARCHITECTURE>;
+            sprintf(strVar, "USCM_%d_%d", lsx0, lsy0);
+            
+            get_coordinate_of_uscm(lsx0, lsy0);
+
+            //printf("%s: %d, %d.", strVar, fsx_global, fsy_global);
+            s0fl = device USCM ( structure fp_struct ) *strVar @[fsx_global, fsy_global];
+            map ( s0fl => s0Ref);
+        }
+    } // place uscm tile end
+    
+    // draw uscm tile
+    function draw_uscm_tile_fp (  unsigned int tx, unsigned int ty )
+    {
+        // Site index variable. The X index for logic and GUI are declared separately
+        unsigned int lsx, lsy, lsx0, lsy0;
+        
+        // device reference variables
+        &device s0Ref, s0fl;
+        
+        string strVar;
+        
+        lsx = tx * NUM_GRID_X + 2;
+        lsy = ty * NUM_GRID_Y;
+
+        unsigned int indexs[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+        unsigned int i;
+        foreach i(indexs)
+        {
+            lsx0 = lsx;
+            lsy0 = lsy + i;
+
+            get_coordinate_of_uscm(lsx0, lsy0);
+            
+            //add_gap_for_gui(fsx_global, fsy_global);
+
+            sprintf(strVar, "USCM_%d_%d", lsx0, lsy0);
+            s0Ref = <instance *strVar    of ARCHITECTURE (structure fp_struct)>;
+            s0fl = device USCM ( symbol fpsym ) *strVar @[(fsx_global+10)*160, (fsy_global+9)*320+120];
+            map ( s0fl => s0Ref);
+        }
+    } // draw uscm tile end
+    
+    // place iob tile
+    function place_iob_tile_fp( unsigned int tx, unsigned int ty)
+    {
+        unsigned int lsx, lsy;
+        unsigned int lsx0, lsy0;
+        unsigned int i;
+        unsigned int offset_y_iobs[] = {117, 113, 109, 105, 101, 89, 81, 77, 73, 49, 45, 41, 37, 33, 21, 17, 13, 9, 5};
+        unsigned int offset_y_iobd[] = {118, 114, 110, 106, 102, 90, 86, 82, 78, 74, 50, 46, 42, 38, 34, 22, 18, 14, 10, 6};
+        unsigned int offset_y_iobr[] = {85};
+        
+        // device reference variables
+        &device s0Ref, s0fl;
+        string strVar;
+
+        lsx = tx * NUM_GRID_X;
+        lsy = ty * NUM_GRID_Y;
+        
+        foreach i (offset_y_iobs)
+        {
+            lsx0 = lsx;
+            lsy0 = lsy + i;
+
+            s0Ref  = <device IOBS  @[lsx0, lsy0]     of ARCHITECTURE>;
+            sprintf(strVar, "IOBS_%d_%d", lsx0, lsy0); 
+
+            get_coordinate_of_iob(lsx0, lsy0);
+                 
+            //printf("%s: %d, %d.", strVar, fsx_global, fsy_global);
+            s0fl = device IOBS ( structure fp_struct ) *strVar @[fsx_global, fsy_global];
+            map ( s0fl => s0Ref);
+        }
+        
+        foreach i (offset_y_iobd)
+        {
+            lsx0 = lsx;
+            lsy0 = lsy + i;
+
+            s0Ref  = <device IOBD  @[lsx0, lsy0]     of ARCHITECTURE>;
+            sprintf(strVar, "IOBD_%d_%d", lsx0, lsy0); 
+
+            get_coordinate_of_iob(lsx0, lsy0);
+            
+            //printf("%s: %d, %d.", strVar, fsx_global, fsy_global);
+            s0fl = device IOBD ( structure fp_struct ) *strVar @[fsx_global, fsy_global];
+            map ( s0fl => s0Ref);
+        }
+        
+        foreach i (offset_y_iobr)
+        {
+            lsx0 = lsx;
+            lsy0 = lsy + i;
+
+            s0Ref  = <device IOBR  @[lsx0, lsy0]     of ARCHITECTURE>;
+            sprintf(strVar, "IOBR_%d_%d", lsx0, lsy0); 
+
+            get_coordinate_of_iob(lsx0, lsy0);
+                 
+            //printf("%s: %d, %d.", strVar, fsx_global, fsy_global);
+            s0fl = device IOBR ( structure fp_struct ) *strVar @[fsx_global, fsy_global];
+            map ( s0fl => s0Ref);
+        }
+        
+        // RESCAL
+        lsx0 = lsx + 2;
+        lsy0 = lsy + 24;
+        s0Ref  = <device RESCAL  @[lsx0, lsy0]     of ARCHITECTURE>;
+        sprintf(strVar, "RESCAL_%d_%d", lsx0, lsy0); 
+        
+        get_coordinate_of_rescal(lsx0, lsy0);
+                          
+        //printf("%s: %d, %d.", strVar, fsx_global, fsy_global);
+        s0fl = device RESCAL  *strVar @[fsx_global, fsy_global];
+        map ( s0fl => s0Ref);
+        
+        // CRYSTAL
+        lsx0 = lsx + 2;
+        lsy0 = lsy + 21;
+        s0Ref  = <device CRYSTAL  @[lsx0, lsy0]     of ARCHITECTURE>;
+        sprintf(strVar, "CRYSTAL_%d_%d", lsx0, lsy0); 
+        
+        get_coordinate_of_crystal(lsx0, lsy0);
+                         
+        //printf("%s: %d, %d.", strVar, fsx_global, fsy_global);
+        s0fl = device CRYSTAL  *strVar @[fsx_global, fsy_global];
+        map ( s0fl => s0Ref);
+        
+        // BKCL
+        lsx0 = lsx + 2;
+        lsy0 = lsy + 20;
+        s0Ref  = <device BKCL  @[lsx0, lsy0]     of ARCHITECTURE>;
+        sprintf(strVar, "BKCL_%d_%d", lsx0, lsy0); 
+        
+        get_coordinate_of_bkcl(lsx0, lsy0);
+            
+        //printf("%s: %d, %d.", strVar, fsx_global, fsy_global);            
+        s0fl = device BKCL  *strVar @[fsx_global, fsy_global];
+        map ( s0fl => s0Ref);
+    } // place iob tile end
+    
+    function draw_iob_tile_fp(unsigned int tx, unsigned int ty)
+    {
+        unsigned int lsx, lsy;
+        unsigned int lsx0, lsy0;
+        unsigned int i;
+        unsigned int offset_y_iobs[] = {117, 113, 109, 105, 101, 89, 81, 77, 73, 49, 45, 41, 37, 33, 21, 17, 13, 9, 5};
+        unsigned int offset_y_iobd[] = {118, 114, 110, 106, 102, 90, 86, 82, 78, 74, 50, 46, 42, 38, 34, 22, 18, 14, 10, 6};
+        unsigned int offset_y_iobr[] = {85};
+        
+        // device reference variables
+        &device s0Ref, s0fl;
+        string strVar;
+
+        lsx = tx * NUM_GRID_X;
+        lsy = ty * NUM_GRID_Y;
+        
+        foreach i (offset_y_iobs)
+        {
+            lsx0 = lsx;
+            lsy0 = lsy + i;
+            
+            get_coordinate_of_iob(lsx0, lsy0);
+            
+            add_gap_for_gui(fsx_global, fsy_global);
+            
+            sprintf(strVar, "IOBS_%d_%d", lsx0, lsy0);
+            s0Ref = <instance *strVar    of ARCHITECTURE (structure fp_struct)>;
+            //printf("%s: %d, %d, %d, %d.", strVar, fsx_global, fsy_global, (fsx_global+1)*160, (fsy_global+1)*320);
+            s0fl = device IOBS ( schematic floorplan_view ) *strVar @[(fsx_global+9)*160, (fsy_global+9)*320];
+            map ( s0fl => s0Ref);
+        }
+        
+        foreach i (offset_y_iobd)
+        {
+            lsx0 = lsx;
+            lsy0 = lsy + i;
+            
+            get_coordinate_of_iob(lsx0, lsy0);
+            
+            add_gap_for_gui(fsx_global, fsy_global);
+            
+            sprintf(strVar, "IOBD_%d_%d", lsx0, lsy0);
+            s0Ref = <instance *strVar    of ARCHITECTURE (structure fp_struct)>;
+            //printf("%s: %d, %d, %d, %d.", strVar, fsx_global, fsy_global, (fsx_global+1)*160, (fsy_global+1)*320);
+            s0fl = device IOBD ( schematic floorplan_view ) *strVar @[(fsx_global+9)*160, (fsy_global+9)*320];
+            map ( s0fl => s0Ref);
+        }
+        
+        foreach i (offset_y_iobr)
+        {
+            lsx0 = lsx;
+            lsy0 = lsy + i;
+            
+            get_coordinate_of_iob(lsx0, lsy0);
+            
+            add_gap_for_gui(fsx_global, fsy_global);
+            
+            sprintf(strVar, "IOBR_%d_%d", lsx0, lsy0);
+            s0Ref = <instance *strVar    of ARCHITECTURE (structure fp_struct)>;
+            //printf("%s: %d, %d, %d, %d.", strVar, fsx_global, fsy_global, (fsx_global+1)*160, (fsy_global+1)*320);
+            s0fl = device IOBR ( schematic floorplan_view ) *strVar @[(fsx_global+9)*160, (fsy_global+9)*320];
+            map ( s0fl => s0Ref);
+        }
+        
+        // RESCAL
+        lsx0 = lsx + 2;
+        lsy0 = lsy + 24;
+        
+        get_coordinate_of_rescal(lsx0, lsy0);
+            
+        add_gap_for_gui(fsx_global, fsy_global);
+                          
+        sprintf(strVar, "RESCAL_%d_%d", lsx0, lsy0);
+        s0Ref = <instance *strVar    of ARCHITECTURE (structure fp_struct)>;
+        s0fl = device RESCAL ( symbol fpsym ) *strVar @[(fsx_global+9)*160, (fsy_global+9)*320];
+        map ( s0fl => s0Ref);
+        
+        // CRYSTAL
+        lsx0 = lsx + 2;
+        lsy0 = lsy + 21;
+        
+        get_coordinate_of_crystal(lsx0, lsy0);
+            
+        add_gap_for_gui(fsx_global, fsy_global);
+                          
+        sprintf(strVar, "CRYSTAL_%d_%d", lsx0, lsy0); 
+        s0Ref = <instance *strVar    of ARCHITECTURE (structure fp_struct)>;
+        //printf("%s: %d, %d, %d, %d.", strVar, fsx_global, fsy_global, (fsx_global+1)*160, (fsy_global+1)*320);
+        s0fl = device CRYSTAL ( symbol fpsym ) *strVar @[(fsx_global+9)*160, (fsy_global+9)*320];
+        map ( s0fl => s0Ref);
+        
+        // BKCL
+        lsx0 = lsx + 2;
+        lsy0 = lsy + 20;
+        
+        get_coordinate_of_bkcl(lsx0, lsy0);
+            
+        add_gap_for_gui(fsx_global, fsy_global);
+                         
+        sprintf(strVar, "BKCL_%d_%d", lsx0, lsy0);
+        s0Ref = <instance *strVar    of ARCHITECTURE (structure fp_struct)>;
+        //printf("%s: %d, %d, %d, %d.", strVar, fsx_global, fsy_global, (fsx_global+1)*160, (fsy_global+1)*320);
+        s0fl = device BKCL ( symbol fpsym ) *strVar @[(fsx_global+9)*160, (fsy_global+9)*320];
+        map ( s0fl => s0Ref);
+    } // draw iob tile end
+    
+    // place iob tile
+    function place_iob_half_tile_fp(unsigned int tx, unsigned int ty)
+    {
+        unsigned int lsx, lsy;
+        unsigned int lsx0, lsy0;
+        unsigned int i;
+        unsigned int offset_y_iobs[] = {49, 45, 41, 37, 33, 21, 17, 13, 9, 5};
+        unsigned int offset_y_iobd[] = {50, 46, 42, 38, 34, 22, 18, 14, 10, 6};
+        
+        // device reference variables
+        &device s0Ref, s0fl;
+        string strVar;
+
+        lsx = tx * NUM_GRID_X;
+        lsy = ty * NUM_GRID_Y;
+        
+        foreach i (offset_y_iobs)
+        {
+            lsx0 = lsx;
+            lsy0 = lsy + i;
+
+            s0Ref  = <device IOBS  @[lsx0, lsy0]     of ARCHITECTURE>;
+            sprintf(strVar, "IOBS_%d_%d", lsx0, lsy0); 
+
+            get_coordinate_of_iob(lsx0, lsy0);
+                 
+            //printf("%s: %d, %d.", strVar, fsx_global, fsy_global);
+            s0fl = device IOBS ( structure fp_struct ) *strVar @[fsx_global, fsy_global];
+            map ( s0fl => s0Ref);
+        }
+        
+        foreach i (offset_y_iobd)
+        {
+            lsx0 = lsx;
+            lsy0 = lsy + i;
+
+            s0Ref  = <device IOBD  @[lsx0, lsy0]     of ARCHITECTURE>;
+            sprintf(strVar, "IOBD_%d_%d", lsx0, lsy0); 
+
+            get_coordinate_of_iob(lsx0, lsy0);
+                
+            //printf("%s: %d, %d.", strVar, fsx_global, fsy_global);  
+            s0fl = device IOBD ( structure fp_struct ) *strVar @[fsx_global, fsy_global];
+            map ( s0fl => s0Ref);
+        }
+        
+        // RESCAL
+        lsx0 = lsx + 2;
+        lsy0 = lsy + 24;
+        s0Ref  = <device RESCAL  @[lsx0, lsy0]     of ARCHITECTURE>;
+        sprintf(strVar, "RESCAL_%d_%d", lsx0, lsy0); 
+        
+        get_coordinate_of_rescal(lsx0, lsy0);
+              
+        //printf("%s: %d, %d.", strVar, fsx_global, fsy_global);            
+        s0fl = device RESCAL  *strVar @[fsx_global, fsy_global];
+        map ( s0fl => s0Ref);
+        
+        // BKCL
+        lsx0 = lsx + 2;
+        lsy0 = lsy + 20;
+        s0Ref  = <device BKCL  @[lsx0, lsy0]     of ARCHITECTURE>;
+        sprintf(strVar, "BKCL_%d_%d", lsx0, lsy0); 
+        
+        get_coordinate_of_bkcl(lsx0, lsy0);
+               
+        //printf("%s: %d, %d.", strVar, fsx_global, fsy_global);          
+        s0fl = device BKCL  *strVar @[fsx_global, fsy_global];
+        map ( s0fl => s0Ref);
+    } // place iob tile end
+    
+    // draw iob tile 
+    function draw_iob_half_tile_fp(unsigned int tx, unsigned int ty)
+    {
+        unsigned int lsx, lsy;
+        unsigned int lsx0, lsy0;
+        unsigned int i;
+        unsigned int offset_y_iobs[] = {49, 45, 41, 37, 33, 21, 17, 13, 9, 5};
+        unsigned int offset_y_iobd[] = {50, 46, 42, 38, 34, 22, 18, 14, 10, 6};
+        
+        // device reference variables
+        &device s0Ref, s0fl;
+        string strVar;
+
+        lsx = tx * NUM_GRID_X;
+        lsy = ty * NUM_GRID_Y;
+        
+        foreach i (offset_y_iobs)
+        {
+            lsx0 = lsx;
+            lsy0 = lsy + i;
+            
+            get_coordinate_of_iob(lsx0, lsy0);
+            
+            add_gap_for_gui(fsx_global, fsy_global);
+            
+            sprintf(strVar, "IOBS_%d_%d", lsx0, lsy0);
+            s0Ref = <instance *strVar    of ARCHITECTURE (structure fp_struct)>;
+            //printf("%s: %d, %d, %d, %d.", strVar, fsx_global, fsy_global, (fsx_global+1)*160, (fsy_global+1)*320);
+            s0fl = device IOBS ( schematic floorplan_view ) *strVar @[(fsx_global+9)*160, (fsy_global+9)*320];
+            map ( s0fl => s0Ref);
+        }
+        
+        foreach i (offset_y_iobd)
+        {
+            lsx0 = lsx;
+            lsy0 = lsy + i;
+            
+            get_coordinate_of_iob(lsx0, lsy0);
+            
+            add_gap_for_gui(fsx_global, fsy_global);
+            
+            sprintf(strVar, "IOBD_%d_%d", lsx0, lsy0);
+            s0Ref = <instance *strVar    of ARCHITECTURE (structure fp_struct)>;
+            //printf("%s: %d, %d, %d, %d.", strVar, fsx_global, fsy_global, (fsx_global+1)*160, (fsy_global+1)*320);
+            s0fl = device IOBD ( schematic floorplan_view ) *strVar @[(fsx_global+9)*160, (fsy_global+9)*320];
+            map ( s0fl => s0Ref);
+        }
+        
+        // RESCAL
+        lsx0 = lsx + 2;
+        lsy0 = lsy + 24;
+        
+        get_coordinate_of_rescal(lsx0, lsy0);
+            
+        add_gap_for_gui(fsx_global, fsy_global);
+                          
+        sprintf(strVar, "RESCAL_%d_%d", lsx0, lsy0);
+        s0Ref = <instance *strVar    of ARCHITECTURE (structure fp_struct)>;
+        //printf("%s: %d, %d, %d, %d.", strVar, fsx_global, fsy_global, (fsx_global+1)*160, (fsy_global+1)*320);
+        s0fl = device RESCAL ( symbol fpsym ) *strVar @[(fsx_global+9)*160, (fsy_global+9)*320];
+        map ( s0fl => s0Ref);
+        
+        // BKCL
+        lsx0 = lsx + 2;
+        lsy0 = lsy + 20;
+        
+        get_coordinate_of_bkcl(lsx0, lsy0);
+            
+        add_gap_for_gui(fsx_global, fsy_global);
+                         
+        sprintf(strVar, "BKCL_%d_%d", lsx0, lsy0);
+        s0Ref = <instance *strVar    of ARCHITECTURE (structure fp_struct)>;
+        //printf("%s: %d, %d, %d, %d.", strVar, fsx_global, fsy_global, (fsx_global+1)*160, (fsy_global+1)*320);
+        s0fl = device BKCL ( symbol fpsym ) *strVar @[(fsx_global+9)*160, (fsy_global+9)*320];
+        map ( s0fl => s0Ref);
+    } // draw iob tile end
+    
+    // place iol tile
+    function place_iol_tile_fp(unsigned int tx, unsigned int ty)
+    {
+        // Site index variable. The X index for logic and GUI are declared separately
+        unsigned int lsx, lsy;
+        unsigned int lsx0, lsy0;
+        unsigned int indexs[] = {1, 2};
+        unsigned int i;
+
+        // device reference variables
+        &device s0Ref, s0fl;
+
+        string strVar;
+        
+        
+        lsx = tx * NUM_GRID_X + 2;
+        lsy = ty * NUM_GRID_Y;
+
+        foreach i(indexs)
+        {
+            lsx0 = lsx + 1;
+            lsy0 = lsy + i;
+            
+            s0Ref  = <device IOL  @[lsx0, lsy0]     of ARCHITECTURE>;
+            sprintf(strVar, "IOL_%d_%d", lsx0, lsy0);
+            get_coordinate_of_iol(lsx0, lsy0);
+            
+            //printf("%s: %d, %d.", strVar, fsx_global, fsy_global);
+            s0fl = device IOL ( structure fp_struct ) *strVar @[fsx_global, fsy_global];
+            map ( s0fl => s0Ref);
+        }
+    } // place iol tile end
+    
+    // draw iol tile 
+    function draw_iol_tile_fp(unsigned int tx, unsigned int ty)
+    {
+        // Site index variable. The X index for logic and GUI are declared separately
+        unsigned int lsx, lsy, lsx0, lsy0;
+        unsigned int indexs[] = {1, 2};
+        unsigned int i;
+        
+        // device reference variables
+        &device s0Ref, s0fl;
+
+        string strVar;
+        
+        lsx = tx * NUM_GRID_X + 2;
+        lsy = ty * NUM_GRID_Y;
+
+        foreach i(indexs)
+        {
+            lsx0 = lsx + 1;
+            lsy0 = lsy + i;
+
+            get_coordinate_of_iol(lsx0, lsy0);
+            
+            add_gap_for_gui(fsx_global, fsy_global);
+
+            sprintf(strVar, "IOL_%d_%d", lsx0, lsy0);
+            s0Ref = <instance *strVar   of ARCHITECTURE (structure fp_struct)>;
+            s0fl = device IOL ( schematic floorplan_view ) *strVar @[(fsx_global+9)*160, (fsy_global+9)*320];
+            map ( s0fl => s0Ref);
+        }
+    } // draw iol tile end
+    
+    // place dqsl tile
+    function place_dqsl_tile_fp(unsigned int tx, unsigned int ty)
+    {
+        unsigned int lsx, lsy;
+        unsigned int lsx0, lsy0;
+        
+        // device reference variables
+        &device s0Ref, s0fl;
+        
+        string strVar;
+        
+        lsx = tx * NUM_GRID_X + 2;
+        lsy = ty * NUM_GRID_Y;
+        
+        lsx0 = lsx;
+        lsy0 = lsy;
+        
+        s0Ref  = <device DQSL  @[lsx0,lsy0]     of ARCHITECTURE>;
+        sprintf(strVar, "DQSL_%d_%d", lsx0, lsy0);
+        get_coordinate_of_dqsl(lsx0, lsy0);
+
+        //printf("%s: %d, %d.", strVar, fsx_global, fsy_global);
+        s0fl = device DQSL ( structure fp_struct ) *strVar @[fsx_global, fsy_global];  
+        map ( s0fl => s0Ref); 
+    } // place dqsl tile end
+    
+    // draw dqsl tile
+    function draw_dqsl_tile_fp(unsigned int tx, unsigned int ty)
+    {
+        // Site index variable. The X index for logic and GUI are declared separately
+        unsigned int lsx, lsy, lsx0, lsy0;
+        
+        // device reference variables
+        &device s0Ref, s0fl;
+        
+        string strVar;
+        
+        lsx = tx * NUM_GRID_X + 2;
+        lsy = ty * NUM_GRID_Y;
+
+        lsx0 = lsx;
+        lsy0 = lsy;
+    
+        get_coordinate_of_dqsl(lsx0, lsy0);
+        
+        add_gap_for_gui(fsx_global, fsy_global);
+
+        sprintf(strVar, "DQSL_%d_%d", lsx0, lsy0);
+        s0Ref = <instance *strVar   of ARCHITECTURE (structure fp_struct)>;
+        s0fl = device DQSL ( symbol fpsym ) *strVar @[(fsx_global+9)*160 + 50, (fsy_global+9)*320];
+        map ( s0fl => s0Ref);
+    } // draw dqsl tile end
+    
+    //place iockgatedll tile 
+    function place_iockgatedll_tile_fp(unsigned int tx, unsigned int ty)
+    {
+        unsigned int lsx, lsy;
+        unsigned int lsx0, lsy0;
+        
+        unsigned int offset_y_iockdly[] = {4, 5, 6, 7};
+        
+        unsigned int offset_x_rckb = 1;
+        unsigned int offset_y_rckb[] = {4, 5, 6, 7};
+        
+        unsigned int offset_y_iockgate[] = {0, 1};
+        
+        unsigned int offset_y_iockdiv[] = {8, 9};
+        
+        unsigned int offset_x_dll = 1;
+        unsigned int offset_y_dll = 3;
+        
+        unsigned int i;
+        
+        // device reference variables
+        &device s0Ref, s0fl;
+        string strVar;
+        
+        lsx = tx * NUM_GRID_X + 2;
+        lsy = ty * NUM_GRID_Y;
+        
+        //IOCKDLY
+        foreach i(offset_y_iockdly)
+        {
+            lsx0 = lsx;
+            lsy0 = lsy + i;
+            s0Ref  = <device IOCKDLY  @[lsx0,lsy0]     of ARCHITECTURE>;
+            sprintf(strVar, "IOCKDLY_%d_%d", lsx0, lsy0);
+            
+            get_coordinate_of_iockdly(lsx0, lsy0);
+
+            //printf("%s: %d, %d.", strVar, fsx_global, fsy_global);
+            s0fl = device IOCKDLY  *strVar @[fsx_global, fsy_global];
+            map ( s0fl => s0Ref);
+        }
+
+        // RCKB
+        foreach i(offset_y_rckb)
+        {
+            lsx0 = lsx + offset_x_rckb;
+            lsy0 = lsy + i;
+            s0Ref  = <device RCKB  @[lsx0,lsy0]     of ARCHITECTURE>;
+            sprintf(strVar, "RCKB_%d_%d", lsx0, lsy0);
+            
+            get_coordinate_of_rckb(lsx0, lsy0);
+
+            //printf("%s: %d, %d.", strVar, fsx_global, fsy_global);
+            s0fl = device RCKB  *strVar @[fsx_global, fsy_global];
+            map ( s0fl => s0Ref);
+        }
+
+        // IOCKGATE
+        foreach i(offset_y_iockgate)
+        {
+            lsx0 = lsx;
+            lsy0 = lsy + i;
+            s0Ref  = <device IOCKGATE  @[lsx0,lsy0]     of ARCHITECTURE>;
+            sprintf(strVar, "IOCKGATE_%d_%d", lsx0, lsy0);
+            
+            get_coordinate_of_iockgate(lsx0, lsy0);
+
+            //printf("%s: %d, %d.", strVar, fsx_global, fsy_global);
+            s0fl = device IOCKGATE  *strVar @[fsx_global, fsy_global];
+            map ( s0fl => s0Ref);
+        }
+
+        // IOCKDIV
+        foreach i(offset_y_iockdiv)
+        {
+            lsx0 = lsx;
+            lsy0 = lsy + i;
+            s0Ref  = <device IOCKDIV  @[lsx0,lsy0]     of ARCHITECTURE>;
+            sprintf(strVar, "IOCKDIV_%d_%d", lsx0, lsy0);
+            
+            get_coordinate_of_iockdiv(lsx0, lsy0);
+
+            //printf("%s: %d, %d.", strVar, fsx_global, fsy_global);
+            s0fl = device IOCKDIV  *strVar @[fsx_global,fsy_global];
+            map ( s0fl => s0Ref);
+        }
+
+        lsx0 = lsx + offset_x_dll;
+        lsy0 = lsy + offset_y_dll;
+        s0Ref  = <device DLL  @[lsx0,lsy0]  of ARCHITECTURE>;
+        sprintf(strVar, "DLL_%d_%d", lsx0, lsy0);
+        
+        get_coordinate_of_dll(lsx0, lsy0);
+        
+        //printf("%s: %d, %d.", strVar, fsx_global, fsy_global);
+        s0fl = device DLL    *strVar @[fsx_global,fsy_global];
+        map ( s0fl => s0Ref);
+        
+    } // place iockgatedll tile end
+    
+    // draw iockgatedll tile
+    function draw_iockgatedll_tile_fp(unsigned int tx, unsigned int ty)
+    {
+        unsigned int lsx, lsy;
+        unsigned int lsx0, lsy0;
+        
+        unsigned int offset_y_iockdly[] = {4, 5, 6, 7};
+        
+        unsigned int offset_y_iockgate[] = {0, 1};
+        
+        unsigned int offset_y_iockdiv[] = {8, 9};
+        
+        unsigned int offset_x_dll = 1;
+        unsigned int offset_y_dll = 3;
+        
+        unsigned int offset_y_rckb[] = {4, 5, 6, 7};
+        unsigned int offset_x_rckb = 1;
+        
+        unsigned int i;
+        
+        // device reference variables
+        &device s0Ref, s0fl;
+        string strVar;
+        
+        lsx = tx * NUM_GRID_X + 2;
+        lsy = ty * NUM_GRID_Y;
+        
+        // IOCKDLY
+        foreach i(offset_y_iockdly)
+        {
+            lsx0 = lsx;
+            lsy0 = lsy + i;
+        
+            sprintf(strVar, "IOCKDLY_%d_%d", lsx0, lsy0);
+            
+            get_coordinate_of_iockdly(lsx0, lsy0);
+            
+            add_gap_for_gui(fsx_global, fsy_global);
+        
+            s0Ref = <instance *strVar    of ARCHITECTURE (structure fp_struct)>;
+            s0fl = device IOCKDLY ( symbol fpsym ) *strVar @[(fsx_global+9)*160 + 60, (fsy_global+9)*320 + 140];
+            map ( s0fl => s0Ref);
+        }
+
+        // RCKB
+        foreach i(offset_y_rckb)
+        {
+            lsx0 = lsx + offset_x_rckb;
+            lsy0 = lsy + i;
+        
+            sprintf(strVar, "RCKB_%d_%d", lsx0, lsy0);
+            
+            get_coordinate_of_rckb(lsx0, lsy0);
+            
+            add_gap_for_gui(fsx_global, fsy_global);
+        
+            s0Ref = <instance *strVar    of ARCHITECTURE (structure fp_struct)>;
+            s0fl = device RCKB ( symbol fpsym ) *strVar @[(fsx_global+9)*160 + 60, (fsy_global+9)*320 + 140];
+            map ( s0fl => s0Ref);
+        }
+
+        // IOCKGATE
+        foreach i(offset_y_iockgate)
+        {
+            lsx0 = lsx;
+            lsy0 = lsy + i;
+        
+            sprintf(strVar, "IOCKGATE_%d_%d", lsx0, lsy0);
+            
+            get_coordinate_of_iockgate(lsx0, lsy0);
+            
+            add_gap_for_gui(fsx_global, fsy_global);
+        
+            s0Ref = <instance *strVar    of ARCHITECTURE (structure fp_struct)>;
+            s0fl = device IOCKGATE ( symbol fpsym ) *strVar @[(fsx_global+9)*160 + 60, (fsy_global+9)*320 + 140];
+            map ( s0fl => s0Ref);
+        }
+
+        // IOCKDIV
+        foreach i(offset_y_iockdiv)
+        {
+            lsx0 = lsx;
+            lsy0 = lsy + i;
+        
+            sprintf(strVar, "IOCKDIV_%d_%d", lsx0, lsy0);
+            
+            get_coordinate_of_iockdiv(lsx0, lsy0);
+            
+            add_gap_for_gui(fsx_global, fsy_global);
+        
+            s0Ref = <instance *strVar    of ARCHITECTURE (structure fp_struct)>;
+            s0fl = device IOCKDIV ( symbol fpsym ) *strVar @[(fsx_global+9)*160 + 60, (fsy_global+9)*320 + 140];
+            map ( s0fl => s0Ref);
+        }
+
+        // DLL
+        lsx0 = lsx + offset_x_dll;
+        lsy0 = lsy + offset_y_dll;
+        
+        sprintf(strVar, "DLL_%d_%d", lsx0, lsy0);
+        
+        get_coordinate_of_dll(lsx0, lsy0);
+            
+        add_gap_for_gui(fsx_global, fsy_global);
+        
+        s0Ref = <instance *strVar    of ARCHITECTURE (structure fp_struct)>;
+        s0fl = device DLL ( symbol fpsym ) *strVar @[(fsx_global+9)*160 + 60, (fsy_global+9)*320 + 60];
+        map ( s0fl => s0Ref);
+    } // draw iockgatedll tile end
+    
+    //place iockgatedll2 tile 
+    function place_iockgatedll2_tile_fp(unsigned int tx, unsigned int ty)
+    {
+        unsigned int lsx, lsy;
+        unsigned int lsx0, lsy0;
+        
+        unsigned int offset_y_iockdly[] = {4, 5, 6, 7};
+        
+        unsigned int offset_x_rckb = 1;
+        unsigned int offset_y_rckb[] = {4, 5, 6, 7};
+        
+        unsigned int offset_y_iockgate[] = {0, 1};
+        
+        unsigned int offset_y_iockdiv[] = {8, 9};
+        
+        unsigned int offset_x_dll = 1;
+        unsigned int offset_y_dll = 3;
+        
+        unsigned int i;
+        
+        // device reference variables
+        &device s0Ref, s0fl;
+        string strVar;
+        
+        lsx = tx * NUM_GRID_X + 2;
+        lsy = ty * NUM_GRID_Y;
+        
+        //IOCKDLY
+        foreach i(offset_y_iockdly)
+        {
+            lsx0 = lsx;
+            lsy0 = lsy + i;
+            s0Ref  = <device IOCKDLY  @[lsx0,lsy0]     of ARCHITECTURE>;
+            sprintf(strVar, "IOCKDLY_%d_%d", lsx0, lsy0);
+            
+            get_coordinate_of_iockdly(lsx0, lsy0);
+
+            //printf("%s: %d, %d.", strVar, fsx_global, fsy_global);
+            s0fl = device IOCKDLY  *strVar @[fsx_global, fsy_global];
+            map ( s0fl => s0Ref);
+        }
+
+        // RCKB
+        foreach i(offset_y_rckb)
+        {
+            lsx0 = lsx + offset_x_rckb;
+            lsy0 = lsy + i;
+            s0Ref  = <device RCKB  @[lsx0,lsy0]     of ARCHITECTURE>;
+            sprintf(strVar, "RCKB_%d_%d", lsx0, lsy0);
+            
+            get_coordinate_of_rckb(lsx0, lsy0);
+
+            //printf("%s: %d, %d.", strVar, fsx_global, fsy_global);
+            s0fl = device RCKB  *strVar @[fsx_global, fsy_global];
+            map ( s0fl => s0Ref);
+        }
+
+        // IOCKGATE
+        foreach i(offset_y_iockgate)
+        {
+            lsx0 = lsx;
+            lsy0 = lsy + i;
+            s0Ref  = <device IOCKGATE  @[lsx0,lsy0]     of ARCHITECTURE>;
+            sprintf(strVar, "IOCKGATE_%d_%d", lsx0, lsy0);
+            
+            get_coordinate_of_iockgate(lsx0, lsy0);
+
+            //printf("%s: %d, %d.", strVar, fsx_global, fsy_global);
+            s0fl = device IOCKGATE  *strVar @[fsx_global, fsy_global];
+            map ( s0fl => s0Ref);
+        }
+
+        // IOCKDIV
+        foreach i(offset_y_iockdiv)
+        {
+            lsx0 = lsx;
+            lsy0 = lsy + i;
+            s0Ref  = <device IOCKDIV  @[lsx0,lsy0]     of ARCHITECTURE>;
+            sprintf(strVar, "IOCKDIV_%d_%d", lsx0, lsy0);
+            
+            get_coordinate_of_iockdiv(lsx0, lsy0);
+
+            //printf("%s: %d, %d.", strVar, fsx_global, fsy_global);
+            s0fl = device IOCKDIV  *strVar @[fsx_global,fsy_global];
+            map ( s0fl => s0Ref);
+        }
+
+        lsx0 = lsx + offset_x_dll;
+        lsy0 = lsy + offset_y_dll;
+        s0Ref  = <device DLL  @[lsx0,lsy0]  of ARCHITECTURE>;
+        sprintf(strVar, "DLL_%d_%d", lsx0, lsy0);
+        
+        get_coordinate_of_dll(lsx0, lsy0);
+        
+        //printf("%s: %d, %d.", strVar, fsx_global, fsy_global);
+        s0fl = device DLL    *strVar @[fsx_global,fsy_global];
+        map ( s0fl => s0Ref);
+        
+    } // place iockgatedll2 tile end
+    
+    // draw iockgatedll2 tile
+    function draw_iockgatedll2_tile_fp(unsigned int tx, unsigned int ty)
+    {
+        unsigned int lsx, lsy;
+        unsigned int lsx0, lsy0;
+        
+        unsigned int offset_y_iockdly[] = {4, 5, 6, 7};
+        
+        unsigned int offset_y_iockgate[] = {0, 1};
+        
+        unsigned int offset_y_iockdiv[] = {8, 9};
+        
+        unsigned int offset_x_dll = 1;
+        unsigned int offset_y_dll = 3;
+        
+        unsigned int offset_y_rckb[] = {4, 5, 6, 7};
+        unsigned int offset_x_rckb = 1;
+        
+        unsigned int i;
+        
+        // device reference variables
+        &device s0Ref, s0fl;
+        string strVar;
+        
+        lsx = tx * NUM_GRID_X + 2;
+        lsy = ty * NUM_GRID_Y;
+        
+        // IOCKDLY
+        foreach i(offset_y_iockdly)
+        {
+            lsx0 = lsx;
+            lsy0 = lsy + i;
+        
+            sprintf(strVar, "IOCKDLY_%d_%d", lsx0, lsy0);
+            
+            get_coordinate_of_iockdly(lsx0, lsy0);
+            
+            add_gap_for_gui(fsx_global, fsy_global);
+        
+            s0Ref = <instance *strVar    of ARCHITECTURE (structure fp_struct)>;
+            s0fl = device IOCKDLY ( symbol fpsym ) *strVar @[(fsx_global+9)*160 + 60, (fsy_global+9)*320 + 140];
+            map ( s0fl => s0Ref);
+        }
+
+        // RCKB
+        foreach i(offset_y_rckb)
+        {
+            lsx0 = lsx + offset_x_rckb;
+            lsy0 = lsy + i;
+        
+            sprintf(strVar, "RCKB_%d_%d", lsx0, lsy0);
+            
+            get_coordinate_of_rckb(lsx0, lsy0);
+            
+            add_gap_for_gui(fsx_global, fsy_global);
+        
+            s0Ref = <instance *strVar    of ARCHITECTURE (structure fp_struct)>;
+            s0fl = device RCKB ( symbol fpsym ) *strVar @[(fsx_global+9)*160 + 60, (fsy_global+9)*320 + 140];
+            map ( s0fl => s0Ref);
+        }
+
+        // IOCKGATE
+        foreach i(offset_y_iockgate)
+        {
+            lsx0 = lsx;
+            lsy0 = lsy + i;
+        
+            sprintf(strVar, "IOCKGATE_%d_%d", lsx0, lsy0);
+            
+            get_coordinate_of_iockgate(lsx0, lsy0);
+            
+            add_gap_for_gui(fsx_global, fsy_global);
+        
+            s0Ref = <instance *strVar    of ARCHITECTURE (structure fp_struct)>;
+            s0fl = device IOCKGATE ( symbol fpsym ) *strVar @[(fsx_global+9)*160 + 60, (fsy_global+9)*320 + 140];
+            map ( s0fl => s0Ref);
+        }
+
+        // IOCKDIV
+        foreach i(offset_y_iockdiv)
+        {
+            lsx0 = lsx;
+            lsy0 = lsy + i;
+        
+            sprintf(strVar, "IOCKDIV_%d_%d", lsx0, lsy0);
+            
+            get_coordinate_of_iockdiv(lsx0, lsy0);
+            
+            add_gap_for_gui(fsx_global, fsy_global);
+        
+            s0Ref = <instance *strVar    of ARCHITECTURE (structure fp_struct)>;
+            s0fl = device IOCKDIV ( symbol fpsym ) *strVar @[(fsx_global+9)*160 + 60, (fsy_global+9)*320 + 140];
+            map ( s0fl => s0Ref);
+        }
+
+        // DLL
+        lsx0 = lsx + offset_x_dll;
+        lsy0 = lsy + offset_y_dll;
+        
+        sprintf(strVar, "DLL_%d_%d", lsx0, lsy0);
+        
+        get_coordinate_of_dll(lsx0, lsy0);
+            
+        add_gap_for_gui(fsx_global, fsy_global);
+        
+        s0Ref = <instance *strVar    of ARCHITECTURE (structure fp_struct)>;
+        s0fl = device DLL ( symbol fpsym ) *strVar @[(fsx_global+9)*160 + 60, (fsy_global+9)*320 + 60];
+        map ( s0fl => s0Ref);
+    } // draw iockgatedll2 tile end
+    
+    // place cgra tile
+    function place_cgra_tile_fp(unsigned int tx, unsigned int ty)
+    {
+        unsigned int lsx, lsy;
+        unsigned int lsx0, lsy0;
+        
+        // device reference variables
+        &device s0Ref, s0fl;
+        
+        string strVar;
+        
+        lsx = tx * NUM_GRID_X;
+        lsy = ty * NUM_GRID_Y;
+        
+        s0Ref  = <device CGRA  @[lsx,lsy]     of ARCHITECTURE>;
+        sprintf(strVar, "CGRA_%d_%d", lsx, lsy);
+        get_coordinate_of_cgra(lsx, lsy);
+
+        //printf("%s: %d, %d.", strVar, fsx_global, fsy_global);
+        s0fl = device CGRA  *strVar @[fsx_global, fsy_global];
+        map ( s0fl => s0Ref); 
+    } // place cgra tile end
+    
+    // draw cgra tile
+    function draw_cgra_tile_fp(unsigned int tx, unsigned int ty)
+    {
+        // Site index variable. The X index for logic and GUI are declared separately
+        unsigned int lsx, lsy, lsx0, lsy0;
+        
+        // device reference variables
+        &device s0Ref, s0fl;
+        
+        string strVar;
+        
+        lsx = tx * NUM_GRID_X;
+        lsy = ty * NUM_GRID_Y;
+    
+        get_coordinate_of_cgra(lsx, lsy);
+        
+        add_gap_for_gui(fsx_global, fsy_global);
+
+        sprintf(strVar, "CGRA_%d_%d", lsx, lsy);
+        s0Ref = <instance *strVar   of ARCHITECTURE (structure fp_struct)>;
+        s0fl = device CGRA ( symbol fpsym ) *strVar @[(fsx_global+9)*160, (fsy_global+7)*320];
+        map ( s0fl => s0Ref);
+    } // draw cgra tile end
+    
+    //// place rckb tile
+    //function place_rckb_tile_fp(unsigned int tx, unsigned int ty)
+    //{
+    //    unsigned int lsx, lsy;
+    //    unsigned int lsx0, lsy0;
+    //    
+    //    unsigned int offset_x_rckb = 1;
+    //    unsigned int offset_y_rckb[] = {4, 5, 6, 7};
+    //    
+    //    unsigned int i;
+    //    
+    //    // device reference variables
+    //    &device s0Ref, s0fl;
+    //    string strVar;
+    //    
+    //    lsx = tx * NUM_GRID_X + 2;
+    //    lsy = ty * NUM_GRID_Y;
+    //
+    //    // RCKB
+    //    foreach i(offset_y_rckb)
+    //    {
+    //        lsx0 = lsx + offset_x_rckb;
+    //        lsy0 = lsy + i;
+    //        s0Ref  = <device RCKB  @[lsx0,lsy0]     of ARCHITECTURE>;
+    //        sprintf(strVar, "RCKB_%d_%d", lsx0, lsy0);
+    //        
+    //        get_coordinate_of_rckb(lsx0, lsy0);
+    //
+    //        //printf("%s: %d, %d.", strVar, fsx_global, fsy_global);
+    //        s0fl = device RCKB  *strVar @[fsx_global, fsy_global];
+    //        map ( s0fl => s0Ref);
+    //    }
+    //} // place rckb tile end
+    //
+    //// draw rckb tile
+    //function draw_rckb_tile_fp(unsigned int tx, unsigned int ty)
+    //{
+    //    unsigned int lsx, lsy;
+    //    unsigned int lsx0, lsy0;
+    //    
+    //    unsigned int offset_y_rckb[] = {4, 5, 6, 7};
+    //    unsigned int offset_x_rckb = 1;
+    //    
+    //    unsigned int i;
+    //    
+    //    // device reference variables
+    //    &device s0Ref, s0fl;
+    //    string strVar;
+    //    
+    //    lsx = tx * NUM_GRID_X + 2;
+    //    lsy = ty * NUM_GRID_Y;
+    //
+    //    // RCKB
+    //    foreach i(offset_y_rckb)
+    //    {
+    //        lsx0 = lsx + offset_x_rckb;
+    //        lsy0 = lsy + i;
+    //    
+    //        sprintf(strVar, "RCKB_%d_%d", lsx0, lsy0);
+    //        
+    //        get_coordinate_of_rckb(lsx0, lsy0);
+    //        
+    //        add_gap_for_gui(fsx_global, fsy_global);
+    //    
+    //        s0Ref = <instance *strVar    of ARCHITECTURE (structure fp_struct)>;
+    //        s0fl = device RCKB ( symbol fpsym ) *strVar @[(fsx_global+9)*160 + 60, (fsy_global+9)*320 + 140];
+    //        map ( s0fl => s0Ref);
+    //    }
+    //} // draw rckb tile end
+    
+    
+}; // end of package pgl_schm_funcs
+
+    

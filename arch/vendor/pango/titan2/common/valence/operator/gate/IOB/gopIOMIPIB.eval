@@ -1,0 +1,122 @@
+*******************************************************************
+
+  Operator    [gopIOMIPIB]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+
+gate
+operator gopIOMIPIB
+{
+    parameter
+    (
+        string IOB_MODE                = "UNUSED",
+        string TERMINATED              = "NONE",    /* "NONE" , "PULLUP" , "PULLDOWN" , "KEEPER" */
+        string HOT_SOCKET              = "ON",        // ON: 1'b0; OFF: 1'b1
+        string POWER_MODE              = "ON",        // ON: 1'b0; OFF: 1'b1 ON--> POWER GUARD
+        string VCCIO                   = "1.2",       // "3.3" "2.5" "1.8" "1.5" "1.2"
+        string HYS_DRIVE_MODE          = "NOHYS" ,    // "NOHYS","SMHYS_I","SMHYS_II","LGHYS","OD","UD" 
+        string VREF_MODE               = "INT"    ,    // "INT": VREF_IN; "EXTERNAL": VREF_OUT
+        string VREF_IN_MODE            = "OFF",       // "OFF" "0.45" "0.50" "0.55"
+        string VREF_PIN_LOC            = "NA"    ,    // "NA" "VREF1" "VREF2" "VREF3",
+        string DDR_TERM_MODE           = "OFF",       // "TERM": "ON" "OFF"     
+        string VREF_OUT_MODE           = "VREF0",  // "VREF0"   "VREF1"       
+        string DIFF_IN_TERM_MODE       = "OFF",       // "ON" "OFF" 
+        string SLEW_MODE               = "F",         // "F" "S"
+        string DRV_CURR_VAL            = "8",
+        string IOSTANDARD              = "MIPI",
+        string CP_DYN_TERM                = "OFF",
+        string OPENDRAIN               = "OFF",
+        string CP_HYS                = "OFF",
+        string CP_DYN_IN                  = "OFF"
+        
+        // parameter of bkcl, just for transmit value from gui
+        //string CP_DRV_STRENGTH_DIFF_0  = "0",
+        //string CP_DRV_STRENGTH_DIFF_1  = "0",
+        //string CP_VCM_0                = "1.25",
+        //string CP_VCM_1                = "1.25",
+        //string CP_DIFFOUT_EN_0         = "FALSE",
+        //string CP_DIFFOUT_EN_1         = "FALSE",
+        //string CP_VREF_MODE            = "EXTERNAL",
+        //string CP_VREF_SEL             = "0.5"
+    );
+    port
+    (
+        input  I,
+        input  T, 
+        //input  MI,
+        inout  IO,
+        input  DIFFO_IN,
+        
+        output DIFFI_OUT,
+        output O
+    );
+};
+
+implementation impl_s of gopIOMIPIB
+{
+    device devIOBS gate_iomipi_s
+        parameter map
+        (
+            CP_IOB_MODE          =>  IOB_MODE,
+            CP_PORT_STATUS       =>  TERMINATED,
+            CP_IO_STANDARD       =>  IOSTANDARD,
+            CP_DDRIN_TERM        =>  DDR_TERM_MODE,
+            CP_DYN_TERM          =>  CP_DYN_TERM,
+            CP_HYS               =>  CP_HYS,
+            CP_DRV_STRENGTH      =>  DRV_CURR_VAL,
+            CP_SLEW_MODE         =>  SLEW_MODE,
+            //CP_HOT_SOCKET        =>  HOT_SOCKET,
+            CP_VCCIO             =>  VCCIO,
+            CP_OPENDRAIN         =>  OPENDRAIN,
+            CP_DYN_IN            =>  CP_DYN_IN
+        )
+        port map 
+        (
+            PAD        => IO,
+            DO         => I,
+            DO_NDRV    => T,
+            
+            //MIPI_SW_DYN   => MI,
+            DIFFO_IN      => DIFFO_IN,
+            
+            DIFFI_OUT     => DIFFI_OUT,
+            DIN           => O
+        );
+};
+
+implementation impl_iobshp of gopIOMIPIB
+{
+    device devIOBSHP gate_iomipib_bshp
+        parameter map
+        (
+            CP_IOB_MODE          =>  IOB_MODE,
+            CP_PORT_STATUS       =>  TERMINATED,
+            CP_IO_STANDARD       =>  IOSTANDARD,
+            CP_DDRIN_TERM        =>  DDR_TERM_MODE,
+            CP_DYN_TERM          =>  CP_DYN_TERM,
+            CP_HYS               =>  CP_HYS,
+            CP_DRV_STRENGTH      =>  DRV_CURR_VAL,
+            CP_SLEW_MODE         =>  SLEW_MODE,
+            //CP_HOT_SOCKET        =>  HOT_SOCKET,
+            CP_VCCIO             =>  VCCIO,
+            CP_OPENDRAIN         =>  OPENDRAIN,
+            CP_DYN_IN            =>  CP_DYN_IN
+        )
+        port map 
+        (
+            PAD        => IO,
+            S11_USR_DO_P         => I,
+            S11_USR_DO_N    => T,
+            
+            //MIPI_SW_DYN   => MI,
+            DIFFO_IN      => DIFFO_IN,
+            
+            DIFFI_OUT     => DIFFI_OUT,
+            DIN           => O
+        );
+};
+

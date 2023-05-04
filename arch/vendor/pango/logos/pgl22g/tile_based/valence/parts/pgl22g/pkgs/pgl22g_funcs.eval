@@ -1,0 +1,837 @@
+use pgl_defs,pgl22g_defs;
+
+package pgl22g_funcs
+{
+/*******************************************************************
+********************************************************************/
+function connect_col_addr
+(
+    unsigned int region_index,
+    unsigned int tx_blsr,
+    unsigned int l_col_l[],
+    unsigned int l_col_r[],
+    unsigned int tx_hmemc0,
+    unsigned int tx_hmemc1
+)
+{
+    int sy_blsr = region_index * NUM_GRID_BLSR_Y;
+    int sx_blsr = BLSR_TILE_X * NUM_GRID_X;
+    int sy_wlsr;
+
+    int tx,tmp_tx,sx;
+    string device_wlsr;
+    string pin_wlsr;
+    foreach tx( l_col_l )
+    {
+        device_wlsr = ((region_index==0)&&((tx==tx_hmemc0)||(tx==tx_hmemc1))) ? "WLSRA_TILE" : "WLSR_TILE";
+        pin_wlsr = "COL_ADDR";
+        sy_wlsr = region_index * ((NUM_TILES_REGION-1)*NUM_GRID_Y+NUM_GRID_WLSR_Y) + MID_TILE_REGION*NUM_GRID_Y;
+        sx = tx * NUM_GRID_X;
+        foreach tmp_tx(L_WLSR1_TILES_X)
+        {
+          if(tmp_tx==tx)
+          {
+            device_wlsr = "WLSR1_TILE";
+            break;
+          }
+        }
+        foreach tmp_tx(L_WLSR2_TILES_X)
+        {
+          if(tmp_tx==tx)
+          {
+            device_wlsr = "WLSR2_TILE";
+            break;
+          }
+        }
+        foreach tmp_tx(L_WLSRA_TILES_X)
+        {
+          if(tmp_tx==tx)
+          {
+             device_wlsr = "WLSRA_TILE";
+             break;
+          }
+        }
+        foreach tmp_tx(L_WLSRD_TILES_X)
+        {
+          if(tmp_tx==tx)
+          {
+             device_wlsr = "WLSRD_TILE";
+             connect 
+              (
+                <pin COL_ADDR_D[6:1] of <device *device_wlsr @ [sx,sy_wlsr]>>  => <wire COL_L_N_O[6:1] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+                <pin COL_ADDR_D[0] of <device *device_wlsr @ [sx,sy_wlsr]>>  =>  (tx==8) ? <wire COL_L_N_O[0] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+                                                                                         : <wire COL_L_O[0] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+              );
+             break;
+          }
+        }
+        foreach tmp_tx(L_IOCKGATEDLL_TILES_X)
+        {
+          if(tmp_tx==tx)
+          {
+             device_wlsr = (region_index==0) ? "HMEMCIOCKGATEDLL_TILE" : "IOCKGATEDLL_TILE";
+             sy_wlsr = sy_wlsr - NUM_GRID_Y;
+             sx = tx * NUM_GRID_X + 2;
+             break;
+          }
+        }
+        foreach tmp_tx(L_IOB_TILES_X)
+        {
+          if(tmp_tx==tx)
+          {
+             device_wlsr = "IOB_TILE";
+             sy_wlsr = region_index * ((NUM_TILES_REGION-1)*NUM_GRID_Y + NUM_GRID_WLSR_Y);
+             break;
+          }
+        }
+        if((region_index==0)&&(tx>1))
+        {
+            tx = tx - 3;
+        }
+        connect
+          (
+            <pin *pin_wlsr[6:5] of <device *device_wlsr @[sx,sy_wlsr]>> => <wire COL_L_N_O[6:5] of <device BLSR_TILE @[sx_blsr,sy_blsr]>>
+          );
+        if(tx>=16)
+        {
+          connect
+          (
+            <pin *pin_wlsr[4] of <device *device_wlsr @[sx,sy_wlsr]>> => <wire COL_L_O[4] of <device BLSR_TILE @[sx_blsr,sy_blsr]>>
+          );
+        }
+        else
+        {
+          connect
+          (
+            <pin *pin_wlsr[4] of <device *device_wlsr @[sx,sy_wlsr]>> => <wire COL_L_N_O[4] of <device BLSR_TILE @[sx_blsr,sy_blsr]>>
+          );
+        }
+        if((tx>=8)&&(tx<16))
+        {
+          connect
+          (
+            <pin *pin_wlsr[3] of <device *device_wlsr @[sx,sy_wlsr]>> => <wire COL_L_O[3] of <device BLSR_TILE @[sx_blsr,sy_blsr]>>
+          );
+        }
+        else
+        {
+          connect
+          (
+            <pin *pin_wlsr[3] of <device *device_wlsr @[sx,sy_wlsr]>> => <wire COL_L_N_O[3] of <device BLSR_TILE @[sx_blsr,sy_blsr]>>
+          );
+        }
+        if(((tx>=4)&&(tx<8))||((tx>=12)&&(tx<16))||((tx>=20)&&(tx<24)))
+        {
+          connect
+          (
+            <pin *pin_wlsr[2] of <device *device_wlsr @[sx,sy_wlsr]>> => <wire COL_L_O[2] of <device BLSR_TILE @[sx_blsr,sy_blsr]>>
+          );
+        }
+        else
+        {
+          connect
+          (
+            <pin *pin_wlsr[2] of <device *device_wlsr @[sx,sy_wlsr]>> => <wire COL_L_N_O[2] of <device BLSR_TILE @[sx_blsr,sy_blsr]>>
+          );
+        }
+        if(((tx>=2)&&(tx<4))||((tx>=6)&&(tx<8))||((tx>=10)&&(tx<12))||((tx>=14)&&(tx<16))||((tx>=18)&&(tx<20)))
+        {
+          connect
+          (
+            <pin *pin_wlsr[1] of <device *device_wlsr @[sx,sy_wlsr]>> => <wire COL_L_O[1] of <device BLSR_TILE @[sx_blsr,sy_blsr]>>
+          );
+        }
+        else
+        {
+          connect
+          (
+            <pin *pin_wlsr[1] of <device *device_wlsr @[sx,sy_wlsr]>> => <wire COL_L_N_O[1] of <device BLSR_TILE @[sx_blsr,sy_blsr]>>
+          );
+        }
+        if((tx==1)||(tx==3)||(tx==5)||(tx==7)||(tx==9)||(tx==11)||(tx==13)||(tx==15)||(tx==17)||(tx==19)||(tx==21))
+        {
+          connect
+          (
+            <pin *pin_wlsr[0] of <device *device_wlsr @[sx,sy_wlsr]>> => <wire COL_L_O[0] of <device BLSR_TILE @[sx_blsr,sy_blsr]>>
+          );
+        }
+        else
+        {
+          connect
+          (
+            <pin *pin_wlsr[0] of <device *device_wlsr @[sx,sy_wlsr]>> => <wire COL_L_N_O[0] of <device BLSR_TILE @[sx_blsr,sy_blsr]>>
+          );
+        }  
+    }
+
+    foreach tx( l_col_r )
+    {
+        device_wlsr = ((region_index==0)&&((tx==tx_hmemc0)||(tx==tx_hmemc1))) ? "WLSRA_TILE" : "WLSR_TILE";
+        pin_wlsr = "COL_ADDR";
+        sx = tx * NUM_GRID_X;
+        sy_wlsr = region_index * ((NUM_TILES_REGION-1)*NUM_GRID_Y+NUM_GRID_WLSR_Y) + MID_TILE_REGION*NUM_GRID_Y;
+        foreach tmp_tx(L_WLSR1_TILES_X)
+        {
+          if(tmp_tx==tx)
+          {
+            device_wlsr = "WLSR1_TILE";
+            break;
+          }
+        }
+        foreach tmp_tx(L_WLSR2_TILES_X)
+        {
+          if(tmp_tx==tx)
+          {
+            device_wlsr = "WLSR2_TILE";
+            break;
+          }
+        }
+        foreach tmp_tx(L_WLSRA_TILES_X)
+        {
+          if(tmp_tx==tx)
+          {
+            device_wlsr = "WLSRA_TILE";
+            break;
+          }
+        }
+        foreach tmp_tx(L_WLSRD_TILES_X)
+        {
+          if(tmp_tx==tx)
+          {
+            device_wlsr = "WLSRD_TILE";
+            connect 
+              (
+                <pin COL_ADDR_D[0] of <device *device_wlsr @ [sx,sy_wlsr]>>    => <wire COL_R_N_O[0] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+                <pin COL_ADDR_D[1] of <device *device_wlsr @ [sx,sy_wlsr]>>    => <wire COL_R_O[1] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+                <pin COL_ADDR_D[6:2] of <device *device_wlsr @ [sx,sy_wlsr]>>  => <wire COL_R_N_O[6:2] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+              );
+             break;
+          }
+        }
+        foreach tmp_tx(L_IOCKGATEDLL_TILES_X)
+        {
+          if(tmp_tx==tx)
+          {
+             device_wlsr = (region_index==0) ? "HMEMCIOCKGATEDLL_TILE" : "IOCKGATEDLL_TILE";
+             sy_wlsr = sy_wlsr - NUM_GRID_Y;
+             sx = tx * NUM_GRID_X + 2;
+             break;
+          }
+        }
+        foreach tmp_tx(L_IOB_TILES_X)
+        {
+          if(tmp_tx==tx)
+          {
+             device_wlsr = "IOB_TILE";
+             sy_wlsr = region_index * ((NUM_TILES_REGION-1)*NUM_GRID_Y + NUM_GRID_WLSR_Y);
+             break;
+          }
+        }
+        if(region_index==0)
+        {
+            tx = (tx>33) ? tx - 6 : tx - 3;
+        }
+        tx = tx - 1;
+        connect
+          (
+              <pin *pin_wlsr[6] of <device *device_wlsr @[sx,sy_wlsr]>> => <wire COL_R_N_O[6] of <device BLSR_TILE @[sx_blsr,sy_blsr]>>
+          );
+        if(tx>=32)
+        {
+          connect
+          (
+            <pin *pin_wlsr[5] of <device *device_wlsr @[sx,sy_wlsr]>> => <wire COL_R_O[5] of <device BLSR_TILE @[sx_blsr,sy_blsr]>>
+          );
+        }
+        else
+        {
+          connect
+          (
+            <pin *pin_wlsr[5] of <device *device_wlsr @[sx,sy_wlsr]>> => <wire COL_R_N_O[5] of <device BLSR_TILE @[sx_blsr,sy_blsr]>>
+          );
+        }
+
+        if((tx>=16)&&(tx<32))
+        {
+          connect
+          (
+            <pin *pin_wlsr[4] of <device *device_wlsr @[sx,sy_wlsr]>> => <wire COL_R_O[4] of <device BLSR_TILE @[sx_blsr,sy_blsr]>>
+          );
+        }
+        else
+        {
+          connect
+          (
+            <pin *pin_wlsr[4] of <device *device_wlsr @[sx,sy_wlsr]>> => <wire COL_R_N_O[4] of <device BLSR_TILE @[sx_blsr,sy_blsr]>>
+          );
+        }
+        if(((tx>=24)&&(tx<32))||((tx>=8)&&(tx<16)))
+        {
+          connect
+          (
+            <pin *pin_wlsr[3] of <device *device_wlsr @[sx,sy_wlsr]>> => <wire COL_R_O[3] of <device BLSR_TILE @[sx_blsr,sy_blsr]>>
+          );
+        }
+        else
+        {
+          connect
+          (
+            <pin *pin_wlsr[3] of <device *device_wlsr @[sx,sy_wlsr]>> => <wire COL_R_N_O[3] of <device BLSR_TILE @[sx_blsr,sy_blsr]>>
+          );
+        }
+        if(((tx>=12)&&(tx<16))||((tx>=20)&&(tx<24))||((tx>=28)&&(tx<32))||((tx>=36)&&(tx<40)))
+        {
+          connect
+          (
+            <pin *pin_wlsr[2] of <device *device_wlsr @[sx,sy_wlsr]>> => <wire COL_R_O[2] of <device BLSR_TILE @[sx_blsr,sy_blsr]>>
+          );
+        }
+        else
+        {
+          connect
+          (
+            <pin *pin_wlsr[2] of <device *device_wlsr @[sx,sy_wlsr]>> => <wire COL_R_N_O[2] of <device BLSR_TILE @[sx_blsr,sy_blsr]>>
+          );
+        }
+        if(((tx>=14)&&(tx<16))||((tx>=18)&&(tx<20))||((tx>=22)&&(tx<24))||((tx>=26)&&(tx<28))||((tx>=30)&&(tx<32))||((tx>=34)&&(tx<36)))
+        {
+          connect
+          (
+            <pin *pin_wlsr[1] of <device *device_wlsr @[sx,sy_wlsr]>> => <wire COL_R_O[1] of <device BLSR_TILE @[sx_blsr,sy_blsr]>>
+          );
+        }
+        else
+        {
+          connect
+          (
+            <pin *pin_wlsr[1] of <device *device_wlsr @[sx,sy_wlsr]>> => <wire COL_R_N_O[1] of <device BLSR_TILE @[sx_blsr,sy_blsr]>>
+          );
+        }
+        if((tx==13)||(tx==15)||(tx==17)||(tx==19)||(tx==21)||(tx==23)||(tx==25)||(tx==27)||(tx==29)||(tx==31)||(tx==33)||(tx==35)||(tx==37))
+        {
+          connect
+          (
+            <pin *pin_wlsr[0] of <device *device_wlsr @[sx,sy_wlsr]>> => <wire COL_R_O[0] of <device BLSR_TILE @[sx_blsr,sy_blsr]>>
+          );
+        }
+        else
+        {
+          connect
+          (
+            <pin *pin_wlsr[0] of <device *device_wlsr @[sx,sy_wlsr]>> => <wire COL_R_N_O[0] of <device BLSR_TILE @[sx_blsr,sy_blsr]>>
+          );
+        }
+    }
+    
+        
+}//end of function connect_col_addr
+/*******************************************************************
+********************************************************************/
+function connect_BLSR_input_pgl22g()
+{
+  int sx = BLSR_TILE_X * NUM_GRID_X;
+
+  int sx_ccs = CCS_TILE_X * NUM_GRID_X + 2;
+  int sy_ccs = CCS_TILE_Y * NUM_GRID_Y;
+  int sx_rlybufs = RLYBUFS_TILE_X * NUM_GRID_X + 2;
+  int sy_rlybufs = RLYBUFS_TILE_Y * NUM_GRID_Y;
+
+  int sx_uscm = USCM_TILE_X * NUM_GRID_X + 2;
+  int sy_uscm = USCM_TILE1_Y * NUM_GRID_Y;
+  
+  
+
+  int ty;
+  for(ty=CCS_TILE_Y;ty>MID_TILE_REGION;ty=ty-NUM_TILES_REGION)
+  {
+    sy_ccs = sy_ccs + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+  }
+
+  connect
+    (
+      <pin BLSR_SEL_DN of <device BLSR_TILE @ [sx,2*NUM_GRID_BLSR_Y]>>  => <wire BLSR_SEL_O[0] of <device BLSR_TILE @ [sx,2*NUM_GRID_BLSR_Y]>>,
+      <pin BLSR_SEL_UP of <device BLSR_TILE @ [sx,2*NUM_GRID_BLSR_Y]>>  => <wire BLSHFT_SEL_O[0] of <device CCS_TILE @ [sx_ccs,sy_ccs]>>,
+      <pin REGION_RW_DN of <device BLSR_TILE @ [sx,2*NUM_GRID_BLSR_Y]>> => <wire REGION_RW_EN_O[0] of <device BLSR_TILE @ [sx,2*NUM_GRID_BLSR_Y]>>,
+      <pin REGION_RW_UP of <device BLSR_TILE @ [sx,2*NUM_GRID_BLSR_Y]>> => <wire REGION_RW_EN_O[0] of <device CCS_TILE @ [sx_ccs,sy_ccs]>>,
+      <pin REGION_RW_I of <device BLSR_TILE @ [sx,2*NUM_GRID_BLSR_Y]>>  => <wire REGION_RW_EN_O[0] of <device BLSR_TILE @ [sx,2*NUM_GRID_BLSR_Y]>>,
+      <pin REGION_SEL_I of <device BLSR_TILE @ [sx,2*NUM_GRID_BLSR_Y]>> => <wire WLSR_SEL_O[0] of <device BLSR_TILE @ [sx,2*NUM_GRID_BLSR_Y]>>,
+      <pin IREF10UA of <device BLSR_TILE @ [sx,2*NUM_GRID_BLSR_Y]>>     => <wire ICONST10U[0] of <device CCS_TILE @ [sx_ccs,sy_ccs]>>,
+
+      <pin BLSR_SEL_DN of <device BLSR_TILE @ [sx,NUM_GRID_BLSR_Y]>>    => <wire BLSR_SEL_O[1] of <device BLSR_TILE @ [sx,NUM_GRID_BLSR_Y]>>,
+      <pin BLSR_SEL_UP of <device BLSR_TILE @ [sx,NUM_GRID_BLSR_Y]>>    => <wire BLSR_SEL_O[1] of <device BLSR_TILE @ [sx,2*NUM_GRID_BLSR_Y]>>,
+      <pin REGION_RW_DN of <device BLSR_TILE @ [sx,NUM_GRID_BLSR_Y]>>   => <wire REGION_RW_EN_O[1] of <device BLSR_TILE @ [sx,NUM_GRID_BLSR_Y]>>,
+      <pin REGION_RW_UP of <device BLSR_TILE @ [sx,NUM_GRID_BLSR_Y]>>   => <wire REGION_RW_EN_O[1] of <device BLSR_TILE @ [sx,2*NUM_GRID_BLSR_Y]>>,
+      <pin REGION_RW_I of <device BLSR_TILE @ [sx,NUM_GRID_BLSR_Y]>>    => <wire REGION_RW_EN_O[1] of <device BLSR_TILE @ [sx,NUM_GRID_BLSR_Y]>>,
+      <pin REGION_SEL_I of <device BLSR_TILE @ [sx,NUM_GRID_BLSR_Y]>>   => <wire WLSR_SEL_O[1] of <device BLSR_TILE @ [sx,NUM_GRID_BLSR_Y]>>,
+      <pin IREF10UA of <device BLSR_TILE @ [sx,NUM_GRID_BLSR_Y]>>       => <wire ICONST10U[1] of <device CCS_TILE @ [sx_ccs,sy_ccs]>>,
+
+      <pin BLSR_SEL_DN of <device BLSR_TILE @ [sx,0]>>    => <wire BLSR_SEL_O[2] of <device BLSR_TILE @ [sx,0]>>,
+      <pin BLSR_SEL_UP of <device BLSR_TILE @ [sx,0]>>    => <wire BLSR_SEL_O[2] of <device BLSR_TILE @ [sx,NUM_GRID_BLSR_Y]>>,
+      <pin REGION_RW_DN of <device BLSR_TILE @ [sx,0]>>   => <wire REGION_RW_EN_O[2] of <device BLSR_TILE @ [sx,0]>>,
+      <pin REGION_RW_UP of <device BLSR_TILE @ [sx,0]>>   => <wire REGION_RW_EN_O[2] of <device BLSR_TILE @ [sx,NUM_GRID_BLSR_Y]>>,
+      <pin REGION_RW_I of <device BLSR_TILE @ [sx,0]>>    => <wire REGION_RW_EN_O[2] of <device BLSR_TILE @ [sx,0]>>,
+      <pin REGION_SEL_I of <device BLSR_TILE @ [sx,0]>>   => <wire WLSR_SEL_O[2] of <device BLSR_TILE @ [sx,0]>>,
+      <pin IREF10UA of <device BLSR_TILE @ [sx,0]>>       => <wire ICONST10U[2] of <device CCS_TILE @ [sx_ccs,sy_ccs]>>
+    );
+}//end of function connect_BLSR_input
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_CCS_input
+(
+  unsigned int tx,
+  unsigned int ty,
+  unsigned int tx_iockgate,
+  unsigned int ty_iockgate_t,
+  unsigned int ty_blsr_t,
+  unsigned int tx_idcode,
+  unsigned int ty_idcode,
+  unsigned int tx_esd,
+  unsigned int tx_wlsr1
+)
+{
+  int sx = tx*NUM_GRID_X + 2;
+
+  int tmp_ty,sy;
+  sy = ty * NUM_GRID_Y;
+  for(tmp_ty=ty;tmp_ty > MID_TILE_REGION;tmp_ty = tmp_ty - NUM_TILES_REGION)
+  {
+    sy = sy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+  }
+
+  connect 
+    (
+      <pin ADDR_D of <device CCS_TILE @[sx,sy]>>       => <wire ADDR_D of <device WLSRD_TILE @ [sx-2,sy-NUM_GRID_WLSR_Y]>>,
+      <pin ADDR2 of <device CCS_TILE @[sx,sy]>>        => <wire ADDR[18] of <device WLSRD_TILE @ [sx-2,sy-NUM_GRID_WLSR_Y]>>,
+      <pin ADDR1 of <device CCS_TILE @[sx,sy]>>        => <wire ADDR[23] of <device WLSR_TILE @ [sx+2+8*NUM_GRID_X,sy-NUM_GRID_WLSR_Y]>>,
+      <pin ADDR0 of <device CCS_TILE @[sx,sy]>>        => <wire ADDR[22] of <device WLSR_TILE @ [sx+2+8*NUM_GRID_X,sy-NUM_GRID_WLSR_Y]>>,
+      <pin ADDR_BLINT of <device CCS_TILE @[sx,sy]>>   => <wire ADDR[21:0] of <device WLSR_TILE @ [sx+2+8*NUM_GRID_X,sy-NUM_GRID_WLSR_Y]>>
+    );
+ 
+  int sx_blsr = BLSR_TILE_X * NUM_GRID_X;
+  int sy_blsr = ty_blsr_t * NUM_GRID_BLSR_Y;
+  int sx_esd = tx_esd * NUM_GRID_X;
+
+  int sy_esd = NUM_REGION * ((NUM_TILES_REGION-1)*NUM_GRID_Y + NUM_GRID_WLSR_Y);
+
+  connect
+    (
+      <pin COL_INC_I of <device CCS_TILE @[sx,sy]>>        => <wire COL_INC_O of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+      <pin NONDRM_REG_INC_I of <device CCS_TILE @[sx,sy]>> => <wire NONDRM_REG_INC_O of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+      <pin NONDRM_END_I of <device CCS_TILE @[sx,sy]>>     => <wire NONDRM_END_O of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+      <pin DATABACK_I of <device CCS_TILE @[sx,sy]>>       => <wire DSROUTTO_CONFIG of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+      <pin DATA of <device CCS_TILE @[sx,sy]>>             => <wire DATA[2175:1096] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+      <pin DATAN of <device CCS_TILE @[sx,sy]>>            => <wire DATAN[2175:1096] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+      <pin READ_OL of <device CCS_TILE @[sx,sy]>>          => <wire BUS_WLSR_OUTL[11] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+      <pin DCI_MATCH of <device CCS_TILE @[sx,sy]>>        => <wire DCI_INIT of <device BLSR_TILE@[sx_blsr,sy_blsr]>>
+
+    );
+
+  int sx_pll = PLL_TILE_X * NUM_GRID_X + 2;
+  int sy_pll0 = PLL_TILE0_Y * NUM_GRID_Y;
+  for(tmp_ty=PLL_TILE0_Y;tmp_ty > MID_TILE_REGION;tmp_ty = tmp_ty - NUM_TILES_REGION)
+  {
+    sy_pll0 = sy_pll0 + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+  }
+
+  int sy_pll1 = PLL_TILE1_Y * NUM_GRID_Y;
+  for(tmp_ty=PLL_TILE1_Y;tmp_ty > MID_TILE_REGION;tmp_ty = tmp_ty - NUM_TILES_REGION)
+  {
+    sy_pll1 = sy_pll1 + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+  }
+
+  int sy_pll2 = PLL_TILE2_Y * NUM_GRID_Y;
+  for(tmp_ty=PLL_TILE2_Y;tmp_ty > MID_TILE_REGION;tmp_ty = tmp_ty - NUM_TILES_REGION)
+  {
+    sy_pll2 = sy_pll2 + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+  }
+
+
+  int sy_pll3 = PLL_TILE3_Y * NUM_GRID_Y;
+  for(tmp_ty=PLL_TILE3_Y;tmp_ty > MID_TILE_REGION;tmp_ty = tmp_ty - NUM_TILES_REGION)
+  {
+    sy_pll3 = sy_pll3 + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+  }
+
+  int sy_pll4 = PLL_TILE4_Y * NUM_GRID_Y;
+  for(tmp_ty=PLL_TILE4_Y;tmp_ty > MID_TILE_REGION;tmp_ty = tmp_ty - NUM_TILES_REGION)
+  {
+    sy_pll4 = sy_pll4 + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+  }
+
+  int sy_pll5 = PLL_TILE5_Y * NUM_GRID_Y;
+  int sx_wlsr1 = tx_wlsr1 * NUM_GRID_X;
+
+  int sx_iob = (NUM_TILE_X-1)*NUM_GRID_X;
+  int sy_iob = (NUM_REGION-1)*NUM_TILES_REGION*NUM_GRID_Y;
+
+  connect
+    (
+      <pin PLL_LOCK of <device CCS_TILE @ [sx,sy]>>         => <wire LOCK of <device PLL_TILE @ [sx_pll,sy_pll5]>>,
+      <pin PLL_LDO_I[5] of <device CCS_TILE @ [sx,sy]>>     => <wire VCP of <device PLL_TILE @ [sx_pll,sy_pll5]>>,
+      <pin PLL_LDO_I[4] of <device CCS_TILE @ [sx,sy]>>     => <wire VCP of <device PLL_TILE @ [sx_pll,sy_pll4]>>,
+      <pin PLL_LDO_I[3] of <device CCS_TILE @ [sx,sy]>>     => <wire VCP of <device PLL_TILE @ [sx_pll,sy_pll3]>>,
+      <pin PLL_LDO_I[2] of <device CCS_TILE @ [sx,sy]>>     => <wire VCP of <device PLL_TILE @ [sx_pll,sy_pll2]>>,
+      <pin PLL_LDO_I[1] of <device CCS_TILE @ [sx,sy]>>     => <wire VCP of <device PLL_TILE @ [sx_pll,sy_pll1]>>,
+      <pin PLL_LDO_I[0] of <device CCS_TILE @ [sx,sy]>>     => <wire VCP of <device PLL_TILE @ [sx_pll,sy_pll0]>>,
+
+      <pin DDR_VREF_I of <device CCS_TILE @ [sx,sy]>>       => <wire VREF of <device IOB_TILE @[sx_iob,sy_iob]>>,
+      <pin CMFB_VREF_I of <device CCS_TILE @ [sx,sy]>>      => <wire IVREF_T[9] of <device IOB_TILE @[sx_iob,sy_iob]>>
+
+//      <pin VCP of <device CCS_TILE @ [sx,sy]>>          => <wire VCP of <device PLL_TILE @ [sx_pll,sy_pll5]>>
+    );
+
+  connect
+    (
+        <pin TDO_BSCAN_IO of <device CCS_TILE @[sx,sy]>>  => <wire TDO_OUT of <device ESD_PGL22G_TILE @ [sx_esd,sy_esd]>>,
+
+//      <pin COL_SEL_CCS1 of <device CCS_TILE @[sx,sy]>>  => <wire COL_SEL_CCS2 of <device WLSRD_TILE@[sx,sy-NUM_GRID_WLSR_Y]>>,
+      <pin COL_SEL_CCS2 of <device CCS_TILE @[sx,sy]>>  => <wire COL_SEL_CCS of <device WLSR_TILE@[sx+2,sy-NUM_GRID_WLSR_Y]>>,
+      <pin COL_SEL_CCS3 of <device CCS_TILE @[sx,sy]>>  => <wire COL_SEL_CCS of <device WLSR1_TILE@[sx+2+NUM_GRID_X,sy-NUM_GRID_WLSR_Y]>>,
+      <pin COL_SEL_CCS4 of <device CCS_TILE @[sx,sy]>>  => <wire COL_SEL_CCS of <device WLSR_TILE@[sx+2+2*NUM_GRID_X,sy-NUM_GRID_WLSR_Y]>>,
+      <pin COL_SEL_CCS5 of <device CCS_TILE @[sx,sy]>>  => <wire COL_SEL_CCS of <device WLSR_TILE@[sx+2+3*NUM_GRID_X,sy-NUM_GRID_WLSR_Y]>>,
+      <pin COL_SEL_CCS6 of <device CCS_TILE @[sx,sy]>>  => <wire COL_SEL_CCS of <device WLSR_TILE@[sx+2+4*NUM_GRID_X,sy-NUM_GRID_WLSR_Y]>>,
+      <pin COL_SEL_CCS7 of <device CCS_TILE @[sx,sy]>>  => <wire COL_SEL_CCS of <device WLSR_TILE@[sx+2+5*NUM_GRID_X,sy-NUM_GRID_WLSR_Y]>>,
+      <pin COL_SEL_CCS8 of <device CCS_TILE @[sx,sy]>>  => <wire COL_SEL_CCS1 of <device WLSRD_TILE@[sx+2+6*NUM_GRID_X,sy-NUM_GRID_WLSR_Y]>>,
+      <pin COL_SEL_CCS9 of <device CCS_TILE @[sx,sy]>>  => <wire COL_SEL_CCS2 of <device WLSRD_TILE@[sx+2+6*NUM_GRID_X,sy-NUM_GRID_WLSR_Y]>>,
+      <pin COL_SEL_CCS10 of <device CCS_TILE @[sx,sy]>>  => <wire COL_SEL_CCS of <device WLSR_TILE@[sx+2+7*NUM_GRID_X,sy-NUM_GRID_WLSR_Y]>>,
+
+      <pin BSMODE1_DIO of <device CCS_TILE @[sx,sy]>>   => <wire BUS_BSCAN_OUT[2] of <device WLSR1_TILE@[sx_wlsr1,sy-NUM_GRID_WLSR_Y]>>,
+      <pin BSMODE2_DIO of <device CCS_TILE @[sx,sy]>>   => <wire BUS_BSCAN_OUT[3] of <device WLSR1_TILE@[sx_wlsr1,sy-NUM_GRID_WLSR_Y]>>,
+      <pin BSMODE3_DIO of <device CCS_TILE @[sx,sy]>>   => <wire BUS_BSCAN_OUT[15] of <device WLSR1_TILE@[sx_wlsr1,sy-NUM_GRID_WLSR_Y]>>,
+      <pin UPDATEDR_DIO of <device CCS_TILE @[sx,sy]>>  => <wire BUS_BSCAN_OUT[6] of <device WLSR1_TILE@[sx_wlsr1,sy-NUM_GRID_WLSR_Y]>>,
+      <pin SHIFTDR_DIO of <device CCS_TILE @[sx,sy]>>   => <wire BUS_BSCAN_OUT[5] of <device WLSR1_TILE@[sx_wlsr1,sy-NUM_GRID_WLSR_Y]>>,
+      <pin GOUTEN_DIO of <device CCS_TILE @[sx,sy]>>    => <wire BUS_BSCAN_OUT[13] of <device WLSR1_TILE@[sx_wlsr1,sy-NUM_GRID_WLSR_Y]>>
+    );
+
+  connect
+    (
+      <pin GLOGEN_FB of <device CCS_TILE @ [sx,sy]>>  => <wire GLOGEN_FB_OUT of <device ESD_PGL22G_TILE @ [sx_esd,sy_esd]>>            
+    );
+
+  int sx_idcode = tx_idcode * NUM_GRID_X + 2;
+  int sy_idcode = ty_idcode * NUM_GRID_Y;
+  for(tmp_ty=ty_idcode;tmp_ty > MID_TILE_REGION;tmp_ty = tmp_ty - NUM_TILES_REGION)
+  {
+    sy_idcode = sy_idcode + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+  }
+
+  connect
+    (
+      <pin IDCODE of <device CCS_TILE @[sx,sy]>>  => <wire IDCODE of <device IDCODE_PGL22G_TILE @ [sx_idcode,sy_idcode]>>
+    );
+
+  &wire ntRef_ntTCK = <wire ntTCK>;
+  &wire ntRef_ntTDI = <wire ntTDI>;
+  &wire ntRef_ntTMS = <wire ntTMS>;
+  &wire ntRef_ntTDO = <wire ntTDO>;
+  &wire ntRef_ntCFG_DONE = <wire ntCFG_DONE>;
+  &wire ntRef_ntCFG_I_FCLK = <wire ntCFG_I_FCLK>;
+  &wire ntRef_ntRST_N = <wire ntRST_N>;
+  &wire ntRef_ntVREF_EXT = <wire ntVREF_EXT>;
+  &wire ntRef_ntREXT = <wire ntREXT>;
+
+  &wire ntRef_ntVA0 = <wire ntVA0>;
+  &wire ntRef_ntVA1 = <wire ntVA1>;
+  &wire ntRef_ntI_FCS_N = <wire ntI_FCS_N>;
+  &wire ntRef_ntI_D0 = <wire ntI_D0>;
+  &wire ntRef_ntI_D1 = <wire ntI_D1>;
+  &wire ntRef_ntI_D2 = <wire ntI_D2>;
+  &wire ntRef_ntI_D3 = <wire ntI_D3>;
+
+
+  connect
+    (
+      <pin TCK of <device CCS_TILE @[sx,sy]>>        => ntRef_ntTCK,
+      <pin TDI of <device CCS_TILE @[sx,sy]>>        => ntRef_ntTDI,
+      <pin TMS of <device CCS_TILE @[sx,sy]>>        => ntRef_ntTMS,
+      <pin TDO of <device CCS_TILE @[sx,sy]>>        => ntRef_ntTDO,
+      <pin CFG_DONE of <device CCS_TILE @[sx,sy]>>   => ntRef_ntCFG_DONE,
+      <pin CFG_I_FCLK of <device CCS_TILE @[sx,sy]>> => ntRef_ntCFG_I_FCLK,
+      <pin I_FCS_N of <device CCS_TILE @[sx,sy]>>    => ntRef_ntI_FCS_N,
+      <pin RST_N of <device CCS_TILE @[sx,sy]>>      => ntRef_ntRST_N,
+      <pin I_D[0] of <device CCS_TILE @[sx,sy]>>     => ntRef_ntI_D0,
+      <pin I_D[1] of <device CCS_TILE @[sx,sy]>>     => ntRef_ntI_D1,
+      <pin I_D[2] of <device CCS_TILE @[sx,sy]>>     => ntRef_ntI_D2,
+      <pin I_D[3] of <device CCS_TILE @[sx,sy]>>     => ntRef_ntI_D3,
+      <pin VREF_EXT of <device CCS_TILE @[sx,sy]>>   => ntRef_ntVREF_EXT,
+      <pin REXT_PAD of <device CCS_TILE @[sx,sy]>>   => ntRef_ntREXT,
+      <pin VA[0] of <device CCS_TILE @[sx,sy]>>      => ntRef_ntVA0,
+      <pin VA[1] of <device CCS_TILE @[sx,sy]>>      => ntRef_ntVA1
+    );
+
+}//end of function connect_CCS_input
+/****************************************************************************************************
+*****************************************************************************************************/
+function place_idcode_tile(unsigned int tx, ty)
+{
+    unsigned int sx, sy;
+    
+    sx = tx * NUM_GRID_X + 2;
+    sy = ty * NUM_GRID_Y;
+    
+    unsigned int temp_ty;
+    for(temp_ty = ty;temp_ty > MID_TILE_REGION;temp_ty = temp_ty - NUM_TILES_REGION)
+    {
+      sy = sy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+    }
+
+    string strVar;
+    sprintf(strVar,"ntIDCODE_%d_%d",sx,sy);
+    &wire ntRef_ntIDCODE[31:0] = wire *strVar[31:0];
+
+    sprintf(strVar,"IDCODE_PGL22G_TILE_%d_%d",sx,sy);
+    device IDCODE_PGL22G_TILE *strVar
+        port map (
+                   IDCODE => ntRef_ntIDCODE
+                 )
+        @ [sx,sy];       
+}
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_esd_tile(unsigned int tx,ty)
+{
+    unsigned int sx,sy;
+    sx = tx * NUM_GRID_X;
+    sy = ty * NUM_GRID_Y;
+    
+    unsigned int temp_ty;
+    for(temp_ty = ty;temp_ty > MID_TILE_REGION;temp_ty = temp_ty - NUM_TILES_REGION)
+    {
+      sy = sy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+    }
+
+    int sx_dll_l = 1 * NUM_GRID_X + 2;
+    int sx_dll_r = (NUM_TILE_X - 2) * NUM_GRID_X + 2;
+    int sy_dll_u = (NUM_REGION-1)*((NUM_TILES_REGION-1)*NUM_GRID_Y + NUM_GRID_IOCKGATE_Y) + (MID_TILE_REGION-1) * NUM_GRID_Y;
+    int sy_dll_d = MID_TILE_REGION * NUM_GRID_Y - NUM_GRID_Y;
+
+    int sx_ccs = CCS_TILE_X * NUM_GRID_X + 2;
+    int sy_ccs = (NUM_REGION-1)*((NUM_TILES_REGION-1)*NUM_GRID_Y + NUM_GRID_WLSR_Y) + MID_TILE_REGION * NUM_GRID_Y + NUM_GRID_WLSR_Y;
+
+    int sx_iob_l = 0;
+    int sy_iob_l = sy - NUM_TILES_REGION * NUM_GRID_Y;
+    int sx_iob_r = (NUM_TILE_X-1) * NUM_GRID_X;
+    int sy_iob_r = 0;
+
+
+    connect
+      (
+        <pin CLOCK_DR_IN_T of <device ESD_PGL22G_TILE @[sx,sy]>>     =>  <wire CLOCKDR of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+
+        <pin TDI_IN_T of <device ESD_PGL22G_TILE @[sx,sy]>>          => <wire TDI_CCS of <device CCS_TILE @[sx_ccs,sy_ccs]>> ,
+
+        <pin TDO_IN of <device ESD_PGL22G_TILE @[sx,sy]>>            => <wire SO[0] of <device IOB_TILE @[sx_iob_l,sy_iob_l]>>,
+
+        <pin GLOGEN_FB_IN of <device ESD_PGL22G_TILE @[sx,sy]>>      => <wire GLOGEN_FB_OUT of <device IOCKGATEDLL_TILE @[sx_dll_r,sy_dll_u]>>,
+
+        <pin S11_PAD_STATE_IN of <device ESD_PGL22G_TILE @[sx,sy]>>  => <wire S11_PAD_STATE_OUT of <device HMEMCIOCKGATEDLL_TILE @[sx_dll_l,sy_dll_d]>>,
+
+        <pin CLOCK_DR_IN_B of <device ESD_PGL22G_TILE @[sx,sy]>>     => <wire CLOCK_DR_OUT of <device HMEMCIOCKGATEDLL_TILE @[sx_dll_l,sy_dll_d]>>,
+
+        <pin TDI_IN_B of <device ESD_PGL22G_TILE @[sx,sy]>>          => <wire SO[39] of <device IOB_TILE @[sx_iob_r,sy_iob_r]>> 
+                           
+      );
+}
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_blint_pulldown
+(
+    unsigned int tx, 
+    unsigned int ty, 
+    unsigned int tx_blsr
+)
+{
+    unsigned int sx, sy;
+    
+    sx = (tx+1) * NUM_GRID_X + 2;
+    sy = ty * NUM_GRID_Y;
+    
+    unsigned int temp_ty;
+    for(temp_ty = ty;temp_ty > MID_TILE_REGION;temp_ty = temp_ty - NUM_TILES_REGION)
+    {
+      sy = sy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+    }
+
+    int sx_blsr = tx_blsr * NUM_GRID_X;
+    int sx_wlsr0 = (tx<tx_blsr) ? (tx-1) * NUM_GRID_X + 2 : (tx+4) * NUM_GRID_X + 2;
+    int sx_wlsr1 = (tx<tx_blsr) ? tx * NUM_GRID_X : (tx+1) * NUM_GRID_X;
+    int sx_wlsr2 = (tx<tx_blsr) ? (tx+1) * NUM_GRID_X : (tx+2) * NUM_GRID_X;
+    int sx_wlsr3 = (tx<tx_blsr) ? (tx+2) * NUM_GRID_X : (tx+3) * NUM_GRID_X;
+    int sx_wlsr4 = (tx<tx_blsr) ? (tx+3) * NUM_GRID_X : tx * NUM_GRID_X;
+
+    int sy_wlsr = MID_TILE_REGION * NUM_GRID_Y + (NUM_TILES_REGION-1)*NUM_GRID_Y + NUM_GRID_WLSR_Y;
+
+
+      connect
+        (
+           <pin ADDR_0 of <device HMEMC_TILE @[sx,sy]>>    => <wire ADDR[17:0] of <device IOCKGATEDLL_TILE @ [sx_wlsr0,sy_wlsr-NUM_GRID_Y]>>,
+           <pin COL_SEL0 of <device HMEMC_TILE @[sx,sy]>> => <wire COL_SEL_CCS of <device WLSR_TILE @ [sx_wlsr1,sy_wlsr]>>,
+           <pin COL_SEL1 of <device HMEMC_TILE @[sx,sy]>> => <wire COL_SEL_CCS of <device WLSR_TILE @ [sx_wlsr2,sy_wlsr]>>,
+           <pin COL_SEL2 of <device HMEMC_TILE @[sx,sy]>> => <wire COL_SEL_CCS of <device WLSR_TILE @ [sx_wlsr3,sy_wlsr]>>,
+           <pin ADDR_C of <device HMEMC_TILE @[sx,sy]>>   => <wire ADDR[23:20] of <device WLSR_TILE @ [sx_wlsr4,sy_wlsr]>>,
+           <pin READ_OR of <device HMEMC_TILE @[sx,sy]>>  => (tx<tx_blsr) ? <wire BUS_WLSR_OUTL[11] of <device BLSR_TILE @ [sx_blsr,NUM_GRID_BLSR_Y]>>
+                                                                          : <wire BUS_WLSR_OUTR[11] of <device BLSR_TILE @ [sx_blsr,NUM_GRID_BLSR_Y]>>,
+
+          <pin DATA[1079:0] of <device HMEMC_TILE @[sx,sy]>>     => <wire DATA[1079:0] of <device BLSR_TILE @ [sx_blsr,0]>>,
+          <pin DATAN[1079:0] of <device HMEMC_TILE @[sx,sy]>>    => <wire DATAN[1079:0] of <device BLSR_TILE @ [sx_blsr,0]>>,
+
+          <pin DATA[2159:1080] of <device HMEMC_TILE @[sx,sy]>>  => <wire DATA[2175:1096] of <device BLSR_TILE @ [sx_blsr,0]>>,
+          <pin DATAN[2159:1080] of <device HMEMC_TILE @[sx,sy]>> => <wire DATAN[2175:1096] of <device BLSR_TILE @ [sx_blsr,0]>>,
+
+          <pin DATA[3239:2160] of <device HMEMC_TILE @[sx,sy]>>  => <wire DATA[1079:0] of <device BLSR_TILE @ [sx_blsr,NUM_GRID_BLSR_Y]>>,
+          <pin DATAN[3239:2160] of <device HMEMC_TILE @[sx,sy]>> => <wire DATAN[1079:0] of <device BLSR_TILE @ [sx_blsr,NUM_GRID_BLSR_Y]>>
+
+        );
+     
+}
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_bias_iob(string LR)
+{
+    int sx = (LR=="L") ? 0 : (NUM_TILE_X-1)*NUM_GRID_X;
+    int sy0 = 0;
+    int sy1 = (NUM_TILES_REGION-1)*NUM_GRID_Y + NUM_GRID_WLSR_Y;
+    int sy2 = 2*((NUM_TILES_REGION-1)*NUM_GRID_Y + NUM_GRID_WLSR_Y);
+
+    int sx_ccs = CCS_TILE_X * NUM_GRID_X + 2;
+    int sy_ccs = CCS_TILE_Y * NUM_GRID_Y;
+
+    int ty;
+    for(ty=CCS_TILE_Y;ty>MID_TILE_REGION;ty=ty-NUM_TILES_REGION)
+    {
+      sy_ccs = sy_ccs + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+    }
+
+    if(LR=="L")
+    {
+      connect
+        (
+          <pin ICC10U of <device IOB_TILE@[sx,sy0]>> => <wire ICONST10U[5] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+          <pin ICC10U of <device IOB_TILE@[sx,sy1]>> => <wire ICONST10U[4] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+          <pin ICC10U of <device IOB_TILE@[sx,sy2]>> => <wire ICONST10U[3] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+
+          <pin IPO10U of <device IOB_TILE@[sx,sy0]>> => <wire IPOLY10U[2] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+          <pin IPO10U of <device IOB_TILE@[sx,sy1]>> => <wire IPOLY10U[1] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+          <pin IPO10U of <device IOB_TILE@[sx,sy2]>> => <wire IPOLY10U[0] of <device CCS_TILE @[sx_ccs,sy_ccs]>>
+
+//          <pin S11_PDG1_I of <device IOB_TILE@[sx,sy0]>>   => <wire S11_PDG1_O of <device IOB_TILE@[sx,sy0]>>,
+//          <pin S11_PDG2_N_I of <device IOB_TILE@[sx,sy0]>> => <wire S11_PDG2_N_O of <device IOB_TILE@[sx,sy0]>>,
+//          <pin S11_PDG3_I of <device IOB_TILE@[sx,sy0]>>   => <wire S11_PDG3_O of <device IOB_TILE@[sx,sy0]>>,
+
+ //         <pin S11_PDG1_I of <device IOB_TILE@[sx,sy1]>>   => <wire S11_PDG1_O of <device IOB_TILE@[sx,sy0]>>,
+ //         <pin S11_PDG2_N_I of <device IOB_TILE@[sx,sy1]>> => <wire S11_PDG2_N_O of <device IOB_TILE@[sx,sy0]>>,
+//          <pin S11_PDG3_I of <device IOB_TILE@[sx,sy1]>>   => <wire S11_PDG3_O of <device IOB_TILE@[sx,sy0]>>,
+
+//          <pin S11_PDG1_I of <device IOB_TILE@[sx,sy2]>>   => <wire S11_TILO_S[7] of <device IOB_TILE@[sx,sy0]>>,
+//          <pin S11_PDG2_N_I of <device IOB_TILE@[sx,sy2]>> => <wire S11_TIHI_S[7] of <device IOB_TILE@[sx,sy0]>>,
+//          <pin S11_PDG3_I of <device IOB_TILE@[sx,sy2]>>   => <wire S11_TILO_S[7] of <device IOB_TILE@[sx,sy0]>>
+
+
+        );
+    }
+    else
+    {
+      connect
+        (
+          <pin ICC10U of <device IOB_TILE@[sx,sy0]>> => <wire ICONST10U[8] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+          <pin ICC10U of <device IOB_TILE@[sx,sy1]>> => <wire ICONST10U[7] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+          <pin ICC10U of <device IOB_TILE@[sx,sy2]>> => <wire ICONST10U[6] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+
+          <pin IPO10U of <device IOB_TILE@[sx,sy0]>> => <wire IPOLY10U[5] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+          <pin IPO10U of <device IOB_TILE@[sx,sy1]>> => <wire IPOLY10U[4] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+          <pin IPO10U of <device IOB_TILE@[sx,sy2]>> => <wire IPOLY10U[3] of <device CCS_TILE @[sx_ccs,sy_ccs]>>
+
+/*
+          <pin S11_PDG1_I of <device IOB_TILE@[sx,sy0]>>   => <wire S11_PDG1_O of <device IOB_TILE@[sx,sy0]>>,
+          <pin S11_PDG2_N_I of <device IOB_TILE@[sx,sy0]>> => <wire S11_PDG2_N_O of <device IOB_TILE@[sx,sy0]>>,
+          <pin S11_PDG3_I of <device IOB_TILE@[sx,sy0]>>   => <wire S11_PDG3_O of <device IOB_TILE@[sx,sy0]>>,
+
+          <pin S11_PDG1_I of <device IOB_TILE@[sx,sy1]>>   => <wire S11_PDG1_O of <device IOB_TILE@[sx,sy0]>>,
+          <pin S11_PDG2_N_I of <device IOB_TILE@[sx,sy1]>> => <wire S11_PDG2_N_O of <device IOB_TILE@[sx,sy0]>>,
+          <pin S11_PDG3_I of <device IOB_TILE@[sx,sy1]>>   => <wire S11_PDG3_O of <device IOB_TILE@[sx,sy0]>>,
+
+          <pin S11_PDG1_I of <device IOB_TILE@[sx,sy2]>>   => <wire S11_PDG1_O of <device IOB_TILE@[sx,sy0]>>,
+          <pin S11_PDG2_N_I of <device IOB_TILE@[sx,sy2]>> => <wire S11_PDG2_N_O of <device IOB_TILE@[sx,sy0]>>,
+          <pin S11_PDG3_I of <device IOB_TILE@[sx,sy2]>>   => <wire S11_PDG3_O of <device IOB_TILE@[sx,sy0]>>
+*/
+        );
+    }
+}
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_bias_pll()
+{
+    int sx_ccs = CCS_TILE_X * NUM_GRID_X + 2;
+    int sy_ccs = CCS_TILE_Y * NUM_GRID_Y;
+
+    int ty;
+    for(ty=CCS_TILE_Y;ty>MID_TILE_REGION;ty=ty-NUM_TILES_REGION)
+    {
+      sy_ccs = sy_ccs + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+    }
+
+    int sx_pll = PLL_TILE_X * NUM_GRID_X + 2;
+    int sy_pll0 = PLL_TILE0_Y * NUM_GRID_Y;
+    int sy_pll1 = PLL_TILE1_Y * NUM_GRID_Y;
+    int sy_pll2 = PLL_TILE2_Y * NUM_GRID_Y;
+    int sy_pll3 = PLL_TILE3_Y * NUM_GRID_Y;
+    int sy_pll4 = PLL_TILE4_Y * NUM_GRID_Y;
+    int sy_pll5 = PLL_TILE5_Y * NUM_GRID_Y;
+
+    connect
+      (
+        <pin IPOLY_LDO of <device PLL_TILE @[sx_pll,sy_pll5]>> => <wire IPOLY10U[11] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+        <pin IPOLY_LDO of <device PLL_TILE @[sx_pll,sy_pll4]>> => <wire IPOLY10U[10] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+        <pin IPOLY_LDO of <device PLL_TILE @[sx_pll,sy_pll3]>> => <wire IPOLY10U[9] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+        <pin IPOLY_LDO of <device PLL_TILE @[sx_pll,sy_pll2]>> => <wire IPOLY10U[8] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+        <pin IPOLY_LDO of <device PLL_TILE @[sx_pll,sy_pll1]>> => <wire IPOLY10U[7] of <device CCS_TILE @[sx_ccs,sy_ccs]>>,
+        <pin IPOLY_LDO of <device PLL_TILE @[sx_pll,sy_pll0]>> => <wire IPOLY10U[6] of <device CCS_TILE @[sx_ccs,sy_ccs]>>
+      );
+
+}
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_rlybufs_tile
+(
+    unsigned int tx,
+    unsigned int ty,
+    unsigned int tx_pll,
+    unsigned int ty_pll0,
+    unsigned int ty_pll1,
+    unsigned int tx_blsr,
+    unsigned int ty_blsr0,
+    unsigned int ty_blsr1,
+    unsigned int tx_wlsr2,
+    unsigned int ty_wlsr2
+)
+{
+    int sx = tx * NUM_GRID_X + 2;
+    int sy = ty * NUM_GRID_Y;
+
+    int sx_pll = tx_pll * NUM_GRID_X + 2;
+    int sy_pll0 = ty_pll0 * NUM_GRID_Y;
+    int sy_pll1 = ty_pll1 * NUM_GRID_Y;
+
+    int sx_blsr = tx_blsr * NUM_GRID_X;
+    int sy_blsr0 = ty_blsr0 * NUM_GRID_BLSR_Y;
+    int sy_blsr1 = ty_blsr1 * NUM_GRID_BLSR_Y;
+
+    int sx_wlsr2 = tx_wlsr2 * NUM_GRID_X;
+    int sy_wlsr2 = ty_wlsr2 * NUM_GRID_Y;
+
+    connect
+      (
+        <pin CLK_PREGMUX_IN[15:8] of <device RLYBUFS_TILE @[sx,sy]>>  => <wire CLK_PREGM_OUT of <device PLL_TILE @[sx_pll,sy_pll0]>>,
+        <pin CLK_PREGMUX_IN[7:0] of <device RLYBUFS_TILE @[sx,sy]>>   => <wire CLK_PREGM_OUT of <device PLL_TILE @[sx_pll,sy_pll1]>>,
+//        <pin DCI_INIT_IN of <device RLYBUFS_TILE @[sx,sy]>>           => <wire DCI_INIT of <device BLSR_TILE @[sx_blsr,sy_blsr0]>>,
+//        <pin CLK_USER_IN of <device RLYBUFS_TILE @[sx,sy]>>           => <wire CLK_USER_OUT of <device BLSR_TILE @[sx_blsr,sy_blsr1]>>,        
+//        <pin MCLKB_IN of <device RLYBUFS_TILE @[sx,sy]>>              => <wire MCLKB_O of <device BLSR_TILE @[sx_blsr,sy_blsr1]>>,
+//        <pin CLK_ADC_IN of <device RLYBUFS_TILE @[sx,sy]>>            => <wire CLK_ADC_OUT of <device BLSR_TILE @[sx_blsr,sy_blsr1]>>,
+        <pin CLK_USCM_IN of <device RLYBUFS_TILE @[sx,sy]>>           => <wire CLK_USCM_BUF of <device WLSR2_TILE @[sx_wlsr2,sy_wlsr2]>>
+      );
+
+}//end of function connect_rlybufs_tile
+/****************************************************************************************************
+*****************************************************************************************************/
+}//end of package pgl22g_funcs
+

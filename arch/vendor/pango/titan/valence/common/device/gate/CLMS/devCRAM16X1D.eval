@@ -1,0 +1,218 @@
+*******************************************************************
+
+  Device    [devCRAM16X1D]
+
+  Author    [clwang]
+
+  Abstract  [RAM16X1D]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devCRAM16X1D : device CLMS
+{
+
+    parameter
+    (
+        config bit INITC[31:0]     = 32'h0000_0000,      
+        config string FGC_MODE     = "LUT5",               // "LUT5" "ROM" "WMUX" "ARITH"
+
+        config string RAM_LUT_SEL  := "RAM",               // "RAM"  "LUT" 
+        config string Y2MUX_SEL    := "FG",                // "FFCD" "FG" "CY"
+        config bit    CLK_POS        = 1'b0,                // 1'b0: "CLK"; 1'b1: "CLK_B"   
+        config string CLK_SEL        = "SCLK",              // "SCLK" "ACLK"
+        config string LRS_EN         = "FALSE",               // "TRUE" "FALSE"
+        config bit    RS_POS         = 1'b0                // 1'b0: "RS"   1'b1:  "RS_B" 
+     );
+    port
+    (        
+        // These are the ports of FGC.
+        input    C0, C1, C2, C3, CD,
+        output   Y2,
+
+        // These are the ports of RAM.
+        // Here are the ports of RAM write address( WA[3:0] ), and shared with ROM. 
+        input    M1, M3, 
+        input    M0, M2,
+
+        // Here are the ports of CLMS for controlling.
+        input    RS, CE, CLK, ACLK
+    );
+
+}// end of device devCRAM16X1D
+
+/*******************************************************************************
+
+  Device    [devCRAM16X1D]
+
+  Author    [clwang]
+
+  Abstract  [The structure netlist of devCRAM16X1D is described in the similar fashion 
+             as in HDL. In unit instantiation statement, the formal pin may be 
+             connected to net which is declared explicitly. 
+             
+             In Valence, the connection can also be made from formal pin to other 
+             pin or port, in which case Valence compiler shall create the net to 
+             fulfil the connection. The built-in naming convention is kicked in 
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devCRAM16X1D
+{
+    // Wires for input ports
+    wire ntC0, ntC1, ntC2, ntC3, ntCD; 
+    wire ntM1, ntM3;
+    wire ntM0, ntM2;
+    wire ntRS, ntCE, ntCLK, ntACLK;
+
+    // Wires connecting to output ports
+    wire ntY2MUX;
+    // Internal wires
+    wire ntFGC_Z;
+    wire ntRSPOLMUX, ntCLKPOLMUX, ntRAMCLKMUX;
+    //
+    // Connection to ports
+    //
+    ntC0      <= C0;
+    ntC1      <= C1;
+    ntC2      <= C2;
+    ntC3      <= C3;
+    ntCD      <= CD;
+
+    ntM1      <= M1;
+    ntM3      <= M3;
+    ntM0      <= M0;
+    ntM2      <= M2;
+
+    ntRS      <= RS;
+    ntCE      <= CE;
+    ntCLK     <= CLK;
+    ntACLK    <= ACLK;
+
+    Y2        <= ntY2MUX;
+
+    //
+    // Instances. FGC section
+    //
+
+    device FGS FGC 
+        parameter map
+        (
+            INIT        => INITC,
+            MODE        => FGC_MODE,
+            RAM_LUT_SEL => RAM_LUT_SEL
+        )
+        port map 
+        (
+            A0   => ntC0, A1  => ntC1, A2  => ntC2, A3  => ntC3,
+            WD   => ntCD,             
+            // SOME PORTS HAVE NOT BEEN FIXED. FIXED ME
+            WA0  => ntM0, WA1 => ntM1, WA2 => ntM2, WA3 => ntM3, 
+            WCK  => ntRAMCLKMUX,
+            WE   => ntRSPOLMUX,
+            Z    => ntFGC_Z 
+        );
+
+    device Y2MUX Y2MUX
+        parameter map
+        (
+            CFG  => Y2MUX_SEL
+        )    
+        port map
+        (
+            FG  => ntFGC_Z,
+            Z   => ntY2MUX
+        );
+
+    device RSPOLMUX RSPOLMUX
+        parameter map
+        (
+            CFG  => RS_POS
+        )     
+        port map
+        (
+            RS  => ntRS, RS_B => ntRS,
+            Y   => ntRSPOLMUX
+        );
+    device CLKPOLMUX CLKPOLMUX
+        parameter map
+        (
+            CFG  => CLK_POS
+        )      
+        port map
+        (
+            CLK => ntCLK, CLK_B => ntCLK,
+            Y   => ntCLKPOLMUX
+        );
+    device RAMCLKMUX RAMCLKMUX
+        parameter map
+        (
+            CFG  => CLK_SEL
+        )      
+        port map
+        (
+            SCLK => ntCLKPOLMUX, ACLK => ntACLK,
+            Z   => ntRAMCLKMUX
+        );        
+
+}; // end of structure netlist of devCRAM16X1D
+
+timing tnl of devCRAM16X1D
+{ 
+    wire ntCLK;
+    wire ntRS; 
+    if (CLK_POS == 1'b1)
+    {
+        operator V_INV V_CLKPOLMUX
+            parameter map
+            (
+                SECTION => "CLK_INV_DUMY"
+            )
+            port map 
+            (
+                I => CLK,
+                Z => ntCLK
+            );    
+    }
+     
+    if (RS_POS == 1'b1)
+    {
+        operator V_INV V_RSPOLMUX
+            parameter map
+            (
+                SECTION => "RS_INV_DUMY"
+            )
+            port map 
+            (
+                I => RS,
+                Z => ntRS
+            );    
+    }
+   operator V_RAM16X1 V_FGC
+       parameter map 
+       (
+           INIT => INITC[15:0],
+           SECTION  => "C"
+       )
+       port map 
+       (
+           RDO   => Y2,       
+           WDI   => CD,       
+           RADDR => {C3, C2, C1, C0},
+           WADDR => {M3, M2, M1, M0},
+           WCLK  => (CLK_SEL == "ACLK") ? ACLK : (CLK_POS == 1'b1) ? ntCLK : CLK ,        
+           WE    => (RS_POS == 1'b1) ? ntRS : RS      
+       );   
+}
+
+
+
+
+
+

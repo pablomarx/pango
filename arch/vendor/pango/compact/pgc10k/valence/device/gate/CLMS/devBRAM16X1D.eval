@@ -1,0 +1,211 @@
+*******************************************************************
+
+  Device    [devBRAM16X1D]
+
+  Author    [clwang]
+
+  Abstract  [RAM16X1D]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devBRAM16X1D : device CLMS
+{
+
+    parameter
+    (
+        config bit   CP_INITB[31:0] = 32'hffff_ffff,        
+        config string  CP_MODEB     = "LUT5",           //"LUT5" "ROM" "WMUX" "RAM" "ARITH" "PRIENC" "MUX4" "XOR" "COMP" "RAM"
+        config string  CP_MASK    := "TRUE",          
+        config string  CP_Y1MUX_SEL := "FX",             //"FX":F1 "CYX":CYB "MF":L7
+        config string  CP_RSMUX_SEL = "LOCAL",          //"LOCAL":RS; "CHAIN":RSIN
+        config string  CP_LRS_POL   = "FALSE",          //"RS"; "Invert RS" - CLMS Global
+        config string  CP_LRS_EN    = "FALSE",          //"FALSE"; "TRUE"
+        config string  CP_CLK_POL   = "FALSE",          //"CLK"; "Invert CLK" - CLMS Global
+        config string  CP_WCK_SEL   = "LOCAL"           //"LOCAL": local CLK; "CHAIN": adjcent WCLK 
+     );
+    port
+    (  
+        // These are the ports of FGB.
+        input    B0,
+        input    B1,
+        input    B2,
+        input    B3,
+        input    B4,
+        input    BD,
+        output   Y1,
+
+        // These are the ports of RAM.
+        // Here are the ports of RAM write address( WA[3:0] ), and shared with ROM. 
+        input    M1,
+        input    M3,
+        input    M0,
+        input    M2,
+
+        // Here are the ports of CLMS for controlling.
+        input    RS,
+        input    CE,
+        input    CLK,
+        input    WCLK
+    );
+
+}// end of device devBRAM16X1D
+
+/*******************************************************************************
+
+  Device    [devBRAM16X1D]
+
+  Author    [guoxi]
+
+  Abstract  [The structure netlist of devBRAM16X1D is described in the similar fashion 
+             as in HDL. In unit instantiation statement, the formal pin may be 
+             connected to net which is declared explicitly. 
+             
+             In Valence, the connection can also be made from formal pin to other 
+             pin or port, in which case Valence compiler shall create the net to 
+             fulfil the connection. The built-in naming convention is kicked in 
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devBRAM16X1D
+{
+    // Wires for input ports
+    wire ntB0;
+    wire ntB1;
+    wire ntB2;
+    wire ntB3;
+    wire ntB4;
+    wire ntBD;
+    wire ntM1;
+    wire ntM3;
+    wire ntM0;
+    wire ntM2;
+    wire ntRS;
+    wire ntCE;
+    wire ntCLK;
+    wire ntWCLK;
+    wire ntWCLK1;
+
+    // Wires connecting to output ports
+    wire ntY1;
+    
+    // Internal wires
+    wire ntL5B;
+    wire ntCLKCO;
+    wire ntRS_P;
+    wire ntCE_P;
+    wire ntCLK_W;
+    wire ntWE;
+        
+    //
+    // Connection to ports
+    //
+    ntB0      <= B0;
+    ntB1      <= B1; 
+    ntB2      <= B2;
+    ntB3      <= B3;
+    ntBD      <= BD;
+
+    ntM1      <= M1;
+    ntM3      <= M3;
+    ntM0      <= M0;
+    ntM2      <= M2;
+
+    ntRS      <= RS;
+    ntCLK     <= CLK;
+    ntWCLK    <= WCLK;
+
+    Y1        <= ntY1;
+
+    //
+    // Instances. FGB section
+    //
+
+    device LUT5SC FYB
+        parameter map
+        (
+            CP_INIT   => CP_INITB,
+            CP_MODE   => CP_MODEB,
+            CP_MASK   => CP_MASK 
+        )
+        port map
+        (
+            A0   => ntB0,
+            A1   => ntB1,
+            A2   => ntB2,
+            A3   => ntB3,
+            A4   => ntB4,
+            AD   => ntBD,
+            L5   => ntL5B,
+            WA   => { ntM3, ntM2, ntM1, ntM0 },
+            WCK  => ntCLK_W,
+            WE   => ntWE
+         );
+         
+    device YMUX  Y1MUX
+        parameter map
+        (
+            CP_OUT_SEL => CP_Y1MUX_SEL
+        )
+        port map
+        (
+            Y    => ntY1,
+            FX   => ntL5B
+        ); 
+    
+    device LRS_POLMUX  LRSPOLMUX
+        parameter map
+        (
+            CP_LRS_EN  => CP_LRS_EN,
+            CP_LRS_POL => CP_LRS_POL
+        )
+        port map
+        (
+            Y  => ntRS_P,
+            IN => ntRS
+        );
+        
+        device CLK_POLMUX  CLKPOLMUX
+        parameter map
+        (
+            CP_CLK_POL => CP_CLK_POL
+        )
+        port map
+        (
+            Y  => ntCLKCO,
+            IN => ntCLK
+        );
+    
+    device MUX2_P WCKMUX
+        parameter map
+        (
+            SEL => CP_WCK_SEL
+        )
+        port map
+        (
+            DOUT => ntCLK_W, 
+            DI1  => ntWCLK1, 
+            DI0  => ntCLKCO
+        );        
+    
+    device RAM_RS U0_NOT
+        port map
+        (
+            IN  => ntRS_P,
+            OUT => ntWE
+        );
+        
+    device RAM_RS RAM_RS_BUF2
+        port map
+        (
+            IN  => ntWCLK,
+            OUT => ntWCLK1
+        );
+}; // end of structure netlist of devBRAM16X1D
+

@@ -1,0 +1,95 @@
+*******************************************************************
+
+  Operator    [gopIMDDRDEL]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+gate
+operator gopIMDDRDEL
+{
+    parameter
+    (
+        string IN_MUX_SEL         = "DIN",       // "DIN"     : IN_FROM_PAD
+                                                 // "DIN_CDR" : IN_PAD_FOR_CDR
+        bit    GRS_EN             = 1'b0,
+        bit    LRS_EN             = 1'b1,
+        bit    DPI_EN             = 1'b0,
+
+        bit    CLK_INV            = 1'b0,
+        bit    LRS_INV            = 1'b0,
+        string DELAY_SEL          = "DEFAULT",
+        bit    IODLY_CTRL_EN      = 1'b0,
+        bit    IODLY_STEP[6:0]    = 7'b000_0000
+    );
+    port
+    (
+        input   IODLY_CTRL[2:0],
+        output  IODLY_OV,
+
+        input   DPI_CTRL[1:0],
+        input   DPI_STS_CLR,
+        output  DPI_STS[1:0],
+
+        input   IFIFO_WADDR[2:0],
+        input   IFIFO_RADDR[2:0],
+
+        // IDDR
+        input   ICLK,
+        input   SYSCLK /* pragma PAP_ARC_GOP_CTRL_PIN = "GCLK|RCLK"*/,
+        input   RESET /* pragma PAP_ARC_GOP_CTRL_PIN = RST*/,
+        input   SLIP,
+        
+        input   PADI,
+        output  PADT,
+        output  OUT,
+        output  Q[1:0]
+    );
+};
+
+implementation impl of gopIMDDRDEL
+{
+    device devIMDDRIOLDEL gate_imddrioldel
+        parameter map
+        (
+            IN_MUX_SEL   => IN_MUX_SEL,
+            DPI_EN       =>   DPI_EN,
+            GRS_EN       =>   GRS_EN,
+            CLK_I_INV    =>   CLK_INV,
+            LRS_INV      =>   LRS_INV,
+            
+            DELAY_SEL       => DELAY_SEL,
+            IODLY_CTRL_EN   => IODLY_CTRL_EN,
+            IODLY_STEP      => IODLY_STEP
+        )
+
+        port map 
+        (
+            RX_DATA      =>   Q,
+            RX_DATA_DD   =>  OUT,
+
+            IFIFO_WADDR  =>   IFIFO_WADDR,
+            IFIFO_RADDR  =>   IFIFO_RADDR,
+
+            IODLY_CTRL   =>   IODLY_CTRL,
+            IODLY_OV     =>   IODLY_OV,
+
+            DPI_CTRL     =>   DPI_CTRL,
+            DPI_STS_CLR  =>   DPI_STS_CLR,
+            DPI_STS      =>   DPI_STS,
+
+            DQSI_DEL     =>   ICLK,
+            SYSCLK       =>   SYSCLK,
+            LRS          =>   RESET,
+            SLIP         =>   SLIP,
+            TO           =>   PADT,
+            
+            DIN          =>   IN_MUX_SEL == "DIN"     ? PADI : 1'bx,
+            DIN_CDR      =>   IN_MUX_SEL == "DIN_CDR" ? PADI : 1'bx
+
+        );
+};
+
+

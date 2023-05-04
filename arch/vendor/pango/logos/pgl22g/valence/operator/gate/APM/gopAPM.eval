@@ -1,0 +1,178 @@
+gopAPM
+{
+    parameter
+    (
+        string GRS_EN = "TRUE",
+        int XSIGNED = 0,
+        int YSIGNED = 0,
+        int POSTADD = 0,
+        int PREADD = 0,
+        int PREREG = 0,
+        int XREG = 0,
+        int XOREG = 0,
+        int YREG = 0,
+        int ZREG = 0,
+        int MREG = 0,
+        int PREG = 0,
+        int MODEXREG = 0,
+        int MODEYREG = 0,
+        int MODEZREG = 0,
+        int XSEL = 0,
+        int XBSEL = 0,
+        int ASYNC = 0,
+        int SIMD = 0,
+        bit ZINIT[47:0] = 48'b0,
+        int POREG = 0,
+        int ACCLOW = 0,
+        int PCISEL = 0,
+
+        //gop level parameters
+        //turn off routing/power optimization by default
+
+        bit XSE[7:0] = 8'b0,
+        bit YSE[7:0] = 8'b0,
+        bit ZSE[22:0] = 23'b0,
+
+        bit YCONST[17:0] = 18'b0,
+        bit YDYNSEL = 1'b1,
+        bit MODEXCONST = 1'b0,
+        bit MODEXDYNSEL = 1'b1,
+        bit MODEYCONST[2:0]  = 3'b0,
+        bit MODEYDYNSEL[2:0]  = 3'b111,
+        bit MODEZCONST[3:0]  = 4'b0,
+        bit MODEZDYNSEL[3:0]  = 4'b1111,
+
+        bit OR2CASECADE_EN = 1'b1, //PO enable
+        bit OR2CORE_EN[1:0] = 2'b11, //P enable
+        bit IRX_SHFEN = 1'b1, //XO enable
+        bit IRZ_SHFEN = 1'b1, //XBO enable
+        bit MULT_EN[1:0] = 2'b11 //mult enable
+
+    );
+
+    port
+    (
+        output P[47:0],
+        output PO[47:0],
+        output PCO,
+        output XO[17:0],
+        output XBO[17:0],
+        input X[17:0],
+        input XI[17:0],
+        input XBI[17:0],
+        input Y[17:0],
+        input Z[47:0],
+        input PI[47:0],
+        input PCI,
+        input MODEX,
+        input MODEY[2:0],
+        input MODEZ[3:0],
+        input CLK /*pragma PAP_ARC_GOP_CTRL_PIN="GCLK|RCLK"*/,
+        input RST_X /*pragma PAP_ARC_GOP_CTRL_PIN="RST"*/,
+        input RST_Y /*pragma PAP_ARC_GOP_CTRL_PIN="RST"*/,
+        input RST_Z /*pragma PAP_ARC_GOP_CTRL_PIN="RST"*/,
+        input RST_M /*pragma PAP_ARC_GOP_CTRL_PIN="RST"*/,
+        input RST_P /*pragma PAP_ARC_GOP_CTRL_PIN="RST"*/,
+        input RST_PRE /*pragma PAP_ARC_GOP_CTRL_PIN="RST"*/,
+        input RST_MODEX /*pragma PAP_ARC_GOP_CTRL_PIN="RST"*/,
+        input RST_MODEY /*pragma PAP_ARC_GOP_CTRL_PIN="RST"*/,
+        input RST_MODEZ /*pragma PAP_ARC_GOP_CTRL_PIN="RST"*/,
+        input CE_X /*pragma PAP_ARC_GOP_CTRL_PIN="CE"*/,
+        input CE_Y /*pragma PAP_ARC_GOP_CTRL_PIN="CE"*/,
+        input CE_Z /*pragma PAP_ARC_GOP_CTRL_PIN="CE"*/,
+        input CE_M /*pragma PAP_ARC_GOP_CTRL_PIN="CE"*/,
+        input CE_P /*pragma PAP_ARC_GOP_CTRL_PIN="CE"*/,
+        input CE_PRE /*pragma PAP_ARC_GOP_CTRL_PIN="CE"*/,
+        input CE_MODEX /*pragma PAP_ARC_GOP_CTRL_PIN="CE"*/,
+        input CE_MODEY /*pragma PAP_ARC_GOP_CTRL_PIN="CE"*/,
+        input CE_MODEZ /*pragma PAP_ARC_GOP_CTRL_PIN="CE"*/
+    );
+};
+
+implementation impl of gopAPM
+{
+    device devAPM devapm
+    parameter map
+    (
+        CP_GRS_DIS => (GRS_EN == "TRUE") ? 1'b0 : 1'b1,
+        CP_XSIGNED => (XSIGNED == 0) ? 1'b0 : 1'b1,
+        CP_YSIGNED => (YSIGNED == 0) ? 1'b0 : 1'b1,
+        CP_POSTADD => (POSTADD == 0) ? 1'b0 : 1'b1,
+        CP_PREADD => (PREADD == 0) ? 1'b0 : 1'b1,
+        CP_PREREG => (PREREG == 0) ? 1'b0 : 1'b1,
+        CP_XREG => (XREG == 0) ? 1'b0 : 1'b1,
+        CP_XOREG => (XOREG == 0) ? 2'b00 : (XOREG == 1) ? 2'b01 : (XOREG == 2) ? 2'b10 : 2'b11,
+        CP_YREG => (YREG == 0) ? 1'b0 : 1'b1,
+        CP_ZREG => (ZREG == 0) ? 1'b0 : 1'b1,
+        CP_MREG => (MREG == 0) ? 1'b0 : 1'b1,
+        CP_PREG => (PREG == 0) ? 1'b0 : 1'b1,
+        CP_MODEXREG => (MODEXREG == 0) ? 1'b0 : 1'b1,
+        CP_MODEYREG => (MODEYREG == 0) ? 1'b0 : 1'b1,
+        CP_MODEZREG => (MODEZREG == 0) ? 1'b0 : 1'b1,
+        CP_XSEL => (XSEL == 0) ? 1'b0 : 1'b1,
+        CP_XBSEL => (XBSEL == 0) ? 2'b00 : (XBSEL == 1) ? 2'b01 : (XBSEL == 2) ? 2'b10 : 2'b11,
+        CP_ASYNC => (ASYNC == 0) ? 1'b0 : 1'b1,
+        CP_SIMD => (SIMD == 0) ? 1'b0 : 1'b1,
+        CP_ZINIT => ZINIT,
+        CP_POREG => (POREG == 0) ? 1'b0 : 1'b1,
+        CP_ACCLOW => (ACCLOW == 0) ? 1'b0 : 1'b1,
+        CP_PCISEL => (PCISEL == 0) ? 1'b0 : 1'b1,
+
+        //gop parameter mapping
+        CP_XSE => XSE,
+        CP_YSE => YSE,
+        CP_ZSE => ZSE,
+
+        CP_YCONST => YCONST,
+        CP_YDYNSEL => YDYNSEL,
+        CP_MODEXCONST => MODEXCONST,
+        CP_MODEXDYNSEL => MODEXDYNSEL,
+        CP_MODEYCONST => MODEYCONST,
+        CP_MODEYDYNSEL => MODEYDYNSEL,
+        CP_MODEZCONST => MODEZCONST,
+        CP_MODEZDYNSEL => MODEZDYNSEL,
+
+        CP_OR2CASECADE_EN => OR2CASECADE_EN,
+        CP_OR2CORE_EN => OR2CORE_EN,
+        CP_IRX_SHFEN => IRX_SHFEN,
+        CP_IRZ_SHFEN => IRZ_SHFEN,
+        CP_MULT_EN => MULT_EN
+    )
+    port map
+    (
+        P => P,
+        PO => PO,
+        PCO => PCO,
+        XO => XO,
+        XBO => XBO,
+        X => X,
+        XI => XI,
+        XBI => XBI,
+        Y => Y,
+        Z => Z,
+        PI => PI,
+        PCI => PCI,
+        MODEX => MODEX,
+        MODEY => MODEY,
+        MODEZ => MODEZ,
+        CLK => CLK,
+        RST_X => RST_X,
+        RST_Y => RST_Y,
+        RST_Z => RST_Z,
+        RST_M => RST_M,
+        RST_P => RST_P,
+        RST_PRE => RST_PRE,
+        RST_MODEX => RST_MODEX,
+        RST_MODEY => RST_MODEY,
+        RST_MODEZ => RST_MODEZ,
+        CE_X => CE_X,
+        CE_Y => CE_Y,
+        CE_Z => CE_Z,
+        CE_M => CE_M,
+        CE_P => CE_P,
+        CE_PRE => CE_PRE,
+        CE_MODEX => CE_MODEX,
+        CE_MODEY => CE_MODEY,
+        CE_MODEZ => CE_MODEZ
+    );
+};

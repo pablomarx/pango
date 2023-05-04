@@ -1,0 +1,281 @@
+use pango_defs, pango_floorplan_funcs, pg30_defs;
+
+floorplan
+structure fp_struct place_logic_resource of device devPGT30G
+{
+    // Tile index variable
+    unsigned int tx, ty;      
+    
+    // CLM indication (CLMS + CLMA) clm_flag = 1, (CLMA + CLMA) clm_flag = 0
+    unsigned int clm_flag;
+
+    // Regulate area
+    const unsigned int CLM_tile_y[] = { [1:19, 21:40, 41:60, 62:80] };
+    const unsigned int CLM_tile_x[] = { [1:4, 6:13, 15:22, 25:32, 34:41, 43:46] };
+    
+    clm_flag = 1;
+   
+    foreach tx ( CLM_tile_x )
+    {
+        foreach ty ( CLM_tile_y )
+        {
+            if(clm_flag == 1)
+            {
+                place_logic_aa_tile_fp (tx, ty);
+            }
+            else
+            {
+                place_logic_sa_tile_fp (tx, ty);
+            }
+        }
+        
+        clm_flag = (clm_flag == 1) ? 0 : 1;
+    }   
+   
+ 
+    //APM tile
+    
+    const unsigned int APM_tile_x[] = { 14, 33 };
+    const unsigned int APM_tile_y[] = { [8:19, 21:40, 41:60, 62:73 +:4] };   
+   
+    place_apm_tile_fp(APM_tile_x, APM_tile_y);
+   
+    //DRM tile
+       
+    const unsigned int DRM_tile_x0[] = { 5, 42 };
+    const unsigned int DRM_tile_y0[] = { [0:19, 21:60, 62:81 +:5] };   
+   
+    place_drm_tile_fp(DRM_tile_x0, DRM_tile_y0);   
+   
+    const unsigned int DRM_tile_x1[] = { 23 };
+    const unsigned int DRM_tile_y1[] = { [0:19, 21:35, 46:60, 62:81 +:5] };  
+   
+    place_drm_tile_fp(DRM_tile_x1, DRM_tile_y1);  
+    
+    place_drm0_tile_fp(23, 36);
+    
+    place_drm1_tile_fp(23, 41);     
+ 
+  
+    // Site index variable
+    unsigned int sx, sy;
+    
+    //------------------------------//
+    //   place io_n and io_s tiles  //
+    //------------------------------//
+    
+    sy = NUM_TILE_Y - 1;
+
+    const unsigned int io_tile_x0[] = { 6, 15, 25, 34};
+    const unsigned int io_tile_y0[] = { 0, sy };                                    
+
+    foreach ty ( io_tile_y0 )              
+    {                                     
+        foreach tx ( io_tile_x0 )          
+        {                                 
+            place_io_8cim_h_tile_fp (tx, ty, NUM_TILE_X, NUM_TILE_Y);
+        }                                 
+    }                                     
+
+    const unsigned int io_tile_x1[] = { 1 };
+    const unsigned int io_tile_y1[] = { 0, sy };                         
+                                                                        
+    foreach ty ( io_tile_y1 )                                            
+    {                                                                   
+        foreach tx ( io_tile_x1 )
+        {                                                               
+            place_io_4cim_6io_ttfftt_h_tile_fp (tx, ty, NUM_TILE_X, NUM_TILE_Y);                          
+        }                                                               
+    }                                                                   
+
+    const unsigned int io_tile_x2[] = { 43 };
+    const unsigned int io_tile_y2[] = { 0, sy };                         
+                                                                        
+    foreach ty ( io_tile_y2 )                                            
+    {                                                                   
+        foreach tx ( io_tile_x2 )
+        {                                                               
+            place_io_4cim_6io_ffttff_h_tile_fp (tx, ty, NUM_TILE_X, NUM_TILE_Y);                          
+        }                                                               
+    } 
+
+
+    //------------------------------//
+    //     place io_w tiles         //
+    //------------------------------//
+
+    place_io_l_3cim_4io_v_u_tile_fp (0, 72);
+    place_io_l_b_2cim_v_tile_fp(0, 73);
+    
+    const unsigned int io_l_tile_x3[] = { 0 };
+    const unsigned int io_l_tile_y3[] = { [69:62, 60:21, 19:4 -:4] }; 
+
+    foreach tx ( io_l_tile_x3 )
+    {
+        foreach ty ( io_l_tile_y3 )
+        {
+            place_io_l_4cim_6io_v_tile_fp (tx, ty);
+        }
+    }
+
+    place_io_l_3cim_4io_v_d_tile_fp (0, 3);
+
+ 
+    //------------------------------//
+    //     place io_e tiles         //
+    //------------------------------//   
+    sx = NUM_TILE_X-1;
+
+   place_io_9cim_v_u_tile_fp(47, 80, NUM_TILE_X, NUM_TILE_Y);
+   
+    const unsigned int io_tile_x4[] = { 47 };
+    const unsigned int io_tile_y4[] = { 71, 60, 50, 40, 30, 19 };
+    
+    unsigned int cnt = 0;
+        
+    foreach ty ( io_tile_y4 )
+    {
+        foreach tx ( io_tile_x4 )
+        {
+            
+            if(cnt %2 == 0)
+            {
+                place_io_10cim_v_tile_fp (tx, ty, NUM_TILE_X, NUM_TILE_Y, 0);                
+            }            
+            else
+            {
+                place_io_10cim_v_tile_fp (tx, ty, NUM_TILE_X, NUM_TILE_Y, 1);                  
+            }
+            cnt = cnt + 1;            
+        }
+    }
+   
+    place_io_9cim_v_d_tile_fp(47, 9, NUM_TILE_X, NUM_TILE_Y); 
+      
+      
+    //------------------------------//
+    // place clk_delay tiles (E, W) //
+    //------------------------------//   
+    const unsigned int clk_delay_tile_x0[] = { 47 };
+    const unsigned int clk_delay_tile_y0[] = { 62, 60, 21, 19 };
+    
+    foreach tx ( clk_delay_tile_x0 )
+    {
+        foreach ty ( clk_delay_tile_y0 )
+        {
+            place_clk_delay_tile_fp (tx, ty, NUM_TILE_X, NUM_TILE_Y);
+        }
+    }   
+ 
+    //------------------------------//
+    // place clk_delay tiles (T, B) //
+    //------------------------------//   
+    const unsigned int clk_delay_tile_x1[] = { 22, 25 };
+    const unsigned int clk_delay_tile_y1[] = { 0, 81 };
+    
+    foreach ty ( clk_delay_tile_y1 )
+    {
+        foreach tx ( clk_delay_tile_x1 )
+        {
+            place_clk_delay_tile_fp (tx, ty, NUM_TILE_X, NUM_TILE_Y);
+        }
+    }     
+          
+                  
+    //DLL tile
+
+    place_dll_tile_fp(DLL_TILE_X0, DLL_TILE_Y0); 
+         
+    place_dll_tile_fp(DLL_TILE_X1, DLL_TILE_Y1);  
+    
+    //PLL tile 
+    
+    place_pll_tile_fp(PLL_TILE_X0, PLL_TILE_Y0, -1);   //North 
+    
+    place_pll_tile_fp(PLL_TILE_X1, PLL_TILE_Y1, -1); 
+             
+    place_pll_tile_fp(PLL_TILE_X2, PLL_TILE_Y2, 1);    //Sourth   
+      
+    place_pll_tile_fp(PLL_TILE_X3, PLL_TILE_Y3, 1);           
+   
+    const unsigned int USCM_tile_x[] = { 24};
+    const unsigned int USCM_tile_y[] = { [37:40, 42:45] };
+
+    unsigned int uscm_idx, tile_num;
+    
+    foreach tx ( USCM_tile_x )
+    {
+        foreach ty ( USCM_tile_y )
+        {
+            if(ty == 45)
+            {
+                uscm_idx  = 0;
+                tile_num = 0;
+            }
+            else if(ty == 44)
+            {
+                uscm_idx  = 0;
+                tile_num = 1;
+            }
+            else if(ty == 43)
+            {
+                uscm_idx  = 1;
+                tile_num = 0;
+            }
+            else if(ty == 42)
+            {
+                uscm_idx  = 1;
+                tile_num = 1;
+            }
+            else if(ty == 40)
+            {
+                uscm_idx  = 3;
+                tile_num = 0;
+            }
+            else if(ty == 39)
+            {
+                uscm_idx  = 3;
+                tile_num = 1;
+            }            
+            else if(ty == 38)
+            {
+                uscm_idx  = 2;
+                tile_num = 0;
+            }   
+            else if(ty == 37)
+            {
+                uscm_idx  = 2;
+                tile_num = 1;
+            }
+                     
+            place_uscm_tile_fp (tx, ty, uscm_idx, tile_num);   //USCM
+        }
+    }
+   
+   //Regional clk
+   place_reg_vmux_tile_fp (REG_VMUX0_CLK_TILE_X, REG_VMUX0_CLK_TILE_Y);       //VMUX0
+   place_reg_vmux_tile_fp (REG_VMUX1_CLK_TILE_X, REG_VMUX1_CLK_TILE_Y);       //VMUX1
+   place_reg_vmux_tile_fp (REG_VMUX2_CLK_TILE_X, REG_VMUX2_CLK_TILE_Y);       //VMUX2
+   place_reg_vmux_tile_fp (REG_VMUX3_CLK_TILE_X, REG_VMUX3_CLK_TILE_Y);       //VMUX3
+
+   place_ioclkgen_tile_fp (IOCLKGEN_B_TILE_X, IOCLKGEN_B_TILE_Y);   //BOTTOM IOCLKGEN
+   place_ioclkgen_tile_fp (IOCLKGEN_T_TILE_X, IOCLKGEN_T_TILE_Y);   //TOP IOCLKGEN
+   place_ioclkgen_tile_fp (IOCLKGEN_R_TILE_X, IOCLKGEN_R_TILE_Y);   //RIGHT IOCLKGEN   
+   
+   place_start_tile_fp(START_X, START_Y);
+   
+   place_grs_tile_fp(START_X, START_Y);
+      
+   place_osc_tile_fp(OSC_X, OSC_Y);
+      
+   place_efusecode_tile_fp(EFUSECODE_X, EFUSECODE_Y);
+   
+   place_scanchain1_tile_fp(SCANCHAIN1_X, SCANCHAIN1_Y);
+   place_scanchain0_tile_fp(SCANCHAIN0_X, SCANCHAIN0_Y);
+   
+   place_ipal_tile_fp(IPAL_X, IPAL_Y);   
+   
+   
+
+} // end of structure floorplan place_logic_resource of device devPGT30G
+

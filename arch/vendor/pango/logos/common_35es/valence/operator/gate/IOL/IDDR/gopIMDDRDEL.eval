@@ -1,0 +1,108 @@
+*******************************************************************
+
+  Operator    [gopIMDDRDEL]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+gate
+operator gopIMDDRDEL
+{
+    parameter
+    (
+        string MIPI_MODE          = "FALSE",
+        string MODE               = "DDM0",
+        bit    GRS_EN             = 1'b0,
+        bit    LRS_EN             = 1'b1,
+        bit    CLK_INV            = 1'b0,
+        bit    LRS_INV            = 1'b0,
+        string DELAY_SEL          = "DEFAULT",
+        bit    IODLY_CTRL_EN      = 1'b0,
+        bit    IODLY_STEP[3:0]    = 4'b0000
+    );
+    port
+    (
+        input   IODLY_CTRL[2:0],
+        output  IODLY_OV,
+
+        input   IFIFO_WADDR[2:0],
+        input   IFIFO_RADDR[2:0],
+
+        // IDDR
+        input   ICLK,
+        input   DESCLK /*pragma PAP_ARC_GOP_CTRL_PIN="IOCLK"*/,
+        input   SYSCLK /*pragma PAP_ARC_GOP_CTRL_PIN="GCLK|RCLK|COLCLK"*/,
+        input   RESET /*pragma PAP_ARC_GOP_CTRL_PIN="RST"*/,
+        
+        input   PADI,
+        output  INCK,
+        output  PADT,
+        output  OUT,
+        output  Q[7:0],
+        input   MI,
+        output  MO
+    );
+};
+
+implementation impl of gopIMDDRDEL
+{
+    string ddm_mode = "IMDDR";
+    
+    if (MODE == "DDM0")
+    {
+        ddm_mode = "IMDDR";
+    }
+    else if (MODE == "DDM4")
+    {
+        ddm_mode = "IMDES4";
+    }
+    else if (MODE == "DDM8")
+    {
+        ddm_mode = "IMDES8";
+    }
+    else
+    {
+        printf("The parameter OSERDES_MODE value is wrong.");
+    }
+    
+    device devIMDES8IOLADEL gate_imddrioldel
+        parameter map
+        (
+            CP_IDDR_MODE   =>   ddm_mode,
+            CP_ICLK_SEL    =>   2'b01,
+            
+            CP_GRS_DIS     =>   GRS_EN == 1'b0 ? "FALSE" : "TRUE",
+            CP_INLRS_EN    =>   LRS_EN == 1'b0 ? "DISABLE" : "ENABLE",
+            CP_INCLK_POL   =>   CLK_INV == 1'b0 ? "FALSE" : "TRUE",
+            CP_LRS_POL     =>   LRS_INV == 1'b0 ? "FALSE" : "TRUE",
+            CP_IODLY_STEP  =>   IODLY_STEP,
+            CP_MIPI_EN     =>   MIPI_MODE == "TRUE" ? "ENABLE" : "DISABLE"
+        )
+
+        port map 
+        (
+            RX_DATA      =>   Q,
+            RX_DATA_DD   =>   OUT,
+
+            IFIFO_WADDR  =>   IFIFO_WADDR,
+            IFIFO_RADDR  =>   IFIFO_RADDR,
+
+            IODLY_CTRL   =>   IODLY_CTRL,
+            IODLY_OV     =>   IODLY_OV,
+
+            CLK_IO       =>   DESCLK,
+            DQSI_DEL     =>   ICLK,
+            CLK_SYS      =>   SYSCLK,
+            LRS          =>   RESET,
+            TO           =>   PADT,
+            INCK         =>   INCK,
+            DI           =>   PADI,
+            
+            MIPI_SW_DYN_O =>  MO,
+            MIPI_SW_DYN_I =>  MI
+        );
+};
+
+

@@ -1,0 +1,254 @@
+*****************************************************************
+
+  Device    [devTSERDES]
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devTSERDES : device TSERDES
+{
+    parameter
+    (
+        config string CP_TSR_EN = "FALSE",
+        config string CP_TSR_POL = "FALSE",
+        config string CP_T_SYNC = "ASYNC",
+        config bit CP_GRS_DIS = 1'b0,
+        config string CP_CLK_POL4 = "FALSE",
+        config string CP_CLK_POL5 = "FALSE",
+        config string CP_CLK_POL6 = "FALSE",
+        config string CP_THSMEM_EN = "FALSE",
+        config string CP_TSERDES_EN = "FALSE",
+        config string CP_SER_DDREN = "FALSE",
+        config string CP_SER_SDREN = "FALSE",
+        config string CP_TSERDES_MODE = "SDR2TO1",
+        config string CP_UPD0_SHIFTEN = "FALSE",
+        config string CP_UPD1_SHIFTEN = "FALSE",
+        config bit CP_INIT_SET[1:0] = 2'b00,
+        config bit CP_INIT_TQ = 1'b0,
+        config string CP_SRVAL_TQ0 = "RESET",
+        config string CP_SRVAL_TQ1 = "RESET",
+        config string CP_SRVAL_TQ2 = "RESET",
+        config string CP_SRVAL_TQ3 = "RESET",
+        config bit CP_TS_TQMODE = 1'b0,
+        config bit CP_TERMMODE = 1'b0,
+        config string CP_TDLY_EN = "FALSE",
+        config bit CP_TERM_OFFSET[1:0] = 2'b00,
+        config string CP_TDYN_EN = "FALSE",
+        config bit CP_TDLY_SET[7:0] = 8'b00000000        
+    );
+    port
+    (
+        input TS_CTRL[7:0] = 8'b1111_1111,
+        input TDLY_DYN_SET[7:0] = 8'b1111_1111,
+        input TSR = 1'b1,
+        input TCE = 1'b1,
+        input OCLKDIV = 1'b1,
+        input OCLKDIVB = 1'b1,
+        input SERCLK = 1'b1,
+        input SERCLKB = 1'b1,
+        input OCLK = 1'b1,
+        input OCLKB = 1'b1,
+        input UPD0_SHIFT = 1'b1,
+        input UPD1_SHIFT = 1'b1,
+        input TDLY_SEL = 1'b1,
+        output TO,
+        output TERM,
+        output TFB,
+        output TERM_FB
+    );
+};
+//grid device end
+
+//grid device structure netlist started
+structure netlist of devTSERDES
+{
+    wire ntTSR;
+    wire ntTCE;
+    wire ntOCLKDIV;
+    wire ntOCLKDIVB;
+    wire ntSERCLK;
+    wire ntSERCLKB;
+    wire ntOCLK;
+    wire ntOCLKB;
+    wire ntUPD0_SHIFT;
+    wire ntUPD1_SHIFT;
+    wire ntTDLY_SEL;
+    wire ntTO;
+    wire ntTERM;
+    wire ntTFB;
+    wire ntTERM_FB;
+
+    //internal interconnect
+    wire ntCLK_STG0;
+    wire ntCLK_STG1;
+    wire ntCLK_STG2_0;
+    wire ntCLK_STG2_1;
+    wire ntTO_SDR;
+    wire ntTO_DDR;
+    wire ntTERM_SDR;
+    wire ntTERM_DDR;
+    wire ntTO_DLY;
+    wire ntOUTEN[7:0];
+    wire ntSR;
+    //External connection
+    ntTSR               <= TSR;
+    ntTCE               <= TCE;
+    ntOCLKDIV           <= OCLKDIV;
+    ntOCLKDIVB          <= OCLKDIVB;
+    ntSERCLK            <= SERCLK;
+    ntSERCLKB           <= SERCLKB;
+    ntOCLK              <= OCLK;
+    ntOCLKB             <= OCLKB;
+    ntUPD0_SHIFT        <= UPD0_SHIFT;
+    ntUPD1_SHIFT        <= UPD1_SHIFT;
+    ntTDLY_SEL          <= TDLY_SEL;
+    TO                  <= ntTO;
+    TERM                <= ntTERM;
+    TFB                 <= ntTFB;
+    TERM_FB             <= ntTERM_FB;
+
+    device T_SERDES XT_SERDES
+    parameter map
+    (
+        CP_TSR_EN            => CP_TSR_EN,
+        CP_T_SYNC            => CP_T_SYNC,
+        CP_GRS_DIS           => CP_GRS_DIS,
+        CP_THSMEM_EN         => CP_THSMEM_EN,
+        CP_TSERDES_EN        => CP_TSERDES_EN,
+        CP_SER_DDREN         => CP_SER_DDREN,
+        CP_SER_SDREN         => CP_SER_SDREN,
+        CP_TSERDES_MODE      => CP_TSERDES_MODE,
+        CP_UPD0_SHIFTEN      => CP_UPD0_SHIFTEN,
+        CP_UPD1_SHIFTEN      => CP_UPD1_SHIFTEN,
+        CP_INIT_SET          => CP_INIT_SET,
+        CP_TERM_OFFSET       => CP_TERM_OFFSET,
+        CP_INIT_TQ           => CP_INIT_TQ,
+        CP_SRVAL_TQ0         => CP_SRVAL_TQ0,
+        CP_SRVAL_TQ1         => CP_SRVAL_TQ1,
+        CP_SRVAL_TQ2         => CP_SRVAL_TQ2,
+        CP_SRVAL_TQ3         => CP_SRVAL_TQ3
+    )
+    port map
+    (
+        TS_CTRL              => TS_CTRL,//netbus
+        SR                   => ntSR,
+        TCE                  => ntTCE,
+        CLK_STG0             => ntCLK_STG0,
+        CLK_STG1             => ntCLK_STG1,
+        CLK_STG2_0           => ntCLK_STG2_0,
+        CLK_STG2_1           => ntCLK_STG2_1,
+        UPD0_SHIFT           => ntUPD0_SHIFT,
+        UPD1_SHIFT           => ntUPD1_SHIFT,
+        TO_SDR               => ntTO_SDR,
+        TO_DDR               => ntTO_DDR,
+        TERM_SDR             => ntTERM_SDR,
+        TERM_DDR             => ntTERM_DDR,
+        OUTEN                => ntOUTEN
+    );
+
+    device TSERDES_CLKGEN XTSERDES_CLKGEN
+    parameter map
+    (
+        CP_CLK_POL4         => CP_CLK_POL4,
+        CP_CLK_POL5         => CP_CLK_POL5,
+        CP_CLK_POL6         => CP_CLK_POL6
+    )
+    port map
+    (
+        OCLKDIV             => ntOCLKDIV,
+        OCLKDIVB            => ntOCLKDIVB,
+        SERCLK              => ntSERCLK,
+        SERCLKB             => ntSERCLKB,
+        OCLK                => ntOCLK,
+        OCLKB               => ntOCLKB,
+        CLK_STG0            => ntCLK_STG0,
+        CLK_STG1            => ntCLK_STG1,
+        CLK_STG2_0          => ntCLK_STG2_0,
+        CLK_STG2_1          => ntCLK_STG2_1
+    );
+
+    device TSERDES_TDLY XTSERDES_TDLY
+    parameter map
+    (
+        CP_TDLY_EN          => CP_TDLY_EN,
+        CP_TDYN_EN          => CP_TDYN_EN,
+        CP_TDLY_SET         => CP_TDLY_SET
+    )
+    port map
+    (
+        TDLY_DYN_SET        => TDLY_DYN_SET,//netbus
+        TDLY_SEL            => ntTDLY_SEL,
+        DI                  => TFB,
+        D_DLY               => ntTO_DLY
+    );
+
+
+    device MUX2TO1_T TSRMUX
+    parameter map
+    (
+        CP_POL              => CP_TSR_POL,
+        DIN1_POL            => "TRUE"
+    )
+    port map
+    (
+        DOUT                => ntSR,
+        DIN0                => ntTSR,
+        DIN1                => ntTSR
+    );
+
+
+    device MUX2TO1_T TOMUX
+    parameter map
+    (
+        CP_POL              => CP_TDLY_EN,
+        DIN1_POL            => "FALSE"
+    )
+    port map
+    (
+        DOUT                => ntTO,
+        DIN0                => ntTFB,
+        DIN1                => ntTO_DLY
+    );
+
+
+    device MUX2TO1_P_T TFBMUX
+    parameter map
+    (
+        CP_SEL              => CP_TS_TQMODE
+    )
+    port map
+    (
+        DOUT                => ntTFB,
+        DIN0                => ntTO_SDR,
+        DIN1                => ntTO_DDR
+    );
+
+
+    device MUX2TO1_P_T TERM_TFBMUX
+    parameter map
+    (
+        CP_SEL              => CP_TERMMODE
+    )
+    port map
+    (
+        DOUT                => ntTERM_FB,
+        DIN0                => ntTERM_SDR,
+        DIN1                => ntTERM_DDR
+    );
+
+
+    device TERM_MUX U_TERM_MUX
+    port map
+    (
+        OUTEN               => ntOUTEN,
+        DOUT                => ntTERM,
+        DIN0                => 1'b0,
+        DIN1                => ntTERM_FB
+    );
+    
+};

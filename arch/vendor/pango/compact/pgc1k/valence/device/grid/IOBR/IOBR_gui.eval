@@ -1,0 +1,165 @@
+*******************************************************************
+
+  Device    [IOBR]
+
+  Author    [jhxie]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+symbol logsym of IOBR // pragma PAP_ARC_COLOR="64:64:128"
+{
+    // The bounding box
+    generate ( 30 # 30 );
+
+    //
+    // Poloygon declaration
+    //
+    shape
+    [ 0, 0 ]  ->  [ , 30]
+                        <
+                            DIN                 @[,6 ],
+                            DIN_MIPI_LP         @[,8 ],
+                            
+                            DO                  @[,12],
+                            TS                  @[,16],
+                            MIPI_SW_DYN         @[,20],
+                            INBUF_DYN_DIS_N     @[,24]
+                        >
+              ->  [30, ]
+                        <
+                            DIFFI_OUT   @[10,],
+                            DIFFI_IN    @[20,]
+                        >
+              ->  [  ,0]
+                        <
+                            PAD         @[,15]
+                        >
+              ->  [ 0, ] ;
+
+}; // symbol logsym of IOBR
+
+/*******************************************************************************
+
+  Device    [IOBR]
+
+  Author    [rjliu]
+
+  Abstract  [The schematic for IOBR]
+
+  Revision History:
+
+********************************************************************************/
+schematic schm of IOBR
+{
+   // The bounding box
+      generate (176 # 128);
+
+    //
+    // Layout all symbols.
+    //
+    device IBUFR  (symbol logsym) IBUFR
+        @[112,32];
+
+    device OBUFR  (symbol logsym) OBUFR
+        @[32,48];
+
+    map (
+         <instance IBUFR>    => <instance IBUFR    of device IOBR (structure netlist)> ,
+         <instance OBUFR>    => <instance OBUFR    of device IOBR (structure netlist)>
+         );
+
+    //
+    // Layout all ports.
+    //
+    // Since ports drive or are driven by pins of symbol instance, derive the port
+    // location from those pins
+    //
+
+    port DIFFI_IN           @[16, <pin DIFFI_IN of <instance IBUFR>>#-];
+    port DO                 @[16, 56];
+    port TS                 @[16, 66];
+    //port DIFFO_OUT          @[160,16];
+    port DIN                @[160, 48];
+    port DIFFI_OUT          @[160, 80];
+    port PAD                @[96, 95]; // pragma PAP_UI_ORIENTATION="NORTH"
+    port MIPI_SW_DYN        @[16, <pin MIPI_SW_DYN of <instance IBUFR>>#-];
+    port INBUF_DYN_DIS_N    @[16, <pin INBUF_DYN_DIS_N of <instance IBUFR>>#-];
+    port DIN_MIPI_LP        @[160, <pin DIFFI_IN of <instance IBUFR>>#-];
+
+    //
+    // Layout all lines
+    //
+
+    line lnDIFFI_IN
+        <port DIFFI_IN> ->
+        <pin DIFFI_IN of <instance IBUFR>>;
+
+    line lnDO
+        <port DO> ->
+        <pin DO of <instance OBUFR>>;
+
+    line lnTS
+        <port TS> ->
+        [40,66] ->
+        <pin TS of <instance OBUFR>>,
+        
+        [40,66] ->
+        [128,66] ->
+        <pin TS of <instance IBUFR>>;
+
+    //line lnDIFFO_OUT
+    //    <pin DIFFO_OUT of <instance OBUFR>> ->
+    //    [40,16] ->
+    //    <port DIFFO_OUT>;
+
+    line lnPAD
+        <pin OUT of <instance OBUFR>> ->
+        [96,56] ->
+        <pin IN of <instance IBUFR>>,
+
+        [96,56] ->
+        [96,80] ->
+        <port PAD>,
+        
+        [96,80] ->
+        <port DIFFI_OUT>;
+
+    line lnDIN
+        <pin OUT of <instance IBUFR>> ->
+        <port DIN>;
+        
+    line lnMIPI_SW_DYN  
+        <port MIPI_SW_DYN>  ->
+        [(<pin MIPI_SW_DYN of <instance OBUFR>>#|)-5,] ->
+        <pin MIPI_SW_DYN of <instance IBUFR>>,
+        
+        [(<pin MIPI_SW_DYN of <instance OBUFR>>#|)-5,<port MIPI_SW_DYN>#-] ->
+        [,<pin MIPI_SW_DYN of <instance OBUFR>>#-] ->
+        <pin MIPI_SW_DYN of <instance OBUFR>>;
+        
+    line lnINBUF_DYN_DIS_N
+        <pin INBUF_DYN_DIS_N of <instance IBUFR>> ->
+        <port INBUF_DYN_DIS_N>;
+        
+    line lnOUT_MIPI_LP
+        <pin OUT_MIPI_LP of <instance IBUFR>> ->
+        [<pin OUT_MIPI_LP of <instance IBUFR>>#|, (<pin OUT_MIPI_LP of <instance IBUFR>>#-)-4] ->
+        <port DIN_MIPI_LP>;
+
+    map  (
+           <line lnDIFFI_IN>        => <wire ntDIFFI_IN         of device IOBR (structure netlist)>,
+           <line lnDO>              => <wire ntDO               of device IOBR (structure netlist)>,
+           <line lnTS>              => <wire ntTS               of device IOBR (structure netlist)>,
+//           <line lnDIFFO_OUT>       => <wire ntDIFFO_OUT        of device IOBD (structure netlist)>,
+           <line lnPAD>             => <wire ntPAD              of device IOBR (structure netlist)>,
+           <line lnDIN>             => <wire ntDIN              of device IOBR (structure netlist)>,
+           <line lnMIPI_SW_DYN>     => <wire ntMIPI_SW_DYN      of device IOBR (structure netlist)>,
+           <line lnINBUF_DYN_DIS_N> => <wire ntINBUF_DYN_DIS_N  of device IOBR (structure netlist)>,
+           <line lnOUT_MIPI_LP>     => <wire ntDIN_MIPI_LP      of device IOBR (structure netlist)>
+           
+         );
+};// end of schematic schm of IOBR
+

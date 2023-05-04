@@ -1,0 +1,293 @@
+*******************************************************************
+
+  Device    [devARAM16X1DQ]
+
+  Author    [guoxi]
+
+  Abstract  [RAM16X1DQ USEED A PART OF CLMS]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devARAM16X1DQ : device CLMS
+{
+
+    parameter
+    (
+        config string  CP_GRS_EN  = "FALSE",
+        config bit     CP_INITA[31:0] = 32'hffff_ffff,
+        config string  CP_MODEA       = "LUT5",         //"LUT5" "ROM" "WMUX" "RAM" "ARITH" "PRIENC" "MUX4" "XOR" "COMP" "RAM"
+        config string  CP_MASK      := "TRUE",        //1'b0: Disable; 1'b1: Enable         
+        config string  CP_Y0MUX_SEL  := "FX",            //"FX":F0 "CYX":CYA "MF":QP0
+        config string  CP_Q0MUX_SEL  = "YX",            //"YX":Y0 "MX":M0 "SRQ":SRCI
+        config string  CP_RS_MODE    = "ASYNC",         //"SYNC" "ASYNC" - CLMS Global
+        config string  CP_FF0_RS     = "SET",           //"RESET" "SET"
+        config string  CP_RSMUX_SEL  = "LOCAL",         //"LOCAL":RS; "CHAIN":RSIN
+        config string  CP_CEMUX_SEL  = "LOCAL",         //"LOCAL":CE; "CHAIN":CEIN
+        config string  CP_LRS_EN     = "FALSE",         //1'b0: "Disable"; 1'b1: "Enable"
+        config string  CP_LRS_POL    = "FALSE",         //1'b0: "RS"; 1'b1: "Invert RS" - CLMS Global
+        config string  CP_LCE_EN     = "FALSE",         //1'b0: "Disable"; 1'b1: "Enable"
+        config string  CP_LCE_POL    = "FALSE",         //1'b0: "CE"; 1'b1: "Invert CE" - CLMS Global
+        config string  CP_CLK_POL    = "FALSE",         //1'b0: "CLK"; 1'b1: "Invert CLK" - CLMS Global
+        config string  CP_WCK_SEL    = "LOCAL"          //"LOCAL": local CLK; "CHAIN": adjcent WCLK  
+    );
+    port
+    (   
+        input    A0,
+        input    A1,
+        input    A2,
+        input    A3,
+        input    A4,
+        input    AD,
+        output   Y0,
+        output   Q0,
+
+        // These are the ports of RAM.
+        // Here are the ports of RAM write adress( WA[3:0] ), and shared with ROM. 
+        input    M1,
+        input    M3,
+        input    M0,
+        input    M2,
+
+        // Here are the ports of CLMS for controlling.
+        input    RS,
+        input    CE,
+        input    CLK,
+        input    WCLK,
+     
+        // These are the Ports for Global Controlling, such as Global Reset.
+        input    RSCI,
+        output   RSCO,
+
+        input    CECI,
+        output   CECO
+    );
+
+}// end of device devARAM16X1DQ
+
+/*******************************************************************************
+
+  Device    [devARAM16X1DQ]
+
+  Author    [guoxi]
+
+  Abstract  [The structure netlist of devARAM16X1DQ is described in the similar fashion 
+             as in HDL. In unit instantiation statement, the formal pin may be 
+             connected to net which is declared explicitly. 
+             
+             In Valence, the connection can also be made from formal pin to other 
+             pin or port, in which case Valence compiler shall create the net to 
+             fulfil the connection. The built-in naming convention is kicked in 
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devARAM16X1DQ
+{
+    // Wires for input ports
+    wire ntA0;
+    wire ntA1;
+    wire ntA2;
+    wire ntA3;
+    wire ntAD;
+    wire ntM1;
+    wire ntM3;
+    wire ntM0;
+    wire ntM2;
+    
+    wire ntRS;
+    wire ntCE;
+    wire ntCLK;
+    wire ntWCLK;
+    wire ntRSCI;
+    wire ntCECI; 
+
+    // Wires connecting to output ports
+    wire ntY0;
+    wire ntQ0;
+    wire ntCECO;
+    wire ntRSCO;
+
+    // Internal wires
+    wire ntL5A;
+    wire ntQD0;
+    wire ntCLKCO;
+    wire ntRS_P;
+    wire ntCE_P;
+    wire ntWE;
+    wire ntCLK_W;
+        
+    //
+    // Connection to ports
+    //
+ 
+    ntA0      <= A0;
+    ntA1      <= A1;
+    ntA2      <= A2;
+    ntA3      <= A3;
+    ntAD      <= AD; 
+
+    ntM1      <= M1;
+    ntM3      <= M3;
+    ntM0      <= M0;
+    ntM2      <= M2;
+
+    ntRS      <= RS;
+    ntCE      <= CE;
+    ntCLK     <= CLK;
+    ntWCLK    <= WCLK;
+    ntRSCI    <= RSCI;
+    ntCECI    <= CECI;
+
+    Y0        <= ntY0;
+    Q0        <= ntQ0;
+    RSCO      <= ntRSCO;
+    CECO      <= ntCECO;   
+
+    //
+    // Instances. FGA section
+    //
+
+    device FYS FYA
+        parameter map
+        (
+            CP_INIT   => CP_INITA,
+            CP_MODE   => CP_MODEA,
+            CP_MASK   => CP_MASK               
+         )
+         port map
+         (
+            A0   => ntA0,
+            A1   => ntA1,
+            A2   => ntA2,
+            A3   => ntA3,
+            AD   => ntAD,
+            L5   => ntL5A,
+            WA   => { ntM3, ntM2, ntM1, ntM0 },
+            WCK  => ntCLK_W,
+            WE   => ntWE
+         );
+    
+    device YMUX  Y0MUX
+        parameter map
+        (
+            CP_OUT_SEL => CP_Y0MUX_SEL
+        )
+        port map
+        (
+            Y    => ntY0,
+            FX   => ntL5A
+        );
+   
+    device QMUX  Q0MUX
+        parameter map
+        (
+            CP_OUT_SEL => CP_Q0MUX_SEL
+        )
+        port map
+        (
+            Q    => ntQD0,
+            YX   => ntY0,
+            MX   => ntM0
+        );      
+   
+    device FF FF0
+        parameter map
+        (
+            CP_GRS_EN  => CP_GRS_EN,
+            CP_RS_MODE => CP_RS_MODE,
+            CP_FF_RS   => CP_FF0_RS
+        )
+        port map
+        (
+            Q   => ntQ0,
+            D   => ntQD0,
+            CE  => ntCECO,
+            CLK => ntCLKCO,
+            RS  => ntRSCO
+        );
+
+    device MUX2_P  CEMUX
+        parameter map
+        (
+            SEL => CP_CEMUX_SEL
+        )
+        port map
+        (
+            DOUT  => ntCECO,
+            DI1   => ntCECI,
+            DI0   => ntCE_P
+        );
+    
+    device MUX2_P  RSMUX
+        parameter map
+        (
+            SEL => CP_RSMUX_SEL
+        )
+        port map
+        (
+            DOUT  => ntRSCO,
+            DI1   => ntRSCI,
+            DI0   => ntRS_P
+        );
+
+    device LCE_POLMUX  LCEPOLMUX
+        parameter map
+        (
+            CP_LCE_EN  => CP_LCE_EN,
+            CP_LCE_POL => CP_LCE_POL
+        )
+        port map
+        (
+            Y  => ntCE_P,
+            IN => ntCE
+        );
+        
+    device LRS_POLMUX  LRSPOLMUX
+        parameter map
+        (
+                CP_LRS_EN  => CP_LRS_EN,
+                CP_LRS_POL => CP_LRS_POL
+        )
+        port map
+        (
+            Y  => ntRS_P,
+            IN => ntRS
+        );
+
+    device CLK_POLMUX  CLKPOLMUX
+        parameter map
+        (
+            CP_CLK_POL => CP_CLK_POL
+        )
+        port map
+        (
+            Y  => ntCLKCO,
+            IN => ntCLK
+        );
+        
+    device MUX2_P WCKMUX
+        parameter map
+        (
+            SEL => CP_WCK_SEL
+        )
+        port map
+        (
+            DOUT => ntCLK_W, 
+            DI1  => ntWCLK, 
+            DI0  => ntCLKCO
+        ); 
+              
+    device RAM_RS U0_NOT
+        port map
+        (
+            IN  => ntRS_P,
+            OUT => ntWE
+        );  
+}; // end of structure netlist of devARAM16X1DQ
+

@@ -1,0 +1,114 @@
+*****************************************************************
+
+  Device    [TSFF_L]
+
+  Author    [hzhang]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+prim
+device TSFF_L
+{
+    parameter
+    (
+       config bit SET    = 1'b0,    //1'b1 => set; 1'b0 => reset
+       config bit SYNC   = 1'b0,    //1'b1 => sync; 1'b0 => async
+       config bit LATCH  = 1'b0,    //1'b1 => latch; 1'b0 => flip flop
+       config bit GRS_EN = 1'b0,
+       config bit LRS_EN = 1'b0
+    )
+    port
+    (
+       input D,
+       input CLK,    //rising edge, edge setting was done at top level
+       input CE,     //active high, polarity setting was done at top level
+       input LRS  ,  //active high, polarity setting was done at top level
+
+       output Q
+    );
+
+}; // end of device TSFF_L
+
+
+propagation prop of TSFF_L
+{
+   propagate ( D   |-> Q );
+   propagate ( CLK |-> Q );
+   propagate ( CE  |-> Q );
+   propagate ( LRS |-> Q );
+};
+
+
+/**Device***********************************************************************             
+                                                                                             
+  Device    [TSFF_L]                                                                          
+                                                                                             
+  Author    [xsniu]                                                                          
+                                                                                             
+  Abstract  [This specified the timing model under specific configuration]                   
+                                                                                             
+  Revision History:                                                                          
+                                                                                             
+********************************************************************************/  
+timing tsffl_tnl of TSFF_L
+{
+    if ( LATCH == 1'b0 && SYNC == 1'b1 )   //FF SYNC
+    {
+        operator V_FFSYN V_FFSYN
+            parameter map
+            (
+                GRS_EN    => (GRS_EN == 1'b1)  ? "TRUE" : "FALSE",
+                SET_RESET => (SET == 1'b1) ? "SET" : "RESET",
+                LRS_EN    => (LRS_EN == 1'b1)  ? "TRUE" : "FALSE"
+            )
+            port map
+            (
+                Q  => Q,
+                D  => D,
+                SR => LRS,
+                CK => CLK,
+                CE => CE
+            );
+
+    } 
+    else if ( LATCH == 1'b0 && SYNC == 1'b0 )   //FF ASYNC
+    {
+        operator V_FFASYN V_FFASYN
+            parameter map
+            (
+                GRS_EN    => (GRS_EN == 1'b1)  ? "TRUE" : "FALSE",
+                SET_RESET => (SET == 1'b1) ? "SET" : "RESET",
+                LRS_EN    => (LRS_EN == 1'b1)  ? "TRUE" : "FALSE"
+            )
+            port map 
+            (
+                Q  => Q,      
+                D  => D,      
+                SR => LRS,    
+                CK => CLK,    
+                CE => CE      
+            );
+
+    } 
+    else if ( LATCH == 1'b1)   //LATCH ASYNC
+    {
+        operator V_LAASYN V_LAASYN
+            parameter map 
+            (
+                GRS_EN    => (GRS_EN == 1'b1)  ? "TRUE" : "FALSE",
+                SET_RESET => (SET == 1'b1) ? "SET" : "RESET",
+                LRS_EN    => (LRS_EN == 1'b1)  ? "TRUE" : "FALSE"
+            )
+            port map 
+            (
+                Q  => Q,      
+                D  => D,      
+                SR => LRS,    
+                CK => CLK,    
+                CE => CE      
+            );
+    }
+} 

@@ -1,0 +1,272 @@
+*****************************************************************
+
+  Device    [devOBUFIOLQ]
+
+  Author    [yqtan]
+
+  Abstract  [device base on IOL, used as inout path through to IOB
+             with OFF TFF]
+
+  Revision History:
+
+********************************************************************************/
+
+gate
+device devOBUFIOLQ : device IOL
+{
+    parameter
+    (
+        config string CP_OUTCLK_POL           = "FALSE",      //"FALSE": Normal; "TRUE": Inverted
+        config string CP_CE_POL               = "FALSE",      //"FALSE": Normal; "TRUE": Inverted
+        config string CP_LRS_POL              = "FALSE",      //"FALSE": Normal; "TRUE": Inverted
+        config string CP_OUTCE_EN             = "DISABLE",    //"ENABLE"; "DISABLE"
+        config string CP_OUTLRS_EN            = "DISABLE",    //"ENABLE"; "DISABLE"
+        config string CP_FF_SYNC              = "ASYNC",      //"ASYNC"; "SYNC"
+        config string CP_OFF_SET              = "SET",        //"SET" => set; "RESET" => reset       
+        config string CP_OFF_LATCH            = "FF",         //"LATCH" => latch; "FF" => flip flop
+        config string CP_DOMODE               := "FF",         //"DD","FF","LATCH","DDR","OUT_EXT"
+        config string CP_TOMODE               := "OUT_EXT",
+        config bit    CP_DELAY_SETTING[1:0]   := 2'b00,         //2'd0 => neither input nor output use delay unit; 2'd1 => delay unit for output; 
+                                                              //2'd2 => delay unit for input; 2'd3 => illegal setting
+        config string CP_PDIFF                := "DISABLE",   //"DISABLE", "ENABLE"
+        config string CP_OUTCLK_EN            := "ENABLE",    //"DISABLE", "ENABLE"
+        config string CP_GRS_DIS               = "FALSE",       //"TRUE", "FALSE"
+        config string CP_MIPI_EN               = "DISABLE"
+    );
+    port
+    (
+        input   CLK_SYS,
+        input   CE,
+        input   LRS,
+        input   TX_DATA[7:7],
+        input   MIPI_SW_DYN_I,
+        output  MIPI_SW_DYN_O,
+        output  TO,
+        output  DO_OUT,
+        output  DO
+    );
+
+}// end of device devOBUFIOLQ
+
+/*******************************************************************************
+
+  Device    [devOBUFIOLQ]
+
+  Author    []
+
+  Abstract  [The structure netlist of devOBUFIOLQ is described in the similar fashion
+             as in HDL. In unit instantiation statement, the formal pin may be
+             connected to net which is declared explicitly.
+
+             In Valence, the connection can also be made from formal pin to other
+             pin or port, in which case Valence compiler shall create the net to
+             fulfil the connection. The built-in naming convention is kicked in
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devOBUFIOLQ
+{
+  // Wires connecting to output ports
+    wire ntDO_OUT;
+    wire ntTO_OUT;
+    wire ntTO;
+    wire ntDO;
+    TO                   <= ntTO;
+    
+    wire ntDO_IN;
+    wire ntCLK_SYS;
+    wire ntCE;
+    wire ntLRS;
+    
+    //internal wires
+    wire ntOUTPUT_DATA_SEL;
+    wire ntOUTPUT_DATA_SEL_TMP;
+    wire ntCLK_SYS_FOR_OUTPUT;
+    wire ntCE_SEL;
+    wire ntCE_OUT;
+    wire ntLRS_SEL;
+    wire ntLRS_OUT;
+    wire ntTX_FFDO;
+    wire ntCLK_SYS_O;
+    
+    ntCLK_SYS    <= CLK_SYS;
+    ntCE         <= CE;
+    ntLRS        <= LRS;
+    
+    DO_OUT               <= ntDO_OUT;
+    DO                   <= ntDO;
+    
+    wire ntMIPI_SW_DYN_O;
+    wire ntMIPI_SW_DYN_I;
+    
+    ntMIPI_SW_DYN_I      <= MIPI_SW_DYN_I;
+    MIPI_SW_DYN_O        <= ntMIPI_SW_DYN_O;
+
+    device MUX21_EN MIPI_EN_MUX
+        parameter map
+        (
+            CP_SEL => CP_MIPI_EN
+        )
+        port map
+        (
+            X0 => ntMIPI_SW_DYN_I,
+            X1 => 1'b0,
+            Y  => ntMIPI_SW_DYN_O
+        );
+        
+    device POLMUX CE_POL_MUX
+        parameter map
+        (
+            CP_POLARITY_INV => CP_CE_POL
+        )
+        port map
+        (
+            X => ntCE,
+            Y => ntCE_SEL
+        );
+
+    device POLMUX LRS_POL_MUX
+        parameter map
+        (
+            CP_POLARITY_INV => CP_LRS_POL
+        )
+        port map
+        (
+            X  => ntLRS,
+            Y  => ntLRS_SEL
+        );
+            
+    device MUX21_EN RCLK_EN_MUX_O
+        parameter map
+        (
+            CP_SEL => CP_OUTCLK_EN
+        )
+        port map
+        (
+            X0    =>   ntCLK_SYS,
+            X1    =>   1'b0,
+            Y     =>   ntCLK_SYS_O
+        );
+    
+    device POLMUX RCLK_POL_MUX_O
+        parameter map
+        (
+            CP_POLARITY_INV => CP_OUTCLK_POL
+        )
+        port map
+        (
+            X  => ntCLK_SYS_O,
+            Y  => ntCLK_SYS_FOR_OUTPUT
+        );
+        
+    device MUX21_EN OFF_CE_MUX
+        parameter map
+        (
+            CP_SEL => CP_OUTCE_EN
+        )
+        port map
+        (
+            X0   => ntCE_SEL,
+            X1   => 1'b1,
+            Y    => ntCE_OUT
+        );
+        
+    device MUX21_EN OFF_LRS_MUX
+        parameter map
+        (
+            CP_SEL => CP_OUTLRS_EN
+        )
+        port map
+        (
+            X0  => ntLRS_SEL,
+            X1  => 1'b0,
+            Y   => ntLRS_OUT
+        );
+    
+    device OUTMUX TO_OUT_MUX
+        parameter map
+        (
+            CP_SEL => CP_TOMODE
+        )
+        port map
+        (
+            X3   => 1'b0,
+            Y    => ntTO_OUT
+        );
+    
+    device MUX21_EN DO_PDIFF_MUX
+        parameter map
+        (
+            CP_SEL => CP_PDIFF
+        )
+        port map
+        (
+            X1   => ntDO_OUT,
+            Y    => ntDO
+        );
+    
+    device MUX21_EN TO_PDIFF_MUX
+        parameter map
+        (
+            CP_SEL => CP_PDIFF
+        )
+        port map
+        (
+            X1   => ntTO_OUT,
+            Y    => ntTO
+        );
+    
+    device IOL_FF OFF
+        parameter map
+        (
+            CP_GRS_DIS => CP_GRS_DIS,
+            CP_SET   => CP_OFF_SET,
+            CP_SYNC  => CP_FF_SYNC,
+            CP_LATCH => CP_OFF_LATCH
+        )
+        port map
+        (
+            D    => TX_DATA[7],
+            CLK  => ntCLK_SYS_FOR_OUTPUT,
+            CE   => ntCE_OUT,
+            LRS  => ntLRS_OUT,
+            Q    => ntTX_FFDO
+        );
+        
+    device OUTMUX OUTPUT_DATA_MUX
+        parameter map
+        (
+            CP_SEL => CP_DOMODE
+        )
+        port map
+        (
+            X1   => ntTX_FFDO,
+            Y    => ntOUTPUT_DATA_SEL_TMP
+        );
+    
+    device MIPI_OUT MIPI_OUT
+        port map
+        (
+            X0 => ntMIPI_SW_DYN_O,
+            X2 => ntOUTPUT_DATA_SEL_TMP,
+            Y  => ntOUTPUT_DATA_SEL
+        );
+        
+    device MUX21 OUT_DELSEL_MUX
+        parameter map
+        (
+            CP_SEL => CP_DELAY_SETTING[0]
+        )
+        port map
+        (
+            X0   => ntOUTPUT_DATA_SEL,
+            Y    => ntDO_OUT
+        );
+}; // end of structure netlist of devOBUFIOLQ
+
+

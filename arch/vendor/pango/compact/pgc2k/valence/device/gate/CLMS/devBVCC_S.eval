@@ -1,0 +1,79 @@
+*****************************************************************
+
+  Device    [devBVCC_S]
+
+  Author    [guoxi]
+
+  Abstract  [THE DEVICE CAN BE USED FOR LUT.]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devBVCC_S : device devB_S
+{
+    parameter
+    (
+        config bit    CP_INITB[31:0] := 32'hffff_ffff,        
+        config string CP_MODEB       := "LUT5",         //"LUT5" "ROM" "WMUX" "RAM" "ARITH" "PRIENC" "MUX4" "XOR" "COMP" "RAM"
+        config string CP_MASK      := "FALSE",        //Disable; Enable 
+        config string CP_Y1MUX_SEL   := "FX"            //"FX":F1 "CYX":CYB "MF":L7
+    );
+    
+    port
+    (     
+        output   Y1
+    );
+}; // end of device devBVCC_S
+
+
+/*******************************************************************************
+
+  Device    [devBVCC_S]
+
+  Author    [guoxi]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devBVCC_S
+{
+    // Wires connecting to output ports
+    wire ntY1;
+    // Internal wires  
+    wire ntL5B;
+    //
+    // Connection to ports
+    //
+
+    Y1  <= ntY1;
+    //
+    // Instances. FGA section
+    //
+
+    device LUT5SC FYB
+        parameter map
+        (
+            CP_INIT   => CP_INITB,
+            CP_MODE   => CP_MODEB,
+            CP_MASK   => CP_MASK 
+        )
+        port map
+        (
+            L5   => ntL5B
+         );
+    
+    device YMUX  Y1MUX
+        parameter map
+        (
+            CP_OUT_SEL => CP_Y1MUX_SEL
+        )
+        port map
+        (
+            Y    => ntY1,
+            FX   => ntL5B
+        );  
+}; // end of structure netlist of devBVCC_S
+

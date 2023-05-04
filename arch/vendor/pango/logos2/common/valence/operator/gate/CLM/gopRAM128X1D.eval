@@ -1,0 +1,104 @@
+*********************************************************************
+
+  Operator    [gopRAM128X1D]
+  
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+ ********************************************************************************/
+gate
+operator gopRAM128X1D
+{
+    parameter
+    (
+        bit    INITA[63:0]  = 64'hFFFFFFFFFFFFFFFF,
+        bit    INITB[63:0]  = 64'hFFFFFFFFFFFFFFFF,
+        string MODE         = "RAM"               ,
+        string CRPREMUX_SEL     = "MF",
+        string CRPOSTMUX_SEL    = "CX",             
+        string RAM_LUT_DIHA = "LI"                ,
+        string RAM_LUT_DILA = "XI"                ,
+        string RAM_LUT_DIHB = "LI"                ,
+        string RAM_LUT_DILB = "XI"                ,
+        string MASK_LUT6    = "TRUE"              ,
+        string CLK_POL      = "FALSE"             ,
+        string WCK_SEL      = "LOCAL"             ,
+        string RAM_MODE     = "MRAM"              ,
+        string RAM32_EN     = "FALSE"
+    );
+
+    port
+    (        
+        input  RADDR[5:0],
+        input  RADDR1[5:0],
+        input  WADDR[6:0],
+        input  M,
+        input  DI0,
+        input  DI1,
+        
+        input  WE,
+        input  WCLK /*pragma PAP_ARC_GOP_CTRL_PIN="GCLK|RCLK|COLCLK"*/,
+        output DO
+    );
+};
+
+implementation impl_devRAM128X1DL6AB_S of gopRAM128X1D
+{
+    device devRAM128X1DL6AB_S gatedev
+        parameter map 
+        ( 
+            CP_INITA             =>     INITA               ,
+            CP_MODEA             =>     MODE               ,
+            CP_INITB             =>     INITB               ,
+            CP_MODEB             =>     MODE               ,
+            CP_CR0PREMUX_SEL     =>     CRPREMUX_SEL           ,
+            CP_CR0POSTMUX_SEL    =>     CRPOSTMUX_SEL          ,
+            CP_RAM_LUTA_DIH      =>     RAM_LUT_DIHA,  
+            CP_RAM_LUTB_DIH      =>     RAM_LUT_DIHB,  
+            CP_RAM_LUTA_DIL      =>     RAM_LUT_DILA,      
+            CP_RAM_LUTB_DIL      =>     RAM_LUT_DILB,      
+            CP_MASK_LUT6A        =>     MASK_LUT6,     
+            CP_MASK_LUT6B        =>     MASK_LUT6,     
+            CP_CLK_POL           =>     CLK_POL            ,   
+            CP_WCK_SEL           =>     WCK_SEL            ,
+            CP_RAM_MODE          =>     RAM_MODE,
+            CP_RAM32_EN          =>     RAM32_EN
+        )
+        port map 
+        (                            
+            A0          =>      RADDR[0]     ,
+            A1          =>      RADDR[1]     ,
+            A2          =>      RADDR[2]     ,
+            A3          =>      RADDR[3]     ,
+            A4          =>      RADDR[4]     ,
+            A5          =>      RADDR[5]     ,
+            M0          =>      M            ,
+            CR0         =>      DO           ,
+            B0          =>      RADDR1[0]    ,
+            B1          =>      RADDR1[1]    ,
+            B2          =>      RADDR1[2]    ,
+            B3          =>      RADDR1[3]    ,
+            B4          =>      RADDR1[4]    ,
+            B5          =>      RADDR1[5]    ,
+            M1          =>      WADDR[6]     ,
+            D0          =>      WADDR[0]     ,
+            D1          =>      WADDR[1]     ,
+            D2          =>      WADDR[2]     ,
+            D3          =>      WADDR[3]     ,
+            D4          =>      WADDR[4]     ,
+            D5          =>      WADDR[5]     ,
+            WE          =>      WE           ,
+            CLK         =>      ( WCK_SEL == "LOCAL" ) ? WCLK : 1'bx         ,
+            AD          =>      DI0          ,
+            BD          =>      DI1          ,
+            NEXT_CLK    =>      ( WCK_SEL != "LOCAL" ) ? WCLK : 1'bx
+        );
+}; // end of implementation impl_devRAM128X1DL6AB_S of gopRAM128X1D
+
+
+
+
+

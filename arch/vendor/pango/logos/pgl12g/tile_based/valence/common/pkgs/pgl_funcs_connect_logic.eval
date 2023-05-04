@@ -1,0 +1,1450 @@
+use pgl_defs;
+
+package pgl_funcs_connect_logic
+{
+
+
+/********************************************************************************/
+/********************************************************************************/
+function connect_SRB_inputs
+( 
+    unsigned int N_SRB,    // The IOB tile X/Y tile index
+    unsigned int S_SRB,
+    unsigned int W_SRB,
+    unsigned int E_SRB,
+    unsigned int S_SRB_CCS,   //The north boundary of CCS tile  pgl22g = 76
+    unsigned int W_SRB_CCS,
+    unsigned int E_SRB_CCS,
+    unsigned int blsr_x,
+    unsigned int tx_hmemc0,
+    unsigned int tx_hmemc1,
+    unsigned int n_hmemc,
+
+    unsigned int X_TILES[],   // Entire 2-D array of X tiles
+    unsigned int Y_TILES[]
+)
+{
+    // Tile index variable
+    unsigned int tx, ty;
+
+    // Site index variable
+    unsigned int sx, sy;
+    
+    string strVar0;          
+    string strVar1;
+    
+    // Indexes of the tiles from which inputs are taken
+    int site_n_1, site_n_2, site_n_4, site_n_8, site_n_3, site_n_5; // North
+    int site_s_1, site_s_2, site_s_4, site_s_8, site_s_3, site_s_5; // South
+    int site_w_1, site_w_2, site_w_4, site_w_8; // West
+    int site_e_1, site_e_2, site_e_4, site_e_8; // East
+    int tile_n_1, tile_n_2, tile_n_4, tile_n_8; // North
+    int tile_s_1, tile_s_2, tile_s_4, tile_s_8; // South
+  
+    foreach tx ( X_TILES )
+    {
+        // Calculate the west/east source tile index. Adjust the X index for the sake of
+        // central tile gap
+        site_w_1 = (tx==blsr_x+1) ? (tx-2)*NUM_GRID_X : (tx-1)*NUM_GRID_X;
+        site_w_2 = (tx==blsr_x+1 ||  tx==blsr_x+2) ? (tx-3)*NUM_GRID_X : (tx-2)*NUM_GRID_X;
+        site_w_4 = (tx==blsr_x+1 || tx==blsr_x+2 || tx==blsr_x+3 || tx==blsr_x+4) ? (tx-5)*NUM_GRID_X : (tx-4)*NUM_GRID_X;                    
+        site_w_8 = (tx>=blsr_x+1 && tx<=blsr_x+8) ? (tx-9)*NUM_GRID_X : (tx-8)*NUM_GRID_X;
+
+        site_e_1 = (tx==blsr_x-1) ? (tx+2)*NUM_GRID_X : (tx+1)*NUM_GRID_X;
+        site_e_2 = (tx==blsr_x-1 ||
+                    tx==blsr_x-2) ? (tx+3)*NUM_GRID_X : (tx+2)*NUM_GRID_X;
+        site_e_4 = (tx==blsr_x-1 ||
+                    tx==blsr_x-2 ||
+                    tx==blsr_x-3 ||
+                    tx==blsr_x-4) ? (tx+5)*NUM_GRID_X : (tx+4)*NUM_GRID_X;
+                    
+        site_e_8 = (tx<=blsr_x-1 &&
+                    tx>=blsr_x-8) ? (tx+9)*NUM_GRID_X : (tx+8)*NUM_GRID_X;
+                                     
+        foreach ty ( Y_TILES )
+        {
+             
+            unsigned int temp_ty;
+            
+            // The current tile
+           
+            sx = tx * NUM_GRID_X;
+            sy = ty * NUM_GRID_Y;
+    
+            // Calculate the north/south source grid site
+            for(temp_ty = ty;temp_ty > MID_TILE_REGION;temp_ty = temp_ty - NUM_TILES_REGION)
+            {
+              sy = sy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+            }`
+            
+            for(temp_ty = ty;temp_ty >= 0;temp_ty = temp_ty - NUM_TILES_REGION)
+            {
+              if(temp_ty == (MID_TILE_REGION+1))
+              {
+                tile_s_1 = ty - 2;
+                tile_s_2 = ty - 3;
+                tile_s_4 = ty - 5;
+                tile_s_8 = ty - 9;
+                site_s_1 = sy - NUM_GRID_Y - NUM_GRID_WLSR_Y;
+                site_s_2 = sy - 2*NUM_GRID_Y - NUM_GRID_WLSR_Y;
+                site_s_3 = sy - 3*NUM_GRID_Y - NUM_GRID_WLSR_Y;
+                site_s_4 = sy - 4*NUM_GRID_Y - NUM_GRID_WLSR_Y;
+                site_s_5 = sy - 5*NUM_GRID_Y - NUM_GRID_WLSR_Y;
+                site_s_8 = sy - 8*NUM_GRID_Y - NUM_GRID_WLSR_Y;  
+                break;   
+              }
+              else if(temp_ty == (MID_TILE_REGION+2))
+              {
+                tile_s_1 = ty - 1;
+                tile_s_2 = ty - 3;
+                tile_s_4 = ty - 5;
+                tile_s_8 = ty - 9;
+                site_s_1 = sy - NUM_GRID_Y;
+                site_s_2 = sy - 2*NUM_GRID_Y - NUM_GRID_WLSR_Y;
+                site_s_3 = sy - 3*NUM_GRID_Y - NUM_GRID_WLSR_Y;
+                site_s_4 = sy - 4*NUM_GRID_Y - NUM_GRID_WLSR_Y;
+                site_s_5 = sy - 5*NUM_GRID_Y - NUM_GRID_WLSR_Y;
+                site_s_8 = sy - 8*NUM_GRID_Y - NUM_GRID_WLSR_Y;
+                break; 
+              }
+              else if(temp_ty == (MID_TILE_REGION+3))
+              {
+                tile_s_1 = ty - 1;
+                tile_s_2 = ty - 3;
+                tile_s_4 = ty - 5;
+                tile_s_8 = ty - 9;
+                site_s_1 = sy - NUM_GRID_Y;
+                site_s_2 = sy - 2*NUM_GRID_Y;
+                site_s_3 = sy - 3*NUM_GRID_Y - NUM_GRID_WLSR_Y;
+                site_s_4 = sy - 4*NUM_GRID_Y - NUM_GRID_WLSR_Y;
+                site_s_5 = sy - 5*NUM_GRID_Y - NUM_GRID_WLSR_Y;
+                site_s_8 = sy - 8*NUM_GRID_Y - NUM_GRID_WLSR_Y;
+                break; 
+              }
+              else if (temp_ty == (MID_TILE_REGION+4))
+              {
+                tile_s_1 = ty - 1;
+                tile_s_2 = ty - 2;
+                tile_s_4 = ty - 5;
+                tile_s_8 = ty - 9;
+                site_s_1 = sy - NUM_GRID_Y;
+                site_s_2 = sy - 2*NUM_GRID_Y;
+                site_s_3 = sy - 3*NUM_GRID_Y;
+                site_s_4 = sy - 4*NUM_GRID_Y - NUM_GRID_WLSR_Y;
+                site_s_5 = sy - 5*NUM_GRID_Y - NUM_GRID_WLSR_Y;
+                site_s_8 = sy - 8*NUM_GRID_Y - NUM_GRID_WLSR_Y;
+                break; 
+              }
+              else if (temp_ty == (MID_TILE_REGION+5))
+              {
+                tile_s_1 = ty - 1;
+                tile_s_2 = ty - 2;
+                tile_s_4 = ty - 5;
+                tile_s_8 = ty - 9;
+                site_s_1 = sy - NUM_GRID_Y;
+                site_s_2 = sy - 2*NUM_GRID_Y;
+                site_s_3 = sy - 3*NUM_GRID_Y;
+                site_s_4 = sy - 4*NUM_GRID_Y;
+                site_s_5 = sy - 5*NUM_GRID_Y - NUM_GRID_WLSR_Y;
+                site_s_8 = sy - 8*NUM_GRID_Y - NUM_GRID_WLSR_Y;
+                break; 
+              }
+              else if ((temp_ty <= (MID_TILE_REGION+8)) && (temp_ty > (MID_TILE_REGION+5)))
+              {
+                tile_s_1 = ty - 1;
+                tile_s_2 = ty - 2;
+                tile_s_4 = ty - 4;
+                tile_s_8 = ty - 9;
+                site_s_1 = sy - NUM_GRID_Y;
+                site_s_2 = sy - 2*NUM_GRID_Y;
+                site_s_3 = sy - 3*NUM_GRID_Y;
+                site_s_4 = sy - 4*NUM_GRID_Y;
+                site_s_5 = sy - 5*NUM_GRID_Y;
+                site_s_8 = sy - 8*NUM_GRID_Y - NUM_GRID_WLSR_Y;
+                break; 
+              }
+              else
+              {
+                tile_s_1 = ty - 1;
+                tile_s_2 = ty - 2;
+                tile_s_4 = ty - 4;
+                tile_s_8 = ty - 8;
+                site_s_1 = sy - NUM_GRID_Y;
+                site_s_2 = sy - 2*NUM_GRID_Y;
+                site_s_3 = sy - 3*NUM_GRID_Y;
+                site_s_4 = sy - 4*NUM_GRID_Y;
+                site_s_5 = sy - 5*NUM_GRID_Y;
+                site_s_8 = sy - 8*NUM_GRID_Y;
+              }
+            }          
+
+            //
+            for(temp_ty = ty;temp_ty >= 0;temp_ty = temp_ty - NUM_TILES_REGION)
+            {
+              if(temp_ty == (MID_TILE_REGION-1))
+              {
+                tile_n_1 = ty + 2;
+                tile_n_2 = ty + 3;
+                tile_n_4 = ty + 5;
+                tile_n_8 = ty + 9;
+                site_n_1 = sy + NUM_GRID_Y + NUM_GRID_WLSR_Y;
+                site_n_2 = sy + 2*NUM_GRID_Y + NUM_GRID_WLSR_Y;
+                site_n_3 = sy + 3*NUM_GRID_Y + NUM_GRID_WLSR_Y;
+                site_n_4 = sy + 4*NUM_GRID_Y + NUM_GRID_WLSR_Y;
+                site_n_5 = sy + 5*NUM_GRID_Y + NUM_GRID_WLSR_Y;
+                site_n_8 = sy + 8*NUM_GRID_Y + NUM_GRID_WLSR_Y;  
+                break;    
+              }
+              else if(temp_ty == (MID_TILE_REGION-2))
+              {
+                tile_n_1 = ty + 1;
+                tile_n_2 = ty + 3;
+                tile_n_4 = ty + 5;
+                tile_n_8 = ty + 9;
+                site_n_1 = sy + NUM_GRID_Y;
+                site_n_2 = sy + 2*NUM_GRID_Y + NUM_GRID_WLSR_Y;
+                site_n_3 = sy + 3*NUM_GRID_Y + NUM_GRID_WLSR_Y;
+                site_n_4 = sy + 4*NUM_GRID_Y + NUM_GRID_WLSR_Y;
+                site_n_5 = sy + 5*NUM_GRID_Y + NUM_GRID_WLSR_Y;
+                site_n_8 = sy + 8*NUM_GRID_Y + NUM_GRID_WLSR_Y; 
+                break; 
+              }
+              else if(temp_ty == (MID_TILE_REGION-3))
+              {
+                tile_n_1 = ty + 1;
+                tile_n_2 = ty + 3;
+                tile_n_4 = ty + 5;
+                tile_n_8 = ty + 9;
+                site_n_1 = sy + NUM_GRID_Y;
+                site_n_2 = sy + 2*NUM_GRID_Y;
+                site_n_3 = sy + 3*NUM_GRID_Y + NUM_GRID_WLSR_Y;
+                site_n_4 = sy + 4*NUM_GRID_Y + NUM_GRID_WLSR_Y;
+                site_n_5 = sy + 5*NUM_GRID_Y + NUM_GRID_WLSR_Y;
+                site_n_8 = sy + 8*NUM_GRID_Y + NUM_GRID_WLSR_Y; 
+                break; 
+              }
+              else if(temp_ty == (MID_TILE_REGION-4))
+              {
+                tile_n_1 = ty + 1;
+                tile_n_2 = ty + 2;
+                tile_n_4 = ty + 5;
+                tile_n_8 = ty + 9;
+                site_n_1 = sy + NUM_GRID_Y;
+                site_n_2 = sy + 2*NUM_GRID_Y;
+                site_n_3 = sy + 3*NUM_GRID_Y;
+                site_n_4 = sy + 4*NUM_GRID_Y + NUM_GRID_WLSR_Y;
+                site_n_5 = sy + 5*NUM_GRID_Y + NUM_GRID_WLSR_Y;
+                site_n_8 = sy + 8*NUM_GRID_Y + NUM_GRID_WLSR_Y;
+                break; 
+              }
+              else if(temp_ty == (MID_TILE_REGION-5))
+              {
+                tile_n_1 = ty + 1;
+                tile_n_2 = ty + 2;
+                tile_n_4 = ty + 5;
+                tile_n_8 = ty + 9;
+                site_n_1 = sy + NUM_GRID_Y;
+                site_n_2 = sy + 2*NUM_GRID_Y;
+                site_n_3 = sy + 3*NUM_GRID_Y;
+                site_n_4 = sy + 4*NUM_GRID_Y;
+                site_n_5 = sy + 5*NUM_GRID_Y + NUM_GRID_WLSR_Y;
+                site_n_8 = sy + 8*NUM_GRID_Y + NUM_GRID_WLSR_Y;
+                break; 
+              }
+              else if((temp_ty <= (MID_TILE_REGION-6)) && (temp_ty >= (MID_TILE_REGION-8)))
+              {
+                tile_n_1 = ty + 1;
+                tile_n_2 = ty + 2;
+                tile_n_4 = ty + 4;
+                tile_n_8 = ty + 9;
+                site_n_1 = sy + NUM_GRID_Y;
+                site_n_2 = sy + 2*NUM_GRID_Y;
+                site_n_3 = sy + 3*NUM_GRID_Y;
+                site_n_4 = sy + 4*NUM_GRID_Y;
+                site_n_5 = sy + 5*NUM_GRID_Y;
+                site_n_8 = sy + 8*NUM_GRID_Y + NUM_GRID_WLSR_Y;
+                break; 
+              }
+              else
+              {
+                tile_n_1 = ty + 1;
+                tile_n_2 = ty + 2;
+                tile_n_4 = ty + 4;
+                tile_n_8 = ty + 8;
+                site_n_1 = sy + NUM_GRID_Y;
+                site_n_2 = sy + 2*NUM_GRID_Y;
+                site_n_3 = sy + 3*NUM_GRID_Y;
+                site_n_4 = sy + 4*NUM_GRID_Y;
+                site_n_5 = sy + 5*NUM_GRID_Y;
+                site_n_8 = sy + 8*NUM_GRID_Y;
+              }
+            }
+
+          if(!(((tx>W_SRB_CCS) && (tx<=E_SRB_CCS) && (ty>S_SRB_CCS)) || (((tx>tx_hmemc1)||(tx<tx_hmemc0)) && (ty<n_hmemc))))
+          {
+            connect
+              (
+                //
+                // From SRB to the Sourth
+                //
+                <pin ISS of <device SRB_TILE @[sx,sy]>> => ((ty+1==N_SRB+1)||((ty+1==S_SRB_CCS+1)&&(tx>W_SRB_CCS)&&(tx<=E_SRB_CCS))) ? <wire ZSN of <device SRB_TILE @[sx,sy]>> :
+                                                                                                                                       <wire ZSS of <device SRB_TILE @[sx,site_n_1]>>,    
+
+                <pin IDS of <device SRB_TILE @[sx,sy]>> => ((ty+1==N_SRB+1)||((ty+1==S_SRB_CCS+1)&&(tx>W_SRB_CCS)&&(tx<=E_SRB_CCS))) ? <wire ZDN  of <device SRB_TILE @[sx,site_s_1]>> : 
+                                                           ((ty+2==N_SRB+1)||((ty+2==S_SRB_CCS+1)&&(tx>W_SRB_CCS)&&(tx<=E_SRB_CCS))) ? <wire ZDN  of <device SRB_TILE @[sx,site_n_1]>> :
+                                                                                                                                       <wire ZDS  of <device SRB_TILE @[sx,site_n_2]>>,
+
+                <pin IQS of <device SRB_TILE @[sx,sy]>> => ((ty+1==N_SRB+1)||((ty+1==S_SRB_CCS+1)&&(tx>W_SRB_CCS)&&(tx<=E_SRB_CCS))) ? <wire ZQN  of <device SRB_TILE @[sx,site_s_3]>> :
+                                                           ((ty+2==N_SRB+1)||((ty+2==S_SRB_CCS+1)&&(tx>W_SRB_CCS)&&(tx<=E_SRB_CCS))) ? <wire ZQN  of <device SRB_TILE @[sx,site_s_1]>> :
+                                                           ((ty+3==N_SRB+1)||((ty+3==S_SRB_CCS+1)&&(tx>W_SRB_CCS)&&(tx<=E_SRB_CCS))) ? <wire ZQN  of <device SRB_TILE @[sx,site_n_1]>> :
+                                                           ((ty+4==N_SRB+1)||((ty+4==S_SRB_CCS+1)&&(tx>W_SRB_CCS)&&(tx<=E_SRB_CCS))) ? <wire ZQN  of <device SRB_TILE @[sx,site_n_3]>> :
+                                                                                                                                       <wire ZQS  of <device SRB_TILE @[sx,site_n_4]>>, 
+
+                <pin ISS_5_NEXT of <device SRB_TILE @[sx,sy]>> =>  ((ty-1==S_SRB-1)||((ty-1==n_hmemc-1)&&((tx>tx_hmemc1)||(tx<tx_hmemc0))))  ? <wire ZSS[4] of <device SRB_TILE @ [sx,sy]>> :
+                                                                                                                                               <wire ZSS[5] of <device SRB_TILE @[sx,sy]>>,  
+
+                <pin IDS_5_NEXT of <device SRB_TILE @[sx,sy]>> =>  ((ty-1==S_SRB-1)||((ty-1==n_hmemc-1)&&((tx>tx_hmemc1)||(tx<tx_hmemc0))))  ? <wire ZDS[5] of <device SRB_TILE @ [sx,sy]>> : 
+                                                                   ((ty+1==N_SRB+1)||((ty+1==S_SRB_CCS+1)&&(tx>W_SRB_CCS)&&(tx<=E_SRB_CCS))) ? <wire ZDN[5] of <device SRB_TILE @[sx,sy]>> :
+                                                                                                                                               <wire ZDS[5] of <device SRB_TILE @[sx,site_n_1]>>,  
+ 
+                <pin IQS_5_NEXT of <device SRB_TILE @[sx,sy]>> =>  ((ty-1==S_SRB-1)||((ty-1==n_hmemc-1)&&((tx>tx_hmemc1)||(tx<tx_hmemc0))))  ? <wire ZQS[5] of <device SRB_TILE @ [sx,sy]>> : 
+                                                                   ((ty+1==N_SRB+1)||((ty+1==S_SRB_CCS+1)&&(tx>W_SRB_CCS)&&(tx<=E_SRB_CCS))) ? <wire ZQN[5] of <device SRB_TILE @[sx,site_s_2]>> :
+                                                                   ((ty+2==N_SRB+1)||((ty+2==S_SRB_CCS+1)&&(tx>W_SRB_CCS)&&(tx<=E_SRB_CCS))) ? <wire ZQN[5] of <device SRB_TILE @[sx,sy]>> :
+                                                                   ((ty+3==N_SRB+1)||((ty+3==S_SRB_CCS+1)&&(tx>W_SRB_CCS)&&(tx<=E_SRB_CCS))) ? <wire ZQN[5] of <device SRB_TILE @[sx,site_n_2]>> :
+                                                                                                                                               <wire ZQS[5] of <device SRB_TILE @[sx,site_n_3]>>,  
+                //
+                // From SRB to the North
+                //
+                <pin ISN of <device SRB_TILE @[sx,sy]>>  => ((ty-1==S_SRB-1)||((ty-1==n_hmemc-1)&&((tx>tx_hmemc1)||(tx<tx_hmemc0)))) ? <wire ZSS  of <device SRB_TILE @[sx,sy]>> :
+                                                                                                                                       <wire ZSN of <device SRB_TILE @[sx,site_s_1]>>,    
+
+                <pin IDN of <device SRB_TILE @[sx,sy]>>  => ((ty-1==S_SRB-1)||((ty-1==n_hmemc-1)&&((tx>tx_hmemc1)||(tx<tx_hmemc0)))) ? <wire ZDS  of <device SRB_TILE @[sx,site_n_1]>> :
+                                                            ((ty-2==S_SRB-1)||((ty-2==n_hmemc-1)&&((tx>tx_hmemc1)||(tx<tx_hmemc0)))) ? <wire ZDS  of <device SRB_TILE @[sx,site_s_1]>> :
+                                                                                                                                       <wire ZDN  of <device SRB_TILE @[sx,site_s_2]>>,
+
+                <pin IQN of <device SRB_TILE @[sx,sy]>>  => ((ty-1==S_SRB-1)||((ty-1==n_hmemc-1)&&((tx>tx_hmemc1)||(tx<tx_hmemc0)))) ? <wire ZQS  of <device SRB_TILE @[sx,site_n_3]>> :
+                                                            ((ty-2==S_SRB-1)||((ty-2==n_hmemc-1)&&((tx>tx_hmemc1)||(tx<tx_hmemc0)))) ? <wire ZQS  of <device SRB_TILE @[sx,site_n_1]>> :
+                                                            ((ty-3==S_SRB-1)||((ty-3==n_hmemc-1)&&((tx>tx_hmemc1)||(tx<tx_hmemc0)))) ? <wire ZQS  of <device SRB_TILE @[sx,site_s_1]>> :
+                                                            ((ty-4==S_SRB-1)||((ty-4==n_hmemc-1)&&((tx>tx_hmemc1)||(tx<tx_hmemc0)))) ? <wire ZQS  of <device SRB_TILE @[sx,site_s_3]>> :
+                                                                                                                                       <wire ZQN  of <device SRB_TILE @[sx,site_s_4]>>,
+                                                                                      
+                //
+                // From SRB to the West
+                //
+                <pin ISW of <device SRB_TILE @[sx,sy]>>  => ((tx+1==E_SRB+1)||((tx+1==W_SRB_CCS+1)&&(ty>S_SRB_CCS))||((tx+1==tx_hmemc1+1)&&(ty<n_hmemc))) ? <wire ZSE of <device SRB_TILE @[sx,sy]>> :
+                                                                                                                                                            <wire ZSW of <device SRB_TILE @[site_e_1,sy]>>,    
+
+                <pin IDW of <device SRB_TILE @[sx,sy]>>  => ((tx+1==E_SRB+1)||((tx+1==W_SRB_CCS+1)&&(ty>S_SRB_CCS))||((tx+1==tx_hmemc1+1)&&(ty<n_hmemc))) ? <wire ZDE of <device SRB_TILE @[site_w_1,sy]>> : 
+                                                            ((tx+2==E_SRB+1)||((tx+2==W_SRB_CCS+1)&&(ty>S_SRB_CCS))||((tx+2==tx_hmemc1+1)&&(ty<n_hmemc))) ? <wire ZDE of <device SRB_TILE @[site_e_1,sy]>> :
+                                                                                                                                                            <wire ZDW of <device SRB_TILE @[site_e_2,sy]>>,
+
+                <pin IQW of <device SRB_TILE @[sx,sy]>>  => ((tx+1==E_SRB+1)||((tx+1==W_SRB_CCS+1) && (ty>S_SRB_CCS))||((tx+1==tx_hmemc1+1)&&(ty<n_hmemc))) ? <wire ZQE of <device SRB_TILE @[(tx-3)*NUM_GRID_X,sy]>> :
+                                                            ((tx+2==E_SRB+1)||((tx+2==W_SRB_CCS+1) && (ty>S_SRB_CCS))||((tx+2==tx_hmemc1+1)&&(ty<n_hmemc))) ? <wire ZQE of <device SRB_TILE @[site_w_1,sy]>> :
+                                                            ((tx+3==E_SRB+1)||((tx+3==W_SRB_CCS+1) && (ty>S_SRB_CCS))||((tx+3==tx_hmemc1+1)&&(ty<n_hmemc))) ? <wire ZQE of <device SRB_TILE @[site_e_1,sy]>> :
+                                                            ((tx+4==E_SRB+1)||((tx+4==W_SRB_CCS+1) && (ty>S_SRB_CCS))||((tx+4==tx_hmemc1+1)&&(ty<n_hmemc))) ? <wire ZQE of <device SRB_TILE @[(tx+3)*NUM_GRID_X,sy]>> :  
+                                                                                                                                                              <wire ZQW of <device SRB_TILE @[site_e_4,sy]>>,  
+
+ 
+ 
+                <pin ISW_5_NEXT of <device SRB_TILE @[sx,sy]>>  =>    ((ty-1==S_SRB-1)||((ty-1==n_hmemc-1)&&((tx>tx_hmemc1)||(tx<tx_hmemc0)))) ? <wire ZSS[1] of <device SRB_TILE @ [sx,sy]>> :
+                                     ((tx+1==E_SRB+1)||((tx+1==W_SRB_CCS+1)&&(tile_s_1>S_SRB_CCS))||((tx+1==tx_hmemc1+1)&&(tile_s_1<n_hmemc))) ? <wire ZSE[5] of <device SRB_TILE @[sx,site_s_1]>> :
+                                                                                                                                                 <wire ZSW[5] of <device SRB_TILE @[site_e_1,site_s_1]>>,  
+
+                <pin IDW_5_NEXT of <device SRB_TILE @[sx,sy]>>  =>   ((ty-1==S_SRB-1)||((ty-1==n_hmemc-1)&&((tx>tx_hmemc1)||(tx<tx_hmemc0))))  ? <wire ZDS[3] of <device SRB_TILE @ [sx,sy]>> :
+                                   ((tx+1==E_SRB+1)||((tx+1==W_SRB_CCS+1) && (tile_s_1>S_SRB_CCS))||((tx+1==tx_hmemc1+1)&&(tile_s_1<n_hmemc))) ? <wire ZDE[5] of <device SRB_TILE @[site_w_1,site_s_1]>> :  
+                                   ((tx+2==E_SRB+1)||((tx+2==W_SRB_CCS+1) && (tile_s_1>S_SRB_CCS))||((tx+2==tx_hmemc1+1)&&(tile_s_1<n_hmemc))) ? <wire ZDE[5] of <device SRB_TILE @[site_e_1,site_s_1]>> :  
+                                                                                                                                                 <wire ZDW[5] of <device SRB_TILE @[site_e_2,site_s_1]>>, 
+
+
+                <pin IQW_5_NEXT of <device SRB_TILE @[sx,sy]>>  =>   ((ty-1==S_SRB-1)||((ty-1==n_hmemc-1)&&((tx>tx_hmemc1)||(tx<tx_hmemc0))))  ? <wire ZQS[0] of <device SRB_TILE @ [sx,sy]>> :
+                                   ((tx+1==E_SRB+1)||((tx+1==W_SRB_CCS+1) && (tile_s_1>S_SRB_CCS))||((tx+1==tx_hmemc1+1)&&(tile_s_1<n_hmemc))) ? <wire ZQE[5] of <device SRB_TILE @[(tx-3)*NUM_GRID_X,site_s_1]>> :
+                                   ((tx+2==E_SRB+1)||((tx+2==W_SRB_CCS+1) && (tile_s_1>S_SRB_CCS))||((tx+2==tx_hmemc1+1)&&(tile_s_1<n_hmemc))) ? <wire ZQE[5] of <device SRB_TILE @[site_w_1,site_s_1]>> :
+                                   ((tx+3==E_SRB+1)||((tx+3==W_SRB_CCS+1) && (tile_s_1>S_SRB_CCS))||((tx+3==tx_hmemc1+1)&&(tile_s_1<n_hmemc))) ? <wire ZQE[5] of <device SRB_TILE @[site_e_1,site_s_1]>> :
+                                   ((tx+4==E_SRB+1)||((tx+4==W_SRB_CCS+1) && (tile_s_1>S_SRB_CCS))||((tx+4==tx_hmemc1+1)&&(tile_s_1<n_hmemc))) ? <wire ZQE[5] of <device SRB_TILE @[(tx+3)*NUM_GRID_X,site_s_1]>> :  
+                                                                                                                                                 <wire ZQW[5] of <device SRB_TILE @[site_e_4,site_s_1]>>, 
+                     
+                //
+                // From SRB to the East
+                //
+                <pin ISE of <device SRB_TILE @[sx,sy]>>  => ((tx-1==W_SRB-1)||((tx-2==E_SRB_CCS)&&(ty>S_SRB_CCS))||((tx-1==tx_hmemc0-1)&&(ty<n_hmemc))) ? <wire ZSW of <device SRB_TILE @[sx,sy]>> :
+                                                                                                                                                          <wire ZSE of <device SRB_TILE @[site_w_1,sy]>>,    
+
+                <pin IDE of <device SRB_TILE @[sx,sy]>>  => ((tx-1==W_SRB-1)||((tx-2==E_SRB_CCS)&&(ty>S_SRB_CCS))||((tx-1==tx_hmemc0-1)&&(ty<n_hmemc))) ? <wire ZDW of <device SRB_TILE @[(tx+1)*NUM_GRID_X,sy]>> :
+                                                            ((tx-2==W_SRB-1)||((tx-3==E_SRB_CCS)&&(ty>S_SRB_CCS))||((tx-2==tx_hmemc0-1)&&(ty<n_hmemc))) ? <wire ZDW of <device SRB_TILE @[(tx-1)*NUM_GRID_X,sy]>> :
+                                                                                                                                                          <wire ZDE of <device SRB_TILE @[site_w_2,sy]>>,
+
+                <pin IQE of <device SRB_TILE @[sx,sy]>>  => ((tx-1==W_SRB-1)||((tx-2==E_SRB_CCS)&&(ty>S_SRB_CCS))||((tx-1==tx_hmemc0-1)&&(ty<n_hmemc))) ? <wire ZQW  of <device SRB_TILE @[(tx+3)*NUM_GRID_X,sy]>> :
+                                                            ((tx-2==W_SRB-1)||((tx-3==E_SRB_CCS)&&(ty>S_SRB_CCS))||((tx-2==tx_hmemc0-1)&&(ty<n_hmemc))) ? <wire ZQW  of <device SRB_TILE @[(tx+1)*NUM_GRID_X,sy]>> :
+                                                            ((tx-3==W_SRB-1)||((tx-4==E_SRB_CCS)&&(ty>S_SRB_CCS))||((tx-3==tx_hmemc0-1)&&(ty<n_hmemc))) ? <wire ZQW  of <device SRB_TILE @[(tx-1)*NUM_GRID_X,sy]>> :
+                                                            ((tx-4==W_SRB-1)||((tx-5==E_SRB_CCS)&&(ty>S_SRB_CCS))||((tx-4==tx_hmemc0-1)&&(ty<n_hmemc))) ? <wire ZQW  of <device SRB_TILE @[(tx-3)*NUM_GRID_X,sy]>> :
+                                                                                                                                                          <wire ZQE  of <device SRB_TILE @[site_w_4,sy]>>,
+
+
+
+                <pin ISE_5_NEXT of <device SRB_TILE @[sx,sy]>>  => ((ty-1==S_SRB-1)||((ty-1==n_hmemc-1)&&((tx>tx_hmemc1)||(tx<tx_hmemc0))))  ? <wire ZSS[4] of <device SRB_TILE @ [sx,sy]>> :
+                                     ((tx-1==W_SRB-1)||((tx-2==E_SRB_CCS)&&(tile_s_1>S_SRB_CCS))||((tx-1==tx_hmemc0-1)&&(tile_s_1<n_hmemc))) ? <wire ZSW[5] of <device SRB_TILE @[sx,site_s_1]>> :
+                                                                                                                                               <wire ZSE[5] of <device SRB_TILE @[site_w_1,site_s_1]>>,    
+
+                <pin IDE_5_NEXT of <device SRB_TILE @[sx,sy]>>  => ((ty-1==S_SRB-1)||((ty-1==n_hmemc-1)&&((tx>tx_hmemc1)||(tx<tx_hmemc0)))) ? <wire ZDS[4] of <device SRB_TILE @ [sx,sy]>> :
+                                    ((tx-1==W_SRB-1)||((tx-2==E_SRB_CCS)&&(tile_s_1>S_SRB_CCS))||((tx-1==tx_hmemc0-1)&&(tile_s_1<n_hmemc))) ? <wire ZDW[5]  of <device SRB_TILE @[(tx+1)*NUM_GRID_X,site_s_1]>> :
+                                    ((tx-2==W_SRB-1)||((tx-3==E_SRB_CCS)&&(tile_s_1>S_SRB_CCS))||((tx-1==tx_hmemc0-1)&&(tile_s_1<n_hmemc))) ? <wire ZDW[5]  of <device SRB_TILE @[(tx-1)*NUM_GRID_X,site_s_1]>> :
+                                                                                                                                              <wire ZDE[5]  of <device SRB_TILE @[site_w_2,site_s_1]>>,
+
+                <pin IQE_5_NEXT of <device SRB_TILE @[sx,sy]>>  => ((ty-1==S_SRB-1)||((ty-1==n_hmemc-1)&&((tx>tx_hmemc1)||(tx<tx_hmemc0)))) ? <wire ZQS[3] of <device SRB_TILE @ [sx,sy]>> :
+                                    ((tx-1==W_SRB-1)||((tx-2==E_SRB_CCS)&&(tile_s_1>S_SRB_CCS))||((tx-1==tx_hmemc0-1)&&(tile_s_1<n_hmemc))) ? <wire ZQW[5]  of <device SRB_TILE @[(tx+3)*NUM_GRID_X,site_s_1]>> :
+                                    ((tx-2==W_SRB-1)||((tx-3==E_SRB_CCS)&&(tile_s_1>S_SRB_CCS))||((tx-2==tx_hmemc0-1)&&(tile_s_1<n_hmemc))) ? <wire ZQW[5]  of <device SRB_TILE @[(tx+1)*NUM_GRID_X,site_s_1]>> :
+                                    ((tx-3==W_SRB-1)||((tx-4==E_SRB_CCS)&&(tile_s_1>S_SRB_CCS))||((tx-3==tx_hmemc0-1)&&(tile_s_1<n_hmemc))) ? <wire ZQW[5]  of <device SRB_TILE @[(tx-1)*NUM_GRID_X,site_s_1]>> :
+                                    ((tx-4==W_SRB-1)||((tx-5==E_SRB_CCS)&&(tile_s_1>S_SRB_CCS))||((tx-4==tx_hmemc0-1)&&(tile_s_1<n_hmemc))) ? <wire ZQW[5]  of <device SRB_TILE @[(tx-3)*NUM_GRID_X,site_s_1]>> :
+                                                                                                                                              <wire ZQE[5]  of <device SRB_TILE @[site_w_4,site_s_1]>>
+
+
+                );//end of -- connect
+                
+                // ZSNE
+                if((((tx<W_SRB_CCS) || ((tx>E_SRB_CCS) && (tx<E_SRB))) && (ty==N_SRB)) || ((tx>W_SRB_CCS) && (tx<E_SRB_CCS) && (ty==S_SRB_CCS)))
+                {
+                     connect
+                        (
+                            <pin ISSW of <device SRB_TILE @[sx,sy]>>       => <wire ZSNE  of <device SRB_TILE @[sx,sy]>>,
+                            <pin TSNE of <device SRB_TILE @[site_e_1,sy]>> => <wire ZSNE  of <device SRB_TILE @[sx,sy]>>
+                        );
+                }
+                else if(((tx==E_SRB) && (ty<N_SRB)) || ((tx==W_SRB_CCS) && (ty>S_SRB_CCS) && (ty<N_SRB)) || ((tx==tx_hmemc1) && (tile_n_1<n_hmemc)))
+                {
+                     connect
+                        (
+                            <pin ISSW of <device SRB_TILE @[sx,sy]>>        => <wire ZSNE  of <device SRB_TILE @[sx,sy]>>,
+                            <pin TSSW of <device SRB_TILE @[sx,site_n_1]>>  => <wire ZSNE  of <device SRB_TILE @[sx,sy]>>
+                        );
+                }
+                else if((ty==N_SRB) && ((tx==W_SRB_CCS) || (tx==E_SRB)))
+                {
+                     connect
+                        (
+                            <pin ISSW of <device SRB_TILE @[sx,sy]>>  => <wire ZSNE  of <device SRB_TILE @[sx,sy]>>,
+                            <pin TSSE of <device SRB_TILE @[sx,sy]>>  => <wire ZSNE  of <device SRB_TILE @[sx,sy]>>
+                        );
+                }
+                else if((tx==W_SRB_CCS) && (ty==S_SRB_CCS))
+                {
+                     connect
+                        (
+                            <pin ISNW of <device SRB_TILE @[sx,site_n_1]>>  => <wire ZSNE  of <device SRB_TILE @[sx,sy]>>,
+                            <pin TSNE of <device SRB_TILE @[site_e_1,sy]>>  => <wire ZSNE  of <device SRB_TILE @[sx,sy]>>
+                        );
+                }
+                else if((tx==tx_hmemc1) && (tile_n_1==n_hmemc))
+                {
+                     connect
+                        (
+                            <pin ISNW of <device SRB_TILE @[sx,site_n_1]>>        => <wire ZSNE  of <device SRB_TILE @[sx,sy]>>,
+                            <pin TSNW of <device SRB_TILE @[site_e_1,site_n_1]>>  => <wire ZSNE  of <device SRB_TILE @[sx,sy]>>
+                        );
+                       
+                }
+                else
+                {                    
+                     connect
+                        (
+                            <pin ISNE of <device SRB_TILE @[site_e_1,site_n_1]>>  => <wire ZSNE  of <device SRB_TILE @[sx,sy]>>,
+                            <pin TSNE of <device SRB_TILE @[site_e_1,sy]>>        => <wire ZSNE  of <device SRB_TILE @[sx,sy]>>
+                        );    
+                }
+                
+                
+                // ZSSW
+                if(((tx>tx_hmemc0) && (ty==S_SRB)) || ((tx>tx_hmemc1+1) && (ty==n_hmemc)) || ((tx>W_SRB) && (tx<tx_hmemc0) && (ty==n_hmemc)))
+                {
+                     connect
+                        (
+                            <pin TSSW of <device SRB_TILE @[site_w_1,sy]>> => <wire ZSSW  of <device SRB_TILE @[sx,sy]>>,
+                            <pin ISNE of <device SRB_TILE @[sx,sy]>>       => <wire ZSSW  of <device SRB_TILE @[sx,sy]>>
+                        ); 
+                }
+                else if(((tx==W_SRB)&&(ty>n_hmemc)) || ((tx==E_SRB_CCS+2)&&(ty>S_SRB_CCS+2)) || ((tx==tx_hmemc0)&&(ty>S_SRB)&&(ty<n_hmemc)) || ((tx==W_SRB)&&(!(tx<tx_hmemc0))&&(ty>S_SRB)))
+                {
+                     connect
+                        (
+                            <pin TSNE of <device SRB_TILE @[sx,site_s_1]>>  => <wire ZSSW  of <device SRB_TILE @[sx,sy]>>,
+                            <pin ISNE of <device SRB_TILE @[sx,sy]>>        => <wire ZSSW  of <device SRB_TILE @[sx,sy]>>
+                        ); 
+                }
+                else if(((tx==tx_hmemc0) && (ty==S_SRB)) || ((tx==W_SRB) && (ty==n_hmemc) && (tx<tx_hmemc0)))
+                {
+                     connect
+                        (
+                            <pin TSNW of <device SRB_TILE @[sx,sy]>>  => <wire ZSSW  of <device SRB_TILE @[sx,sy]>>,
+                            <pin ISNE of <device SRB_TILE @[sx,sy]>>  => <wire ZSSW  of <device SRB_TILE @[sx,sy]>>
+                        ); 
+                }
+                else if((ty==S_SRB_CCS+2) && (tx==E_SRB_CCS+2))
+                {
+                     connect
+                        (
+                            <pin TSSE of <device SRB_TILE @[site_w_1,site_s_1]>>  => <wire ZSSW  of <device SRB_TILE @[sx,sy]>>,
+                            <pin ISSE of <device SRB_TILE @[sx,site_s_1]>>        => <wire ZSSW  of <device SRB_TILE @[sx,sy]>>
+                        ); 
+                }
+                else if((ty==n_hmemc)&&(tx==tx_hmemc0)&&(tx>W_SRB))
+                {
+                     connect
+                       (
+                            <pin TSSW of <device SRB_TILE @[site_w_1,sy]>> => <wire ZSSW  of <device SRB_TILE @[sx,sy]>>,
+                            <pin ISSE of <device SRB_TILE @[sx,site_s_1]>> => <wire ZSSW  of <device SRB_TILE @[sx,sy]>>
+                       );
+                }
+                else
+                {
+                     connect
+                        (
+                            <pin TSSW of <device SRB_TILE @[site_w_1,sy]>>        => <wire ZSSW  of <device SRB_TILE @[sx,sy]>>,
+                            <pin ISSW of <device SRB_TILE @[site_w_1,site_s_1]>>  => <wire ZSSW  of <device SRB_TILE @[sx,sy]>>
+                        );   
+                }
+                
+                
+                //ZSSE
+                if(((tx==E_SRB) && (ty>n_hmemc)) || ((tx==W_SRB_CCS) && (ty>S_SRB_CCS+2)) || ((tx==tx_hmemc1) && (ty>S_SRB) && (ty<n_hmemc)))
+                {
+                     connect
+                        (
+                            <pin TSSE of <device SRB_TILE @[sx,site_s_1]>>  => <wire ZSSE  of <device SRB_TILE @[sx,sy]>>,
+                            <pin ISNW of <device SRB_TILE @[sx,sy]>>        => <wire ZSSE  of <device SRB_TILE @[sx,sy]>>
+                        ); 
+                }
+                else if(((tx<tx_hmemc1) && (ty==S_SRB) && (tx>=tx_hmemc0)) || ((tx>tx_hmemc1) && (ty==n_hmemc) && (tx<E_SRB)) || ((ty==n_hmemc)&&(tx<tx_hmemc0-1)))
+                {
+                    connect
+                      (
+                          <pin TSNW of <device SRB_TILE @[site_e_1,sy]>> => <wire ZSSE  of <device SRB_TILE @[sx,sy]>>,
+                          <pin ISNW of <device SRB_TILE @[sx,sy]>>       => <wire ZSSE  of <device SRB_TILE @[sx,sy]>>
+                      ); 
+                }
+                else if(((tx==E_SRB) && (ty==n_hmemc)) || ((ty==S_SRB) && (tx==tx_hmemc1)))
+                {
+                    connect
+                        (
+                            <pin TSSW of <device SRB_TILE @[sx,sy]>>  => <wire ZSSE  of <device SRB_TILE @[sx,sy]>>,
+                            <pin ISNW of <device SRB_TILE @[sx,sy]>>  => <wire ZSSE  of <device SRB_TILE @[sx,sy]>>
+                        );     
+                }
+                else if((tx==tx_hmemc1)&&(ty==n_hmemc))
+                {
+                    connect
+                      (
+                          <pin TSSE of <device SRB_TILE @[sx,site_s_1]>> => <wire ZSSE  of <device SRB_TILE @[sx,sy]>>,
+                          <pin ISNE of <device SRB_TILE @[site_e_1,sy]>> => <wire ZSSE  of <device SRB_TILE @[sx,sy]>>
+                      ); 
+                }
+                else if((tx==tx_hmemc0-1) && (ty==n_hmemc))
+                {
+                    connect
+                      (
+                          <pin TSNE of <device SRB_TILE @[site_e_1,site_s_1]>> => <wire ZSSE  of <device SRB_TILE @[sx,sy]>>,
+                          <pin ISNE of <device SRB_TILE @[site_e_1,sy]>>     => <wire ZSSE  of <device SRB_TILE @[sx,sy]>>
+
+                      );
+                }
+                else
+                {
+                     connect
+                        (
+                            <pin TSSE of <device SRB_TILE @[sx,site_s_1]>>        => <wire ZSSE  of <device SRB_TILE @[sx,sy]>>,
+                            <pin ISSE of <device SRB_TILE @[site_e_1,site_s_1]>>  => <wire ZSSE  of <device SRB_TILE @[sx,sy]>>
+                        );
+                }
+                
+                //ZSNW
+                if(((tx==W_SRB) && (ty< N_SRB)) || ((tx==E_SRB_CCS+2) && (ty<N_SRB) && (ty>S_SRB_CCS)) || ((tx==tx_hmemc0)&&(tile_n_1<n_hmemc)))
+                {
+                     connect
+                        (
+                            <pin TSNW of <device SRB_TILE @[sx,site_n_1]>>           => <wire ZSNW  of <device SRB_TILE @[sx,sy]>>,
+                            <pin ISSE of <device SRB_TILE @[sx,sy]>>                 => <wire ZSNW  of <device SRB_TILE @[sx,sy]>>
+                        );    
+                }
+                else if(((tx>W_SRB) && (tx!=E_SRB_CCS+2) && (ty==N_SRB)) || ((tx>=W_SRB_CCS+2) && (tx<=E_SRB_CCS) && (ty==S_SRB_CCS)))
+                {
+                     connect
+                        (
+                            <pin TSSE of <device SRB_TILE @[site_w_1,sy]>>  => <wire ZSNW  of <device SRB_TILE @[sx,sy]>>,
+                            <pin ISSE of <device SRB_TILE @[sx,sy]>>        => <wire ZSNW  of <device SRB_TILE @[sx,sy]>>
+                        );    
+                }
+                else if(((tx==W_SRB) || (tx==E_SRB_CCS+2)) && (ty==N_SRB))
+                {
+                     connect
+                        (
+                            <pin TSNE of <device SRB_TILE @[sx,sy]>>  => <wire ZSNW  of <device SRB_TILE @[sx,sy]>>,
+                            <pin ISSE of <device SRB_TILE @[sx,sy]>>  => <wire ZSNW  of <device SRB_TILE @[sx,sy]>>
+                        ); 
+                }
+
+                else if((tx==E_SRB_CCS+2)&&(ty==S_SRB_CCS))
+                {
+                    connect
+                        (
+                            <pin TSNW of <device SRB_TILE @[sx,site_n_1]>>  => <wire ZSNW of <device SRB_TILE @[sx,sy]>>,
+                            <pin ISSW of <device SRB_TILE @[site_w_1,sy]>>  => <wire ZSNW of <device SRB_TILE @[sx,sy]>>
+                        );
+                }
+                else if((tx==W_SRB_CCS+1) && (ty==S_SRB_CCS))
+                {
+                    connect
+                        (
+                            <pin TSSW of <device SRB_TILE @[site_w_1,site_n_1]>>   => <wire ZSNW of <device SRB_TILE @[sx,sy]>>,
+                            <pin ISSW of <device SRB_TILE @[site_w_1,sy]>>         => <wire ZSNW of <device SRB_TILE @[sx,sy]>>
+                        );
+                }
+                else
+                {
+                     connect
+                        (
+                            <pin TSNW of <device SRB_TILE @[sx,site_n_1]>>        => <wire ZSNW  of <device SRB_TILE @[sx,sy]>>,
+                            <pin ISNW of <device SRB_TILE @[site_w_1,site_n_1]>>  => <wire ZSNW  of <device SRB_TILE @[sx,sy]>>
+                        ); 
+                }
+                
+                
+                //connect long line in horizontal
+                if((ty>S_SRB_CCS)&&(W_SRB_CCS-W_SRB<7)&&(tx<=W_SRB_CCS))
+                {
+                 int tx_r7 = (tx<=4) ? 2*W_SRB_CCS-tx-7 : tx-4;
+                 int tx_l7 = (tx<=2) ? tx+4 : 9-tx;
+                 int sx_r7 = tx_r7 * NUM_GRID_X;
+                 int sx_l7 = tx_l7 * NUM_GRID_X;
+
+                sprintf(strVar0, "ntLH1_%d_%d", sx,sy);                               
+                &wire ntRef_ntLH1 = wire *strVar0        /*pragma PAP_ARC_ITC_TYPE = "LONG"*/;
+
+                  if(tx<=2)
+                  {
+                    connect
+                    (
+                        <pin LH0 of <device SRB_TILE @[sx_r7,sy]>> => ntRef_ntLH1, 
+                        <pin LH0 of <device SRB_TILE @[sx_l7,sy]>> => ntRef_ntLH1, 
+                        <pin LH1 of <device SRB_TILE @[sx,sy]>> => ntRef_ntLH1
+                     ); 
+                   }
+                  else if((tx>=3)&&(tx<=4))
+                {
+                  connect
+                    (
+                        <pin LH0 of <device SRB_TILE @[sx_r7,sy]>> => ntRef_ntLH1, 
+                        <pin LH2 of <device SRB_TILE @[sx_l7,sy]>> => ntRef_ntLH1, 
+                        <pin LH1 of <device SRB_TILE @[sx,sy]>> => ntRef_ntLH1
+                     );
+                }
+                  else
+                {
+                  connect
+                    (
+                        <pin LH2 of <device SRB_TILE @[sx_r7,sy]>> => ntRef_ntLH1, 
+                        <pin LH2 of <device SRB_TILE @[sx_l7,sy]>> => ntRef_ntLH1, 
+                        <pin LH1 of <device SRB_TILE @[sx,sy]>> => ntRef_ntLH1
+                     );
+                }
+              }
+
+
+                else if(ty>S_SRB_CCS)
+                {
+                  int lh_l0 = ((W_SRB_CCS-7)<=(W_SRB+7)) ? W_SRB_CCS-7 : W_SRB+7;
+                  int lh_r0 = ((W_SRB_CCS-7)>(W_SRB+7)) ? W_SRB_CCS-7 : W_SRB+7;
+                  int lh_l1 = ((E_SRB-7)<=(E_SRB_CCS+9)) ? E_SRB-7 : E_SRB_CCS+9;
+                  int lh_r1 = ((E_SRB-7)>(E_SRB_CCS+9)) ? E_SRB-7 : E_SRB_CCS+9;
+
+
+                  if((tx>=W_SRB_CCS-7) && (tx<=W_SRB+7))
+                  {
+                    unsigned int lh0_r_tx,lh0_r_sx;
+                    unsigned int lh2_l_tx,lh2_l_sx;
+
+                    lh2_l_tx  = 2*W_SRB + 7 - tx; //left LH2
+                    lh2_l_sx = ((lh2_l_tx>blsr_x) && (tx<blsr_x)) ? (lh2_l_tx+1)*NUM_GRID_X : lh2_l_tx*NUM_GRID_X;
+
+                    lh0_r_tx = 2*W_SRB_CCS - 7 - tx;
+                    lh0_r_sx = ((lh0_r_tx>blsr_x) && (tx<blsr_x)) ? (lh0_r_tx + 1) * NUM_GRID_X : lh0_r_tx * NUM_GRID_X;
+
+                    sprintf(strVar0, "ntLH1_%d_%d", sx,sy);                               
+                    &wire ntRef_ntLH1 = wire *strVar0        /*pragma PAP_ARC_ITC_TYPE = "LONG"*/; 
+                    
+                    if((lh2_l_tx>=W_SRB)&&(lh2_l_tx<=W_SRB_CCS))
+                    {
+                      connect
+                        (
+                          <pin LH2 of <device SRB_TILE @[lh2_l_sx,sy]>>  => ntRef_ntLH1
+                        );  
+                    }
+                    if((lh0_r_tx>=W_SRB)&&(lh0_r_tx<=W_SRB_CCS))
+                    {
+                      connect
+                        (
+                          <pin LH0 of <device SRB_TILE @[lh0_r_sx,sy]>>  => ntRef_ntLH1
+                        );  
+                    }
+                    connect
+                      (
+                          <pin LH1 of <device SRB_TILE @[sx,sy]>>        => ntRef_ntLH1
+                      ); 
+
+                  }
+                  else if((tx>=W_SRB)&&(tx<=lh_l0))
+                  {
+                    unsigned int lh2_l_tx,lh2_l_sx;
+
+                    lh2_l_tx  = 2*W_SRB + 7 - tx; //left LH2
+                    lh2_l_sx = ((lh2_l_tx>blsr_x) && (tx<blsr_x)) ? (lh2_l_tx+1)*NUM_GRID_X : lh2_l_tx*NUM_GRID_X; 
+
+                    sprintf(strVar0, "ntLH1_%d_%d", sx,sy);                               
+                    &wire ntRef_ntLH1 = wire *strVar0        /*pragma PAP_ARC_ITC_TYPE = "LONG"*/; 
+ 
+                    connect
+                      (
+                          <pin LH2 of <device SRB_TILE @[lh2_l_sx,sy]>> => ntRef_ntLH1, 
+                          <pin LH2 of <device SRB_TILE @[site_e_8,sy]>> => ntRef_ntLH1,  
+                          <pin LH1 of <device SRB_TILE @[sx,sy]>>       => ntRef_ntLH1
+                      ); 
+                  }
+                  else if((tx<W_SRB_CCS-7) && (tx>W_SRB+7))
+                  {
+                    sprintf(strVar0, "ntLH1_%d_%d", sx,sy);                               
+                    &wire ntRef_ntLH1 = wire *strVar0        /*pragma PAP_ARC_ITC_TYPE = "LONG"*/; 
+
+                    connect
+                      (
+                        <pin LH2 of <device SRB_TILE @[site_e_8,sy]>>  => ntRef_ntLH1, 
+                        <pin LH0 of <device SRB_TILE @[site_w_8,sy]>>  => ntRef_ntLH1,  
+                        <pin LH1 of <device SRB_TILE @[sx,sy]>>        => ntRef_ntLH1
+                      );  
+                  }
+                  else if((tx>=lh_r0) && (tx<=W_SRB_CCS))
+                  {
+                    unsigned int lh0_r_tx,lh0_r_sx;
+
+                    lh0_r_tx  = 2*W_SRB_CCS - 7 - tx;  //right LH00                   
+                    lh0_r_sx = ((lh0_r_tx>blsr_x) && (tx<blsr_x)) ? (lh0_r_tx + 1) * NUM_GRID_X : lh0_r_tx * NUM_GRID_X;
+
+                    sprintf(strVar0, "ntLH1_%d_%d", sx,sy);                               
+                    &wire ntRef_ntLH1 = wire *strVar0        /*pragma PAP_ARC_ITC_TYPE = "LONG"*/; 
+                    
+                    connect
+                      (
+                          <pin LH0 of <device SRB_TILE @[lh0_r_sx,sy]>>  => ntRef_ntLH1,  
+                          <pin LH0 of <device SRB_TILE @[site_w_8,sy]>>  => ntRef_ntLH1,  
+                          <pin LH1 of <device SRB_TILE @[sx,sy]>>        => ntRef_ntLH1
+                      );
+                  }
+
+                  else if((tx>=(E_SRB_CCS+2)) && (tx<lh_l1))
+                  {
+                    unsigned int lh2_l_tx,lh2_l_sx;
+                    lh2_l_tx  = 2*(E_SRB_CCS+2) + 7 - tx; //left LH2
+                    lh2_l_sx = ((lh2_l_tx>blsr_x) && (tx<blsr_x)) ? (lh2_l_tx+1)*NUM_GRID_X : lh2_l_tx*NUM_GRID_X;
+
+                    sprintf(strVar0, "ntLH1_%d_%d", sx,sy);                               
+                    &wire ntRef_ntLH1 = wire *strVar0        /*pragma PAP_ARC_ITC_TYPE = "LONG"*/;  
+                                                           
+                    connect
+                      (
+                          <pin LH2 of <device SRB_TILE @[lh2_l_sx,sy]>>  => ntRef_ntLH1, 
+                          <pin LH2 of <device SRB_TILE @[site_e_8,sy]>>  => ntRef_ntLH1,  
+                          <pin LH1 of <device SRB_TILE @[sx,sy]>>        => ntRef_ntLH1
+                      );
+                  }
+                  else if((tx>=E_SRB-7) && (tx<=E_SRB_CCS+9)) 
+                  {
+                    unsigned int lh0_r_tx,lh0_r_sx;
+                    unsigned int lh2_l_tx,lh2_l_sx;
+
+                    lh2_l_tx  = 2*(E_SRB_CCS+2) + 7 - tx; //left LH2
+                    lh2_l_sx = ((lh2_l_tx>blsr_x) && (tx<blsr_x)) ? (lh2_l_tx+1)*NUM_GRID_X : lh2_l_tx*NUM_GRID_X;
+
+                    lh0_r_tx = 2*E_SRB - 7 - tx;
+                    lh0_r_sx = ((lh0_r_tx>blsr_x) && (tx<blsr_x)) ? (lh0_r_tx + 1) * NUM_GRID_X : lh0_r_tx * NUM_GRID_X;
+
+                    sprintf(strVar0, "ntLH1_%d_%d", sx,sy);                               
+                    &wire ntRef_ntLH1 = wire *strVar0       /*pragma PAP_ARC_ITC_TYPE = "LONG"*/; 
+
+                    connect
+                      (
+                        <pin LH2 of <device SRB_TILE @[lh2_l_sx,sy]>>  => ntRef_ntLH1, 
+                        <pin LH0 of <device SRB_TILE @[lh0_r_sx,sy]>>  => ntRef_ntLH1,  
+                        <pin LH1 of <device SRB_TILE @[sx,sy]>>        => ntRef_ntLH1
+                      );  
+                  }
+                  else if((tx<E_SRB-7) && (tx>E_SRB_CCS+9)) 
+                  {
+
+                    sprintf(strVar0, "ntLH1_%d_%d", sx,sy);                               
+                    &wire ntRef_ntLH1 = wire *strVar0       /*pragma PAP_ARC_ITC_TYPE = "LONG"*/; 
+
+                    connect
+                      (
+                        <pin LH2 of <device SRB_TILE @[site_e_8,sy]>>  => ntRef_ntLH1, 
+                        <pin LH0 of <device SRB_TILE @[site_w_8,sy]>>  => ntRef_ntLH1,  
+                        <pin LH1 of <device SRB_TILE @[sx,sy]>>        => ntRef_ntLH1
+                      );  
+                  }
+                  else if((tx>=lh_r1) && (tx<=E_SRB))
+                  {
+                    unsigned int lh0_r_tx,lh0_r_sx;
+                    lh0_r_tx = 2*E_SRB - 7 - tx;  //right LH00        
+                   // lh0_r_sx = lh0_r_tx * NUM_GRID_X;          
+                    lh0_r_sx = ((lh0_r_tx>blsr_x) && (tx<blsr_x)) ? (lh0_r_tx + 1) * NUM_GRID_X : lh0_r_tx * NUM_GRID_X;
+                                       
+                    sprintf(strVar0, "ntLH1_%d_%d", sx,sy);                      
+                    &wire ntRef_ntLH1 = wire *strVar0       /*pragma PAP_ARC_ITC_TYPE = "LONG"*/; 
+                    
+                    connect
+                      (
+                          <pin LH0 of <device SRB_TILE @[lh0_r_sx,sy]>> => ntRef_ntLH1,  
+                          <pin LH0 of <device SRB_TILE @[site_w_8,sy]>> => ntRef_ntLH1,  
+                          <pin LH1 of <device SRB_TILE @[sx,sy]>>       => ntRef_ntLH1
+                      );
+                  }          
+                }
+                else if(ty<n_hmemc)
+                {
+                    if((tx>=(tx_hmemc1-7)) && tx<=tx_hmemc1)    
+                    {
+                      unsigned int lh0_r_tx,lh0_r_sx;
+                      unsigned int lh2_l_tx,lh2_l_sx;
+
+                      lh0_r_tx = 2*tx_hmemc1 - 7 - tx;  //right LH00   
+                    //  lh0_r_sx = lh0_r_tx * NUM_GRID_X;                   
+                      lh0_r_sx = ((lh0_r_tx>blsr_x) && (tx<blsr_x)) ? (lh0_r_tx + 1) * NUM_GRID_X : lh0_r_tx * NUM_GRID_X;
+                                       
+                      sprintf(strVar0, "ntLH1_%d_%d", sx,sy);                      
+                      &wire ntRef_ntLH1 = wire *strVar0       /*pragma PAP_ARC_ITC_TYPE = "LONG"*/; 
+                    
+                      connect
+                        (
+                            <pin LH0 of <device SRB_TILE @[lh0_r_sx,sy]>> => ntRef_ntLH1,  
+                            <pin LH0 of <device SRB_TILE @[site_w_8,sy]>> => ntRef_ntLH1,  
+                            <pin LH1 of <device SRB_TILE @[sx,sy]>>       => ntRef_ntLH1
+                        );
+                    } 
+                    else if((tx>=tx_hmemc0) && (tx<=(tx_hmemc0+7)))
+                    {
+                      unsigned int lh2_l_tx;
+
+                      lh2_l_tx  = 2*tx_hmemc0 + 7 - tx; //left LH2
+                    
+                      sprintf(strVar0, "ntLH1_%d_%d", sx,sy);                               
+                      &wire ntRef_ntLH1 = wire *strVar0      /*pragma PAP_ARC_ITC_TYPE = "LONG"*/;  
+                  
+                      connect
+                        (
+                            <pin LH2 of <device SRB_TILE @[lh2_l_tx*NUM_GRID_X,sy]>> => ntRef_ntLH1, 
+                            <pin LH2 of <device SRB_TILE @[site_e_8,sy]>>            => ntRef_ntLH1,  
+                            <pin LH1 of <device SRB_TILE @[sx,sy]>>                  => ntRef_ntLH1
+                        );
+                    } 
+                    else
+                    {
+                      sprintf(strVar0, "ntLH1_%d_%d", sx,sy);                               
+                      &wire ntRef_ntLH1 = wire *strVar0      /*pragma PAP_ARC_ITC_TYPE = "LONG"*/; 
+
+                      connect
+                        (
+                          <pin LH2 of <device SRB_TILE @[site_e_8,sy]>> => ntRef_ntLH1,   
+                          <pin LH0 of <device SRB_TILE @[site_w_8,sy]>> => ntRef_ntLH1, 
+                          <pin LH1 of <device SRB_TILE @[sx,sy]>>       => ntRef_ntLH1
+                        );
+                    }
+                }
+                else 
+                {
+                    if((tx>=(E_SRB-7)) && tx<=E_SRB)    
+                    {
+                      unsigned int lh0_r_tx,lh0_r_sx;
+                      unsigned int lh2_l_tx,lh2_l_sx;
+
+                      lh0_r_tx = 2*E_SRB - 7 - tx;  //right LH00   
+                    //  lh0_r_sx = lh0_r_tx * NUM_GRID_X;                   
+                      lh0_r_sx = ((lh0_r_tx>blsr_x) && (tx<blsr_x)) ? (lh0_r_tx + 1) * NUM_GRID_X : lh0_r_tx * NUM_GRID_X;
+                                       
+                      sprintf(strVar0, "ntLH1_%d_%d", sx,sy);                      
+                      &wire ntRef_ntLH1 = wire *strVar0      /*pragma PAP_ARC_ITC_TYPE = "LONG"*/; 
+                    
+                      connect
+                        (
+                            <pin LH0 of <device SRB_TILE @[lh0_r_sx,sy]>> => ntRef_ntLH1,  
+                            <pin LH0 of <device SRB_TILE @[site_w_8,sy]>> => ntRef_ntLH1,  
+                            <pin LH1 of <device SRB_TILE @[sx,sy]>>       => ntRef_ntLH1
+                        );
+                    } 
+                    else if(tx <= (W_SRB+7))
+                    {
+                      unsigned int lh2_l_tx;
+
+                      lh2_l_tx  = 2*W_SRB + 7 - tx; //left LH2
+                    
+                      sprintf(strVar0, "ntLH1_%d_%d", sx,sy);                               
+                      &wire ntRef_ntLH1 = wire *strVar0      /*pragma PAP_ARC_ITC_TYPE = "LONG"*/;  
+                  
+                      connect
+                        (
+                            <pin LH2 of <device SRB_TILE @[lh2_l_tx*NUM_GRID_X,sy]>> => ntRef_ntLH1, 
+                            <pin LH2 of <device SRB_TILE @[site_e_8,sy]>>            => ntRef_ntLH1,  
+                            <pin LH1 of <device SRB_TILE @[sx,sy]>>                  => ntRef_ntLH1
+                        );
+                    } 
+                    else
+                    {
+                      sprintf(strVar0, "ntLH1_%d_%d", sx,sy);                               
+                      &wire ntRef_ntLH1 = wire *strVar0      /*pragma PAP_ARC_ITC_TYPE = "LONG"*/; 
+
+                      connect
+                        (
+                          <pin LH2 of <device SRB_TILE @[site_e_8,sy]>> => ntRef_ntLH1,   
+                          <pin LH0 of <device SRB_TILE @[site_w_8,sy]>> => ntRef_ntLH1, 
+                          <pin LH1 of <device SRB_TILE @[sx,sy]>>       => ntRef_ntLH1
+                        );
+                    }
+                }
+
+                //connect long line in vertical
+                if((ty>=(N_SRB-7)) && (ty<=N_SRB))     //the long line connect as: LV2  LV1  LV2
+                {
+                    unsigned int lv2_n_ty,lv2_n_sy,tmp_ty ;
+
+                    lv2_n_ty = 2*N_SRB - 7 - ty;   
+                    lv2_n_sy = lv2_n_ty * NUM_GRID_Y;
+
+                    for(tmp_ty=lv2_n_ty;tmp_ty>MID_TILE_REGION;tmp_ty = tmp_ty-NUM_TILES_REGION)
+                    {
+                      lv2_n_sy = lv2_n_sy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+                    }
+                    
+                    sprintf(strVar0, "ntLV1_%d_%d", sx,sy);                               
+                    &wire ntRef_ntLV1 = wire *strVar0        /*pragma PAP_ARC_ITC_TYPE = "LONG"*/; 
+
+                    if(((tx>tx_hmemc1)||(tx<tx_hmemc0))&&(tile_s_8<n_hmemc)) 
+                    {
+                      int lv0_s_ty = 2*n_hmemc + 7 - ty;
+                      int lv0_s_sy = lv0_s_ty * NUM_GRID_Y;
+
+                      for(tmp_ty=lv0_s_ty;tmp_ty>MID_TILE_REGION;tmp_ty = tmp_ty-NUM_TILES_REGION)
+                      {
+                        lv0_s_sy = lv0_s_sy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+                      }
+
+                      connect
+                        (
+                          <pin LV2 of <device SRB_TILE @[sx,lv2_n_sy]>>  => ntRef_ntLV1,
+                          <pin LV0 of <device SRB_TILE @[sx,lv0_s_sy]>>  => ntRef_ntLV1,  
+                          <pin LV1 of <device SRB_TILE @[sx,sy]>>        => ntRef_ntLV1
+                        );
+                    }
+                    else
+                    {
+                      connect
+                       (
+                        <pin LV2 of <device SRB_TILE @[sx,lv2_n_sy]>>  => ntRef_ntLV1,
+                        <pin LV2 of <device SRB_TILE @[sx,site_s_8]>>  => ntRef_ntLV1,  
+                        <pin LV1 of <device SRB_TILE @[sx,sy]>>        => ntRef_ntLV1
+                      );
+                    }
+                }
+                else if(ty<=(7+S_SRB))                      //the long line connect as: LV0  LH1  LV0
+                {
+                    unsigned int lv0_s_ty,lv0_s_sy,tmp_ty ;
+
+                    lv0_s_ty  = 2*S_SRB + 7 - ty; 
+                    lv0_s_sy = lv0_s_ty * NUM_GRID_Y;
+
+                    for(tmp_ty=lv0_s_ty;tmp_ty>MID_TILE_REGION;tmp_ty = tmp_ty-NUM_TILES_REGION)
+                    {
+                      lv0_s_sy = lv0_s_sy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+                    }
+                    
+                    sprintf(strVar0, "ntLV1_%d_%d", sx,sy);                               
+                    &wire ntRef_ntLV1 = wire *strVar0       /*pragma PAP_ARC_ITC_TYPE = "LONG"*/;  
+                                        
+                    connect
+                    (
+                        <pin LV0 of <device SRB_TILE @[sx,lv0_s_sy ]>> => ntRef_ntLV1,  
+                        <pin LV1 of <device SRB_TILE @[sx,sy]>>        => ntRef_ntLV1,   
+                        <pin LV0 of <device SRB_TILE @[sx,site_n_8]>>  => ntRef_ntLV1
+                     );
+                }
+                else if((tx>W_SRB_CCS) && (tx<=E_SRB_CCS) && (ty>=(S_SRB_CCS-7)) && (ty<=S_SRB_CCS))
+                {
+                    unsigned int lv2_n_ty,lv2_n_sy,tmp_ty;
+
+                    lv2_n_ty = 2*S_SRB_CCS - 7 - ty; 
+                    lv2_n_sy = lv2_n_ty * NUM_GRID_Y;
+
+                    for(tmp_ty=lv2_n_ty;tmp_ty>MID_TILE_REGION;tmp_ty=tmp_ty-NUM_TILES_REGION)
+                    {
+                      lv2_n_sy = lv2_n_sy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+                    }
+                   
+                    sprintf(strVar0, "ntLV1_%d_%d", sx,sy);                               
+                    &wire ntRef_ntLV1 = wire *strVar0       /*pragma PAP_ARC_ITC_TYPE = "LONG"*/;  
+
+                    connect
+                    (
+                        <pin LV2 of <device SRB_TILE @[sx,lv2_n_sy]>> => ntRef_ntLV1,
+                        <pin LV2 of <device SRB_TILE @[sx,site_s_8]>> => ntRef_ntLV1,  
+                        <pin LV1 of <device SRB_TILE @[sx,sy]>>       => ntRef_ntLV1
+                     );
+                }
+                else if(((tx>tx_hmemc1)||(tx<tx_hmemc0))&&(ty>=n_hmemc)&&(ty<=n_hmemc+7))
+                {
+                    unsigned int lv0_s_ty,lv0_s_sy,tmp_ty ;
+
+                    lv0_s_ty  = 2*n_hmemc + 7 - ty; 
+                    lv0_s_sy = lv0_s_ty * NUM_GRID_Y;
+
+                    for(tmp_ty=lv0_s_ty;tmp_ty>MID_TILE_REGION;tmp_ty = tmp_ty-NUM_TILES_REGION)
+                    {
+                      lv0_s_sy = lv0_s_sy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+                    }
+                    
+                    sprintf(strVar0, "ntLV1_%d_%d", sx,sy);                               
+                    &wire ntRef_ntLV1 = wire *strVar0       /*pragma PAP_ARC_ITC_TYPE = "LONG"*/;  
+                     
+                    if(((tx>tx_hmemc1)||(tx<tx_hmemc0))&&(tile_n_8>N_SRB))       
+                    {
+                      int lv2_n_ty = 2*N_SRB - 7 - ty;
+                      int lv2_n_sy = lv2_n_ty * NUM_GRID_Y;
+
+                      for(tmp_ty=lv2_n_ty;tmp_ty>MID_TILE_REGION;tmp_ty = tmp_ty-NUM_TILES_REGION)
+                      {
+                        lv2_n_sy = lv2_n_sy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+                      }
+
+                      connect
+                        (
+                          <pin LV0 of <device SRB_TILE @[sx,lv0_s_sy]>> => ntRef_ntLV1,  
+                          <pin LV1 of <device SRB_TILE @[sx,sy]>>       => ntRef_ntLV1,   
+                          <pin LV2 of <device SRB_TILE @[sx,lv2_n_sy]>> => ntRef_ntLV1
+                       );            
+                    } 
+                    else
+                    {           
+                      connect
+                        (
+                          <pin LV0 of <device SRB_TILE @[sx,lv0_s_sy ]>> => ntRef_ntLV1,  
+                          <pin LV1 of <device SRB_TILE @[sx,sy]>>        => ntRef_ntLV1,   
+                          <pin LV0 of <device SRB_TILE @[sx,site_n_8]>>  => ntRef_ntLV1
+                        );
+                    }
+                }
+                else
+                {
+                    
+                    sprintf(strVar0, "ntLV1_%d_%d", sx,sy);                               
+                    &wire ntRef_ntLV1 = wire *strVar0       /*pragma PAP_ARC_ITC_TYPE = "LONG"*/;  
+                                    
+                    connect
+                    (
+                        <pin LV2 of <device SRB_TILE @[sx,site_s_8]>>          => ntRef_ntLV1,
+                        <pin LV1 of <device SRB_TILE @[sx,sy]>>                => ntRef_ntLV1,  
+                        <pin LV0 of <device SRB_TILE @[sx,site_n_8]>>          => ntRef_ntLV1
+                    );
+                } 
+          }               
+        } // foreach ty ( Y_TILES )
+
+    } // foreach tx ( X_TILES )
+    
+}// end of connect_SRB_inputs
+
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_CLM_input_u
+(
+  unsigned int tx,
+  unsigned int ty,
+  unsigned int flag,
+  unsigned int x_pll,
+  unsigned int l_y_pll[],
+  unsigned int x_uscm,
+  unsigned int l_y_uscm[],
+  unsigned int tx_hmemc0,
+  unsigned int tx_hmemc1,
+  unsigned int n_hmemc
+)
+{
+  unsigned int sx,sy;
+  sx = tx * NUM_GRID_X + 2;
+  sy = ty * NUM_GRID_Y;
+
+  unsigned int temp_ty;
+  for(temp_ty = ty;temp_ty > MID_TILE_REGION;temp_ty = temp_ty - NUM_TILES_REGION)
+  {
+      sy = sy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+  }
+
+
+// Calculate the south source grid site
+  unsigned int tile_s_1,site_s_1;
+
+  for(temp_ty = ty;temp_ty >= 0;temp_ty = temp_ty - NUM_TILES_REGION)
+  {
+      if(temp_ty == (MID_TILE_REGION+1))
+      {
+          tile_s_1 = ty -2;
+          break;   
+      }
+      else
+      {
+          tile_s_1 = ty - 1;
+      }
+  }
+
+  unsigned int temp1_ty;
+  unsigned int cnt = 6;
+  if(tx == x_pll)
+  {
+    foreach temp_ty( l_y_pll )
+    {
+      if((tile_s_1>=temp_ty) && (tile_s_1<=temp_ty+NUM_GRID_PLL_Y/NUM_GRID_Y-1))
+      {
+        tile_s_1 = tile_s_1 - NUM_GRID_PLL_Y/NUM_GRID_Y;
+      }
+      for(temp1_ty=tile_s_1;temp1_ty>=0;temp1_ty=temp1_ty-NUM_TILES_REGION)
+      {
+        if(temp1_ty==MID_TILE_REGION)
+        {
+          tile_s_1 = tile_s_1 - 1;
+        }
+      }
+    }
+  }
+
+  if(tx == x_uscm)
+  {
+    foreach temp_ty( l_y_uscm )
+    {
+      if((tile_s_1>=temp_ty) && (tile_s_1<=temp_ty+NUM_GRID_USCM_Y/NUM_GRID_Y-1))
+      {
+        tile_s_1 = tile_s_1 - NUM_GRID_USCM_Y/NUM_GRID_Y;
+      }
+      for(temp1_ty=tile_s_1;temp1_ty>=0;temp1_ty=temp1_ty-NUM_TILES_REGION)
+      {
+        if(temp1_ty==MID_TILE_REGION)
+        {
+          tile_s_1 = tile_s_1 - 1;
+        }
+      }
+    }
+  }
+
+  site_s_1 = tile_s_1 * NUM_GRID_Y;
+  for(temp_ty = tile_s_1;temp_ty > MID_TILE_REGION;temp_ty = temp_ty - NUM_TILES_REGION)
+  {
+      site_s_1 = site_s_1 + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+  }
+
+  
+  string strVar;
+  strVar = flag ? "CLMA_TILE" : "CLMS_TILE";
+  if(((ty!=0)&&(tx<tx_hmemc1)&&(tx>tx_hmemc0))||((ty>n_hmemc)&&((tx<=tx_hmemc0)||(tx>=tx_hmemc1))))
+  {
+    connect
+     (
+        <pin A_CECI of <device *strVar @[sx,sy]>>  => <wire A_CECO of <device *strVar @ [sx,site_s_1]>>,
+        <pin S_CECI of <device *strVar @[sx,sy]>>  => <wire S_CECO of <device *strVar @ [sx,site_s_1]>>,
+        <pin A_CIN of <device *strVar @[sx,sy]>>   => <wire A_COUT of <device *strVar @ [sx,site_s_1]>>,
+        <pin S_CIN of <device *strVar @[sx,sy]>>   => <wire S_COUT of <device *strVar @ [sx,site_s_1]>>,
+        <pin A_RSCI of <device *strVar @[sx,sy]>>  => <wire A_RSCO of <device *strVar @ [sx,site_s_1]>>,
+        <pin S_RSCI of <device *strVar @[sx,sy]>>  => <wire S_RSCO of <device *strVar @ [sx,site_s_1]>>,
+        <pin A_SRCI of <device *strVar @[sx,sy]>>  => <wire A_SRCO of <device *strVar @ [sx,site_s_1]>>,
+        <pin S_SRCI of <device *strVar @[sx,sy]>>  => <wire S_SRCO of <device *strVar @ [sx,site_s_1]>>
+     );
+  }
+  else
+  {
+    connect
+     (
+        <pin A_CECI of <device *strVar @[sx,sy]>>  => <wire TIEHI of <device *strVar @ [sx,sy]>>,
+        <pin S_CECI of <device *strVar @[sx,sy]>>  => <wire TIEHI of <device *strVar @ [sx,sy]>>,
+        <pin A_CIN of <device *strVar @[sx,sy]>>   => <wire TIEHI of <device *strVar @ [sx,sy]>>,
+        <pin S_CIN of <device *strVar @[sx,sy]>>   => <wire TIEHI of <device *strVar @ [sx,sy]>>,
+        <pin A_RSCI of <device *strVar @[sx,sy]>>  => <wire TIEHI of <device *strVar @ [sx,sy]>>,
+        <pin S_RSCI of <device *strVar @[sx,sy]>>  => <wire TIEHI of <device *strVar @ [sx,sy]>>,
+        <pin A_SRCI of <device *strVar @[sx,sy]>>  => <wire TIEHI of <device *strVar @ [sx,sy]>>,
+        <pin S_SRCI of <device *strVar @[sx,sy]>>  => <wire TIEHI of <device *strVar @ [sx,sy]>>
+     );
+  } 
+  
+}//end of function connect_CLM_input_u
+
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_CLM_input_d
+(
+  unsigned int tx,
+  unsigned int ty,
+  unsigned int flag,
+  unsigned int x_pll,
+  unsigned int l_y_pll[],
+  unsigned int x_uscm,
+  unsigned int l_y_uscm[],
+  unsigned int max_y,
+  unsigned int x_ccs,
+  unsigned int y_ccs
+)
+{
+  unsigned int sx,sy;
+  sx = tx * NUM_GRID_X + 2;
+  sy = ty * NUM_GRID_Y;
+
+  unsigned int temp_ty;
+  for(temp_ty = ty;temp_ty > MID_TILE_REGION;temp_ty = temp_ty - NUM_TILES_REGION)
+  {
+      sy = sy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+  }
+
+
+// Calculate the north source grid site
+  unsigned int tile_n_1,site_n_1;
+
+  for(temp_ty = ty;temp_ty >= 0;temp_ty = temp_ty - NUM_TILES_REGION)
+  {
+      if(temp_ty == (MID_TILE_REGION-1))
+      {
+          tile_n_1 = ty + 2;
+          break;   
+      }
+      else
+      {
+          tile_n_1 = ty + 1;
+      }
+  }
+
+  unsigned int temp1_ty;
+  unsigned int cnt = 5;
+  if(tx == x_pll)
+  {
+    foreach temp_ty( l_y_pll )
+    {
+      if((tile_n_1>=temp_ty) && (tile_n_1<=temp_ty+NUM_GRID_PLL_Y/NUM_GRID_Y-1))
+      {
+        tile_n_1 = tile_n_1 + NUM_GRID_PLL_Y/NUM_GRID_Y;
+      }
+      for(temp1_ty=tile_n_1;temp1_ty>=0;temp1_ty=temp1_ty-NUM_TILES_REGION)
+      {
+        if(temp1_ty==MID_TILE_REGION)
+        {
+          tile_n_1 = tile_n_1 + 1;
+        }
+      }
+    }
+  }
+
+  if(tx == x_uscm)
+  {
+    foreach temp_ty( l_y_uscm )
+    {
+      if((tile_n_1>=temp_ty) && (tile_n_1<=temp_ty+NUM_GRID_USCM_Y/NUM_GRID_Y-1))
+      {
+        tile_n_1 = tile_n_1 + NUM_GRID_USCM_Y/NUM_GRID_Y;
+      }
+      for(temp1_ty=tile_n_1;temp1_ty>=0;temp1_ty=temp1_ty-NUM_TILES_REGION)
+      {
+        if(temp1_ty==MID_TILE_REGION)
+        {
+          tile_n_1 = tile_n_1 + 1;
+        }
+      }
+    }
+  }
+
+
+  site_n_1 = tile_n_1 * NUM_GRID_Y;
+  for(temp_ty = tile_n_1;temp_ty > MID_TILE_REGION;temp_ty = temp_ty - NUM_TILES_REGION)
+  {
+      site_n_1 = site_n_1 + NUM_GRID_WLSR_Y -NUM_GRID_Y;
+  }
+
+  
+  string strVar;
+  strVar = flag ? "CLMA_TILE" : "CLMS_TILE";
+
+  if((tile_n_1!=max_y) && !((tile_n_1==y_ccs)&&(tx>=x_ccs)&&(tx<=x_ccs+NUM_GRID_CCS_X/NUM_GRID_X)))
+  {
+    connect
+     (
+        <pin L7IN of <device *strVar @[sx,sy]>>    => <wire L7OUT of <device *strVar @ [sx,site_n_1]>>
+      );
+  }
+  else
+  {
+    connect
+     (
+        <pin L7IN of <device *strVar @[sx,sy]>>    => <wire TIEHI of <device *strVar @ [sx,sy]>>
+      );
+  }
+ 
+  
+}//end of function connect_CLM_input_d
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_APM_input(unsigned int tx,ty,num_region)
+{
+  unsigned int sx,sy;
+  sx = tx * NUM_GRID_X + 2;
+  sy = ty * NUM_GRID_Y;
+
+  unsigned int temp_ty;
+
+// Calculate the north/south source grid site
+  unsigned int site_s_1;
+
+  for(temp_ty = ty;temp_ty >= 0;temp_ty = temp_ty-NUM_TILES_REGION)
+  {
+    if(temp_ty == (MID_TILE_REGION+NUM_GRID_APM_Y/NUM_GRID_Y))
+    {
+      site_s_1 = sy - NUM_GRID_APM_Y - NUM_GRID_WLSR_Y;
+      break;
+    }
+    else
+    {
+      site_s_1 = sy - NUM_GRID_APM_Y;
+    }
+  }
+
+  unsigned int site_n_1;
+
+  for(temp_ty = ty;temp_ty >= 0;temp_ty = temp_ty-NUM_TILES_REGION)
+  {
+    if(temp_ty == (MID_TILE_REGION-NUM_GRID_APM_Y/NUM_GRID_Y))
+    {
+      site_n_1 = sy + NUM_GRID_APM_Y + NUM_GRID_WLSR_Y;
+      break;
+    }
+    else
+    {
+      site_n_1 = sy + NUM_GRID_APM_Y;
+    }
+  }
+  
+  if(ty != 0)
+  {
+    connect
+      (
+        <pin XI of <device APM_TILE @[sx,sy]>>   => <wire XO of <device APM_TILE @ [sx,site_s_1]>>,
+        <pin PCI of <device APM_TILE @[sx,sy]>>  => <wire PCO of <device APM_TILE @ [sx,site_s_1]>>,
+        <pin PI of <device APM_TILE @[sx,sy]>>   => <wire PO of <device APM_TILE @ [sx,site_s_1]>>
+      );
+  }
+  else
+  {
+    connect
+      (
+        <pin XI[17] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_1 of <device APM_TILE @ [sx,sy]>>,
+        <pin XI[16] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_1 of <device APM_TILE @ [sx,sy]>>,
+        <pin XI[15] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_1 of <device APM_TILE @ [sx,sy]>>,
+        <pin XI[14] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_1 of <device APM_TILE @ [sx,sy]>>,
+        <pin XI[13] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_1 of <device APM_TILE @ [sx,sy]>>,
+        <pin XI[12] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_1 of <device APM_TILE @ [sx,sy]>>,
+        <pin XI[11] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_1 of <device APM_TILE @ [sx,sy]>>,
+        <pin XI[10] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_1 of <device APM_TILE @ [sx,sy]>>,
+        <pin XI[9] of <device APM_TILE @[sx,sy]>>    => <wire TIELO_1 of <device APM_TILE @ [sx,sy]>>,
+        <pin XI[8] of <device APM_TILE @[sx,sy]>>    => <wire TIELO_1 of <device APM_TILE @ [sx,sy]>>,
+        <pin XI[7] of <device APM_TILE @[sx,sy]>>    => <wire TIELO_1 of <device APM_TILE @ [sx,sy]>>,
+        <pin XI[6] of <device APM_TILE @[sx,sy]>>    => <wire TIELO_1 of <device APM_TILE @ [sx,sy]>>,
+        <pin XI[5] of <device APM_TILE @[sx,sy]>>    => <wire TIELO_1 of <device APM_TILE @ [sx,sy]>>,
+        <pin XI[4] of <device APM_TILE @[sx,sy]>>    => <wire TIELO_1 of <device APM_TILE @ [sx,sy]>>,
+        <pin XI[3] of <device APM_TILE @[sx,sy]>>    => <wire TIELO_1 of <device APM_TILE @ [sx,sy]>>,
+        <pin XI[2] of <device APM_TILE @[sx,sy]>>    => <wire TIELO_1 of <device APM_TILE @ [sx,sy]>>,
+        <pin XI[1] of <device APM_TILE @[sx,sy]>>    => <wire TIELO_1 of <device APM_TILE @ [sx,sy]>>,
+        <pin XI[0] of <device APM_TILE @[sx,sy]>>    => <wire TIELO_1 of <device APM_TILE @ [sx,sy]>>,
+        <pin PCI of <device APM_TILE @[sx,sy]>>      => <wire TIELO_2 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[0] of <device APM_TILE @[sx,sy]>>    => <wire TIELO_2 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[1] of <device APM_TILE @[sx,sy]>>    => <wire TIELO_2 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[2] of <device APM_TILE @[sx,sy]>>    => <wire TIELO_2 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[3] of <device APM_TILE @[sx,sy]>>    => <wire TIELO_2 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[4] of <device APM_TILE @[sx,sy]>>    => <wire TIELO_2 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[5] of <device APM_TILE @[sx,sy]>>    => <wire TIELO_2 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[6] of <device APM_TILE @[sx,sy]>>    => <wire TIELO_2 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[7] of <device APM_TILE @[sx,sy]>>    => <wire TIELO_2 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[8] of <device APM_TILE @[sx,sy]>>    => <wire TIELO_2 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[9] of <device APM_TILE @[sx,sy]>>    => <wire TIELO_2 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[10] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_2 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[11] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_2 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[12] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_2 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[13] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_2 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[14] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_2 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[15] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_2 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[16] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_2 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[17] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_2 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[18] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_2 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[19] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_2 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[20] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_2 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[21] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_2 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[22] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_2 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[23] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_2 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[24] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_3 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[25] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_3 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[26] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_3 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[27] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_3 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[28] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_3 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[29] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_3 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[30] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_3 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[31] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_3 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[32] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_3 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[33] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_3 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[34] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_3 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[35] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_3 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[36] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_3 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[37] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_3 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[38] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_3 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[39] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_3 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[40] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_3 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[41] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_3 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[42] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_3 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[43] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_3 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[44] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_3 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[45] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_3 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[46] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_3 of <device APM_TILE @ [sx,sy]>>,
+        <pin PI[47] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_3 of <device APM_TILE @ [sx,sy]>>
+      );
+  }
+  
+  if(ty != (NUM_TILES_REGION*num_region - NUM_GRID_APM_Y/NUM_GRID_Y))
+  {
+    connect
+      (
+        <pin XBI of <device APM_TILE @[sx,sy]>>   => <wire XBO of <device APM_TILE @ [sx,site_n_1]>>
+      );
+  }
+  else
+  {
+    connect
+      (
+        <pin XBI[0] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_0 of <device APM_TILE @ [sx,sy]>>,
+        <pin XBI[1] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_0 of <device APM_TILE @ [sx,sy]>>,
+        <pin XBI[2] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_0 of <device APM_TILE @ [sx,sy]>>,
+        <pin XBI[3] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_0 of <device APM_TILE @ [sx,sy]>>,
+        <pin XBI[4] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_0 of <device APM_TILE @ [sx,sy]>>,
+        <pin XBI[5] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_0 of <device APM_TILE @ [sx,sy]>>,
+        <pin XBI[6] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_0 of <device APM_TILE @ [sx,sy]>>,
+        <pin XBI[7] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_0 of <device APM_TILE @ [sx,sy]>>,
+        <pin XBI[8] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_0 of <device APM_TILE @ [sx,sy]>>,
+        <pin XBI[9] of <device APM_TILE @[sx,sy]>>   => <wire TIELO_0 of <device APM_TILE @ [sx,sy]>>,
+        <pin XBI[10] of <device APM_TILE @[sx,sy]>>  => <wire TIELO_0 of <device APM_TILE @ [sx,sy]>>,
+        <pin XBI[11] of <device APM_TILE @[sx,sy]>>  => <wire TIELO_0 of <device APM_TILE @ [sx,sy]>>,
+        <pin XBI[12] of <device APM_TILE @[sx,sy]>>  => <wire TIELO_0 of <device APM_TILE @ [sx,sy]>>,
+        <pin XBI[13] of <device APM_TILE @[sx,sy]>>  => <wire TIELO_0 of <device APM_TILE @ [sx,sy]>>,
+        <pin XBI[14] of <device APM_TILE @[sx,sy]>>  => <wire TIELO_0 of <device APM_TILE @ [sx,sy]>>,
+        <pin XBI[15] of <device APM_TILE @[sx,sy]>>  => <wire TIELO_0 of <device APM_TILE @ [sx,sy]>>,
+        <pin XBI[16] of <device APM_TILE @[sx,sy]>>  => <wire TIELO_0 of <device APM_TILE @ [sx,sy]>>,
+        <pin XBI[17] of <device APM_TILE @[sx,sy]>>  => <wire TIELO_0 of <device APM_TILE @ [sx,sy]>>
+      );
+  }
+
+}//end of function connect_APM_input
+
+
+
+   
+
+} //end of package pgl_funcs_connect_logic
+

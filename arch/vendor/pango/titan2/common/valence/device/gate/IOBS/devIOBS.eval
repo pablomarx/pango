@@ -1,0 +1,124 @@
+*****************************************************************
+
+  Device    [devIOBS]
+
+  Author    [clwang]
+
+  Abstract  [devIOBS  is a grid device of the devIOBS which are placed on the
+            TOP/RIGHT/BOTTOM of Arch.]
+
+  Revision History:
+
+********************************************************************************/
+
+gate
+device devIOBS : device IOBS
+{
+    parameter
+    (
+        config string CP_IOB_MODE = "UNUSED",
+        config string CP_PORT_STATUS = "NONE",
+        config string CP_IO_STANDARD = "DEFAULT",
+        config string CP_DDRIN_TERM = "OFF",
+        config string CP_DYN_TERM = "OFF",
+        config string CP_IN_MAG = "UNUSED",
+        config string CP_HYS = "OFF",
+        config string CP_DRV_STRENGTH = "12",
+        config string CP_SLEW_MODE = "F",
+        config string CP_OPENDRAIN = "OFF",
+        config string CP_TERM_VAL = "50",
+        config string CP_DYN_IN = "OFF",
+        config string CP_VCCIO = "3.3"
+    );
+    port
+    (
+        input DO = 1'b1,
+        input DO_NDRV = 1'b1,
+        input DIFFO_IN = 1'b1,
+        input IN_DYN_EN = 1'b1,
+        output DIN,
+        output DIFFI_OUT,
+        inout ADC_IN,
+        inout PAD
+    );
+};
+
+//grid device structure netlist started
+structure netlist of devIOBS
+{
+    // input net
+    wire ntDO;
+    wire ntDO_NDRV;
+    wire ntDIFFO_IN;
+    //wire ntMIPI_SW_DYN;
+    wire ntIN_DYN_EN;
+    
+    // inout net
+    wire ntPAD;
+    
+    // 
+    wire ntIBUFS;
+    wire ntOBUFS;
+    wire ntDIFFI_OUT;
+    
+    // assign net to port
+    ntDO          <=  DO          ;
+    ntDO_NDRV     <=  DO_NDRV     ;
+    ntDIFFO_IN    <=  DIFFO_IN    ;
+    //ntMIPI_SW_DYN <=  MIPI_SW_DYN ;
+    
+    PAD           <=  ntPAD       ;
+    DIN           <=  ntIBUFS     ;
+    //DIFFI_OUT     <=  ntPAD       ;
+    DIFFI_OUT     <=  ntDIFFI_OUT ;
+    ntIN_DYN_EN   <= IN_DYN_EN;
+    
+    
+    
+    device IBUFS IBUFR
+        parameter map
+        (
+            CP_IOB_MODE    => CP_IOB_MODE,
+            CP_DYN_IN      => CP_DYN_IN  ,
+            CP_IO_STANDARD => CP_IO_STANDARD
+        )
+        port map 
+        (
+            OUT       => ntIBUFS  , 
+            IN_DYN_EN => ntIN_DYN_EN,  
+            IN        => ntPAD      
+        );     
+    
+    device OBUFS OBUFR
+       parameter map
+       ( 
+           CP_IOB_MODE    => CP_IOB_MODE    ,     
+           CP_OPENDRAIN   => CP_OPENDRAIN      
+       )
+       port map
+       (   
+           OUT         => ntOBUFS       ,  
+           PAD         => ntPAD         , 
+           DIFFI_OUT   => ntDIFFI_OUT   , 
+           DO_NDRV     => ntDO_NDRV     ,              
+           DO          => ntDO          
+       ); 
+    device DIFFOSMUX DIFFOSMUX
+       parameter map
+       ( 
+           CP_IO_STANDARD => CP_IO_STANDARD ,
+           CP_IOB_MODE    => CP_IOB_MODE    ,
+           CP_PORT_STATUS => CP_PORT_STATUS 
+       )
+       port map
+       ( 
+           OUT         => ntPAD          ,
+           DO          => ntDO           ,
+           DO_NDRV     => ntDO_NDRV      ,
+           IN          => ntPAD        ,
+           DIFFO_IN    => ntDIFFO_IN     ,
+           OBUFO_IN    => ntOBUFS       
+       );
+         
+}; // end of struct netlist of devIOBS
+

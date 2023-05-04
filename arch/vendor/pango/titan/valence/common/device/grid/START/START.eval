@@ -1,0 +1,95 @@
+*****************************************************************
+
+  Device    [START]
+
+  Author    [clwang]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+grid
+device START/* pragma PAP_LIB_NO_PRUNE */
+{
+    parameter
+    (
+        config int LOW_WIDTH1 = 10,
+        config int LOW_WIDTH2 = 0,
+        config bit UCLK_EN    = 1'b0  ,
+        config bit GOUTEN_EN  = 1'b0  ,
+        config bit GRSN_EN    = 1'b0  ,
+        config bit GWEN_EN    = 1'b0
+    );
+    port
+    (      
+        config input SC_UCLK_EN     = 1'b0 /*pragma PAP_CFG_BIT_NAME = "SC_UCLK_EN"*/,
+        config input SC_GOUTEN_EN   = 1'b0 /*pragma PAP_CFG_BIT_NAME = "SC_GOUTEN_EN"*/,
+        config input SC_GRSN_EN     = 1'b0 /*pragma PAP_CFG_BIT_NAME = "SC_GRSN_EN"*/,
+        config input SC_GWEN_EN     = 1'b0 /*pragma PAP_CFG_BIT_NAME = "SC_GWEN_EN"*/,
+               input UCLK    = 1'b1,
+               input GOUTEN  = 1'b1,
+               input GRSN    = 1'b1,    
+               input GWEN    = 1'b1
+    );
+} // end of device START
+
+/*******************************************************************************
+
+  Device    [START]
+
+  Author    [clwang]
+
+  Abstract  [The structure netlist of START is described in the similar fashion 
+             as in HDL. In unit instantiation statement, the formal pin may be 
+             connected to net which is declared explicitly. 
+             
+             In Valence, the connection can also be made from formal pin to other 
+             pin or port, in which case Valence compiler shall create the net to 
+             fulfil the connection. The built-in naming convention is kicked in 
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+
+structure netlist of START
+{
+    device START_INST START_INST
+        parameter map
+        (
+            LOW_WIDTH1 => LOW_WIDTH1,
+            LOW_WIDTH2 => LOW_WIDTH2
+        )
+        port map
+        (
+            UCLK     =>  UCLK,
+            GOUTEN   =>  GOUTEN,
+            GRSN     =>  GRSN,
+            GWEN     =>  GWEN
+        );
+
+}; // end of structure netlist of START
+
+configuration cfg of START             
+{                                    
+    SC_UCLK_EN     :=  UCLK_EN    ;
+    SC_GOUTEN_EN   :=  GOUTEN_EN  ;
+    SC_GRSN_EN     :=  GRSN_EN    ;
+    SC_GWEN_EN     :=  GWEN_EN    ;                                      
+}; // end of configuration cfg of START
+
+timing tnl of START
+{   
+   operator V_START V_START
+        port map
+        (
+            CLK     => UCLK,
+            GOE     => GOUTEN,
+            GRS_N   => GRSN,
+            GWE    => GWEN
+        );
+}

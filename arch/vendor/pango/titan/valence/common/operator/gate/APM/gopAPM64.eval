@@ -1,0 +1,361 @@
+*************************************************************
+
+Copyright (c) 2014 by PANGO MICROSYSTEMS, INC
+ALL RIGHTS RESERVED.
+
+THE SOURCE CODE CONTAINED HEREIN IS PROPRIETARY TO PANGO MICROSYSTEMS, INC.
+IT SHALL NOT BE REPRODUCED OR DISCLOSED IN WHOLE OR IN PART OR USED BY
+PARTIES WITHOUT WRITTEN AUTHORIZATION FROM THE OWNER.
+
+  Operator  [gopAPM64]
+
+  Author    [Peifu Shen]
+
+  Abstract  [P = XA * (YA +/- ZA) +/- XB * (YB +/- ZB) +/- P]
+
+  Parameter []
+
+  Revision History:
+        GTP_MULTACC18
+        GTP_MULTADD18
+        GTP_MULTADDACC18
+        GTP_MULTADDSUM18
+        GTP_PREADD_MULTACC18
+        GTP_PREADD_MULTADD18
+        GTP_PREADD_MULTADDACC18
+        GTP_PREADD_MULTADDSUM18
+
+        GTP_MULTACC27
+        GTP_MULTACC36
+        GTP_MULTADD27
+        GTP_MULTADD36
+        GTP_PREADD_MULTACC27
+        GTP_PREADD_MULTACC36
+        GTP_PREADD_MULTADD27
+        GTP_PREADD_MULTADD36
+
+        GTP_MULT27
+        GTP_MULT36
+        GTP_PREADD_MULT27
+        GTP_PREADD_MULT36
+
+        GTP_FIR_A
+        GTP_FIR_B
+        GTP_PREADD_FIR_A
+        GTP_PREADD_FIR_B
+
+***************************************************************************/
+
+gate
+operator gopAPM64
+{
+    parameter
+    (
+        bit CTRL_IRBYP_0_OP0 = 1'b1,
+        bit CTRL_IRBYP_1_OP7 = 1'b1,
+        bit CTRL_IRBYP_2_OPA = 1'b1,
+        bit CTRL_IRBYP_3_OPB = 1'b1,
+        bit CTRL_IRBYP_4_OP8 = 1'b1,
+        bit CTRL_PRBYP_0_OP0 = 1'b1,
+        bit CTRL_PRBYP_1_OP7 = 1'b1,
+        bit CTRL_PRBYP_2_OP8 = 1'b1,
+        bit IREG_SYNC = 1'b0,
+        bit AREG_SYNC = 1'b0,
+        bit MREG_SYNC = 1'b0,
+        bit OREG_SYNC = 1'b0,
+        bit IREG_BYP = 1'b0,
+        bit IREG_BYP_ZA = 1'b0,
+        bit IREG_BYP_ZB = 1'b0,
+        bit AREG_BYP = 1'b0,
+        bit MREG_BYP = 1'b0,
+        bit OREG_BYP = 1'b0,
+        int OP_PRAD_A = 0,
+        int OP_PRAD_B = 0,
+        int OP_MULT_A = 18,
+        int OP_MULT_B = 18,
+        bit PSE_A0[16:0] = 17'h0_0000,
+        bit PSE_A1[16:0] = 17'h0_0000,
+        bit PSE_B0[16:0] = 17'h0_0000,
+        bit PSE_B1[16:0] = 17'h0_0000,
+        bit PSE_C0[16:0] = 17'h0_0000,
+        bit PSE_C1[16:0] = 17'h0_0000,
+        bit DBYP_C[1:0] = 2'b00,
+        bit SOURCEB[1:0] = 2'b00,
+        bit SOURCEC[1:0] = 2'b00,
+        bit IRDSEL_B[1:0] = 2'b00,
+        bit IRDSEL_C[1:0] = 2'b00,
+        bit IRB_SHFEN[1:0] = 2'b00,
+        bit IRC_SHFEN[1:0] = 2'b00,
+        bit IRSHF_B_SEL = 1'b0,
+        bit IRSHF_C_SEL = 1'b0,
+        bit CYSIGNED_SEL = 1'b0,
+        bit CZSIGNED_SEL = 1'b0,
+        string ALU_MODE = "DISABLE",
+        bit IS_ACC = 1'b0,
+        bit TERNARY = 1'b0,
+        bit ALU_FLAGEN = 1'b0,
+        bit OPCD[10:0]         = 11'b0000_000_0000,
+        bit OPCD_DYN_SEL[10:0] = 11'h000,
+        bit OPCD_DYN_POL[10:0] = 11'h000,
+        bit OPCD_BYP[8:0] = 9'b000000_000,
+        bit RTI    [63:0] = 64'h0000_0000_0000_0000,
+        bit MCPAT  [63:0] = 64'h0000_0000_0000_0000,
+        bit MASKPAT[63:0] = 64'h0000_0000_0000_0000,
+        bit MASK01 [63:0] = 64'h0000_0000_0000_0000,
+        bit OR2CASCADE_EN = 1'b0,
+        bit GRS_DISABLED = 1'b0,
+        bit PRAD_FIR_INPUT_OP[7:0] = 8'b0000_0000
+    );
+
+    port
+    (
+        input CLK /* pragma PAP_ARC_GOP_CTRL_PIN = "GCLK|RCLK"*/,
+        input CE /* pragma PAP_ARC_GOP_CTRL_PIN = CE*/,
+        input RST /* pragma PAP_ARC_GOP_CTRL_PIN = RST*/,
+        input DXA[17:0],
+        input DYA[17:0],
+        input DZA[31:0],
+        input DXA_SIGNED,
+        input DYA_SIGNED,
+        input DZA_SIGNED,
+        input DXB[17:0],
+        input DYB[17:0],
+        input DZB[31:0],
+        input DXB_SIGNED,
+        input DYB_SIGNED,
+        input DZB_SIGNED,
+        input OP_PRAD[1:0],
+        input OP_IR_0,
+        input OP_IR_1,
+        input OP_IR_2,
+        input OP_IR_3,
+        input OP_IR_4,
+        input OP_IR_5,
+        input OP_IR_6,
+        input OP_IR_7,
+        input OP_IR_8,
+        input OP_POST_7,
+        input OP_POST_8,
+        input OP_POST_6,
+        input OP_POST_5,
+        input OP_POST_4,
+        input OP_POST_3,
+        input OP_POST_2,
+        input OP_POST_1,
+        output DP[63:0],
+        output EQZ,    // DP72
+        output EQZM,   // DP71
+        output EQOM,   // DP70
+        output EQPAT,  // DP69
+        output EQPATN, // DP68
+        output OVER,   // DP67
+        output UNDER,  // DP66
+        input  CYI[26:0],
+        input  CZI[26:0],
+        input  CYI_SIGNED,
+        input  CZI_SIGNED,
+        output CYO[26:0],
+        output CZO[26:0],
+        output CYO_SIGNED,
+        output CZO_SIGNED,
+        input  CPI[64:0],
+        input  CPI_SIGNED,
+        output CPO[64:0],
+        output CPO_SIGNED
+    );
+};
+
+/**Implementation Body******************************************************
+
+  Author    [Peifu Shen]
+
+  Abstract  []
+
+  Revision History:
+
+***************************************************************************/
+implementation impl_apm64 of gopAPM64
+{
+    device devAPM64 gateDevApm64
+    parameter map
+    (
+        IR_BYP_0_XA  => IREG_BYP,
+        IR_BYP_1_XA  => IREG_BYP,
+        IR_BYP_2_YA  => IREG_BYP,
+        IR_BYP_3_YA  => IREG_BYP,
+        IR_BYP_4_ZA  => IREG_BYP_ZA,
+        IR_BYP_5_ZA  => IREG_BYP_ZA,
+        IR_BYP_6_ZA  => IREG_BYP_ZA,
+        IR_BYP_7_XB  => IREG_BYP,
+        IR_BYP_8_XB  => IREG_BYP,
+        IR_BYP_9_YB  => IREG_BYP,
+        IR_BYP_10_YB => IREG_BYP,
+        IR_BYP_11_ZB => IREG_BYP_ZB,
+        IR_BYP_12_ZB => IREG_BYP_ZB,
+        IR_BYP_13_ZB => IREG_BYP_ZB,
+        SYNC_IR_0_XA  => IREG_SYNC,
+        SYNC_IR_1_XA  => IREG_SYNC,
+        SYNC_IR_2_YA  => IREG_SYNC,
+        SYNC_IR_3_YA  => IREG_SYNC,
+        SYNC_IR_4_ZA  => IREG_SYNC,
+        SYNC_IR_5_ZA  => IREG_SYNC,
+        SYNC_IR_6_ZA  => IREG_SYNC,
+        SYNC_IR_7_XB  => IREG_SYNC,
+        SYNC_IR_8_XB  => IREG_SYNC,
+        SYNC_IR_9_YB  => IREG_SYNC,
+        SYNC_IR_10_YB => IREG_SYNC,
+        SYNC_IR_11_ZB => IREG_SYNC,
+        SYNC_IR_12_ZB => IREG_SYNC,
+        SYNC_IR_13_ZB => IREG_SYNC,
+        PRADOR_BYP_0_XA => AREG_BYP,
+        PRADOR_BYP_1_XA => AREG_BYP,
+        PRADOR_BYP_2_YA => AREG_BYP,
+        PRADOR_BYP_3_YA => AREG_BYP,
+        PRADOR_BYP_4_XB => AREG_BYP,
+        PRADOR_BYP_5_XB => AREG_BYP,
+        PRADOR_BYP_6_YB => AREG_BYP,
+        PRADOR_BYP_7_YB => AREG_BYP,
+        SYNC_PRAD_0_XA  => AREG_SYNC,
+        SYNC_PRAD_1_XA  => AREG_SYNC,
+        SYNC_PRAD_2_YA  => AREG_SYNC,
+        SYNC_PRAD_3_YA  => AREG_SYNC,
+        SYNC_PRAD_4_XB  => AREG_SYNC,
+        SYNC_PRAD_5_XB  => AREG_SYNC,
+        SYNC_PRAD_6_YB  => AREG_SYNC,
+        SYNC_PRAD_7_YB  => AREG_SYNC,
+        PR_BYP_0_MA  => MREG_BYP,
+        PR_BYP_1_MA  => MREG_BYP,
+        PR_BYP_2_MB  => MREG_BYP,
+        PR_BYP_3_MB  => MREG_BYP,
+        PR_BYP_4_XA  => MREG_BYP,
+        PR_BYP_5_XB  => MREG_BYP,
+        PR_BYP_6_YA  => MREG_BYP,
+        PR_BYP_7_YB  => MREG_BYP,
+        PR_BYP_8_ZA  => MREG_BYP,
+        PR_BYP_9_ZB  => MREG_BYP,
+        SYNC_PR_0_MA => MREG_SYNC,
+        SYNC_PR_1_MA => MREG_SYNC,
+        SYNC_PR_2_MB => MREG_SYNC,
+        SYNC_PR_3_MB => MREG_SYNC,
+        SYNC_PR_4_XA => MREG_SYNC,
+        SYNC_PR_5_XB => MREG_SYNC,
+        SYNC_PR_6_YA => MREG_SYNC,
+        SYNC_PR_7_YB => MREG_SYNC,
+        SYNC_PR_8_ZA => MREG_SYNC,
+        SYNC_PR_9_ZB => MREG_SYNC,
+        OR_BYP_0_A  => OREG_BYP,
+        OR_BYP_1_A  => OREG_BYP,
+        OR_BYP_2_B  => OREG_BYP,
+        OR_BYP_3_B  => OREG_BYP,
+        SYNC_OR_0_A => OREG_SYNC,
+        SYNC_OR_1_A => OREG_SYNC,
+        SYNC_OR_2_B => OREG_SYNC,
+        SYNC_OR_3_B => OREG_SYNC,
+        CTRL_IRBYP_0_OP0 => CTRL_IRBYP_0_OP0,
+        CTRL_IRBYP_1_OP7 => CTRL_IRBYP_1_OP7,
+        CTRL_IRBYP_2_OPA => CTRL_IRBYP_2_OPA,
+        CTRL_IRBYP_3_OPB => CTRL_IRBYP_3_OPB,
+        CTRL_IRBYP_4_OP8 => CTRL_IRBYP_4_OP8,
+        SYNC_CTIR => {4{IREG_SYNC}},
+        CTRL_PRBYP_0_OP0 => CTRL_PRBYP_0_OP0,
+        CTRL_PRBYP_1_OP7 => CTRL_PRBYP_1_OP7,
+        CTRL_PRBYP_2_OP8 => CTRL_PRBYP_2_OP8,
+        SYNC_CTPR => {2{MREG_SYNC}},
+        OP_PRAD_A => OP_PRAD_A,
+        OP_PRAD_B => OP_PRAD_B,
+        OP_MULT_A => OP_MULT_A,
+        OP_MULT_B => OP_MULT_B,
+        OPCD_BYP  => OPCD_BYP,
+        OPCD         => OPCD,
+        OPCD_DYN_SEL => OPCD_DYN_SEL,
+        OPCD_DYN_POL => (OPCD_DYN_POL!=11'h0) ? OPCD_DYN_POL : OPCD_DYN_SEL,
+        DXIA_SIGNED_POL => 1'b1,
+        DYIA_SIGNED_POL => 1'b1,
+        DZIA_SIGNED_POL => (OP_PRAD_A>0||ALU_MODE=="FIRA"||ALU_MODE=="FIRB") ? 1'b1 : 1'b0,
+        DXIB_SIGNED_POL => 1'b1,
+        DYIB_SIGNED_POL => 1'b1,
+        DZIB_SIGNED_POL => (OP_PRAD_B>0||ALU_MODE=="FIRA"||ALU_MODE=="FIRB") ? 1'b1 : 1'b0,
+        OP_PRAD_A_POL => (OP_PRAD_A > 0) ? 1'b1 : 1'b0,
+        OP_PRAD_B_POL => (OP_PRAD_B > 0) ? 1'b1 : 1'b0,
+        DXIA_PSE => PSE_A0,
+        DXIB_PSE => PSE_A1,
+        DYIA_PSE => PSE_B0,
+        DYIB_PSE => PSE_B1,
+        DZIA_PSE => {15'h0000, PSE_C0},
+        DZIB_PSE => {14'h0000, PSE_C1},
+        SIGNED_ENA => (OP_MULT_A == 27) ? 2'b10 : 2'b00,
+        SIGNED_ENB => (OP_MULT_A == 27) ? 2'b10 : 2'b00,
+        SIGNED_ENC => (OP_PRAD_A>0 && OP_MULT_A==27) ? 2'b10 : 2'b00,
+        CYSIGNED_SEL => CYSIGNED_SEL,
+        CZSIGNED_SEL => CZSIGNED_SEL,
+        DBYP_C => DBYP_C,
+        SOURCEB => SOURCEB,
+        SOURCEC => SOURCEC,
+        IRDSEL_B => IRDSEL_B,
+        IRDSEL_C => IRDSEL_C,
+        IRB_SHFEN => IRB_SHFEN,
+        IRC_SHFEN => IRC_SHFEN,
+        IRSHF_B_SEL => IRSHF_B_SEL,
+        IRSHF_C_SEL => IRSHF_C_SEL,
+        ALU_MODE => (ALU_MODE == "DISABLE") ? "DISABLE" : "ENABLE",
+        TERNARY => TERNARY ? 1'b1 : (IS_ACC ? 1'b1 : 1'b0),
+        ALU_MCPATSEL   => 1'b1, // IS_ACC ? 1'b1 : 1'b0,
+        ALU_MASKPATSEL => 1'b1, // IS_ACC ? 1'b1 : 1'b0,
+        ALU_FLAGEN => ALU_FLAGEN,
+        RTI     => RTI,
+        MCPAT   => MCPAT,
+        MASKPAT => MASKPAT,
+        MASK01  => {1'b1, MASK01},
+        OR2CASCADE_EN => OR2CASCADE_EN,
+        OR2CIM_EN_0_A => 1'b1,
+        OR2CIM_EN_1_A => 1'b1,
+        OR2CIM_EN_2_B => 1'b1,
+        OR2CIM_EN_3_B => 1'b1,
+        GRS_DIS => GRS_DISABLED,
+        PRAD_FIR_INPUT_OP => PRAD_FIR_INPUT_OP
+    )
+    port map
+    (
+        CLK[0]  => CLK,
+        CE[0]   => CE,
+        RST[0] => RST,
+        APM_OP_PRAD => OP_PRAD,
+        APM_OP_IR => {OP_IR_8,OP_IR_7,OP_IR_6,OP_IR_5,OP_IR_4,OP_IR_3,OP_IR_2,OP_IR_1,OP_IR_0},
+        APM_OP_POST[7] => OP_POST_7,
+        APM_OP_POST[8] => OP_POST_8,
+        APM_OP_POST[6] => OP_POST_6,
+        APM_OP_POST[5] => OP_POST_5,
+        APM_OP_POST[4] => OP_POST_4,
+        APM_OP_POST[3] => OP_POST_3,
+        APM_OP_POST[2] => OP_POST_2,
+        APM_OP_POST[1] => OP_POST_1,
+        DXIA => DXA,
+        DYIA => DYA,
+        DZIA => DZA,
+        DXIA_SIGNED => DXA_SIGNED,
+        DYIA_SIGNED => DYA_SIGNED,
+        DZIA_SIGNED => DZA_SIGNED,
+        DXIB => DXB,
+        DYIB => DYB,
+        DZIB => DZB,
+        DXIB_SIGNED => DXB_SIGNED,
+        DYIB_SIGNED => DYB_SIGNED,
+        DZIB_SIGNED => DZB_SIGNED,
+        CYI => CYI,
+        CYO => CYO,
+        CZI => CZI,
+        CZO => CZO,
+        CYI_SIGNED => CYI_SIGNED,
+        CYO_SIGNED => CYO_SIGNED,
+        CZI_SIGNED => CZI_SIGNED,
+        CZO_SIGNED => CZO_SIGNED,
+        CPI => CPI,
+        CPO => CPO,
+        CPI_SIGNED => CPI_SIGNED,
+        CPO_SIGNED => CPO_SIGNED,
+        DPO[35:0]  => DP[35:0],
+        DPO[64:37] => DP[63:36],
+        DPO[72:66] => {EQZ,EQZM,EQOM,EQPAT,EQPATN,OVER,UNDER}
+    );
+};
+

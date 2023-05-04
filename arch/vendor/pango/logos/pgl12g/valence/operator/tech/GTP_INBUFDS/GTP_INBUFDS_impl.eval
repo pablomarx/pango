@@ -1,0 +1,98 @@
+*****************************************************************
+
+  Operator   [GTP_INBUFDS]
+
+  Author      []
+
+  Abstract    []
+
+  Copyright 2014 (c). SHENZHEN PANGO MICROSYSTEMS CO.,LTD.
+  All Right Reserved.
+
+  Revision History:
+     06/18/14 - Initial version.
+
+********************************************************************************/
+fabric
+implementation impl_a of GTP_INBUFDS @ (2,0 # 2,0)
+{
+    wire ntD, ntDIFFIN;
+
+    operator gopIBUFDSAM
+        parameter map
+        (
+            IOSTANDARD          => IOSTANDARD == "DEFAULT" ? "LVDS" : IOSTANDARD,
+            DIFF_IN_TERM_MODE   => TERM_DIFF
+        )      
+        port map
+        (
+            I        => I,
+            DIFFI_IN => ntDIFFIN,
+            O        => ntD
+        )@[1,0];
+
+    operator gopIBUFDSBS
+        parameter map
+        (
+            IOSTANDARD          => IOSTANDARD == "DEFAULT" ? "LVDS" : IOSTANDARD,
+            DIFF_IN_TERM_MODE   => TERM_DIFF
+        )      
+        port map
+        (
+            I_B       => IB,
+            DIFFI_OUT => ntDIFFIN
+        )@[1,1];
+
+    operator gopIBUFIOL
+        port map
+        (
+            IN    => ntD,
+            OUT   => O
+        )@[0,0];
+
+};
+
+fabric
+implementation impl_b of GTP_INBUFDS @ (2,0 # 2,0)
+{
+    wire ntD, ntDIFFIN, ntO;
+    
+    operator GTP_INV
+        port map
+        (
+            I        => ntO,
+            Z        => O
+        );
+    
+    operator gopIBUFDSBM
+        parameter map
+        (
+            IOSTANDARD          => IOSTANDARD,
+            DIFF_IN_TERM_MODE   => TERM_DIFF
+        )      
+        port map
+        (
+            I        => I,
+            DIFFI_IN => ntDIFFIN,
+            O        => ntD
+        )@[1,1];
+
+    operator gopIBUFDSAS
+        parameter map
+        (
+            IOSTANDARD          => IOSTANDARD,
+            DIFF_IN_TERM_MODE   => TERM_DIFF
+        )      
+        port map
+        (
+            I_B       => IB,
+            DIFFI_OUT => ntDIFFIN
+        )@[1,0];
+
+    operator gopIBUFIOL
+        port map
+        (
+            IN    => ntD,
+            OUT   => ntO
+        )@[0,0];
+};

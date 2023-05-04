@@ -1,0 +1,124 @@
+tarted
+grid
+device START
+{
+    // grid_property_def_start
+    // grid_property_def_end
+
+    parameter
+    (
+        config string CP_GOUTEN_EN = "DISABLE",
+        config string CP_GRS_N_EN = "DISABLE",
+        config string CP_GWEN_EN = "DISABLE"
+    );
+    port
+    (
+// configuration_body_def_on
+
+
+    config input SC_GOUTEN_EN = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_GOUTEN_EN" */,
+
+    config input SC_GRS_N_EN = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_GRS_N_EN" */,
+
+    config input SC_GWEN_EN = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_GWEN_EN" */,
+
+// configuration_body_def_end
+
+        input UCLK = 1'b1,
+        input GOUTEN_I = 1'b1,
+        input GRS_N_I = 1'b1,
+        input GWEN_I = 1'b1,
+        output WAKEUP_OVER
+    );
+};
+//grid device end
+
+//grid device structure netlist started
+structure netlist of START
+{
+};
+//grid device structure netlist end
+//grid device configure body started
+
+configuration cfg of START
+{
+
+//initial config body0 begin
+    if(CP_GOUTEN_EN == "ENABLE")
+    {
+        SC_GOUTEN_EN  :=  1'b1;
+    }
+    else if(CP_GOUTEN_EN == "DISABLE")
+    {
+        SC_GOUTEN_EN  :=  1'b0;
+    }
+    else
+    {
+        SC_GOUTEN_EN  :=  1'bx;
+        error ("illegal setting for CP_GOUTEN_EN := %s",CP_GOUTEN_EN);
+    }
+
+//initial config body0 end
+
+
+//initial config body1 begin
+    if(CP_GRS_N_EN == "ENABLE")
+    {
+        SC_GRS_N_EN  :=  1'b1;
+    }
+    else if(CP_GRS_N_EN == "DISABLE")
+    {
+        SC_GRS_N_EN  :=  1'b0;
+    }
+    else
+    {
+        SC_GRS_N_EN  :=  1'bx;
+        error ("illegal setting for CP_GRS_N_EN := %s",CP_GRS_N_EN);
+    }
+
+//initial config body1 end
+
+
+//initial config body2 begin
+    if(CP_GWEN_EN == "ENABLE")
+    {
+        SC_GWEN_EN  :=  1'b1;
+    }
+    else if(CP_GWEN_EN == "DISABLE")
+    {
+        SC_GWEN_EN  :=  1'b0;
+    }
+    else
+    {
+        SC_GWEN_EN  :=  1'bx;
+        error ("illegal setting for CP_GWEN_EN := %s",CP_GWEN_EN);
+    }
+
+//initial config body2 end
+
+};
+
+//grid device configure body end
+
+timing start_tnl of START
+{   
+   operator V_START_E1 V_START_E1
+        port map
+        (
+            WAKEUP_OVER => WAKEUP_OVER,
+            CLK         => UCLK       ,
+            GOE         => GOUTEN_I   ,
+            GRS_N       => GRS_N_I    ,
+            GWE         => GWEN_I     
+        );
+
+    operator V_GRS V_GRS
+        port map
+        (
+            GRS_N => GRS_N_I   
+        );
+};
+

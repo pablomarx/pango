@@ -1,0 +1,71 @@
+*****************************************************************
+
+  Device    [IBUFS]
+
+  Authos    [guoxi]
+
+  Abstract  []
+
+  Revision Hisory:
+
+********************************************************************************/
+prim
+device IBUFS
+{
+    parameter
+    (
+        config string CP_IOB_MODE     = "IBUF" , 
+        config string CP_IO_STANDARD  = "LVCMOS33", 
+        config string CP_LP_EN        = "OFF"
+    );
+    port
+    (
+        input  IN        ,
+        input  DIFFI_IN  ,
+        input  MIPI_SW_DYN,
+        input  INBUF_DYN_DIS_N,
+        output  OUT
+    );
+} // end of device IBUFS
+
+/**Device***********************************************************************
+
+  Device    [IBUFS]
+  
+  Author    [shenqiang]  
+
+  Abstract  [This specified how to propagate the input signal to the outputs based on
+             configuration]
+
+  Revision History:
+
+********************************************************************************/
+propagation pop of IBUFS
+{
+    if(CP_LP_EN == "ON")
+    {
+        propagate ( INBUF_DYN_DIS_N --> OUT );
+        
+        if(CP_IO_STANDARD == "MIPI")
+        {
+            if(CP_IOB_MODE == "IOBUF_MIPI")
+            {
+                propagate ( MIPI_SW_DYN --> OUT );
+                propagate ( IN --> OUT );
+            }
+            else if(CP_IOB_MODE == "IOBUF" || CP_IOB_MODE == "IBUF")
+            {
+                propagate ( IN --> OUT );
+            }
+        }
+        else if (CP_IOB_MODE == "IBUF_DS" || CP_IOB_MODE == "IOBUF_DS")
+        {
+            propagate ( DIFFI_IN --> OUT );
+            propagate ( IN --> OUT );
+        }
+        else if (CP_IOB_MODE == "IBUF" || CP_IOB_MODE == "IOBUF")
+        {
+            propagate ( IN --> OUT );
+        }
+    }
+} // end of propagation for IBUFS

@@ -1,0 +1,270 @@
+*****************************************************************
+
+  Device    [devIGDDRIOL]
+
+  Author    [hzhang]
+
+  Abstract  [devIGDDRIOL on the TOP/RIGHT/BOTTOM of Arch.]
+
+  Revision History:
+
+********************************************************************************/
+
+gate
+device devIGDDRIOL : device IOL
+{
+    parameter
+    (
+        config string DELAY_MODE     = "NODELAY",      //"NODELAY", "INDELAY", "OUTDELAY",
+
+        config string IN_MUX_SEL     = "DIN",        // "DIN"     : IN_FROM_PAD
+                                                     // "DIN_CDR" : IN_PAD_FOR_CDR
+        config bit    DPI_EN         = 1'b0,
+
+        config string DES_SER_CLK    = "IOCLK",        // "IOCLK", "SAMPLE_CLK", "PROBE_CLK"
+        
+        config bit    IDDR_LRS_EN    = 1'b0,
+        config string IDDR_ICLK      = "DQSDEL",       // "DQSDEL", "DESCLK", "SYSCLK"
+        config string IDDR_MODE     := "IGDDR",        //"IGDDR", "IGDES4", "IGDES7", "IGDES8", "IGDES10"
+                                                       //"IMDDR", "IMDES4", "IMDES8", "DISABLE"
+
+        config bit    GRS_EN         = 1'b0,
+        config bit    CLK_I_INV      = 1'b0,
+        config bit    LRS_INV        = 1'b0,
+
+        config bit    TRI_FORCE[1:0]  := 2'b00
+    );
+    port
+    (
+        output  RX_DATA[5:4],
+        output  RX_DATA_DD,
+
+        input   DPI_CTRL[1:0],
+        input   DPI_STS_CLR,
+        output  DPI_STS[1:0],
+
+        input   SYSCLK,
+        input   LRS,
+        input   SLIP,
+
+        // from/to IOB
+        output  TO,
+        input   DIN,
+        input   DIN_CDR
+    );
+
+}// end of device devIGDDRIOL
+
+/*******************************************************************************
+
+  Device    [devIGDDRIOL]
+
+  Author    []
+
+  Abstract  [The structure netlist of devIGDDRIOL is described in the similar fashion
+             as in HDL. In unit instantiation statement, the formal pin may be
+             connected to net which is declared explicitly.
+
+             In Valence, the connection can also be made from formal pin to other
+             pin or port, in which case Valence compiler shall create the net to
+             fulfil the connection. The built-in naming convention is kicked in
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devIGDDRIOL
+{
+    // Wires for input ports
+
+    wire ntSYSCLK, ntLRS;
+    wire ntDIN;
+    wire ntDIN_CDR;
+    wire ntDIN_MUX;
+    wire ntDPI_STS_CLR;
+
+    ntSYSCLK          <= SYSCLK;
+    ntLRS             <= LRS;
+    ntDIN             <= DIN;
+    ntDIN_CDR         <= DIN_CDR;
+    ntDPI_STS_CLR     <= DPI_STS_CLR;
+
+    // Wires connecting to output ports
+
+    wire ntIN_DELSEL_MUX;
+    RX_DATA_DD     <= ntIN_DELSEL_MUX;
+
+    // Internal wires
+    wire ntLRS_MUX;
+
+    wire ntSYSCLK_MUX_I;
+
+    wire ntIDDR_ICLK_MUX;
+    wire ntIDDR_LRS_MUX;
+
+    
+
+
+    device DIN_MUX DIN_MUX
+        parameter map
+        (
+            SEL => IN_MUX_SEL
+        )
+        port map
+        (
+            I1  => ntDIN,
+            I0  => ntDIN_CDR,
+            Y   => ntDIN_MUX
+        );
+        
+    device LRS_MUX LRS_MUX
+        parameter map
+        (
+            LRS_INV => LRS_INV
+        )
+        port map
+        (
+            I1  => ntLRS,
+            I0  => ntLRS,
+            Y   => ntLRS_MUX
+        );
+
+    device SYSCLK_MUX_I SYSCLK_MUX_I
+        parameter map
+        (
+            CLK_INV => CLK_I_INV
+        )
+        port map
+        (
+            I1   => ntSYSCLK,
+            I0   => ntSYSCLK,
+            Y    => ntSYSCLK_MUX_I
+        );
+
+
+    device IDDR_ICLK_MUX IDDR_ICLK_MUX
+        parameter map
+        (
+            ICLK => IDDR_ICLK
+        )
+        port map
+        (
+            I0  => ntSYSCLK_MUX_I,
+        
+            Y   => ntIDDR_ICLK_MUX
+        );
+
+    device IDDR_LRS_MUX IDDR_LRS_MUX
+        parameter map
+        (
+            LRS_USED => IDDR_LRS_EN
+        )
+        port map
+        (
+            LRS   => ntLRS_MUX,
+            ZERO  => 1'b0,
+            Y     => ntIDDR_LRS_MUX
+        );
+
+    device IDDR IDDR
+        parameter map
+        (
+            IDDR_MODE    => IDDR_MODE,
+            DPI_EN       => DPI_EN
+        )
+        port map
+        (
+            DATAOUT[5:4]   => RX_DATA[5:4],
+            SYSCLK         => ntSYSCLK_MUX_I,
+
+            LRS            => ntIDDR_LRS_MUX,
+            
+            DATA_IN         => ntIN_DELSEL_MUX,
+            DPI_CTRL       => DPI_CTRL,
+            DPI_STS_CLR    => DPI_STS_CLR,
+            ICLK           => ntIDDR_ICLK_MUX,
+            DPI_STS        => DPI_STS
+        );
+
+   // DELAY
+
+    device IN_DELSEL_MUX IN_DELSEL_MUX
+        parameter map
+        (
+           DELAY_MODE => DELAY_MODE
+        )
+        port map
+        ( 
+            I0  => ntDIN_MUX,
+            Y   => ntIN_DELSEL_MUX
+        );
+
+
+}; // end of structure netlist of devIGDDRIOL
+
+timing tnl of devIGDDRIOL
+{
+    wire ntCK_I_INV;    
+    wire ntCE_INV;
+    wire ntRS_INV;
+    
+    if (CLK_I_INV == 1'b1)
+    {
+        operator V_INV ckinv
+            parameter map
+            (
+                SECTION => "IOL_CLK_I_INV"
+            )
+            port map
+            (
+                I => SYSCLK,
+                Z => ntCK_I_INV
+            );
+    }
+
+    if (LRS_INV == 1'b1)
+    {
+        operator V_INV rsinv
+            parameter map
+            (
+                SECTION => "IOL_SR_INV"
+            )
+            port map
+            (
+                I => LRS,
+                Z => ntRS_INV
+            );
+    }
+
+     operator V_IGDDR igddr
+        parameter map
+        (
+            LRS_EN      =>  ( IDDR_LRS_EN == 1'b1) ? "TRUE" : "FALSE", 
+            GRS_EN      =>  ( GRS_EN == 1'b1)      ? "TRUE" : "FALSE",
+            DPI_EN      =>  ( DPI_EN == 1'b1)      ? "TRUE" : "FALSE"  
+        )
+        port map
+        (
+            PADI           =>   DIN,      
+            Q              =>   RX_DATA,
+            DPI_CTRL       =>   DPI_CTRL,
+            DPI_STS_CLR_N  =>   DPI_STS_CLR,  
+            DPI_STS        =>   DPI_STS,
+            RCLK           =>   (CLK_I_INV == 1'b1) ?  ntCK_I_INV : SYSCLK,
+            RST            =>   (LRS_INV   == 1'b1) ?  ntRS_INV   : LRS
+        );
+
+    operator V_BUF ibuf
+        parameter map
+        (
+           SECTION => "IBUF_IOL"
+        )
+        port map
+        (
+            I => DIN,
+            Z => RX_DATA_DD
+        );
+};

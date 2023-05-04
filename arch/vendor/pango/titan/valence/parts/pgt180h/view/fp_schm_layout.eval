@@ -1,0 +1,380 @@
+
+use pango_defs, pango_floorplan_funcs, pgt180h_defs;
+
+floorplan
+schematic floorplan_view draw_logic_resource of device devPGT180H
+{
+    
+    // Tile index variable
+    unsigned int tx, ty; 
+    
+    // CLM indication (CLMS + CLMA) clm_flag = 1, (CLMA + CLMA) clm_flag = 0
+    unsigned int clm_flag;
+
+    // Regulate area
+    const unsigned int CLM_tile_x0[] = { [1:4, 6:8] };
+    const unsigned int CLM_tile_y0[] = { [123:142, 144:162] };
+    const unsigned int CLM_tile_x1[] = { [9:13, 15:22, 24:31, 33:40, 42:49, 51:58, 60:67, 70:77, 79:86, 88:95, 97:104, 106:113, 115:122, 124:131, 133:136] };
+    const unsigned int CLM_tile_y1[] = { [1:19, 21:40, 41:60, 62:81, 82:101, 103:122, 123:142, 144:162] };
+
+    clm_flag = 1;
+    foreach tx ( CLM_tile_x0 )
+    {
+        foreach ty ( CLM_tile_y0 )
+        {
+            if(clm_flag == 1)
+            {
+                draw_logic_aa_tile_fp (tx, ty);
+            }
+            else
+            {
+                draw_logic_sa_tile_fp (tx, ty);
+            }
+        }
+        
+        clm_flag = (clm_flag == 1) ? 0 : 1;
+    }
+    
+    clm_flag = 1;
+    foreach tx ( CLM_tile_x1 )
+    {
+        foreach ty ( CLM_tile_y1 )
+        {
+            if(clm_flag == 1)
+            {
+                draw_logic_sa_tile_fp (tx, ty);
+            }
+            else
+            {
+                draw_logic_aa_tile_fp (tx, ty);
+            }
+        }
+        
+        clm_flag = (clm_flag == 1) ? 0 : 1;
+    }
+
+    
+    //APM tile
+    
+    const unsigned int APM_tile_x0[] = { 23, 114 };
+    const unsigned int APM_tile_y0[] = { [0:19, 21:40, 41:60, 62:81, 82:101, 103:122, 123:142, 144:163 +:4] };   
+    const unsigned int APM_tile_x1[] = { 41, 59, 78, 96 };
+    const unsigned int APM_tile_y1[] = { [8:19, 21:40, 41:60, 62:81, 82:101, 103:122, 123:142, 144:155 +:4] };   
+   
+    draw_apm_tile_fp(APM_tile_x0, APM_tile_y0); 
+    draw_apm_tile_fp(APM_tile_x1, APM_tile_y1);
+   
+    //DRM tile
+       
+    const unsigned int DRM_tile_x0[] = { 14, 32, 50, 87, 105, 123, 132 };
+    const unsigned int DRM_tile_y0[] = { [0:19, 21:40, 41:60, 62:81, 82:101, 103:122, 123:142, 144:163 +:5] };   
+    const unsigned int DRM_tile_x1[] = { 5 };
+    const unsigned int DRM_tile_y1[] = { [123:142, 144:163 +:5] };  
+    const unsigned int DRM_tile_x2[] = { 68};
+    const unsigned int DRM_tile_y2[] = { [0:19, 21:40, 41:60, 62:76, 87:101, 103:122, 123:142, 144:163 +:5] };
+
+    draw_drm_tile_fp(DRM_tile_x0, DRM_tile_y0);      
+    draw_drm_tile_fp(DRM_tile_x1, DRM_tile_y1);  
+    draw_drm_tile_fp(DRM_tile_x2, DRM_tile_y2);  
+
+    draw_drm0_tile_fp(68, 77);
+    draw_drm1_tile_fp(68, 82); 
+
+     // Site index variable
+     unsigned int sx, sy;
+     
+     //----place io_n and io_s tiles----//
+     sy = NUM_TILE_Y - 1;
+     
+     const unsigned int io_tile_x0[] = { 15, 24, 33, 42, 51, 60, 70, 79, 88, 97, 106, 115, 124 };
+     const unsigned int io_tile_y0[] = { 0, sy };
+     
+     unsigned int shift = 0;
+     
+     foreach tx ( io_tile_x0 )
+     {
+         foreach ty ( io_tile_y0 )
+         {
+             draw_io_8cim_h_tile_fp (tx, ty, NUM_TILE_X, NUM_TILE_Y);
+         }
+     }
+     
+     draw_io_8cim_h_tile_fp (6, ty, NUM_TILE_X, NUM_TILE_Y);
+     
+     const unsigned int io_tile_x1[] = { 1 };
+     const unsigned int io_tile_y1[] = { sy };
+     
+     foreach tx ( io_tile_x1 )
+     {
+         foreach ty ( io_tile_y1 )
+         {
+             draw_io_4cim_6io_ttfftt_h_tile_fp (tx, ty, NUM_TILE_X, NUM_TILE_Y);                          
+         }
+     }
+     
+     const unsigned int io_tile_x2[] = { 10 };
+     const unsigned int io_tile_y2[] = { 0 };
+     
+     foreach tx ( io_tile_x2 )
+     {
+         foreach ty ( io_tile_y2 )
+         {
+             draw_io_4cim_6io_ttfftt_h_tile_fp (tx, ty, NUM_TILE_X, NUM_TILE_Y);                          
+         }
+     }
+     
+     const unsigned int io_tile_x3[] = { 133};
+     const unsigned int io_tile_y3[] = { 0, sy };
+     
+     foreach tx ( io_tile_x3 )
+     {
+         foreach ty ( io_tile_y3 )
+         {
+             draw_io_4cim_6io_ffttff_h_tile_fp (tx, ty, NUM_TILE_X, NUM_TILE_Y);                          
+         }
+     }
+     
+     //----place io_w tiles----//
+     draw_io_l_1b_tile_fp(0, 154);
+     
+     const unsigned int io_tile_x4[] = { 0 };
+     const unsigned int io_tile_y4[] = { 153, 142, 132 }; 
+     
+     unsigned int cnt = 0;
+     foreach tx ( io_tile_x4 )
+     {
+         foreach ty ( io_tile_y4 )
+         {
+             if(cnt %2 == 0)
+             {
+                 draw_io_10cim_v_tile_fp (tx, ty, NUM_TILE_X, NUM_TILE_Y, 0);
+             }
+             else
+             {
+                 draw_io_10cim_v_tile_fp (tx, ty, NUM_TILE_X, NUM_TILE_Y, 1);
+             }
+             
+             cnt = cnt + 1;
+         }
+     }
+     
+     //----place io_e tiles----//
+     
+     draw_io_9cim_v_u_tile_fp(137, 162, NUM_TILE_X, NUM_TILE_Y);
+     
+     const unsigned int io_tile_x5[] = { 137 };
+     const unsigned int io_tile_y5[] = { 153, 142, 132, 122, 112, 101, 91, 81, 71, 60, 50, 40, 30, 19 };
+     
+     cnt = 0;
+     
+     foreach tx ( io_tile_x5 )
+     {
+         foreach ty ( io_tile_y5 )
+         {
+             if(cnt %2 == 0)
+             {
+                 draw_io_10cim_v_tile_fp (tx, ty, NUM_TILE_X, NUM_TILE_Y, 0);                
+             }
+             else
+             {
+                 draw_io_10cim_v_tile_fp (tx, ty, NUM_TILE_X, NUM_TILE_Y, 1);                
+             }
+             
+             cnt = cnt + 1;
+         }
+     }
+     
+     draw_io_9cim_v_d_tile_fp(137, 9, NUM_TILE_X, NUM_TILE_Y); 
+
+    //------------------------------//
+    // draw clk_delay tiles (T, B) //
+    //------------------------------//   
+    const unsigned int clk_delay_tile_x0[] = { 63, 67, 70, 74 };
+    const unsigned int clk_delay_tile_y0[] = { 0, 163 };
+    
+    foreach tx ( clk_delay_tile_x0 )
+    {
+        foreach ty ( clk_delay_tile_y0 )
+        {
+            draw_clk_delay_tile_fp (tx, ty);
+        }
+    }     
+       
+   //------------------------------//
+   // draw clk_delay tiles (E) //
+   //------------------------------//   
+   const unsigned int clk_delay_tile_x1[] = { 137 };
+   const unsigned int clk_delay_tile_y1[] = { 19, 21, 60, 62, 101, 103, 142, 144 };
+   
+   foreach tx ( clk_delay_tile_x1 )
+   {
+       foreach ty ( clk_delay_tile_y1 )
+       {
+           draw_clk_delay_tile_fp (tx, ty);
+       }
+   }   
+   
+    //------------------------------//
+    // draw clk_delay tiles (W) //
+    //------------------------------//   
+    const unsigned int clk_delay_tile_x2[] = { 0 };
+    const unsigned int clk_delay_tile_y2[] = { 142, 144 };
+    
+    foreach tx ( clk_delay_tile_x2 )
+    {
+        foreach ty ( clk_delay_tile_y2 )
+        {
+            draw_clk_delay_tile_fp (tx, ty);
+        }
+    }   
+   
+    //DLL tile
+
+    draw_dll_tile_fp(DLL_TILE_X0, DLL_TILE_Y0);      
+    draw_dll_tile_fp(DLL_TILE_X1, DLL_TILE_Y1);      
+    draw_dll_tile_fp(DLL_TILE_X2, DLL_TILE_Y2);      
+    draw_dll_tile_fp(DLL_TILE_X3, DLL_TILE_Y3);  
+    
+    //PLL tile 
+    
+    draw_pll_tile_fp(PLL_TILE_X0, PLL_TILE_Y0, -1);   //North 
+    draw_pll_tile_fp(PLL_TILE_X1, PLL_TILE_Y1, -1); 
+    draw_pll_tile_fp(PLL_TILE_X2, PLL_TILE_Y2, -1); 
+    draw_pll_tile_fp(PLL_TILE_X3, PLL_TILE_Y3, -1); 
+         
+    draw_pll_tile_fp(PLL_TILE_X4, PLL_TILE_Y4, 1);    //Sourth 
+    draw_pll_tile_fp(PLL_TILE_X5, PLL_TILE_Y5, 1);         
+    draw_pll_tile_fp(PLL_TILE_X6, PLL_TILE_Y6, 1);         
+    draw_pll_tile_fp(PLL_TILE_X7, PLL_TILE_Y7, 1);         
+    
+ 
+    //USCM        
+    const unsigned int USCM_tile_x[] = { 69 };
+    
+    const unsigned int USCM_tile_y_e[] = { 78,79,83,84 };  
+    unsigned int uscm_idx, tile_num;      
+    
+    foreach tx ( USCM_tile_x )
+    {
+        foreach ty ( USCM_tile_y_e )
+        {  
+            if(ty == 84)
+            {
+                uscm_idx  = 1;
+                tile_num = 0;
+                draw_uscm_e_tile_fp (tx, ty-1, uscm_idx, tile_num);   //USCM                
+            }
+            else if(ty == 83)
+            {
+                uscm_idx  = 1;
+                tile_num = 1;
+                draw_uscm_e_tile_fp (tx, ty+1, uscm_idx, tile_num);   //USCM                    
+            }
+            else if(ty == 79)
+            {
+                uscm_idx  = 2;
+                tile_num = 0;
+                draw_uscm_e_tile_fp (tx, ty-1, uscm_idx, tile_num);   //USCM                     
+            }   
+            else if(ty == 78)
+            {
+                uscm_idx  = 2;
+                tile_num = 1;
+                draw_uscm_e_tile_fp (tx, ty+1, uscm_idx, tile_num);   //USCM                   
+            }
+
+        }
+    } 
+    
+    const unsigned int USCM_tile_y_w[] = { 80,81,85,86 };       
+    
+     foreach tx ( USCM_tile_x )
+    {
+        foreach ty ( USCM_tile_y_w )      
+        {
+            if(ty == 86)
+            {
+                uscm_idx  = 0;
+                tile_num = 0;
+                draw_uscm_w_tile_fp (tx, ty-1, uscm_idx, tile_num);   //USCM                
+            }
+            else if(ty == 85)
+            {
+                uscm_idx  = 0;
+                tile_num = 1;
+                draw_uscm_w_tile_fp (tx, ty+1, uscm_idx, tile_num);   //USCM                 
+            }
+            else if(ty == 81)
+            {
+                uscm_idx  = 3;
+                tile_num = 0;
+                draw_uscm_w_tile_fp (tx, ty-1, uscm_idx, tile_num);   //USCM                    
+            }
+            else if(ty == 80)
+            {
+                uscm_idx  = 3;
+                tile_num = 1;
+                draw_uscm_w_tile_fp (tx, ty+1, uscm_idx, tile_num);   //USCM                   
+            }   
+        }
+    }     
+    
+    draw_reg_vmux_w_tile_fp (REG_VMUX0_CLK_TILE_X, REG_VMUX0_CLK_TILE_Y);       //VMUX0
+    draw_reg_vmux_e_tile_fp (REG_VMUX1_CLK_TILE_X, REG_VMUX1_CLK_TILE_Y);       //VMUX1
+    draw_reg_vmux_w_tile_fp (REG_VMUX2_CLK_TILE_X, REG_VMUX2_CLK_TILE_Y);       //VMUX2
+    draw_reg_vmux_e_tile_fp (REG_VMUX3_CLK_TILE_X, REG_VMUX3_CLK_TILE_Y);       //VMUX3
+    draw_reg_vmux_w_tile_fp (REG_VMUX4_CLK_TILE_X, REG_VMUX4_CLK_TILE_Y);       //VMUX4
+    draw_reg_vmux_e_tile_fp (REG_VMUX5_CLK_TILE_X, REG_VMUX5_CLK_TILE_Y);       //VMUX5
+    draw_reg_vmux_w_tile_fp (REG_VMUX6_CLK_TILE_X, REG_VMUX6_CLK_TILE_Y);       //VMUX6
+    draw_reg_vmux_e_tile_fp (REG_VMUX7_CLK_TILE_X, REG_VMUX7_CLK_TILE_Y);       //VMUX7
+
+    draw_ioclkgen_b_tile_fp(IOCLKGEN_B0_TILE_X, IOCLKGEN_B0_TILE_Y);//BOTTOM IOCLKGEN    
+    draw_ioclkgen_b_tile_fp(IOCLKGEN_B1_TILE_X, IOCLKGEN_B1_TILE_Y);//BOTTOM IOCLKGEN    
+
+    draw_ioclkgen_t_tile_fp(IOCLKGEN_T0_TILE_X, IOCLKGEN_T0_TILE_Y);//TOP IOCLKGEN   
+    draw_ioclkgen_t_tile_fp(IOCLKGEN_T1_TILE_X, IOCLKGEN_T1_TILE_Y);//TOP IOCLKGEN   
+    
+    draw_ioclkgen_r_tile_fp(IOCLKGEN_R0_TILE_X, IOCLKGEN_R0_TILE_Y);//RIGHT IOCLKGEN   
+    draw_ioclkgen_r_tile_fp(IOCLKGEN_R1_TILE_X, IOCLKGEN_R1_TILE_Y);//RIGHT IOCLKGEN   
+
+    draw_ioclkgen_l_tile_fp(IOCLKGEN_L_TILE_X, IOCLKGEN_L_TILE_Y);//LEFT IOCLKGEN   
+
+    draw_start_tile_fp(START_X, START_Y);
+
+    draw_grs_tile_fp(START_X, START_Y); 
+    
+    //draw_osc_tile_fp(OSC_X, OSC_Y);      
+    
+    draw_efusecode_tile_fp(EFUSECODE_X, EFUSECODE_Y);
+    
+    draw_scanchain1_tile_fp(SCANCHAIN1_X, SCANCHAIN1_Y);
+    
+    draw_scanchain0_tile_fp(SCANCHAIN0_X, SCANCHAIN0_Y);
+    
+    draw_ipal_tile_fp(IPAL_X, IPAL_Y);        
+    
+    //hsst buf
+    const unsigned int h_tile_x1[] = { 0 };
+    const unsigned int h_tile_y1[] = { 0,41,82 };
+    
+    foreach tx ( h_tile_x1 )
+    {
+        foreach ty ( h_tile_y1 )
+        {
+            draw_hsst_tile_fp(tx, ty);
+        }
+    }    
+
+} // end of schematic floorplan_view draw_logic_resource of device devPGT180H
+
+
+
+
+
+
+
+
+
+
+
+

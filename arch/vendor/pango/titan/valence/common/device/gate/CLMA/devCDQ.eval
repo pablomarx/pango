@@ -1,0 +1,327 @@
+*******************************************************************
+
+  Device    [devCDQ]
+
+  Author    [clwang]
+
+  Abstract  [FF WITH PORT CD AND DD OF CLMS]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devCDQ : device CLMA
+{
+    parameter
+    (
+        config string GRS_EN        = "FALSE",             // "TRUE" "FALSE"
+        config string LRS_EN        = "TRUE",              // "TRUE" "FALSE"
+        config string QCDMUX_SEL   := "CDP",               // "L6"  "FF2"  "CDP"
+        config string CDPMUX_SEL    = "DD",                // "DD"  "CD"        
+        config string Y2MUX_SEL    := "FFCD",              // "FFCD" "FG" "CY"        
+        config string CEMUX_SEL     = "CE",                // "CE" "CEIN" 
+        config string RSMUX_SEL     = "RS",                // "RS" "RSIN"
+        config bit    CLK_POS       = 1'b0,                // 1'b0: "CLK"; 1'b1: "CLK_B"   
+        config bit    CE_POS        = 1'b0,                // 1'b0: "CE";  1'b1: "CE_B"
+        config bit    RS_POS        = 1'b0,                // 1'b0: "RS"   1'b1:  "RS_B"                   
+        config string SYNC_MODE     = "SYNC",              // "SYNC" "ASYNC"
+        config string FFCD_SET      = "RESET"              // "RESET" "SET"
+    );
+    port
+    (
+        input    CD, DD, 
+        output   Y2,      
+        input    RS, CE, CLK,
+        input    RSIN,
+        output   RSOUT,
+        input    CEIN,
+        output   CEOUT
+
+    );
+
+}// end of device devCDQ
+
+/*******************************************************************************
+
+  Device    [devCDQ]
+
+  Author    [clwang]
+
+  Abstract  [The structure netlist of devCDQ is described in the similar fashion 
+             as in HDL. In unit instantiation statement, the formal pin may be 
+             connected to net which is declared explicitly. 
+             
+             In Valence, the connection can also be made from formal pin to other 
+             pin or port, in which case Valence compiler shall create the net to 
+             fulfil the connection. The built-in naming convention is kicked in 
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devCDQ
+{
+    // Wires for input ports
+    wire ntDD; 
+    wire ntCD; 
+    wire ntRS, ntCE, ntCLK;
+
+    wire ntRSIN;
+    wire ntCEIN;
+
+    // Wires connecting to output ports
+    wire ntY2MUX;
+
+    wire ntRSMUX;
+    wire ntCEMUX;
+
+    // Internal wires
+    wire ntCDPMUX, ntQCDMUX, ntFFCD_Q;
+    wire ntRSPOLMUX, ntCEPOLMUX, ntCLKPOLMUX;
+
+    //
+    // Connection to ports
+    //
+    ntCD      <= CD;
+    ntDD      <= DD;
+
+    ntRS      <= RS;
+    ntCE      <= CE;
+    ntCLK     <= CLK;
+    
+    ntRSIN    <= RSIN;
+    ntCEIN    <= CEIN;
+
+    Y2        <= ntY2MUX;    
+    RSOUT     <= ntRSMUX;
+    CEOUT     <= ntCEMUX;
+
+    //
+    // Instances. FGC section
+    //
+
+    device Y2MUX Y2MUX
+        parameter map
+        (
+            CFG  => Y2MUX_SEL
+        )     
+        port map
+        (
+            FFCD => ntFFCD_Q,
+            Z    => ntY2MUX
+        ); 
+    device CDPMUX CDPMUX
+        parameter map
+        (
+            CFG  => CDPMUX_SEL
+        )     
+        port map
+        ( 
+            DD  => ntDD, CD  => ntCD,
+            Z   => ntCDPMUX
+        );
+        
+    device QCDMUX QCDMUX
+        parameter map
+        (
+            CFG  => QCDMUX_SEL
+        )      
+        port map
+        (
+            CDP => ntCDPMUX,
+            Z   => ntQCDMUX
+        );
+
+    device FF FFCD
+        parameter map
+        (
+            GRS_EN => GRS_EN,
+            LRS_EN => LRS_EN,           
+            SET     => FFCD_SET,
+            SYNC    => SYNC_MODE
+        )
+        port map
+        (
+            D  => ntQCDMUX,
+            RS => ntRSMUX, CE => ntCEMUX, CK => ntCLKPOLMUX,
+            Q  => ntFFCD_Q
+        );
+
+    device RSMUX RSMUX
+        parameter map
+        (
+            CFG  => RSMUX_SEL
+        )       
+        port map
+        (
+            RS  => ntRSPOLMUX, RSIN => ntRSIN,
+            Y   => ntRSMUX
+        );
+
+    device CEMUX CEMUX
+        parameter map
+        (
+            CFG  => CEMUX_SEL
+        )    
+        port map
+        (
+            CE  => ntCEPOLMUX, CEIN => ntCEIN,
+            Y   => ntCEMUX
+        );
+
+
+    device RSPOLMUX RSPOLMUX
+        parameter map
+        (
+            CFG  => RS_POS
+        )   
+        port map
+        (
+          RS  => ntRS, RS_B => ntRS,
+            Y   => ntRSPOLMUX
+        );
+
+    device CEPOLMUX CEPOLMUX
+        parameter map
+        (
+            CFG  => CE_POS
+        )      
+        port map
+        (
+            CE  => ntCE, CE_B => ntCE,
+            Y   => ntCEPOLMUX
+        );
+
+    device CLKPOLMUX CLKPOLMUX
+        parameter map
+        (
+            CFG  => CLK_POS
+        )      
+        port map
+        (
+            CLK => ntCLK, CLK_B => ntCLK,
+            Y   => ntCLKPOLMUX
+        );
+
+}; // end of structure netlist of devCDQ
+
+timing tnl of devCDQ
+{
+    // the delay CEIN->CEOUT RSIN->RSOUT describe in the cell timing file.
+    wire ntCLK;
+    wire ntRS;
+    wire ntCE;
+    
+    operator V_BUF V_CEMUX
+        parameter map
+        (
+            SECTION => (CEMUX_SEL == "CE")? "CE_APP" : "CEIN_APP"
+        )
+        port map 
+        (
+            I => (CEMUX_SEL == "CE") ? ((CE_POS == 1'b1) ? ntCE : CE) : CEIN,
+            Z => CEOUT
+        );      
+
+    operator V_BUF V_RSMUX
+        parameter map
+        (
+            SECTION => (RSMUX_SEL == "RS") ? "RS_APP" : "RSIN_APP"
+        )
+        port map 
+        (
+             I => (RSMUX_SEL == "RS") ? ((RS_POS == 1'b1) ? ntRS : RS ) : RSIN,
+             Z => RSOUT
+        ); 
+    
+    if (CLK_POS == 1'b1)
+    {
+        operator V_INV V_CLKPOLMUX
+            parameter map
+            (
+                SECTION => "CLK_INV_DUMY"
+            )
+            port map 
+            (
+                 I => CLK,
+                 Z => ntCLK
+            );    
+    }
+    
+    if (CE_POS == 1'b1)
+    {
+        operator V_INV V_CEPOLMUX
+            parameter map
+            (
+                SECTION => "CE_INV_DUMY"
+            )
+            port map 
+            (
+                 I => CE,
+                 Z => ntCE
+            );    
+    }
+    
+    if (RS_POS == 1'b1)
+    {
+        operator V_INV V_RSPOLMUX
+            parameter map
+            (
+                SECTION => "RS_INV_DUMY"
+            )
+            port map 
+            (
+                 I => RS,
+                 Z => ntRS
+            );    
+    }    
+                    
+    if ( SYNC_MODE == "SYNC" )
+    {
+        
+        operator V_FFSYN FFCD_FF
+            parameter map 
+            (
+                GRS_EN    => GRS_EN,
+                LRS_EN    => LRS_EN,
+                SET_RESET => FFCD_SET,
+                SECTION  => "CD"
+            )
+            port map 
+            (
+                Q  => Y2,
+                D  => ( CDPMUX_SEL == "DD") ? DD : CD,
+                SR => (LRS_EN == "TRUE") ?(( RSMUX_SEL == "RS") ? (RS_POS == 1'b1 ? ntRS : RS) : RSIN) : 1'b0,
+                CK => (CLK_POS == 1'b1) ? ntCLK : CLK,
+                CE => ( CEMUX_SEL == "CE") ? ((CE_POS == 1'b1) ? ntCE : CE) : CEIN
+            );
+
+    } else if ( SYNC_MODE == "ASYNC" ) {
+
+        operator V_FFASYN FFCD_FF
+            parameter map 
+            (
+                GRS_EN    => GRS_EN,
+                LRS_EN    => LRS_EN,
+                SET_RESET => FFCD_SET,
+                SECTION  => "CD"
+            )
+            port map 
+            (
+                Q  => Y2,
+                D  => ( CDPMUX_SEL == "DD") ? DD : CD,
+                SR => (LRS_EN == "TRUE") ?(( RSMUX_SEL == "RS") ? (RS_POS == 1'b1 ? ntRS : RS) : RSIN) : 1'b0,
+                CK => (CLK_POS == 1'b1) ? ntCLK : CLK,
+                CE => ( CEMUX_SEL == "CE") ? ((CE_POS == 1'b1) ? ntCE : CE) : CEIN
+            );
+
+    }
+    
+}
+
+
+
+

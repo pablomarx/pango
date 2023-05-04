@@ -1,0 +1,341 @@
+*****************************************************************
+
+  Device    [LUT6S]
+
+  Author    [jblu]
+
+  Abstract  [The Prim Device Of CLMA or CLMS]
+
+  Revision History:
+
+********************************************************************************/
+prim
+device LUT6S
+{
+    parameter
+    (
+        config bit         CP_INIT[63:0]      = 64'hffff_ffff_ffff_ffff,
+        config string      CP_MODE            = "LUT6",
+        config string      CP_MASK_LUT6       = "FALSE",
+        config string      CP_RAM32_EN        = "FALSE",
+        config string      CP_RAM_MODE        = "LRAM",
+        config bit         CP_M1_SEL          = 1'b0,
+        config bit         CP_M2_SEL          = 1'b0,
+        config string      CP_RAM_LUT_DIH     = "LI",
+        config string      CP_RAM_LUT_DIL     = "LI"
+    );
+    port 
+    ( 
+        // Input Ports of LUT6
+        input        A0,
+        input        A1,
+        input        A2,     
+        input        A3,  
+        input        A4,  
+        input        A5, 
+        input        CIN,
+        
+        input         WA[5:0],         
+        input         DI2,       
+        input         WCK,
+        input         WE, 
+   
+        input        L5_CARRY,
+        input        COUT_IN_CARRY,
+       
+        input        FCIN,
+        input        L5_A,
+        input        L5_B,
+        input        L5_C,
+        input        FCIN0,
+        input        FCIN1,
+        input        DIX,
+        input        XD ,
+        input        MX ,
+        input        M2 ,
+        input        M1 ,
+        
+        // Output Ports for LUT6
+        output       DIO,
+        output       SC_QN[63:0],
+        output       L5,
+        output       L6,
+        output       COUT,
+        output       COUT_IN
+    );
+
+};
+
+/**Device***********************************************************************
+
+  Device    [LUT6S]
+
+  Abstract  [This specified how to propagate the input signal to the outputs based on
+             configuration]
+
+  Revision History:
+
+********************************************************************************/
+propagation pop of LUT6S
+{
+    if (CP_MASK_LUT6 == "TRUE")
+    {
+        if (CP_MODE == "RAM")
+        {
+            propagate ( A0  |-> L6 );
+            propagate ( A1  |-> L6 );
+            propagate ( A2  |-> L6 );
+            propagate ( A3  |-> L6 );
+            propagate ( A4  |-> L6 );
+            propagate ( A5  |-> L6 );
+            propagate ( WA[5] |-> L6 );
+            propagate ( WA[4] |-> L6 );
+            propagate ( WA[3] |-> L6 );
+            propagate ( WA[2] |-> L6 );
+            propagate ( WA[1] |-> L6 );
+            propagate ( WA[0] |-> L6 );
+            propagate ( WCK |-> L6 );
+            propagate ( WE  |-> L6 );
+            if (CP_RAM_LUT_DIH == "LI")
+            {
+                propagate ( XD |-> L6 );
+            }
+            else
+            {
+                propagate ( DIX |-> L6 );
+            }
+
+            if (CP_RAM32_EN == "TRUE")
+            {
+                propagate ( A0  |-> L5 );
+                propagate ( A1  |-> L5 );
+                propagate ( A2  |-> L5 );
+                propagate ( A3  |-> L5 );
+                propagate ( A4  |-> L5 );
+                propagate ( WA[5] |-> L5 );
+                propagate ( WA[4] |-> L5 );
+                propagate ( WA[3] |-> L5 );
+                propagate ( WA[2] |-> L5 );
+                propagate ( WA[1] |-> L5 );
+                propagate ( WA[0] |-> L5 );
+                propagate ( WCK |-> L5 );
+                propagate ( WE  |-> L5 );
+                if (CP_RAM_LUT_DIL == "LI")
+                {
+                    propagate ( MX |-> L5 );
+                }
+                else if (CP_RAM_LUT_DIH == "LI")
+                {
+                    propagate ( XD |-> L5 );
+                }
+                else
+                {
+                    propagate ( DIX |-> L5 );
+                }
+            }
+        }
+    }
+    else if (CP_MODE == "LUT6" && CP_INIT == 64'hffff_ffff_ffff_ffff)
+    {
+        propagate ( 1'b1 --> L6 ); 
+        propagate ( 1'b1 --> L5 );
+    }
+    else if (CP_MODE == "LUT6" && CP_INIT == 64'h0000_0000_0000_0000)
+    {
+        propagate ( 1'b0 --> L6 );
+        propagate ( 1'b0 --> L5 ); 
+    }
+    else
+    {
+        propagate ( A0  |-> L5 );
+        propagate ( A1  |-> L5 );
+        propagate ( A2  |-> L5 );
+        propagate ( A3  |-> L5 );
+        propagate ( A4  |-> L5 );
+        propagate ( A0  |-> L6 );
+        propagate ( A1  |-> L6 );
+        propagate ( A2  |-> L6 );
+        propagate ( A3  |-> L6 );
+        propagate ( A4  |-> L6 );
+        propagate ( A5  |-> L6 );
+        propagate ( CIN |-> L6 );
+        propagate ( A0  |-> COUT );
+        propagate ( A1  |-> COUT );
+        propagate ( A2  |-> COUT );
+        propagate ( A3  |-> COUT );
+        propagate ( A4  |-> COUT ); 
+        propagate ( A5  |-> COUT );
+        propagate ( CIN |-> COUT );
+    }
+}; // end of propagation for LUT6
+
+/**Device***********************************************************************
+
+  Device    [LUT6S]
+  
+  Author    []
+
+  Abstract  [This specified the timing model under specific configuration]
+
+  Revision History:
+
+********************************************************************************/
+timing fga_tnl of LUT6S
+{
+    if (CP_MASK_LUT6 == "TRUE")
+    {
+        if (CP_MODE == "RAM" && CP_RAM32_EN == "TRUE")
+        {
+            if (CP_RAM_MODE == "LRAM")
+            {
+                operator V_RAM32X2 RAM32X2
+                parameter map
+                (
+                    INIT0    =>  CP_INIT[31:0],
+                    INIT1    =>  CP_INIT[63:32],
+                    WE_POL   =>  "TRUE"
+                )
+                port map
+                (
+                    WADDR  =>  WA[4:0],
+                    RADDR  => {A4, A3, A2, A1, A0},
+                    WE     =>  WE,
+                    WCLK   =>  WCK,
+                    WDI[0] => (CP_RAM_LUT_DIL == "LI") ? MX :
+                              (CP_RAM_LUT_DIH == "LI") ? XD : DIX,
+                    WDI[1] => (CP_RAM_LUT_DIH == "LI") ? XD : DIX,
+                    RDO[0] =>  L5,
+                    RDO[1] =>  L6
+                );
+            }
+        }
+        else if (CP_MODE == "RAM")
+        {
+            operator V_RAM64X1 RAM64
+            parameter map
+            (
+                CS_MASK => (CP_RAM_MODE == "HRAM") ? {CP_M2_SEL, CP_M1_SEL} :
+                           (CP_RAM_MODE == "MRAM") ? {1'b1, CP_M1_SEL} :
+                           (CP_RAM_MODE == "LRAM") ? {1'b1, 1'b1} : 2'b00,
+                INIT    =>  CP_INIT[63:0],
+                WE_POL  =>  "TRUE"
+            )
+            port map
+            (
+                CS[0] => (CP_RAM_MODE == "HRAM") ? M1 :
+                         (CP_RAM_MODE == "MRAM") ? M1 :
+                         (CP_RAM_MODE == "LRAM") ? 1'b1 : 1'bx,
+                CS[1] => (CP_RAM_MODE == "HRAM") ? M2 :
+                         (CP_RAM_MODE == "MRAM") ? 1'b1 :
+                         (CP_RAM_MODE == "LRAM") ? 1'b1 : 1'bx,
+                WADDR =>  WA,
+                RADDR => {A5, A4, A3, A2, A1, A0},
+                WE    =>  WE,
+                WCLK  =>  WCK,
+                WDI   => (CP_RAM_LUT_DIH == "LI") ? XD : DIX,
+                RDO   =>  L6
+            );
+        }
+        //if (CP_MODE == "RAM")
+        //{
+        //    operator V_RAM32D RAM32_0
+        //    parameter map
+        //    (
+        //        CS_MASK => (CP_RAM_MODE == "HRAM") ? {CP_M2_SEL, CP_M1_SEL, (CP_RAM32_EN == "TRUE") ? 1'b1 : 1'b0} :
+        //                   (CP_RAM_MODE == "MRAM") ? {1'b1, CP_M1_SEL, (CP_RAM32_EN == "TRUE") ? 1'b1 : 1'b0} :
+        //                   (CP_RAM_MODE == "LRAM") ? {1'b1, 1'b1, (CP_RAM32_EN == "TRUE") ? 1'b1 : 1'b0} : 3'bxxx,
+        //        INIT    =>  CP_INIT[31:0]
+        //    )
+        //    port map
+        //    (
+        //        CS   => (CP_RAM_MODE == "HRAM") ? {M2, M1, WA[5]} :
+        //                (CP_RAM_MODE == "MRAM") ? {1'b1, M1, WA[5]} :
+        //                (CP_RAM_MODE == "LRAM") ? {1'b1, 1'b1, WA[5]} : 3'bxxx,
+        //        WA   =>  WA[4:0],
+        //        RA   => {A4, A3, A2, A1, A0},
+        //        WE   =>  WE,
+        //        WCLK =>  WCK,
+        //        DI   => (CP_RAM_LUT_DIL == "LI") ? MX :
+        //                (CP_RAM_LUT_DIH == "LI") ? XD : DIX,
+        //        DO   =>  L5,
+        //    );
+        //
+        //    wire RAM32_1_DO;
+        //    operator V_RAM32D RAM32_1
+        //    parameter map
+        //    (
+        //        CS_MASK => (CP_RAM_MODE == "HRAM") ? {CP_M2_SEL, CP_M1_SEL, 1'b1} :
+        //                   (CP_RAM_MODE == "MRAM") ? {1'b1, CP_M1_SEL, 1'b1} :
+        //                   (CP_RAM_MODE == "LRAM") ? {1'b1, 1'b1, 1'b1} : 3'bxxx,
+        //        INIT    =>  CP_INIT[63:32]
+        //    )
+        //    port map
+        //    (
+        //        CS   => (CP_RAM_MODE == "HRAM") ? {M2, M1, WA[5]} :
+        //                (CP_RAM_MODE == "MRAM") ? {1'b1, M1, WA[5]} :
+        //                (CP_RAM_MODE == "LRAM") ? {1'b1, 1'b1, WA[5]} : 3'bxxx,
+        //        WA   =>  WA[4:0],
+        //        RA   => {A4, A3, A2, A1, A0},
+        //        WE   =>  WE,
+        //        WCLK =>  WCK,
+        //        DI   => (CP_RAM_LUT_DIH == "LI") ? XD : DIX,
+        //        DO   =>  RAM32_1_DO,
+        //    );
+        //
+        //    operator V_MUX2 RAM64_MUX
+        //    port map
+        //    (
+        //        I0   => L5,
+        //        I1   => RAM32_1_DO,
+        //        SEL  => WA[5],
+        //        Z    => L6
+        //    );
+        //}
+    }
+    //else if (CP_MODE == "LUT6")
+    //{
+    //    operator V_LUT6D LUT6D
+    //    parameter map
+    //    (
+    //        INIT => CP_INIT
+    //    )
+    //    port map
+    //    (
+    //        Z   => L6,
+    //        Z5  => L5,
+    //        I0  => A0,
+    //        I1  => A1,
+    //        I2  => A2,
+    //        I3  => A3,
+    //        I4  => A4,
+    //        I5  => A5
+    //    );
+    //}
+    else
+    {
+        wire ntco;
+        operator V_LUT6CARRY LUT6CARRY
+        parameter map
+        (
+            INIT        =>  CP_INIT,
+            I5_TO_CARRY => (CP_MODE == "ROM"  || CP_MODE == "WAND" || CP_MODE == "COMP"  || CP_MODE == "LUT6" ||
+                            CP_MODE == "MUX4" || CP_MODE == "RAM"  || CP_MODE == "ARITH") ? "TRUE" : "FALSE",
+            I5_TO_LUT   => (CP_MODE == "ROM"  || CP_MODE == "WAND" || CP_MODE == "COMP"  || CP_MODE == "LUT6" ||
+                            CP_MODE == "MUX4" || CP_MODE == "RAM"  || CP_MODE == "PRIENC" ||
+                            CP_MODE == "XOR") ? "TRUE" : "FALSE"
+        )
+        port map
+        (
+            COUT => (CP_MODE == "LUT6" || CP_MODE == "ROM") ? ntco : COUT,
+            Z    => L6,
+            Z5   => L5,
+            CIN  => (CP_MODE == "LUT6" || CP_MODE == "ROM") ? 1'b0 : CIN,
+            I0   => A0,
+            I1   => A1,
+            I2   => A2,
+            I3   => A3,
+            I4   => A4,
+            I5   => A5
+        );
+    }
+};

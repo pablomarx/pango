@@ -1,0 +1,178 @@
+*****************************************************************
+
+  Device    [IOB_B]
+
+  Author    [tangqiang]
+
+  Abstract  []
+
+  Revision History:
+********************************************************************************/
+symbol logsym of IOB_B // pragma PAP_ARC_COLOR="64:64:128"
+{
+    // The bounding box
+    generate ( 60 # 60 );
+
+    //
+    // Poloygon declaration
+    //
+    shape
+    [ 0, 0 ]  ->  [ ,60]  < 
+                             DIN  @[,10],
+                             DO   @[,30],
+                             TO   @[,50]
+
+                          >
+              ->  [60, ]  
+              ->  [ , 0]  < 
+
+                             PAD  @[,30]
+
+                          >
+              ->  [ 0, ]  < 
+
+                            DIFFI_OUT @[50,],
+                            DIFFI_IN  @[30,],
+                            DIFFO_IN  @[10,]
+
+                          >; 
+
+}; // symbol logsym of IOB_B
+
+/*******************************************************************************
+
+  Device    [IOB_B]
+
+  Author    [tangqiang]
+
+  Abstract  [The schematic for IOB_B]
+
+  Revision History:
+
+********************************************************************************/
+schematic schm of IOB_B
+{
+    // The bounding box
+      generate (176 # 128);
+
+    //
+    // Layout all symbols.
+    //
+    device IOB_OBUFB (symbol logsym) OBUFB
+        @[32,40];
+
+    device DIFFO_MUX (symbol logsym) DIFFO_MUX
+        @[64,40];
+        
+    unsigned int pin_offset;  
+    pin_offset = <pin PAD of <instance DIFFO_MUX>>#-;
+
+    device IOB_INBUFB (symbol logsym) INBUFB
+        @[112,pin_offset-24];
+        
+    map (
+         <instance INBUFB>     => <instance INBUFB       of device IOB_B (structure netlist)> ,
+         <instance OBUFB>      => <instance OBUFB        of device IOB_B (structure netlist)> ,
+         <instance DIFFO_MUX>  => <instance DIFFO_MUX    of device IOB_B (structure netlist)>
+         );
+
+    //
+    // Layout all ports.
+    //
+    // Since ports drive or are driven by pins of symbol instance, derive the port
+    // location from those pins
+    //
+
+    port DO         @[16,48];
+    port TO         @[16,58];
+    port DIFFO_IN   @[16,64];
+    port DIN        @[160,48];
+    port DIFFI_OUT  @[160,80];
+    port DIFFI_IN   @[96,40];
+    port PAD        @[96,95]; // pragma PAP_UI_ORIENTATION="NORTH"
+
+    //
+    // Layout all lines
+    //
+
+    line lnDIFFI_IN
+        <port DIFFI_IN> ->
+        <pin DIFFI_IN of <instance INBUFB>>;
+
+    line lnDO
+        <port DO> ->
+        <pin IN of <instance OBUFB>>;
+
+    line lnTO
+        <port TO> ->
+        [40,58] ->
+        <pin TS of <instance OBUFB>>;
+
+    line lnDIFFO_IN
+        <port DIFFO_IN> ->
+        <pin DIFFO_IN of <instance DIFFO_MUX>>;
+
+    line lnOUTBUF
+        <pin OUT of <instance OBUFB>> ->
+        <pin IN of <instance DIFFO_MUX>>;
+
+    line lnPAD
+        <pin PAD of <instance DIFFO_MUX>> ->
+        [96,56] ->
+        <pin IN of <instance INBUFB>>,
+
+        [96,56] ->
+        [96,80] ->
+        <port PAD>,
+
+        [96,80] ->
+        <port DIFFI_OUT>;
+
+    line lnDIN
+        <pin O of <instance INBUFB>> ->
+        <port DIN>;
+
+
+    map  (
+           <line lnDO>          => <wire ntDO         of device IOB_B (structure netlist)>,
+           <line lnTO>          => <wire ntTO         of device IOB_B (structure netlist)>,
+           <line lnDIFFO_IN>    => <wire ntDIFFO_IN   of device IOB_B (structure netlist)>,
+           <line lnOUTBUF>      => <wire ntOUTBUF     of device IOB_B (structure netlist)>,
+           <line lnPAD>         => <wire ntPAD        of device IOB_B (structure netlist)>,
+           <line lnDIN>         => <wire ntINBUF      of device IOB_B (structure netlist)>
+         );
+
+};// end of schematic schm of IOB_B
+
+
+/*******************************************************************************
+
+  Device    [IOB_B]
+
+  Author    [tangqiang]
+
+  Abstract  [The floorplan schematic for IOBB_B]
+
+  Revision History:
+
+********************************************************************************/
+floorplan
+schematic floorplan_view of IOB_B // pragma PAP_ARC_SHOW_BOUNDING_BOX
+{
+    generate ( 20*8 # 20*8 );
+
+    device IOB_INBUFB  (symbol fpsym) INBUFB
+        @[8*8, 4*8];
+    device IOB_OBUFB (symbol fpsym) OBUFB
+        @[8*8,12*8];
+    device DIFFO_MUX (symbol fpsym) DIFFO_MUX
+        @[14*8, 8*8-4];
+
+    map (
+         <instance INBUFB>     =>   <instance INBUFB    of device IOB_B (structure fp_struct)>,
+         <instance OBUFB>      =>   <instance OBUFB     of device IOB_B (structure fp_struct)>,
+         <instance DIFFO_MUX>  =>   <instance DIFFO_MUX of device IOB_B (structure fp_struct)>
+         );
+};
+
+

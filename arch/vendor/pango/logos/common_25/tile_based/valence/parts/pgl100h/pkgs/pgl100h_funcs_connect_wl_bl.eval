@@ -1,0 +1,500 @@
+use pgl_defs;
+
+package pgl100h_connect_wl_bl
+{
+/*******************************************************************
+********************************************************************/
+function connect_WLSR_gs_wl_100h // cs ,col_inc,bus_gseb connect one by one horizon
+(
+    unsigned int index,
+    unsigned int tx_blsr,
+    unsigned int region_index,
+    unsigned int l_tx_wlsrs_l[44:0],
+    unsigned int l_tx_wlsrs_r[45:0],
+    unsigned int l_tx_wlsr[],
+    unsigned int l_tx_wlsr1[],
+    unsigned int l_tx_wlsr1b[],
+    unsigned int l_tx_wlsr2[],
+    unsigned int l_tx_wlsra[],
+    unsigned int l_tx_wlsrd[],
+    unsigned int l_tx_iock[],
+    string dev_blsr,
+    unsigned int flag_lr,
+    unsigned int flag_de_lr //direction
+)
+{
+    int ty = region_index * NUM_TILES_REGION + MID_TILE_REGION;
+    int sx_blsr = tx_blsr * NUM_GRID_X;
+    int sy_blsr = region_index * NUM_GRID_BLSR_Y + NUM_GRID_Y;
+
+    string blsr ,device_wlsr , device_skew ;
+    blsr = dev_blsr ;
+
+    int tx = (flag_lr==1) ? l_tx_wlsrs_l[index] : l_tx_wlsrs_r[index];
+    
+    int tx_skew ;
+
+    if(index!=0)
+    {
+        tx_skew = (flag_lr==1) ? l_tx_wlsrs_l[index - 1] : l_tx_wlsrs_r[index - 1];
+    }
+    else
+    {
+        tx_skew = tx - 1 ; //rl,index never == 0
+    }
+
+    int tmp_tx ;
+
+    foreach tmp_tx(l_tx_wlsr)
+    {
+      if(tmp_tx==tx)
+      {
+       device_wlsr = "WLSR_TILE";
+      }
+      if(tmp_tx==tx_skew)
+      {
+       device_skew = "WLSR_TILE";
+      }
+    }
+
+    foreach tmp_tx(l_tx_wlsr1)
+    {
+      if(tmp_tx==tx)
+      {
+       device_wlsr = "WLSR1_TILE";
+      }
+      if(tmp_tx==tx_skew)
+      {
+       device_skew = "WLSR1_TILE";
+      }
+    }
+    foreach tmp_tx(l_tx_wlsr1b)
+    {
+      if(tmp_tx==tx)
+      {
+       device_wlsr = "WLSR1_100H_TILE";
+      }
+      if(tmp_tx==tx_skew)
+      {
+       device_skew = "WLSR1_100H_TILE";
+      }
+    }
+    foreach tmp_tx(l_tx_wlsr2)
+    {
+      if(tmp_tx==tx)
+      {
+       device_wlsr = "WLSR2_TILE";
+      }
+      if(tmp_tx==tx_skew)
+      {
+       device_skew = "WLSR2_TILE";
+      }
+    }
+    foreach tmp_tx(l_tx_wlsra)
+    {
+      if(tmp_tx==tx)
+      {
+       device_wlsr = "WLSRA_TILE";
+      }
+      if(tmp_tx==tx_skew)
+      {
+       device_skew = "WLSRA_TILE";
+      }
+    }
+    foreach tmp_tx(l_tx_wlsrd)
+    {
+      if(tmp_tx==tx)
+      {
+       device_wlsr = "WLSRD_TILE";
+      }
+      if(tmp_tx==tx_skew)
+      {
+       device_skew = "WLSRD_TILE";
+      }
+    }
+    foreach tmp_tx(l_tx_iock)
+    {
+      if(tmp_tx==tx)
+      {
+       device_wlsr = "IOCKGATEDLL_100H_TILE";
+      }
+      if(tmp_tx==tx_skew)
+      {
+       device_skew = "IOCKGATEDLL_100H_TILE";
+      }
+    }
+
+    int sx = (device_wlsr == "IOCKGATEDLL_100H_TILE") ? tx * NUM_GRID_X + 2 : tx * NUM_GRID_X + 2 ;
+    int sx_skew = (device_skew == "IOCKGATEDLL_100H_TILE") ? tx_skew * NUM_GRID_X + 2 : tx_skew * NUM_GRID_X + 2 ;
+    int sy = (device_wlsr == "IOCKGATEDLL_100H_TILE") ? ty * NUM_GRID_Y - NUM_GRID_Y : ty * NUM_GRID_Y ;
+    int sy_skew = (device_skew == "IOCKGATEDLL_100H_TILE") ? ty * NUM_GRID_Y - NUM_GRID_Y : ty * NUM_GRID_Y;
+
+    if(flag_de_lr==0)
+    {
+
+      if(tx==(tx_blsr-1))
+      {
+        connect
+          (  
+              <pin BUS_GSEB_IN of <device *device_wlsr @ [sx,sy]>>     => <wire BUS_GSEB_OUTL of <device *blsr @ [sx_blsr,sy_blsr]>>
+          );
+      }
+      else if(tx==(tx_blsr+1))
+      {
+        connect
+          (  
+              <pin BUS_GSEB_IN of <device *device_wlsr @ [sx,sy]>>     => <wire BUS_GSEB_OUTR of <device *blsr @ [sx_blsr,sy_blsr]>>
+          );
+      }
+      else
+      {
+        if(tx < tx_blsr - 1)
+        {
+            connect
+            (
+                  <pin BUS_GSEB_IN of <device *device_wlsr @ [sx,sy]>>      => <wire BUS_GSEB_OUT of <device *device_skew @ [sx_skew,sy_skew]>>  
+            );            
+        }        
+      }
+    }
+    else
+    {
+        connect
+        (
+           <pin CS_IN of <device *device_wlsr @[sx,sy]>>           => <wire CS_OUT of <device *device_skew @ [sx_skew,sy_skew]>>,
+           
+           <pin COL_INC_IN of <device *device_wlsr @[sx,sy]>>      =>  <wire COL_INC_OUT of <device *device_skew @ [sx_skew,sy_skew]>>
+        );        
+        if(tx> tx_blsr + 1)
+        {
+            connect
+            (
+                  <pin BUS_GSEB_IN of <device *device_wlsr @ [sx,sy]>>      => <wire BUS_GSEB_OUT of <device *device_skew @ [sx_skew,sy_skew]>>  
+            );        
+        }
+    }
+}//end of function connect_WLSR_global_sig
+
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_MASK_CLM2CLM_100h
+(
+    unsigned int index,          
+    unsigned int ty,          
+    unsigned int flag_y,          
+    unsigned int l_x0[14:0],          
+    unsigned int l_x1[13:0],          
+    unsigned int l_x2[15:0],          
+    unsigned int l_x3[11:0],          
+    unsigned int l_x4[2:0],          
+    unsigned int l_x5[9:0],          
+    unsigned int l_x6[8:0],          
+    unsigned int l_x7[6:0],          
+    unsigned int l_x8[12:0]         
+)
+{
+    unsigned int sx,tx,tx_skew,sy,sx_skew,sy_skew;
+
+    sy = ty * NUM_GRID_X ;
+
+    tx = (flag_y == 0) ? l_x0[index] :
+         (flag_y == 1) ? l_x1[index] :
+         (flag_y == 2) ? l_x2[index] :
+         (flag_y == 3) ? l_x3[index] :
+         (flag_y == 4) ? l_x4[index] :
+         (flag_y == 5) ? l_x5[index] :
+         (flag_y == 6) ? l_x6[index] :
+         (flag_y == 7) ? l_x7[index] :
+                         l_x8[index] ;
+
+    sx  = tx * NUM_GRID_X + 2;
+
+    if(!(index==0))
+    {
+        tx_skew = (flag_y == 0) ? l_x0[index-1] :
+                  (flag_y == 1) ? l_x1[index-1] :
+                  (flag_y == 2) ? l_x2[index-1] :
+                  (flag_y == 3) ? l_x3[index-1] :
+                  (flag_y == 4) ? l_x4[index-1] :
+                  (flag_y == 5) ? l_x5[index-1] :
+                  (flag_y == 6) ? l_x6[index-1] :
+                  (flag_y == 7) ? l_x7[index-1] :
+                                  l_x8[index-1] ;
+
+        sx_skew  = tx_skew * NUM_GRID_X + 2;
+
+        connect
+        (
+            <pin MASK_DATA_ACIN of <device CLMS_TILE @ [sx,sy]>> =>  <wire  MASK_DATA_ACOUT  of <device CLMS_TILE @ [sx_skew,sy]>> , 
+            <pin MASK_DATA_BCIN of <device CLMS_TILE @ [sx,sy]>> =>  <wire  MASK_DATA_BCOUT  of <device CLMS_TILE @ [sx_skew,sy]>> , 
+            <pin MASK_DATA_CCIN of <device CLMS_TILE @ [sx,sy]>> =>  <wire  MASK_DATA_CCOUT  of <device CLMS_TILE @ [sx_skew,sy]>> , 
+            <pin MASK_DATA_DCIN of <device CLMS_TILE @ [sx,sy]>> =>  <wire  MASK_DATA_DCOUT  of <device CLMS_TILE @ [sx_skew,sy]>>  
+        );
+    }
+    else
+    {
+        connect
+        (
+            <pin MASK_DATA_ACIN of <device CLMS_TILE @ [sx,sy]>> => <wire  TIELO  of <device CLMS_TILE @ [sx,sy]>> ,   
+            <pin MASK_DATA_BCIN of <device CLMS_TILE @ [sx,sy]>> => <wire  TIELO  of <device CLMS_TILE @ [sx,sy]>> ,   
+            <pin MASK_DATA_CCIN of <device CLMS_TILE @ [sx,sy]>> => <wire  TIELO  of <device CLMS_TILE @ [sx,sy]>> ,   
+            <pin MASK_DATA_DCIN of <device CLMS_TILE @ [sx,sy]>> => <wire  TIELO  of <device CLMS_TILE @ [sx,sy]>>    
+        );     
+    }
+
+}//end of function connect_MASK_CLM2CLM
+/********************************************************************************************
+*********************************************************************************************/
+function connect_iob_addr_h_input_100h
+(
+    unsigned int tx, 
+    unsigned int ty, 
+    string dev_iob , 
+    unsigned int rx 
+)
+{
+    string iob = dev_iob ;
+
+    int sx = tx * NUM_GRID_X ;   
+    int sy = ty * NUM_GRID_Y ;   
+
+    int Snum_region = rx * NUM_TILES_REGION * NUM_GRID_Y ;
+
+    int sy_wlsr =  MID_TILE_REGION  * NUM_GRID_Y + Snum_region ;
+
+    connect 
+    (
+        <pin ADDR0  of <device *iob @ [sx,sy]>> => <wire ADDR[23:22] of <device IOCKGATEDLL_100H_TILE @ [1*  NUM_GRID_X+2,sy_wlsr-NUM_GRID_Y]>>,            
+        <pin ADDR1  of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR_TILE       @ [2*  NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR2  of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR_TILE       @ [3*  NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR3  of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR_TILE       @ [4*  NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR4  of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR_TILE       @ [5*  NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR5  of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR_TILE       @ [6*  NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR6  of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR_TILE       @ [7*  NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR7  of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR_TILE       @ [9*  NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR8  of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR_TILE       @ [10* NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR9  of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR_TILE       @ [11* NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR10 of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR_TILE       @ [12* NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR11 of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR1_100H_TILE @ [14* NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR12 of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR_TILE       @ [15* NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR13 of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR_TILE       @ [16* NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR14 of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR_TILE       @ [17* NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR15 of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR_TILE       @ [19* NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR16 of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR_TILE       @ [20* NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR17 of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR_TILE       @ [21* NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR18 of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR_TILE       @ [22* NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR19 of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR1_TILE      @ [25* NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR20 of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR_TILE       @ [26* NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR21 of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR_TILE       @ [27* NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR22 of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR_TILE       @ [28* NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR23 of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR_TILE       @ [62* NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR24 of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR_TILE       @ [63* NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR25 of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR_TILE       @ [64* NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR26 of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR_TILE       @ [65* NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR27 of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR_TILE       @ [66* NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR28 of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR_TILE       @ [67* NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR29 of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR_TILE       @ [69* NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR30 of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR_TILE       @ [70* NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR31 of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR1_TILE      @ [71* NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR32 of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR_TILE       @ [72* NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR33 of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR_TILE       @ [75* NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR34 of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR_TILE       @ [76* NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR35 of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR_TILE       @ [77* NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR36 of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR_TILE       @ [78* NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR37 of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR_TILE       @ [80* NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR38 of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR_TILE       @ [81* NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR39 of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR1_100H_TILE @ [82* NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR40 of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR_TILE       @ [83* NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR41 of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR_TILE       @ [85* NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR42 of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR_TILE       @ [86* NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR43 of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR_TILE       @ [87* NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR44 of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR_TILE       @ [88* NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR45 of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR_TILE       @ [90* NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR46 of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR_TILE       @ [91* NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR47 of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR_TILE       @ [92* NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR48 of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR_TILE       @ [93* NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR49 of <device *iob @ [sx,sy]>> => <wire ADDR[27:22] of <device WLSR_TILE       @ [94* NUM_GRID_X,sy_wlsr]>>,            
+        <pin ADDR50 of <device *iob @ [sx,sy]>> => <wire ADDR[23:22] of <device IOCKGATEDLL_100H_TILE @ [95* NUM_GRID_X+2,sy_wlsr-NUM_GRID_Y]>>
+    );
+
+}// end of function connect_iob_addr_h_input
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_hsst_wl_input_100h
+(
+    unsigned int tx,          
+    unsigned int ty,          
+    unsigned int tx_blsr_l,          
+    unsigned int tx_blsr_r,          
+    string dev_blsr1,
+    string dev_blsr2
+)
+{
+    string blsr1 = dev_blsr1 ;
+    string blsr2 = dev_blsr2 ;
+    int sx_blsr_l = tx_blsr_l * NUM_GRID_X;
+    int sx_blsr_r = tx_blsr_r * NUM_GRID_X;
+    int rx = ty/NUM_TILES_REGION ;
+    int sy_blsr = rx * NUM_GRID_BLSR_Y + NUM_GRID_Y;
+    int sy_wlsr = MID_TILE_REGION * NUM_GRID_Y + rx * NUM_TILES_REGION * NUM_GRID_Y;
+    int sx = tx * NUM_GRID_X;
+    int sy = ty * NUM_GRID_Y;
+
+    connect
+    (
+        <pin COL_SEL0[0]  of <device HSST_TILE @ [sx,sy]>> => <wire COL_SEL_CCS       of <device WLSR_TILE       @ [30         *NUM_GRID_X,sy_wlsr]>>,
+        <pin COL_SEL0[1]  of <device HSST_TILE @ [sx,sy]>> => <wire COL_SEL_CCS       of <device WLSR_TILE       @ [31         *NUM_GRID_X,sy_wlsr]>>,
+        <pin COL_SEL0[2]  of <device HSST_TILE @ [sx,sy]>> => <wire COL_SEL_CCS       of <device WLSR_TILE       @ [32         *NUM_GRID_X,sy_wlsr]>>,
+        <pin COL_SEL0[3]  of <device HSST_TILE @ [sx,sy]>> => <wire COL_SEL_CCS       of <device WLSR_TILE       @ [33         *NUM_GRID_X,sy_wlsr]>>,
+        <pin COL_SEL0[4]  of <device HSST_TILE @ [sx,sy]>> => <wire COL_SEL_CCS       of <device WLSRA_TILE       @ [34         *NUM_GRID_X,sy_wlsr]>>,
+        <pin COL_SEL0[5]  of <device HSST_TILE @ [sx,sy]>> => <wire COL_SEL_CCS       of <device WLSR1_100H_TILE @ [35         *NUM_GRID_X,sy_wlsr]>>,
+        <pin COL_SEL0[6]  of <device HSST_TILE @ [sx,sy]>> => <wire COL_SEL_CCS       of <device WLSR_TILE       @ [36         *NUM_GRID_X,sy_wlsr]>>,
+        <pin COL_SEL0[7]  of <device HSST_TILE @ [sx,sy]>> => <wire COL_SEL_CCS       of <device WLSR_TILE       @ [37         *NUM_GRID_X,sy_wlsr]>>,
+        <pin COL_SEL0[8]  of <device HSST_TILE @ [sx,sy]>> => <wire COL_SEL_CCS       of <device WLSR_TILE       @ [38         *NUM_GRID_X,sy_wlsr]>>,
+        <pin COL_SEL0[9]  of <device HSST_TILE @ [sx,sy]>> => <wire COL_SEL_CCS       of <device WLSR_TILE       @ [39         *NUM_GRID_X,sy_wlsr]>>,
+        <pin COL_SEL0[10]  of <device HSST_TILE @ [sx,sy]>> => <wire COL_SEL_CCS       of <device WLSR_TILE       @ [40         *NUM_GRID_X,sy_wlsr]>>,
+        <pin COL_SEL0[11] of <device HSST_TILE @ [sx,sy]>> => <wire COL_SEL_CCS       of <device WLSR_TILE       @ [41         *NUM_GRID_X,sy_wlsr]>>,
+        <pin COL_SEL0[12] of <device HSST_TILE @ [sx,sy]>> => <wire COL_SEL_CCS       of <device WLSR_TILE       @ [42         *NUM_GRID_X,sy_wlsr]>>,
+        <pin COL_SEL0[13] of <device HSST_TILE @ [sx,sy]>> => <wire COL_SEL_CCS1      of <device WLSRD_TILE      @ [43         *NUM_GRID_X,sy_wlsr]>>,
+        <pin COL_SEL0[14] of <device HSST_TILE @ [sx,sy]>> => <wire COL_SEL_CCS2      of <device WLSRD_TILE      @ [43         *NUM_GRID_X,sy_wlsr]>>,
+        <pin COL_SEL0[15] of <device HSST_TILE @ [sx,sy]>> => <wire COL_SEL_CCS       of <device WLSR_TILE       @ [44         *NUM_GRID_X,sy_wlsr]>>,
+        <pin COL_SEL0[16] of <device HSST_TILE @ [sx,sy]>> => <wire COL_SEL_CCS       of <device WLSR_TILE       @ [45         *NUM_GRID_X,sy_wlsr]>>,
+        <pin COL_SEL0[17] of <device HSST_TILE @ [sx,sy]>> => <wire COL_SEL_CCS       of <device WLSR_TILE       @ [46         *NUM_GRID_X,sy_wlsr]>>,
+        <pin COL_SEL0[18] of <device HSST_TILE @ [sx,sy]>> => <wire COL_SEL_CCS       of <device WLSR2_TILE       @ [47         *NUM_GRID_X,sy_wlsr]>>,
+        <pin COL_SEL0[19] of <device HSST_TILE @ [sx,sy]>> => <wire TIELO             of <device HSST_TILE       @ [sx,sy]>>,
+        <pin READ_OR0     of <device HSST_TILE @ [sx,sy]>> => <wire BUS_WLSR_OUTR[11] of <device *blsr1          @ [sx_blsr_l, sy_blsr]>>,            
+                                                                                                                                                      
+        <pin COL_SEL1[0]  of <device HSST_TILE @ [sx,sy]>> => <wire COL_SEL_CCS       of <device WLSR_TILE       @ [48         *NUM_GRID_X,sy_wlsr]>>,
+        <pin COL_SEL1[1]  of <device HSST_TILE @ [sx,sy]>> => <wire COL_SEL_CCS       of <device WLSR_TILE       @ [49         *NUM_GRID_X,sy_wlsr]>>,
+        <pin COL_SEL1[2]  of <device HSST_TILE @ [sx,sy]>> => <wire COL_SEL_CCS       of <device WLSR_TILE       @ [50         *NUM_GRID_X,sy_wlsr]>>,
+        <pin COL_SEL1[3]  of <device HSST_TILE @ [sx,sy]>> => <wire COL_SEL_CCS       of <device WLSR_TILE       @ [51         *NUM_GRID_X,sy_wlsr]>>,
+        <pin COL_SEL1[4]  of <device HSST_TILE @ [sx,sy]>> => <wire COL_SEL_CCS1      of <device WLSRD_TILE      @ [52         *NUM_GRID_X,sy_wlsr]>>,
+        <pin COL_SEL1[5]  of <device HSST_TILE @ [sx,sy]>> => <wire COL_SEL_CCS2      of <device WLSRD_TILE      @ [52         *NUM_GRID_X,sy_wlsr]>>,
+        <pin COL_SEL1[6]  of <device HSST_TILE @ [sx,sy]>> => <wire COL_SEL_CCS       of <device WLSR_TILE       @ [53         *NUM_GRID_X,sy_wlsr]>>,
+        <pin COL_SEL1[7]  of <device HSST_TILE @ [sx,sy]>> => <wire COL_SEL_CCS       of <device WLSR_TILE       @ [54         *NUM_GRID_X,sy_wlsr]>>,
+        <pin COL_SEL1[8]  of <device HSST_TILE @ [sx,sy]>> => <wire COL_SEL_CCS       of <device WLSR_TILE       @ [55         *NUM_GRID_X,sy_wlsr]>>,
+        <pin COL_SEL1[9]  of <device HSST_TILE @ [sx,sy]>> => <wire COL_SEL_CCS       of <device WLSR_TILE       @ [56         *NUM_GRID_X,sy_wlsr]>>,
+        <pin COL_SEL1[10] of <device HSST_TILE @ [sx,sy]>> => <wire COL_SEL_CCS       of <device WLSR_TILE       @ [57         *NUM_GRID_X,sy_wlsr]>>,
+        <pin COL_SEL1[11] of <device HSST_TILE @ [sx,sy]>> => <wire COL_SEL_CCS       of <device WLSR_TILE       @ [58         *NUM_GRID_X,sy_wlsr]>>,
+        <pin COL_SEL1[12] of <device HSST_TILE @ [sx,sy]>> => <wire COL_SEL_CCS       of <device WLSRA_TILE       @ [59         *NUM_GRID_X,sy_wlsr]>>,
+        <pin COL_SEL1[13] of <device HSST_TILE @ [sx,sy]>> => <wire COL_SEL_CCS       of <device WLSR1_100H_TILE @ [60         *NUM_GRID_X,sy_wlsr]>>,
+        <pin COL_SEL1[14] of <device HSST_TILE @ [sx,sy]>> => <wire COL_SEL_CCS       of <device WLSR_TILE       @ [61         *NUM_GRID_X,sy_wlsr]>>,
+        <pin COL_SEL1[15] of <device HSST_TILE @ [sx,sy]>> => <wire TIELO_R             of <device HSST_TILE       @ [sx,sy]>>,                         
+        <pin COL_SEL1[16] of <device HSST_TILE @ [sx,sy]>> => <wire TIELO_R             of <device HSST_TILE       @ [sx,sy]>>,                         
+        <pin COL_SEL1[17] of <device HSST_TILE @ [sx,sy]>> => <wire TIELO_R             of <device HSST_TILE       @ [sx,sy]>>,                         
+        <pin COL_SEL1[18] of <device HSST_TILE @ [sx,sy]>> => <wire TIELO_R             of <device HSST_TILE       @ [sx,sy]>>,                         
+        <pin COL_SEL1[19] of <device HSST_TILE @ [sx,sy]>> => <wire TIELO_R             of <device HSST_TILE       @ [sx,sy]>>,                         
+        <pin READ_OR1     of <device HSST_TILE @ [sx,sy]>> => <wire BUS_WLSR_OUTL[11] of <device *blsr2          @ [sx_blsr_r, sy_blsr]>>,            
+                                                                                                                                                      
+        <pin ADDR0        of <device HSST_TILE @ [sx,sy]>> => <wire ADDR[27:22]       of <device WLSR_TILE      @ [30         *NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR1        of <device HSST_TILE @ [sx,sy]>> => <wire ADDR[27:22]       of <device WLSR_TILE       @ [31         *NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR2        of <device HSST_TILE @ [sx,sy]>> => <wire ADDR[27:22]       of <device WLSR_TILE       @ [32         *NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR3        of <device HSST_TILE @ [sx,sy]>> => <wire ADDR[27:22]       of <device WLSR_TILE       @ [33         *NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR5        of <device HSST_TILE @ [sx,sy]>> => <wire ADDR[27:22]       of <device WLSR1_100H_TILE @ [35         *NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR6        of <device HSST_TILE @ [sx,sy]>> => <wire ADDR[27:22]       of <device WLSR_TILE       @ [36         *NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR7        of <device HSST_TILE @ [sx,sy]>> => <wire ADDR[27:22]       of <device WLSR_TILE       @ [37         *NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR8        of <device HSST_TILE @ [sx,sy]>> => <wire ADDR[27:22]       of <device WLSR_TILE       @ [38         *NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR9        of <device HSST_TILE @ [sx,sy]>> => <wire ADDR[27:22]       of <device WLSR_TILE       @ [39         *NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR10       of <device HSST_TILE @ [sx,sy]>> => <wire ADDR[27:22]       of <device WLSR_TILE       @ [40         *NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR11       of <device HSST_TILE @ [sx,sy]>> => <wire ADDR[27:22]       of <device WLSR_TILE       @ [41         *NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR12       of <device HSST_TILE @ [sx,sy]>> => <wire ADDR[27:22]       of <device WLSR_TILE       @ [42         *NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR13[0]    of <device HSST_TILE @ [sx,sy]>> => <wire ADDR[22]          of <device WLSRD_TILE      @ [43         *NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR13[1]    of <device HSST_TILE @ [sx,sy]>> => <wire ADDR_D            of <device WLSRD_TILE      @ [43         *NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR14       of <device HSST_TILE @ [sx,sy]>> => <wire ADDR[27:22]       of <device WLSR_TILE       @ [44         *NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR15       of <device HSST_TILE @ [sx,sy]>> => <wire ADDR[27:22]       of <device WLSR_TILE       @ [45         *NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR16       of <device HSST_TILE @ [sx,sy]>> => <wire ADDR[27:22]       of <device WLSR_TILE       @ [46         *NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR18       of <device HSST_TILE @ [sx,sy]>> => <wire ADDR[27:22]       of <device WLSR_TILE       @ [48         *NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR19       of <device HSST_TILE @ [sx,sy]>> => <wire ADDR[27:22]       of <device WLSR_TILE       @ [49         *NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR20       of <device HSST_TILE @ [sx,sy]>> => <wire ADDR[27:22]       of <device WLSR_TILE       @ [50         *NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR21       of <device HSST_TILE @ [sx,sy]>> => <wire ADDR[27:22]       of <device WLSR_TILE       @ [51         *NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR22[0]    of <device HSST_TILE @ [sx,sy]>> => <wire ADDR[22]          of <device WLSRD_TILE      @ [52         *NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR22[1]    of <device HSST_TILE @ [sx,sy]>> => <wire ADDR_D            of <device WLSRD_TILE      @ [52         *NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR23       of <device HSST_TILE @ [sx,sy]>> => <wire ADDR[27:22]       of <device WLSR_TILE       @ [53         *NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR24       of <device HSST_TILE @ [sx,sy]>> => <wire ADDR[27:22]       of <device WLSR_TILE       @ [54         *NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR25       of <device HSST_TILE @ [sx,sy]>> => <wire ADDR[27:22]       of <device WLSR_TILE       @ [55         *NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR26       of <device HSST_TILE @ [sx,sy]>> => <wire ADDR[27:22]       of <device WLSR_TILE       @ [56         *NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR27       of <device HSST_TILE @ [sx,sy]>> => <wire ADDR[27:22]       of <device WLSR_TILE       @ [57         *NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR28       of <device HSST_TILE @ [sx,sy]>> => <wire ADDR[27:22]       of <device WLSR_TILE       @ [58         *NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR30       of <device HSST_TILE @ [sx,sy]>> => <wire ADDR[27:22]       of <device WLSR1_100H_TILE @ [60         *NUM_GRID_X,sy_wlsr]>>,
+        <pin ADDR31       of <device HSST_TILE @ [sx,sy]>> => <wire ADDR[27:22]       of <device WLSR_TILE       @ [61         *NUM_GRID_X,sy_wlsr]>>,
+                                                                                                                                                      
+        <pin GLOGEN       of <device HSST_TILE @ [sx,sy]>> => <wire GLOGEN_OUT        of <device WLSR_TILE       @ [(tx+14)     *NUM_GRID_X,sy_wlsr]>>,
+        <pin GRSN         of <device HSST_TILE @ [sx,sy]>> => <wire BUS_GSEB_OUT[0]   of <device WLSR_TILE       @ [(tx+14)     *NUM_GRID_X,sy_wlsr]>>
+    );
+
+}//end of connect_hsst_wl_input
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_pcie_wl_input_100h
+(
+    unsigned int tx,          
+    unsigned int rx,          
+    unsigned int ty,          
+    unsigned int tx_r,          
+    unsigned int tx_blsr,          
+    unsigned int tx_wlsr,          
+    string sig_addr_c,
+    string sig_addr_b,
+    string sig_col_sel,
+    string sig_read_or,
+    string sig_addr,
+    string sig_tielo,
+    string dev_pcie
+)
+{
+    string pcie = dev_pcie ;
+    string addr = sig_addr ;
+    string tielo = sig_tielo ;
+    int sx_wlsr = tx_wlsr * NUM_GRID_X;
+    int sy_wlsr = rx * NUM_GRID_BLSR_Y + MID_TILE_REGION * NUM_GRID_Y;
+    int sx = tx * NUM_GRID_X + 2;
+    int sx_blsr = tx_blsr * NUM_GRID_X ;
+    int sy_blsr = rx * NUM_GRID_BLSR_Y + NUM_GRID_Y ;
+    string col_sel = sig_col_sel ;
+    string addr_c = sig_addr_c ;
+    string addr_b = sig_addr_b ;
+    string read_or = sig_read_or ;
+    int sx_wlsr_r = tx_r * NUM_GRID_X ;
+
+    int sy = ty * NUM_GRID_Y ;
+
+    connect(<pin *addr  of <device *pcie @ [sx,sy]>>  => <wire ADDR[23:22]    of <device WLSR_TILE @ [sx_wlsr,sy_wlsr]>>);
+
+    if(rx==3)
+    {
+        connect
+        (
+            <pin GRSN  of <device *pcie @ [sx,sy]>>  => <wire BUS_GSEB_OUT[0] of <device WLSR_TILE @ [sx_wlsr,sy_wlsr]>>,
+            <pin GLOGEN  of <device *pcie @ [sx,sy]>>  => <wire GLOGEN_OUT    of <device WLSR_TILE @ [sx_wlsr,sy_wlsr]>>
+        );
+    }
+    connect
+    (
+        <pin *addr_c  of <device *pcie @ [sx,sy]>>  => <wire ADDR[27:24]    of <device WLSR_TILE @ [sx_wlsr_r,sy_wlsr]>>,
+        <pin *addr_b[3:0]  of <device *pcie @ [sx,sy]>>  => <wire ADDR[27:24]    of <device WLSR_TILE @ [sx-2,sy_wlsr]>>,
+        <pin *col_sel[0]  of <device *pcie @ [sx,sy]>>  => <wire COL_SEL_CCS    of <device WLSR_TILE @ [sx+2,sy_wlsr]>>,
+        <pin *col_sel[1]  of <device *pcie @ [sx,sy]>>  => <wire COL_SEL_CCS    of <device WLSR_TILE @ [sx+2+NUM_GRID_X,sy_wlsr]>>,
+        <pin *col_sel[2]  of <device *pcie @ [sx,sy]>>  => <wire COL_SEL_CCS    of <device WLSR_TILE @ [sx+2+2*NUM_GRID_X,sy_wlsr]>>,
+        <pin *addr_b[6]  of <device *pcie @ [sx,sy]>>  => <wire COL_SEL_CCS    of <device WLSR_TILE @ [sx+2+3*NUM_GRID_X,sy_wlsr]>>,
+        <pin *addr_b[7]  of <device *pcie @ [sx,sy]>>  => <wire COL_SEL_CCS1    of <device WLSRD_TILE @ [sx+2+4*NUM_GRID_X,sy_wlsr]>>,
+        <pin *addr_b[8]  of <device *pcie @ [sx,sy]>>  => <wire COL_SEL_CCS2    of <device WLSRD_TILE @ [sx+2+4*NUM_GRID_X,sy_wlsr]>>,
+        <pin *addr_b[5:4]  of <device *pcie @ [sx,sy]>>   => <wire ADDR[23:22]    of <device WLSR_TILE @ [sx_wlsr_r,sy_wlsr]>>,
+        <pin *addr_b[9]  of <device *pcie @ [sx,sy]>>   => <wire *tielo    of <device  *pcie @ [sx,sy]>>,
+        <pin *addr_b[10]  of <device *pcie @ [sx,sy]>>  => <wire *tielo    of <device  *pcie @ [sx,sy]>>,
+        <pin *addr_b[11]  of <device *pcie @ [sx,sy]>>  => <wire *tielo    of <device  *pcie @ [sx,sy]>>,
+        <pin *addr_b[12]  of <device *pcie @ [sx,sy]>>  => <wire *tielo    of <device  *pcie @ [sx,sy]>>,
+        <pin *addr_b[13]  of <device *pcie @ [sx,sy]>>  => <wire *tielo    of <device  *pcie @ [sx,sy]>>,
+        <pin *addr_b[14]  of <device *pcie @ [sx,sy]>>  => <wire *tielo    of <device  *pcie @ [sx,sy]>>,
+        <pin *addr_b[15]  of <device *pcie @ [sx,sy]>>  => <wire *tielo    of <device  *pcie @ [sx,sy]>>,
+        <pin *addr_b[16]  of <device *pcie @ [sx,sy]>>  => <wire *tielo    of <device  *pcie @ [sx,sy]>>,
+        <pin *addr_b[17]  of <device *pcie @ [sx,sy]>>  => <wire *tielo    of <device  *pcie @ [sx,sy]>>,
+        <pin *addr_b[18]  of <device *pcie @ [sx,sy]>>  => <wire *tielo    of <device  *pcie @ [sx,sy]>>,
+        <pin *addr_b[19]  of <device *pcie @ [sx,sy]>>  => <wire *tielo    of <device  *pcie @ [sx,sy]>>,
+        <pin *addr_b[20]  of <device *pcie @ [sx,sy]>>  => <wire *tielo    of <device  *pcie @ [sx,sy]>>,
+        <pin *addr_b[21]  of <device *pcie @ [sx,sy]>>  => <wire *tielo    of <device  *pcie @ [sx,sy]>>,
+        <pin *read_or  of <device *pcie @ [sx,sy]>>  => <wire BUS_WLSR_OUTR[11]    of <device  BLSR1_TILE @ [sx_blsr,sy_blsr]>>
+   );
+
+}//end of function connect_cramsl2_wl_input
+}//end of package pgl100h_funcs_connect_wl_bl
+

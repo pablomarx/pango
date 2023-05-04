@@ -1,0 +1,74 @@
+*****************************************************************
+
+  Device    [QCDMUX]
+
+  Author    [clwang]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+prim
+device QCDMUX
+{
+    parameter
+    (
+        config string CFG  = "L6"     // "L6" "FF2" "CDP"
+    );
+    port 
+    ( 
+        input  L6, FF2, CDP,
+        output Z
+    );
+
+}; // end of device QCDMUX
+
+/**Device***********************************************************************
+
+  Device    [QCDMUX]
+
+  Abstract  [This specified how to propagate the input signal to the outputs based on
+             configuration]
+
+  Revision History:
+
+********************************************************************************/
+propagation pop of QCDMUX
+{
+    if (CFG == "L6" )
+    {
+        propagate ( L6 --> Z );
+    }
+    else if (CFG == "FF2" )
+    {
+        propagate ( FF2 --> Z );
+    }
+    else if (CFG == "CDP" )
+    {
+        propagate ( CDP --> Z );
+    }
+    else
+    {
+       error("Illegal configuration value with QCDMUX.");
+    }
+
+}; // end of propagation for QCDMUX
+
+/**Device***********************************************************************
+
+  Device    [QCDMUX]
+  
+  Author    []
+
+  Abstract  [This specified the timing model under specific configuration]
+
+  Revision History:
+
+********************************************************************************/
+timing  qcdmux_tnl of QCDMUX
+{
+    Z <= (CFG == "L6")  ? L6  :
+         (CFG == "FF2") ? FF2 : 
+         (CFG == "CDP") ? CDP : 1'bx;
+};

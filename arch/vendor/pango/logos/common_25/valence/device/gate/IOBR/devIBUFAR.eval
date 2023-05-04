@@ -1,0 +1,78 @@
+******************************************************************
+//
+//  Device    [devIBUFAR]
+//
+//  project   []
+//  
+//  Author    [guoxi]
+//
+//  Abstract  [ ]
+//
+//  Revision History:
+//                       
+//********************************************************************************/
+
+gate device devIBUFAR : device IOBR
+{
+    parameter 
+    (
+        config string CP_IOB_MODE      = "IBUFHR",     //"IBUFHR","OBUFHR","IOBUFHR","OBUFHR_T","IBUFHR_DS","IVREFHR"
+        config string CP_PORT_STATUS   = "PULLUP",     //"PULL_UP","PULL_DOWN","KEEPER" on input pad
+        config string CP_IO_STANDARD   = "LVCMOS33",   //IO standard: lvcmos33 lvcmos25 lvcmos18 lvcmos15 lvcmos12
+        config string CP_DIFFIN_TERM   = "OFF",        //differential input terminal resistor: "ON", "OFF"
+        config string CP_DDRIN_TERM    = "OFF",        //terminal resistor for DDR input:"OFF","ON"
+        config string CP_W_VOLT_R_IN   = "NOHYS",      //"NOHYS","SHYS_I","SHYS_II","LHYS","OD33","OD25","OD18","UD12","UD18","UD25"
+        config string CP_DRV_STRENGTH  = "8",          // output drvier strength: 2,4,6,8,12,16,24
+        config string CP_SLEW_MODE     = "F",          //slew rate: "FAST"->"F", "SLOW"->"S"
+        config string CP_HOT_SOCKET    = "ON",         //hot_socket feature, "ON", "OFF"
+        config string CP_VCCIO         = "3.3"         //bank power supply, "2.5", "3.3"
+    
+    );
+   port
+    (   
+        output DIN,
+        input  TS, 
+        input  MIPI_SW_DYN,
+        inout  PAD
+     );
+};  // end of device devIBUFAR
+
+
+/*******************************************************************************
+
+  Device    [devIBUFAR]
+
+  Author    []
+
+  Abstract  [gate grid devIBUFAR. structure nestlist]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devIBUFAR
+{
+    // Wires connecting to ports. 
+    wire ntPAD;
+    wire ntDIN;
+    wire ntMIPI_SW_DYN;
+
+    ntMIPI_SW_DYN <= MIPI_SW_DYN;
+    
+    DIN <= ntDIN;
+    PAD <= ntPAD;
+
+
+    device IBUFR IBUFR
+        parameter map
+        (
+            CP_IOB_MODE => CP_IOB_MODE
+        )
+        port map
+        (
+            OUT      => ntDIN,
+            MIPI_SW_DYN => ntMIPI_SW_DYN,
+            IN       => ntPAD
+        );
+
+};  // end of structure netlist of devIBUFAR            
+

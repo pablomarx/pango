@@ -1,0 +1,123 @@
+*****************************************************************
+
+  Device    [TSREG]
+
+  Author    [jiang tao]
+
+  Abstract  [The Prim Device Of IOL]
+
+  Revision History:
+
+********************************************************************************/
+prim
+device TSREG
+{
+    parameter
+    (
+        config string CP_GRS_DIS = "FALSE",
+        config string CP_TSREG_SET  = "SET",    //1'b1 => set; 1'b0 => reset
+        config string CP_REG_SYNC  = "ASYNC"  //1'b1 => sync; 1'b0 => async
+    );
+    port 
+    ( 
+        // Input Ports of TSREG
+        input TD0,
+        input TD1,
+        input CLK,
+        input CE,
+        input SR,
+        
+        // Output Ports for TSREG
+        output TQ_SDR,
+        output TQ_DDR
+    );
+
+};
+
+/**Device***********************************************************************
+
+  Device    [TSREG]
+
+  Abstract  [This specified how to propagate the input signal to the outputs based on
+             configuration]
+
+  Revision History:
+
+********************************************************************************/
+propagation pop of TSREG
+{
+    
+    propagate ( CLK |-> TQ_SDR );
+    propagate ( CLK |-> TQ_DDR );
+    propagate ( TD0 |-> TQ_SDR );
+    propagate ( TD0 |-> TQ_DDR );
+    propagate ( TD1 |-> TQ_DDR );
+    propagate ( CE  |-> TQ_SDR );
+    propagate ( CE  |-> TQ_DDR );
+    propagate ( SR  |-> TQ_SDR );
+    propagate ( SR  |-> TQ_DDR );
+}; // end of propagation for TSREG
+
+
+
+//timing tsreg_tnl of TSREG
+//{
+//   // operator V_ODDR V_ODDR
+//   //     parameter map 
+//   //     (
+//   //         GRS_EN  => (CP_GRS_DIS == "FALSE") ? "TRUE"  :
+//   //                    (CP_GRS_DIS == "TRUE" ) ? "FALSE" : "",
+//   //         SYNC_RS => (CP_TSREG_SET == "SET"   && CP_REG_SYNC == "ASYNC") ? "ASYNC_SET"   :
+//   //                    (CP_TSREG_SET == "SET"   && CP_REG_SYNC == "SYNC" ) ? "SYNC_SET"    :
+//   //                    (CP_TSREG_SET == "RESET" && CP_REG_SYNC == "ASYNC") ? "ASYNC_RESET" :
+//   //                    (CP_TSREG_SET == "RESET" && CP_REG_SYNC == "SYNC" ) ? "SYNC_RESET"  : ""
+//   //     )
+//   //     port map
+//   //     (
+//   //         D0   => TD0    ,
+//   //         D1   => TD1    ,
+//   //         CE   => CE     ,
+//   //         RS   => SR     ,
+//   //         CLK  => CLK    ,
+//   //         Q    => TQ_DDR
+//   //     );
+//
+//    if (CP_REG_SYNC == "ASYNC")
+//    {
+//        operator V_FFASYN  V_FFASYN
+//            parameter map 
+//            (
+//                GRS_EN  => (CP_GRS_DIS == "FALSE") ? "TRUE"  :
+//                           (CP_GRS_DIS == "TRUE" ) ? "FALSE" : "",
+//                SET_RESET => CP_TSREG_SET,
+//                LRS_EN    => "TRUE"
+//            )
+//            port map 
+//            (
+//                Q  => TQ_SDR,
+//                D  => TD0, 
+//                SR => SR,
+//                CK => CLK,
+//                CE => CE
+//            );
+//    }
+//    else
+//    {
+//        operator V_FFSYN  V_FFSYN
+//            parameter map 
+//            (
+//                GRS_EN  => (CP_GRS_DIS == "FALSE") ? "TRUE"  :
+//                           (CP_GRS_DIS == "TRUE" ) ? "FALSE" : "",
+//                SET_RESET => CP_TSREG_SET,
+//                LRS_EN    => "TRUE"
+//            )
+//            port map 
+//            (
+//                Q  => TQ_SDR,
+//                D  => TD0, 
+//                SR => SR,
+//                CK => CLK,
+//                CE => CE
+//            );
+//    }
+//};

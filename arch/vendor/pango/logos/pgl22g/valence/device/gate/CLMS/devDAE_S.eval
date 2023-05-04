@@ -1,0 +1,90 @@
+*****************************************************************
+
+  Device    [devDAE_S]
+
+  Author    [guoxi]
+
+  Abstract  [THE DEVICE MODELLED FOR THE END OF CARRY CHAIN. FOR THE OUTPUT PORT 
+             HAD BEEN USED BY SUM OF CARRY CHAIN, SIGNAL OF THE PORT COUT CAN NOT
+             PASS TO IT DERECTLY.]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devDAE_S : device devD_S
+{
+    parameter
+    (
+        config bit    CP_INITD[31:0] = 32'hffff_ffff,
+        config string CP_MODED       = "LUT5",         //"LUT5" "ROM" "WMUX" "RAM" "ARITH" "PRIENC" "MUX4" "XOR" "COMP" "RAM"
+        config string CP_MASK      := "FALSE",
+        config string CP_Y3MUX_SEL   := "CYX"            //"FX":F3 "CYX":CYD "MF":L8                     
+    );
+    
+    port
+    (
+               output   Y3,
+        logic  input    FGD_CIN
+    );
+}; // end of device devDAE_S
+
+
+/*******************************************************************************
+
+  Device    [devDAE_S]
+
+  Author    [guoxi]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devDAE_S
+{
+    // Wires connecting to output ports
+    wire ntY3;
+    
+    wire ntCOUT;
+    
+    // Internal wires
+    wire ntCYC;
+
+    //
+    // Connection to ports
+    //
+    ntCYC     <= FGD_CIN;
+    
+    Y3        <= ntY3;
+    
+    //
+    // Instances. FGA section
+    //
+
+    device FYSC FYD
+        parameter map
+        (
+            CP_INIT   => CP_INITD,
+            CP_MODE   => CP_MODED,
+            CP_MASK   => CP_MASK 
+        )
+        port map
+        (
+            CIN  => ntCYC,
+            COUT => ntCOUT
+        );
+    
+    device YMUX  Y3MUX
+        parameter map
+        (
+            CP_OUT_SEL => CP_Y3MUX_SEL
+        )
+        port map
+        (
+            Y    => ntY3,
+            CYX  => ntCOUT
+        );
+    
+}; // end of structure netlist of devDAE_S
+

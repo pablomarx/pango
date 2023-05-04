@@ -1,0 +1,167 @@
+*************************************************************************
+****************************************************************************************/
+library work;
+use pgl_defs,pgl200es_defs;
+use pgl200es_funcs_connect_io_bank;
+
+structure arch_nl connect_IOB_TILES of PGL200ES
+{
+    int flag_lr,flag_half;
+    int bank, bank_loc;
+    string iob ,lr;
+
+    foreach lr( {"L"} )
+    {
+      foreach bank( {[0:6]} )
+      {
+        bank_loc = (bank<3) ? bank : bank + 1 ;
+
+        iob = (bank==3) ? "IOB_TILE_HALF" : "IOB_TILE" ;
+
+        flag_half = (bank==3) ? 1 : 0 ;
+        
+        connect_pad_bank( lr, bank, bank_loc, IOB1_TILE_X, NUM_TILE_X, NUM_REGION ,iob, flag_half);
+      }
+    }
+    foreach lr( {"R"} )
+    {
+      foreach bank( {[0:5]} )
+      {
+
+        bank_loc = (bank<4) ? bank : bank + 2 ;
+
+        iob = "IOB_TILE" ;
+        
+        flag_half = 0 ;
+
+        connect_pad_bank( lr, bank, bank_loc, IOB1_TILE_X, NUM_TILE_X, NUM_REGION ,iob, flag_half);
+      }
+    }
+}
+/***************************************************************************************
+****************************************************************************************/
+library work;
+use pgl_defs,pgl200es_defs;
+use pgl200es_funcs_connect_io_bank;
+
+structure arch_nl connect_IOB_SCANCHAIN of PGL200ES
+{
+    unsigned int L_REGIONS[] = {[0:7]};
+    unsigned int tx,rx;
+
+    int flag_lr,flag_half;
+    int bank, bank_loc;
+    string iob ,lr;
+
+   foreach rx (L_REGIONS)
+   {
+        foreach tx(L_IOB_TILES_X)
+        {
+
+            if(!((tx==IOB1_TILE_X&&rx>=2)||(tx==IOB2_TILE_X&&rx<=3)))
+            {
+                iob = (rx==3&&tx==IOB0_TILE_X) ? "IOB_TILE_HALF" : "IOB_TILE" ;
+                flag_lr = (tx==IOB0_TILE_X) ? 1 : 0 ;
+
+                connect_IOB_SCANCHAIN_BANK(rx, tx, CCS_TILE_X, CCS_TILE_Y, BUF_PGL35IP_TILE_X, IOB0_TILE_X, IOB1_TILE_X, IOB2_TILE_X, 0, (MID_TILE_REGION-1)+4*NUM_TILES_REGION,NUM_REGION, "BUF_PGL200ES_TILE", iob, flag_lr);
+            }
+        }
+   }
+};
+
+/***************************************************************************************
+****************************************************************************************/
+library work;
+use pgl_defs,pgl200es_defs;
+use pgl200es_funcs_connect_io_bank;
+
+structure arch_nl connect_IOL_TILES of PGL200ES
+{
+    unsigned int L_REGIONS_L[] = {0,1,2,5,6,7};
+    unsigned int L_REGIONS_R[] = {0,1,4,5,6,7};
+    unsigned int ty_dqs0 = 24;
+    unsigned int ty_dqs1 = 13;
+    unsigned int ty_dqs2 = 6;
+    unsigned int ty_iol_comp0 = 1;
+    unsigned int ty_iol_comp1 = 29;
+
+    unsigned int l_ty_dqs0[] = {[21:22,25:29]};
+    unsigned int l_ty_dqs1[] = {[10:12,18:20]};
+    unsigned int l_ty_dqs2[] = {[1:5,8:9]};
+    unsigned int l_ty_dqs[] = {6,13,24};
+
+    unsigned int rx,tx,ty_iol_iol_pll0_out,ty_iol_iol_pll1_out;
+    string type_lr;
+
+    ty_iol_iol_pll0_out = 19 ;
+    ty_iol_iol_pll1_out = 11 ;
+
+    foreach rx(L_REGIONS_L)
+    {
+
+        foreach tx({IOL0_TILE_X})
+        {
+            connect_iol_BANK(rx, tx, ty_dqs0, l_ty_dqs0, ty_iol_comp0, ty_iol_comp1, ty_iol_iol_pll0_out, ty_iol_iol_pll1_out);
+
+            connect_iol_BANK(rx, tx, ty_dqs1, l_ty_dqs1, ty_iol_comp0, ty_iol_comp1, ty_iol_iol_pll0_out, ty_iol_iol_pll1_out);
+            connect_iol_BANK(rx, tx, ty_dqs2, l_ty_dqs2, ty_iol_comp0, ty_iol_comp1, ty_iol_iol_pll0_out, ty_iol_iol_pll1_out);
+
+            connect_dqs_BANK(rx, tx,IOL0_TILE_X,IOL1_TILE_X,IOL2_TILE_X,l_ty_dqs,"IOB_TILE","IOCKGATEDLL_TILE",  NUM_REGION);
+        }
+    }
+    foreach rx({3})
+    {
+
+        foreach tx({IOL0_TILE_X})
+        {
+
+            connect_iol_BANK(rx, tx, ty_dqs1, {[10:12]}, ty_iol_comp0, ty_iol_comp1, ty_iol_iol_pll0_out, ty_iol_iol_pll1_out);
+            connect_iol_BANK(rx, tx, ty_dqs2, l_ty_dqs2, ty_iol_comp0, ty_iol_comp1, ty_iol_iol_pll0_out, ty_iol_iol_pll1_out);
+
+            connect_dqs_BANK(rx, tx,IOL0_TILE_X,IOL1_TILE_X,IOL2_TILE_X, {6,13},"IOB_TILE_HALF","IOCKGATEDLL2_TILE", NUM_REGION);
+        }
+    }
+
+    foreach rx(L_REGIONS_R)
+    {
+
+        if(rx<2)
+        {
+            foreach tx({IOL1_TILE_X})
+            {
+              connect_iol_BANK(rx, tx, ty_dqs0, l_ty_dqs0, ty_iol_comp0, ty_iol_comp1, ty_iol_iol_pll0_out, ty_iol_iol_pll1_out);
+              connect_iol_BANK(rx, tx, ty_dqs1, l_ty_dqs1, ty_iol_comp0, ty_iol_comp1, ty_iol_iol_pll0_out, ty_iol_iol_pll1_out);
+              connect_iol_BANK(rx, tx, ty_dqs2, l_ty_dqs2, ty_iol_comp0, ty_iol_comp1, ty_iol_iol_pll0_out, ty_iol_iol_pll1_out);
+
+              connect_dqs_BANK(rx, tx,IOL0_TILE_X,IOL1_TILE_X,IOL2_TILE_X, l_ty_dqs,"IOB_TILE","IOCKGATEDLL_TILE", NUM_REGION);
+            }
+        }
+        else
+        {
+            foreach tx({IOL2_TILE_X})
+            {
+              connect_iol_BANK(rx, tx, ty_dqs0, l_ty_dqs0, ty_iol_comp0, ty_iol_comp1, ty_iol_iol_pll0_out, ty_iol_iol_pll1_out);
+              connect_iol_BANK(rx, tx, ty_dqs1, l_ty_dqs1, ty_iol_comp0, ty_iol_comp1, ty_iol_iol_pll0_out, ty_iol_iol_pll1_out);
+              connect_iol_BANK(rx, tx, ty_dqs2, l_ty_dqs2, ty_iol_comp0, ty_iol_comp1, ty_iol_iol_pll0_out, ty_iol_iol_pll1_out);
+
+              connect_dqs_BANK(rx, tx, IOL0_TILE_X,IOL1_TILE_X,IOL2_TILE_X,l_ty_dqs, "IOB_TILE","IOCKGATEDLL_TILE",NUM_REGION);
+            }
+        }
+    }
+};
+/***************************************************************************************
+****************************************************************************************/
+library work;
+use pgl_defs,pgl200es_defs;
+use pgl200es_funcs_connect_io_bank;
+
+structure arch_nl connect_pad_hsst of PGL200ES
+{
+    connect_pad_hsst("HSST_TILE", HSST_TILE_X,HSST_TILE_Y,WLSR1_TILE_X_L2,MID_TILE_REGION+4*NUM_TILES_REGION);    
+};
+
+
+
+
+
+

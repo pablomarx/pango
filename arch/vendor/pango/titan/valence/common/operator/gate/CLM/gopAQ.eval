@@ -1,0 +1,439 @@
+*********************************************************************
+
+  Operator    [gopAQ]
+  
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+ ********************************************************************************/
+gate
+operator gopAQ
+{
+    parameter
+    (
+        string GRS_EN          = "FALSE",           // "TRUE" "FALSE"
+        string LRS_EN          = "TRUE",            // "TRUE"   "FALSE"
+        bit    INIT[31:0]      = 32'h0000_0000,
+        string MODE            = "ARITH",
+        string YXMUX_SEL       = "FG",                // "FG" "CY" 
+        string CEMUX_SEL       = "CE",                // "CE" "CEIN" 
+        string RSMUX_SEL       = "RS",                // "RS" "RSIN"
+        bit    CLK_POS         = 1'b0,                // 1'b0: "CLK"; 1'b1: "CLK_B"
+        bit    CE_POS          = 1'b0,                // 1'b0: "CE";  1'b1: "CE_B"
+        bit    RS_POS          = 1'b0,                // 1'b0: "RS";  1'b1: "RS_B"
+        string CE_USED         = "USED",              // "USED"  "UNUSED"
+        string RS_USED         = "USED",              // "USED"  "UNUSED"
+        string SYNC_MODE       = "SYNC",              // "SYNC" "ASYNC"
+        string FF_SET          = "RESET"              // "RESET" "SET"         
+    );
+
+    port
+    (
+        input  I0, I0X, I1, I2, I3, I4, Cin,
+        input CLK /* pragma PAP_ARC_GOP_CTRL_PIN = "GCLK|RCLK"*/,
+        input CE /* pragma PAP_ARC_GOP_CTRL_PIN = CE*/,
+        input RS /* pragma PAP_ARC_GOP_CTRL_PIN = RST*/,
+        output RSOUT, CEOUT,
+        output Cout, Y, Q
+    );
+};
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devALCQ_S to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devALCQ_S of gopAQ
+{          
+    device devALCQ_S gatedev
+        parameter map 
+        ( 
+            INITA     => INIT,
+            FGA_MODE  => MODE,    
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,
+            Y0MUX_SEL => YXMUX_SEL  ,                             // "FFAB" "FG" "CY"
+            CEMUX_SEL => CEMUX_SEL  ,                             
+            RSMUX_SEL => RSMUX_SEL  ,                             
+            CLK_POS   => CLK_POS    ,                             
+            CE_POS    => (CE_USED == "USED") ? CE_POS : 1'b0,     
+            RS_POS    => (RS_USED == "USED") ? RS_POS : 1'b1,   
+            SYNC_MODE => SYNC_MODE,                              // "SYNC" "ASYNC"  
+            FF0_SET   => FF_SET                                  // "RESET" "SET"              
+        )
+        port map 
+        (                            
+            A0     => I0, 
+            A1     => I1, 
+            A2     => I2, 
+            A3     => I3, 
+            A4     => I4, 
+            AD     => I0X, 
+            
+            Y0     => Y, 
+            Q0     => Q,
+            RS     => (RSMUX_SEL == "RS")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE     => (CEMUX_SEL == "CE")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx, 
+            CLK    => CLK, 
+            RSIN   => (RSMUX_SEL == "RS")  ? 1'bx : RS,         
+            RSOUT  => RSOUT,       
+            CEIN   => (CEMUX_SEL == "CE")  ? 1'bx : CE,        
+            CEOUT  => CEOUT,
+            CIN    => Cin,
+            FGA_COUT => Cout
+        );
+}; // end of implementation impl_devALCQ_S of gopAQ
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devBLCQ_S to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devBLCQ_S of gopAQ
+{
+           
+    device devBLCQ_S gatedev
+        parameter map 
+        ( 
+            INITB     => INIT,
+            FGB_MODE  => MODE,  
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,  
+            Y1MUX_SEL => YXMUX_SEL  ,                             // "FFAB" "FG" "CY"
+            CEMUX_SEL => CEMUX_SEL  ,                             
+            RSMUX_SEL => RSMUX_SEL  ,                             
+            CLK_POS   => CLK_POS    ,                             
+            CE_POS    => (CE_USED == "USED") ? CE_POS : 1'b0,     
+            RS_POS    => (RS_USED == "USED") ? RS_POS : 1'b1,   
+            SYNC_MODE => SYNC_MODE,                              // "SYNC" "ASYNC"  
+            FF1_SET   => FF_SET                                  // "RESET" "SET"              
+        )
+        port map 
+        (                            
+            B0       => I0,  
+            B1       => I1,  
+            B2       => I2,  
+            B3       => I3,  
+            B4       => I4,  
+            BD       => I0X,   
+            Y1       => Y, 
+            Q1       => Q,
+            RS       => (RSMUX_SEL == "RS")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE       => (CEMUX_SEL == "CE")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx, 
+            CLK      => CLK, 
+            RSIN     => (RSMUX_SEL == "RS")  ? 1'bx : RS,         
+            RSOUT    => RSOUT,       
+            CEIN     => (CEMUX_SEL == "CE")  ? 1'bx : CE,        
+            CEOUT    => CEOUT,
+            FGB_CIN  => Cin,
+            FGB_COUT => Cout
+        );
+}; // end of implementation impl_devBLCQ_S of gopAQ
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devCLCQ_S to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devCLCQ_S of gopAQ
+{           
+    device devCLCQ_S gatedev
+        parameter map 
+        ( 
+            INITC     => INIT,
+            FGC_MODE  => MODE,  
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,  
+            Y2MUX_SEL => YXMUX_SEL  ,                             // "FFAB" "FG" "CY"
+            CEMUX_SEL => CEMUX_SEL  ,                             
+            RSMUX_SEL => RSMUX_SEL  ,                             
+            CLK_POS   => CLK_POS    ,                             
+            CE_POS    => (CE_USED == "USED") ? CE_POS : 1'b0,     
+            RS_POS    => (RS_USED == "USED") ? RS_POS : 1'b1,   
+            SYNC_MODE => SYNC_MODE,                              // "SYNC" "ASYNC"  
+            FF2_SET   => FF_SET                                  // "RESET" "SET"              
+        )
+        port map 
+        (                            
+            C0       => I0,   
+            C1       => I1,   
+            C2       => I2,   
+            C3       => I3,   
+            C4       => I4,   
+            CD       => I0X,
+            Y2       => Y, 
+            Q2       => Q,
+            RS       => (RSMUX_SEL == "RS")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE       => (CEMUX_SEL == "CE")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx, 
+            CLK      => CLK, 
+            RSIN     => (RSMUX_SEL == "RS")  ? 1'bx : RS,         
+            RSOUT    => RSOUT,       
+            CEIN     => (CEMUX_SEL == "CE")  ? 1'bx : CE,        
+            CEOUT    => CEOUT,
+            FGC_CIN  => Cin,
+            FGC_COUT => Cout
+        );
+}; // end of implementation impl_devCLCQ_S of gopAQ
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devDLCQ_S to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devDLCQ_S of gopAQ
+{          
+    device devDLCQ_S gatedev
+        parameter map 
+        ( 
+            INITD     => INIT,
+            FGD_MODE  => MODE,  
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,  
+            Y3MUX_SEL => YXMUX_SEL  ,                             // "FFAB" "FG" "CY"
+            CEMUX_SEL => CEMUX_SEL  ,                             
+            RSMUX_SEL => RSMUX_SEL  ,                             
+            CLK_POS   => CLK_POS    ,                             
+            CE_POS    => (CE_USED == "USED") ? CE_POS : 1'b0,     
+            RS_POS    => (RS_USED == "USED") ? RS_POS : 1'b1,   
+            SYNC_MODE => SYNC_MODE,                              // "SYNC" "ASYNC"  
+            FF3_SET   => FF_SET                                  // "RESET" "SET"              
+        )
+        port map 
+        (                            
+            D0       => I0,    
+            D1       => I1,    
+            D2       => I2,    
+            D3       => I3,    
+            D4       => I4,    
+            DD       => I0X, 
+            Y3       => Y, 
+            Q3       => Q,
+            RS       => (RSMUX_SEL == "RS")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE       => (CEMUX_SEL == "CE")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx, 
+            CLK      => CLK, 
+            RSIN     => (RSMUX_SEL == "RS")  ? 1'bx : RS,         
+            RSOUT    => RSOUT,       
+            CEIN     => (CEMUX_SEL == "CE")  ? 1'bx : CE,        
+            CEOUT    => CEOUT,
+            FGD_CIN  => Cin,
+            COUT     => Cout
+        );
+}; // end of implementation impl_devDLCQ_S of gopAQ
+
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devALCQ to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devALCQ of gopAQ
+{          
+    device devALCQ gatedev
+        parameter map 
+        ( 
+            INITA     => INIT,
+            FGA_MODE  => MODE,    
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,
+            Y0MUX_SEL => YXMUX_SEL  ,                             // "FFAB" "FG" "CY"
+            CEMUX_SEL => CEMUX_SEL  ,                             
+            RSMUX_SEL => RSMUX_SEL  ,                             
+            CLK_POS   => CLK_POS    ,                             
+            CE_POS    => (CE_USED == "USED") ? CE_POS : 1'b0,     
+            RS_POS    => (RS_USED == "USED") ? RS_POS : 1'b1,   
+            SYNC_MODE => SYNC_MODE,                              // "SYNC" "ASYNC"  
+            FF0_SET   => FF_SET                                  // "RESET" "SET"              
+        )
+        port map 
+        (                            
+            A0     => I0,    
+            A1     => I1,    
+            A2     => I2,    
+            A3     => I3,    
+            A4     => I4,    
+            AD     => I0X, 
+            Y0     => Y, 
+            Q0     => Q,
+            RS     => (RSMUX_SEL == "RS")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE     => (CEMUX_SEL == "CE")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx, 
+            CLK    => CLK, 
+            RSIN   => (RSMUX_SEL == "RS")  ? 1'bx : RS,         
+            RSOUT  => RSOUT,       
+            CEIN   => (CEMUX_SEL == "CE")  ? 1'bx : CE,        
+            CEOUT  => CEOUT,
+            CIN    => Cin,
+            FGA_COUT => Cout
+        );
+}; // end of implementation impl_devALCQ of gopAQ
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devBLCQ to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devBLCQ of gopAQ
+{
+         
+    device devBLCQ gatedev
+        parameter map 
+        ( 
+            INITB     => INIT,
+            FGB_MODE  => MODE,  
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,  
+            Y1MUX_SEL => YXMUX_SEL  ,                             // "FFAB" "FG" "CY"
+            CEMUX_SEL => CEMUX_SEL  ,                             
+            RSMUX_SEL => RSMUX_SEL  ,                             
+            CLK_POS   => CLK_POS    ,                             
+            CE_POS    => (CE_USED == "USED") ? CE_POS : 1'b0,     
+            RS_POS    => (RS_USED == "USED") ? RS_POS : 1'b1,   
+            SYNC_MODE => SYNC_MODE,                              // "SYNC" "ASYNC"  
+            FF1_SET   => FF_SET                                  // "RESET" "SET"              
+        )
+        port map 
+        (                            
+            B0       => I0,   
+            B1       => I1,   
+            B2       => I2,   
+            B3       => I3,   
+            B4       => I4,   
+            BD       => I0X,
+            Y1       => Y, 
+            Q1       => Q,
+            RS       => (RSMUX_SEL == "RS")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE       => (CEMUX_SEL == "CE")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx, 
+            CLK      => CLK, 
+            RSIN     => (RSMUX_SEL == "RS")  ? 1'bx : RS,         
+            RSOUT    => RSOUT,       
+            CEIN     => (CEMUX_SEL == "CE")  ? 1'bx : CE,        
+            CEOUT    => CEOUT,
+            FGB_CIN  => Cin,
+            FGB_COUT => Cout
+        );
+}; // end of implementation impl_devBLCQ of gopAQ
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devCLCQ to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devCLCQ of gopAQ
+{         
+    device devCLCQ gatedev
+        parameter map 
+        ( 
+            INITC     => INIT,
+            FGC_MODE  => MODE,
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,    
+            Y2MUX_SEL => YXMUX_SEL  ,                             // "FFAB" "FG" "CY"
+            CEMUX_SEL => CEMUX_SEL  ,                             
+            RSMUX_SEL => RSMUX_SEL  ,                             
+            CLK_POS   => CLK_POS    ,                             
+            CE_POS    => (CE_USED == "USED") ? CE_POS : 1'b0,     
+            RS_POS    => (RS_USED == "USED") ? RS_POS : 1'b1,   
+            SYNC_MODE => SYNC_MODE,                              // "SYNC" "ASYNC"  
+            FF2_SET   => FF_SET                                  // "RESET" "SET"              
+        )
+        port map 
+        (                            
+            C0       => I0,    
+            C1       => I1,    
+            C2       => I2,    
+            C3       => I3,    
+            C4       => I4,    
+            CD       => I0X, 
+            Y2       => Y, 
+            Q2       => Q,
+            RS       => (RSMUX_SEL == "RS")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE       => (CEMUX_SEL == "CE")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx, 
+            CLK      => CLK, 
+            RSIN     => (RSMUX_SEL == "RS")  ? 1'bx : RS,         
+            RSOUT    => RSOUT,       
+            CEIN     => (CEMUX_SEL == "CE")  ? 1'bx : CE,        
+            CEOUT    => CEOUT,
+            FGC_CIN  => Cin,
+            FGC_COUT => Cout
+        );
+}; // end of implementation impl_devCLCQ of gopAQ
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devDLCQ to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devDLCQ of gopAQ
+{          
+    device devDLCQ gatedev
+        parameter map 
+        ( 
+            INITD     => INIT,
+            FGD_MODE  => MODE,  
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,  
+            Y3MUX_SEL => YXMUX_SEL  ,                             // "FFAB" "FG" "CY"
+            CEMUX_SEL => CEMUX_SEL  ,                             
+            RSMUX_SEL => RSMUX_SEL  ,                             
+            CLK_POS   => CLK_POS    ,                             
+            CE_POS    => (CE_USED == "USED") ? CE_POS : 1'b0,     
+            RS_POS    => (RS_USED == "USED") ? RS_POS : 1'b1,   
+            SYNC_MODE => SYNC_MODE,                              // "SYNC" "ASYNC"  
+            FF3_SET   => FF_SET                                  // "RESET" "SET"              
+        )
+        port map 
+        (                            
+            D0       => I0,  
+            D1       => I1,  
+            D2       => I2,  
+            D3       => I3,  
+            D4       => I4,  
+            DD       => I0X,
+            Y3       => Y, 
+            Q3       => Q,
+            RS       => (RSMUX_SEL == "RS")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE       => (CEMUX_SEL == "CE")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx, 
+            CLK      => CLK, 
+            RSIN     => (RSMUX_SEL == "RS")  ? 1'bx : RS,         
+            RSOUT    => RSOUT,       
+            CEIN     => (CEMUX_SEL == "CE")  ? 1'bx : CE,        
+            CEOUT    => CEOUT,
+            FGD_CIN  => Cin,
+            COUT     => Cout
+        );
+}; // end of implementation impl_devDLCQ of gopAQ
+

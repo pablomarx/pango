@@ -1,0 +1,2200 @@
+USE pg2l_defs, pg2l50h_defs, pango_defs;
+
+package pg2l_floorplan_funcs
+{
+
+unsigned int fsx = 0;
+unsigned int fsy = 0;
+unsigned int gsx = 0;
+unsigned int gsy = 0;
+unsigned int _width = 93;
+unsigned int _height = 150;
+unsigned int gap_x = 0;
+unsigned int draw_x = 0;
+unsigned int draw_y = 0;
+unsigned int is_print_fp_map = 0;
+
+
+function print_inst_fp_map(string inst_name, unsigned int lsx, unsigned int lsy)
+{
+    if (is_print_fp_map)
+    {
+        printf("%s (%d, %d) => (%d, %d)", inst_name, lsx, lsy, fsx, fsy);
+    }
+}
+function adjust_floorplan_draw(unsigned int lsx, lsy)
+{
+    if (lsx / NUM_GRID_X < 22)
+    {
+        draw_x = 0;
+    }
+    else 
+    {
+        draw_x = 1;
+    }
+
+
+    if (lsy / NUM_GRID_Y < 25)
+    {
+        draw_y = 0;
+    }
+    else if (lsy / NUM_GRID_Y < 76)
+    {
+        draw_y = 1;
+    }
+    else if (lsy / NUM_GRID_Y < 127)
+    {
+        draw_y = 2;
+    }
+    else 
+    {
+        draw_y = 3;
+    }
+
+    
+    draw_x = 320 * draw_x;
+    draw_y = 320 * draw_y;
+}
+function adjust_floorplan_gap(unsigned int lsx, lsy)
+{
+    if (lsx / NUM_GRID_X < 22)
+    {
+        gsx = 0;
+    }
+    else if (lsx / NUM_GRID_X < 23)
+    {
+        gsx = 1;
+    }
+    else
+    {
+        gsx = 2;
+    }
+
+    if (lsy / NUM_GRID_Y < 25)
+    {
+        gsy = 0;
+    }
+    else if (lsy / NUM_GRID_Y < 76)
+    {
+        gsy = 1;
+    }
+    else if (lsy / NUM_GRID_Y < 127)
+    {
+        gsy = 2;
+    }
+    else 
+    {
+        gsy = 3;
+    }
+
+    gsx = lsx - NUM_GRID_X * gsx;
+    gsy = lsy - NUM_GRID_Y * gsy;
+}
+
+function get_coordinate_of_iolhr(unsigned int lsx, lsy)
+{
+    adjust_floorplan_gap(lsx, lsy);
+    fsx = gsx / 3 - 3;
+    fsy = gsy / NUM_GRID_Y;
+    
+    if ( fsx < (_width / 2))
+    {
+       if (fsy > 0 && fsy < 149)
+       {
+         if(!(lsy == 300 || lsy == 306 || lsy == 606 || lsy == 612 || lsy == 912 ))   
+         {         
+            if ((fsy % 2) == 1)
+            {
+              fsy = fsy + 1;
+            }
+            else
+            {
+              fsy = fsy - 1;
+            }
+         }
+      }  
+    }
+    else
+    {
+       if ( fsy > 0 && fsy < 99)
+       {
+         if(!(lsy == 300 || lsy == 306 || lsy == 606 || lsy == 612 || lsy == 912))   
+         {          
+           if ((fsy % 2) == 1)
+           {
+             fsy = fsy + 1;
+           }
+           else
+           {
+             fsy = fsy - 1;
+           }
+         }
+      }
+    }
+}
+
+function get_coordinate_of_iob(unsigned int lsx, lsy)
+{
+    adjust_floorplan_gap(lsx, lsy);
+    fsx = gsx / 3 - 2;
+    if (fsx > (_width / 2))
+    {
+        fsx = fsx - 3;
+    }
+    else
+    {
+        fsx = fsx + 5;
+    }
+    fsy = gsy / NUM_GRID_Y;
+    if ( fsx < (_width / 2))
+    {
+
+      if (fsy > 0 && fsy < 149)
+      {
+        if(!(lsy == 300 || lsy == 306 || lsy == 606 || lsy == 612 || lsy == 912 ))   
+        {
+          if ((fsy % 2) == 1)
+          {
+            fsy = fsy + 1;
+          }
+          else
+          {
+            fsy = fsy - 1;
+          }    
+        }
+      }
+    
+    }
+    else
+    {
+       if ( fsy > 0 && fsy < 99)
+       {  
+         if(!(lsy == 300 || lsy == 306 || lsy == 606 || lsy == 612 || lsy == 912))   
+         {      
+            if ((fsy % 2) == 1)
+            {
+              fsy = fsy + 1;
+            }
+            else
+            {
+              fsy = fsy - 1;
+            }
+        }
+      }
+    }
+}
+function get_coordinate_of_uscm(unsigned int lsx, lsy)
+{
+    adjust_floorplan_gap(lsx, lsy);
+    fsx = gsx / 3 - 2;
+    fsy = 270 / NUM_GRID_Y + (lsy - 270) / 2 + 24;
+    
+}
+
+function get_coordinate_of_uscmtest(unsigned int lsx, lsy)
+{
+    adjust_floorplan_gap(lsx, lsy);
+    fsx = gsx / 3 - 3;
+    fsy = 271 / NUM_GRID_Y + (lsy - 271) / 2 + 24;
+}
+
+function get_coordinate_of_rckb(unsigned int lsx, lsy)
+{
+    adjust_floorplan_gap(lsx, lsy);
+    fsx = gsx / 3 - 2;
+    if (fsx > (_width / 2))
+    {
+        fsx = fsx + 1;
+    }
+    else
+    {
+        fsx = fsx - 1;
+    }
+    fsy = gsy / NUM_GRID_Y + gsy % NUM_GRID_Y;
+}
+
+function get_coordinate_of_iockb(unsigned int lsx, lsy)
+{
+    adjust_floorplan_gap(lsx, lsy);
+    fsx = gsx / 3 - 2;
+    fsy = gsy / NUM_GRID_Y + gsy % NUM_GRID_Y + 2;
+    if (fsx > (_width / 2))
+    {
+        fsx = fsx + 1;
+        fsy = fsy - 11;
+    }
+    else
+    {
+        fsx = fsx;
+        fsy = fsy + 2;
+    }
+    if( lsx == 9 || lsx == 291)
+    {
+       fsy = fsy + 1;
+    }
+}
+
+function get_coordinate_of_apm_drm(unsigned int lsx, lsy)
+{
+    adjust_floorplan_gap(lsx, lsy);
+    fsx = gsx / 3 + gsy % 3 - 3;
+    fsy = gsy / NUM_GRID_Y + 2;
+}
+function get_coordinate_of_pll(unsigned int lsx, lsy)
+{
+    adjust_floorplan_gap(lsx, lsy);
+    fsx = gsx / 3 + gsy % 3 - 3;
+    fsy = gsy / NUM_GRID_Y + 3;
+}
+function get_coordinate_of_ddrphy(unsigned int lsx, lsy)
+{
+    adjust_floorplan_gap(lsx, lsy);
+    fsx = gsx / 3 - 2;
+    fsy = gsy / NUM_GRID_Y  + gsy % 3;
+    if ((lsy % 3) == 0)
+    {
+        fsy = fsy + 1;
+    }
+    else
+    {
+        fsy = fsy - 1;    
+    }
+    if (fsx > (_width / 2))
+    {
+        fsx = fsx - 1;
+        fsy = fsy + 9;
+    }
+    else
+    {
+        fsy = fsy;    
+        fsx = fsx;
+    }
+}
+function get_coordinate_of_ddrphyioclkdiv(unsigned int lsx, lsy)
+{
+    adjust_floorplan_gap(lsx, lsy);
+    fsx = gsx / 3 - 1;
+    fsy = gsy / NUM_GRID_Y + gsy % 3;
+
+    if (fsx > (_width / 2))
+    {
+        fsx = fsx - 1;
+        fsy = fsy + 4;
+    }
+    else
+    {
+        fsy = fsy + 1;    
+    }
+}
+function get_coordinate_of_ddrphycpd(unsigned int lsx, lsy)
+{
+    adjust_floorplan_gap(lsx, lsy);
+    fsx = gsx / 3 - 2;
+    fsy = gsy / NUM_GRID_Y + gsy % 3;
+
+    if (fsx > (_width / 2))
+    {
+        fsx = fsx - 1;    
+        fsy = fsy + 7;
+    }
+    else
+    {
+         fsy = fsy + 4;    
+    }
+}
+function get_coordinate_of_clm(unsigned int lsx, lsy)
+{
+    adjust_floorplan_gap(lsx, lsy);
+    fsx = gsx / 3 + gsy % 3 - 3;
+    fsy = gsy / NUM_GRID_Y;
+}
+
+function get_coordinate_of_hckb(unsigned int lsx, lsy)
+{
+    adjust_floorplan_gap(lsx, lsy);
+    fsx = gsx / 3 - 2;
+    if ((gsy % 2) == 0)
+    {
+        fsx = fsx - 1;
+    }
+    else
+    {
+        fsx = fsx;
+    }
+    int T = 0;
+    if (lsy >= 784)
+    {
+       T = 792;
+       fsy = T / NUM_GRID_Y + (lsy - T) / 2;       
+    }
+    else if (lsy < 784 && lsy >= 232)
+    {
+       T = 772;
+       fsy = T / NUM_GRID_Y + (lsy - T) / 2 - 12;
+    }      
+    else if (lsy < 232 && lsy >= 212)
+    {
+       T = 220;
+       fsy = T / NUM_GRID_Y + (lsy - T) / 2 + 24;
+    }    
+    else if (lsy < 212 && lsy >= 192)
+    {
+       T = 200;
+       fsy = T / NUM_GRID_Y + (lsy - T) / 2 + 12;
+    }    
+    else if (lsy < 192 && lsy >= 172)
+    {
+       T = 180; 
+       fsy = T / NUM_GRID_Y + (lsy - T) / 2;
+    }
+    else
+    {
+       T = 160;  
+       fsy = T / NUM_GRID_Y + (lsy - T) / 2 - 12;
+    }
+        
+}
+
+function get_coordinate_of_ccs(unsigned int lsx, lsy)
+{
+    adjust_floorplan_gap(lsx, lsy);
+    fsx = gsx / 3 + gsy % 3;
+    fsy = gsy / NUM_GRID_Y;
+    fsx = fsx + 13;
+    fsy = fsy + 33;
+}
+function get_coordinate_of_keyram(unsigned int lsx, lsy)
+{
+    adjust_floorplan_gap(lsx, lsy);
+    fsx = gsx / 3 + gsy % 3;
+    fsy = gsy / NUM_GRID_Y;
+    fsx = fsx + 14;
+    fsy = fsy + 33;
+}
+function get_coordinate_of_analog(unsigned int lsx, lsy)
+{
+    adjust_floorplan_gap(lsx, lsy);
+    fsx = gsx / 3 + gsy % 3;
+    fsy = gsy / NUM_GRID_Y;
+    fsx = fsx + 15;
+    fsy = fsy + 32;
+}
+function get_coordinate_of_adc(unsigned int lsx, lsy)
+{
+    adjust_floorplan_gap(lsx, lsy);
+    fsx = gsx / 3 + gsy % 3 - 1;
+    fsy = gsy / NUM_GRID_Y;
+    fsx = fsx + 16;
+    fsy = fsy + 25;
+}
+
+function get_coordinate_of_mrckb(unsigned int lsx, lsy)
+{
+    adjust_floorplan_gap(lsx, lsy);
+    fsx = gsx / 3;
+    fsy = gsy / NUM_GRID_Y + gsy % NUM_GRID_Y - 2;
+    if (fsx > (_width / 2))
+    {
+        fsx = fsx;
+    }
+    else
+    {
+        fsx = fsx - 2;
+    }
+}
+
+function get_coordinate_of_hqcnl(unsigned int lsx, lsy)
+{
+    adjust_floorplan_gap(lsx, lsy);
+    fsx = gsx / 3 - 2;
+    fsy = gsy / NUM_GRID_Y + gsy % NUM_GRID_Y;
+    if (fsx > (_width / 2))
+    {
+        fsx = fsx + 2;
+        fsy = fsy + 2;
+    }
+    else
+    {
+        fsx = fsx - 1;
+        fsy = fsy;
+    }
+}
+
+function get_coordinate_of_tserdes(unsigned int lsx, lsy)
+{
+    //adjust_floorplan_gap(lsx, lsy);
+    fsx = lsx / 3 - 3;
+    fsy = lsy / NUM_GRID_Y + lsy % 6;
+
+    if (fsx > (_width / 2))
+    {
+        if (fsy > (_height / 2))
+        {
+        fsy += 9;
+        }
+        else
+        {
+        fsy += 10;        
+        }
+        fsx -= 4;
+    }
+    else
+    {
+        fsy += 4;    
+        fsx  = fsx;
+    }
+}
+
+
+function get_coordinate_of_hsstlp(unsigned int lsx, lsy)
+{
+    adjust_floorplan_gap(lsx, lsy);
+    fsx = gsx / 3 + gsy % 3 - 3;
+    fsy = gsy / NUM_GRID_Y;
+    fsy = fsy + 8;
+}
+
+function get_coordinate_of_spad(unsigned int lsx, lsy)
+{
+    adjust_floorplan_gap(lsx, lsy);
+    fsx = gsx / 3 - 2;
+    fsy = gsy / NUM_GRID_Y + lsy % 6 + 6;
+}
+
+function get_coordinate_of_pcie(unsigned int lsx, lsy)
+{
+    adjust_floorplan_gap(lsx, lsy);
+    fsx = gsx / 3 + gsy % 3;
+    fsy = gsy / NUM_GRID_Y;
+    fsx = fsx + 1;
+    fsy = fsy + 12;
+    
+}
+function get_coordinate_of_bkcl(unsigned int lsx, lsy)
+{
+    adjust_floorplan_gap(lsx, lsy);
+    fsx = gsx / 3;
+    fsy = gsy / NUM_GRID_Y + gsy % 3;
+    if (fsx > (_width / 2))
+    {
+        fsx = fsx - 4;
+    }
+    else
+    {
+        fsx = fsx + 1;
+    }
+
+}
+
+function get_coordinate_of_scanchain(unsigned int lsx, lsy)
+{
+    adjust_floorplan_gap(lsx, lsy);
+    fsx = gsx / 3 + gsy % 3 - 3;
+    fsy = gsy / NUM_GRID_Y;
+    
+    fsx = fsx + 18;
+    fsy = fsy + 34;
+}
+
+function get_coordinate_of_hckmuxtest(unsigned int lsx, lsy)
+{
+    adjust_floorplan_gap(lsx, lsy);
+    fsx = gsx / 3 - 2;
+    int T = 0;
+    if (lsy >= 733)
+    {
+       T = 733;
+       fsy = T / NUM_GRID_Y + (lsy - T) / 2 + 4;         
+    }
+    else
+    {
+       T = 121;
+       fsy = T / NUM_GRID_Y + (lsy - T) / 2 - 16;         
+    }
+    
+}
+
+function get_coordinate_of_iockmuxtest(unsigned int lsx, lsy)
+{
+    adjust_floorplan_gap(lsx, lsy);
+    fsx = gsx / 3  - 2;
+    fsy = gsy / NUM_GRID_Y;
+    if (fsx > (_width / 2))
+    {
+        fsx = fsx + 2;
+        fsy = fsy + 7;
+    }
+    else
+    {
+        fsx = fsx;
+        fsy = fsy - 3;        
+    }
+
+}
+
+function get_coordinate_of_mrckmuxtest(unsigned int lsx, lsy)
+{
+    adjust_floorplan_gap(lsx, lsy);
+    fsx = gsx / 3 - 2;
+    fsy = gsy / NUM_GRID_Y;
+    if (fsx > (_width / 2))
+    {
+        fsx = fsx + 2;
+        fsy = fsy + 5;
+    }
+    else
+    {
+        fsx = fsx;
+        fsy = fsy - 5;        
+    }
+
+}
+function get_coordinate_of_mrpostmuxtest(unsigned int lsx, lsy)
+{
+    adjust_floorplan_gap(lsx, lsy);
+    fsx = gsx / 3  - 2;
+    fsy = gsy / NUM_GRID_Y;
+    if (fsx > (_width / 2))
+    {
+        fsx = fsx + 2;
+        fsy = fsy + 6;
+    }
+    else
+    {
+        fsx = fsx;
+        fsy = fsy - 4;        
+    }
+
+}
+
+function get_coordinate_of_pckmuxtest(unsigned int lsx, lsy)
+{
+    adjust_floorplan_gap(lsx, lsy);
+    fsx = gsx / 3 - 2;
+    fsy = gsy / NUM_GRID_Y;
+    if (gsy % 2)
+    {
+        fsy = fsy - 1;
+    }
+   
+    if (fsx > (_width / 2))
+    {
+        fsx = fsx;
+        fsy = fsy + 22;
+    }
+    else
+    {
+        fsx = fsx - 1;
+        fsy = fsy - 2;        
+    }
+
+}
+
+function get_coordinate_of_pllmrmuxtest(unsigned int lsx, lsy)
+{
+    adjust_floorplan_gap(lsx, lsy);
+    fsx = gsx / 3  - 2;
+    fsy = gsy / NUM_GRID_Y + 3;
+    if (fsx > (_width / 2))
+    {
+        fsx = fsx - 1;
+        fsy = fsy;
+    }
+    else
+    {
+        fsx = fsx;
+        fsy = fsy;        
+    }
+
+}
+
+function get_coordinate_of_pllrefmuxtest(unsigned int lsx, lsy)
+{
+    adjust_floorplan_gap(lsx, lsy);
+    fsx = gsx / 3  - 2;
+    fsy = gsy / NUM_GRID_Y;
+
+
+
+}
+function get_coordinate_of_pregmuxctest(unsigned int lsx, lsy)
+{
+    adjust_floorplan_gap(lsx, lsy);
+    fsx = gsx / 3  - 3;
+    fsy = gsy / NUM_GRID_Y;
+
+}
+
+function get_coordinate_of_pregmuxlrtest(unsigned int lsx, lsy)
+{
+    adjust_floorplan_gap(lsx, lsy);
+    fsx = gsx / 3 - 2;
+    fsy = gsy / NUM_GRID_Y - 1;
+    if (fsx > (_width / 2))
+    {
+        fsx = fsx + 1;
+        fsy = fsy + 20;
+    }
+    else
+    {
+        fsx = fsx;
+        fsy = fsy - 3;        
+    }
+
+}
+function get_coordinate_of_rckmuxtest(unsigned int lsx, lsy)
+{
+    adjust_floorplan_gap(lsx, lsy);
+    fsx = gsx / 3;
+    fsy = gsy / NUM_GRID_Y - 1;
+    if (fsx > (_width / 2))
+    {
+        fsx = fsx;
+        fsy = fsy + 21;
+    }
+    else
+    {
+        fsx = fsx - 1;
+        fsy = fsy - 4;        
+    }
+
+}
+function get_coordinate_of_sckmuxtest(unsigned int lsx, lsy)
+{
+    adjust_floorplan_gap(lsx, lsy);
+    fsx = gsx / 3  - 2;
+    fsy = gsy / NUM_GRID_Y ;
+    if (gsy % 2)
+    {
+        fsy = fsy - 1;
+    }  
+    if (fsx > (_width / 2))
+    {
+        fsx = fsx;
+        fsy = fsy + 24;
+    }
+    else
+    {
+        fsx = fsx - 1;
+        fsy = fsy;        
+    }
+
+}
+function place_clma_tile_fp(unsigned int tx, ty)
+{
+    // Site index variable. The X index for logic and GUI are declared separately
+    unsigned int lsx, lsy;
+    unsigned int lsx0, lsy0;
+    unsigned int lsx1, lsy1;
+    // device reference variables
+    &device aRef, fsRef;
+    string strVar;
+    
+    lsx = tx * NUM_GRID_X;
+    lsy = ty * NUM_GRID_Y;
+    lsx0 = lsx + 3;
+    lsy0 = lsy;
+    lsx1 = lsx + 3;
+    lsy1 = lsy + 1;    
+    aRef = <device CLMA @[lsx0, lsy0] of ARCHITECTURE>;
+    sprintf(strVar, "CLMA_%d_%d", lsx0, lsy0);
+    get_coordinate_of_clm(lsx0, lsy0);
+    fsRef = device CLMA ( structure fp_struct ) *strVar @[fsx,fsy];
+    map(fsRef => aRef);
+
+    aRef = <device CLMA @[lsx1,lsy1] of ARCHITECTURE>;
+    sprintf(strVar, "CLMA_%d_%d", lsx1, lsy1);
+    get_coordinate_of_clm(lsx1, lsy1);
+    fsRef = device CLMA ( structure fp_struct ) *strVar @[fsx,fsy];
+    map(fsRef => aRef);
+}
+
+
+function draw_clma_tile_fp(unsigned int tx, ty)
+{
+    // Site index variable. The X index for logic and GUI are declared separately
+    unsigned int lsx, lsy;
+    unsigned int lsx0, lsy0;
+    unsigned int lsx1, lsy1;
+    // device reference variables
+    &device aRef, fsRef;
+    string strVar;
+    
+    lsx = tx * NUM_GRID_X;
+    lsy = ty * NUM_GRID_Y;
+    lsx0 = lsx + 3;
+    lsy0 = lsy;
+    lsx1 = lsx + 3;
+    lsy1 = lsy + 1;     
+    sprintf(strVar, "CLMA_%d_%d", lsx0, lsy0);
+    aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+    get_coordinate_of_clm(lsx0, lsy0);
+    adjust_floorplan_draw(lsx0, lsy0);
+    fsRef = device CLMA ( schematic floorplan_view ) *strVar @[(fsx + 2) * 160 + draw_x, (fsy + 1) * 320 + draw_y];
+    map(fsRef => aRef);
+    print_inst_fp_map("CLMA", lsx0, lsy0);
+
+    sprintf(strVar, "CLMA_%d_%d", lsx1, lsy1);
+    aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+    get_coordinate_of_clm(lsx1, lsy1);
+    adjust_floorplan_draw(lsx1, lsy1);
+    fsRef = device CLMA ( schematic floorplan_view ) *strVar @[(fsx + 2) * 160 + draw_x, (fsy + 1) * 320 + draw_y];
+    map(fsRef => aRef);
+    print_inst_fp_map("CLMA", lsx1, lsy1);
+}
+
+function place_clms_tile_fp(unsigned int tx, ty)
+{
+    // Site index variable. The X index for logic and GUI are declared separately
+    unsigned int lsx, lsy;
+    unsigned int lsx0, lsy0;
+    unsigned int lsx1, lsy1;
+    // device reference variables
+    &device aRef, fsRef;
+    string strVar;
+    
+    lsx = tx * NUM_GRID_X;
+    lsy = ty * NUM_GRID_Y;
+    lsx0 = lsx + 3;
+    lsy0 = lsy;
+    lsx1 = lsx + 3;
+    lsy1 = lsy + 1;    
+    aRef = <device CLMA @[lsx0,lsy0] of ARCHITECTURE>;
+    sprintf(strVar, "CLMA_%d_%d", lsx0, lsy0);
+    get_coordinate_of_clm(lsx0, lsy0);
+    fsRef = device CLMA ( structure fp_struct ) *strVar @[fsx,fsy];
+    map(fsRef => aRef);
+
+    aRef = <device CLMS @[lsx1,lsy1] of ARCHITECTURE>;
+    sprintf(strVar, "CLMS_%d_%d", lsx1, lsy1);
+    get_coordinate_of_clm(lsx1, lsy1);
+    fsRef = device CLMS ( structure fp_struct ) *strVar @[fsx,fsy];
+    map(fsRef => aRef);
+}
+function draw_clms_tile_fp(unsigned int tx, ty)
+{
+    // Site index variable. The X index for logic and GUI are declared separately
+    unsigned int lsx, lsy;
+    unsigned int lsx0, lsy0;
+    unsigned int lsx1, lsy1;
+    // device reference variables
+    &device aRef, fsRef;
+    string strVar;
+    
+    lsx = tx * NUM_GRID_X;
+    lsy = ty * NUM_GRID_Y;
+    lsx0 = lsx + 3;
+    lsy0 = lsy;
+    lsx1 = lsx + 3;
+    lsy1 = lsy + 1;    
+    sprintf(strVar, "CLMA_%d_%d", lsx0, lsy0);
+    aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+    get_coordinate_of_clm(lsx0, lsy0);
+    adjust_floorplan_draw(lsx0, lsy0);
+    fsRef = device CLMA ( schematic floorplan_view ) *strVar @[(fsx + 2) * 160 + draw_x, (fsy + 1) * 320 + draw_y];
+    map(fsRef => aRef);
+    print_inst_fp_map("CLMA", lsx0, lsy0);
+
+    sprintf(strVar, "CLMS_%d_%d", lsx1, lsy1);
+    aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+    get_coordinate_of_clm(lsx1, lsy1);
+    adjust_floorplan_draw(lsx1, lsy1);
+    fsRef = device CLMS ( schematic floorplan_view ) *strVar @[(fsx + 2) * 160 + draw_x, (fsy + 1) * 320 + draw_y];
+    map(fsRef => aRef);
+    print_inst_fp_map("CLMS", lsx1, lsy1);
+}
+function place_clm_tile_fp(unsigned int tx, ty,tc)
+{
+    if (tc == 1)
+    {
+      place_clms_tile_fp(tx, ty);
+    }
+    else
+    {
+      place_clma_tile_fp(tx, ty);
+    }
+}
+function draw_clm_tile_fp(unsigned int tx, ty,tc)
+{
+    if (tc == 1)
+    {
+      draw_clms_tile_fp(tx, ty);
+    }
+    else
+    {
+      draw_clma_tile_fp(tx, ty);
+    }
+}
+function place_drm_tile_fp(unsigned int tx, ty)
+{
+    unsigned int lsx, lsy;
+    unsigned int lsx0, lsy0;
+    lsx = tx * NUM_GRID_X + 3;
+    lsy = ty * NUM_GRID_Y;
+    
+    // device reference variables
+    &device aRef, fsRef;
+    string strVar;
+    lsx0 = lsx + 1;
+    lsy0 = lsy;
+    aRef = <device DRM @[lsx0,lsy0] of ARCHITECTURE>;
+    sprintf(strVar, "DRM_%d_%d", lsx0, lsy0);
+    get_coordinate_of_apm_drm(lsx0, lsy0);
+    fsRef = device DRM ( structure fp_struct ) *strVar @[fsx,fsy];
+    map(fsRef => aRef);
+}
+
+function draw_drm_tile_fp(unsigned int tx, ty)
+{   
+    unsigned int lsx, lsy;
+    unsigned int lsx0, lsy0;   
+    lsx = tx * NUM_GRID_X + 3;
+    lsy = ty * NUM_GRID_Y;
+    
+
+    // device reference variables
+    &device aRef, fsRef;
+    string strVar;
+    lsx0 = lsx + 1;
+    lsy0 = lsy;
+    sprintf(strVar, "DRM_%d_%d", lsx0, lsy0);
+    aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+    get_coordinate_of_apm_drm(lsx0, lsy0);
+    adjust_floorplan_draw(lsx0, lsy0);
+    fsRef = device DRM ( schematic floorplan_view ) *strVar @[(fsx + 2) * 160 + draw_x, (fsy + 0) * 320 - 270 + draw_y];
+    map(fsRef => aRef);
+    print_inst_fp_map("DRM", lsx0, lsy0);
+}
+
+function place_apm_tile_fp(unsigned int tx, ty)
+{
+    unsigned int lsx, lsy, gsx, gsy;
+    unsigned int lsx0, lsy0;    
+    lsx = tx * NUM_GRID_X + 3;
+    lsy = ty * NUM_GRID_Y;
+
+    // device reference variables
+    &device aRef, fsRef;
+    string strVar;
+    lsx0 = lsx + 2;
+    lsy0 = lsy;
+    aRef = <device APM @[lsx0,lsy0] of ARCHITECTURE>;
+    sprintf(strVar, "APM_%d_%d", lsx0, lsy0);
+    get_coordinate_of_apm_drm(lsx0, lsy0);
+    fsRef = device APM ( structure fp_struct ) *strVar @[fsx,fsy];
+    map(fsRef => aRef);
+}
+function draw_apm_tile_fp(unsigned int tx, ty)
+{
+    unsigned int lsx, lsy, gsx, gsy;
+    
+    lsx = tx * NUM_GRID_X + 3;
+    lsy = ty * NUM_GRID_Y;
+    unsigned int lsx0, lsy0;  
+    // device reference variables
+    &device aRef, fsRef;
+    string strVar;
+    lsx0 = lsx + 2;
+    lsy0 = lsy;
+    sprintf(strVar, "APM_%d_%d", lsx0, lsy0);
+    aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+    get_coordinate_of_apm_drm(lsx0, lsy0);
+    adjust_floorplan_draw(lsx0, lsy0);
+    fsRef = device APM ( schematic floorplan_view ) *strVar @[(fsx + 2) * 160 + draw_x, (fsy + 0) * 320 - 270 + draw_y];
+    map(fsRef => aRef);
+    print_inst_fp_map("APM", lsx0, lsy0);
+}
+
+function place_iol_tile_fp(unsigned int tx, ty, ud)
+{
+    unsigned int lsx, lsy;
+    unsigned int lsx0, lsy0;
+    lsx = tx * NUM_GRID_X + 3;
+    lsy = ty * NUM_GRID_Y;
+    lsx0 = lsx + 1;
+    lsy0 = lsy;
+
+    // device reference variables
+    &device aRef, fsRef;
+    string strVar;
+
+    aRef = <device IOLHR @[lsx0,lsy0] of ARCHITECTURE>;
+    sprintf(strVar, "IOLHR_%d_%d", lsx0, lsy0);
+    get_coordinate_of_iolhr(lsx0, lsy0);
+    fsRef = device IOLHR ( structure fp_struct ) *strVar @[fsx,fsy];
+    map(fsRef => aRef);
+
+}
+
+function draw_iol_tile_fp(unsigned int tx, ty, ud)
+{
+    unsigned int lsx, lsy;
+    
+    lsx = tx * NUM_GRID_X + 3;
+    lsy = ty * NUM_GRID_Y;
+    unsigned int lsx0, lsy0;    
+    // device reference variables
+    &device aRef, fsRef;
+    string strVar;
+    lsx0 = lsx + 1;
+    lsy0 = lsy;
+    sprintf(strVar, "IOLHR_%d_%d", lsx0, lsy0);
+    aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+    get_coordinate_of_iolhr(lsx0, lsy0);
+//    if (ud == 1)
+//   {
+//        fsRef = device IOLHR ( schematic floorplan_view ) *strVar @[(fsx + 2) * 160, (fsy + 2) * 320];
+//    }
+//    else
+//    {
+        adjust_floorplan_draw(lsx0, lsy0);
+         //printf("%s (%d, %d) => (%d, %d),draw_x=%d,draw_y=%d", "IOL", lsx0, lsy0, fsx, fsy,draw_x,draw_y);
+        fsRef = device IOLHR ( schematic floorplan_view ) *strVar @[(fsx + 2) * 160 + draw_x, (fsy + 1) * 320+draw_y];
+ //   }
+    map(fsRef => aRef);
+    print_inst_fp_map("IOLHR", lsx0, lsy0);
+
+  
+}
+function place_iob_tile_fp(unsigned int tx, ty, ud)
+{
+    unsigned int lsx, lsy;
+
+    lsx = tx * NUM_GRID_X;
+    lsy = ty * NUM_GRID_Y;
+
+    unsigned int dx, dy;
+    unsigned int d_tx, d_tx_l;
+    // device reference variables
+    &device aRef, fsRef;
+    string strVar;
+/*
+    unsigned int crystal_x = 1;
+    unsigned int crystal_y[] = {142};
+
+    foreach dy (crystal_y) {
+        dx = crystal_x;
+        aRef = <device CRYSTAL @[lsx+dx,lsy+dy] of ARCHITECTURE>;
+        sprintf(strVar, "CRYSTAL_%d_%d", lsx+dx, lsy+dy);
+        get_coordinate_of_crystal(lsx+dx, lsy+dy);
+        fsRef = device CRYSTAL ( structure fp_struct ) *strVar @[fsx,fsy];
+        map(fsRef => aRef);
+    }
+*/
+    unsigned int iobd_x = 0;
+    unsigned int iobd_y[] = { 294,282,270,258,246,234,222,210,198,186,174,162,144,132,120,108,96,84,72,60,48,36,24,12 };
+    foreach dy (iobd_y) {
+        dx = iobd_x;
+        aRef = <device IOBD @[lsx+dx,lsy+dy] of ARCHITECTURE>;
+        sprintf(strVar, "IOBD_%d_%d", lsx+dx, lsy+dy);
+        get_coordinate_of_iob(lsx+dx, lsy+dy);
+        fsRef = device IOBD ( structure fp_struct ) *strVar @[fsx,fsy];
+        map(fsRef => aRef);
+
+//        get_coordinate_of_iob(lsx+dx, lsy+dy);
+        //print_inst_fp_map("IOBD_p", lsx+dx, lsy+dy);
+    }
+
+    unsigned int iobs_x = 0;
+    unsigned int iobs_y[] = { 300,288,276,264,252,240,228,216,204,192,180,168,156,138,126,114,102,90,78,66,54,42,30,18,6,0 };
+    foreach dy (iobs_y) {
+        dx = iobs_x;
+        aRef = <device IOBS @[lsx+dx,lsy+dy] of ARCHITECTURE>;
+        sprintf(strVar, "IOBS_%d_%d", lsx+dx, lsy+dy);
+        get_coordinate_of_iob(lsx+dx, lsy+dy);
+        fsRef = device IOBS ( structure fp_struct ) *strVar @[fsx,fsy];
+        map(fsRef => aRef);
+ 
+//        get_coordinate_of_iob(lsx+dx, lsy+dy);
+        //print_inst_fp_map("IOBS_p", lsx+dx, lsy+dy);
+    }
+        dx = 1;
+        dy = 34;
+        aRef = <device BKCL @[lsx+dx,lsy+dy] of ARCHITECTURE>;
+        sprintf(strVar, "BKCL_%d_%d", lsx+dx, lsy+dy);
+        get_coordinate_of_bkcl(lsx+dx, lsy+dy);
+        fsRef = device BKCL ( structure fp_struct ) *strVar @[fsx,fsy];
+        map(fsRef => aRef);
+        //print_inst_fp_map("BKCL_p", lsx+dx, lsy+dy);
+}
+
+function draw_iob_tile_fp(unsigned int tx, ty, ud)
+{
+    unsigned int lsx, lsy;
+
+    lsx = tx * NUM_GRID_X;
+    lsy = ty * NUM_GRID_Y;
+
+    unsigned int dx, dy;
+    unsigned int d_tx, d_tx_l;
+    // device reference variables
+    &device aRef, fsRef;
+    string strVar;
+
+    unsigned int iobd_x = 0;
+    unsigned int iobd_y[] = { 294,282,270,258,246,234,222,210,198,186,174,162,144,132,120,108,96,84,72,60,48,36,24,12 };
+    foreach dy (iobd_y) {
+        dx = iobd_x;
+        sprintf(strVar, "IOBD_%d_%d", lsx+dx, lsy+dy);
+        aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+        get_coordinate_of_iob(lsx+dx, lsy+dy);
+         adjust_floorplan_draw(lsx+dx, lsy+dy);
+        fsRef = device IOBD ( schematic floorplan_view ) *strVar @[(fsx + 2) * 160 + draw_x, (fsy + 1) * 320 + draw_y];
+        map(fsRef => aRef);       
+     
+//       get_coordinate_of_iob(lsx+dx, lsy+dy);  
+       print_inst_fp_map("IOBD", lsx+dx, lsy+dy);
+    }
+
+    unsigned int iobs_x = 0;
+    unsigned int iobs_y[] = { 300,288,276,264,252,240,228,216,204,192,180,168,156,138,126,114,102,90,78,66,54,42,30,18,6,0 };
+    foreach dy (iobs_y) {
+        dx = iobs_x;
+        sprintf(strVar, "IOBS_%d_%d", lsx+dx, lsy+dy);
+        aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+        get_coordinate_of_iob(lsx+dx, lsy+dy);
+        adjust_floorplan_draw(lsx+dx, lsy+dy);
+        fsRef = device IOBS ( schematic floorplan_view ) *strVar @[(fsx + 2) * 160+draw_x, (fsy + 1) * 320+draw_y];
+        map(fsRef => aRef);
+       
+//     get_coordinate_of_iob(lsx+dx, lsy+dy);
+     print_inst_fp_map("IOBS", lsx+dx, lsy+dy);
+    }
+        dx = 1;
+        dy = 34;
+        sprintf(strVar, "BKCL_%d_%d", lsx+dx, lsy+dy);
+        aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+        get_coordinate_of_bkcl(lsx+dx, lsy+dy);
+        adjust_floorplan_draw(lsx+dx, lsy+dy);
+        fsRef = device BKCL ( symbol fpsym ) *strVar @[(fsx + 2) * 160+draw_x, (fsy + 1) * 320+draw_y];
+        map(fsRef => aRef);      
+      print_inst_fp_map("BKCL_", lsx+dx, lsy+dy); 
+}
+
+function place_uscm_tile_fp(unsigned int tx, ty)
+{
+    unsigned int lsx, lsy;
+    
+    lsx = tx * NUM_GRID_X + 3;
+    lsy = ty * NUM_GRID_Y;
+
+    // device reference variables
+    &device aRef, fsRef;
+    string strVar;
+
+    //unsigned int uscm_y_idxs[] = {110, 111, 112, 113, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14};
+
+    unsigned int dx = 0, dy = 0;
+
+    dx = 2;
+    for(dy = 270; dy < 364; dy = dy + 3) 
+    {
+        aRef = <device USCM @[lsx+dx,lsy+dy] of ARCHITECTURE>;
+        sprintf(strVar, "USCM_%d_%d", lsx+dx, lsy+dy);
+        get_coordinate_of_uscm(lsx+dx, lsy+dy);
+        fsRef = device USCM ( structure fp_struct ) *strVar @[fsx,fsy];
+        map(fsRef => aRef);
+        // print_inst_fp_map("USCM_p_", lsx+dx, lsy+dy); 
+    }
+    dx = 0;
+    for(dy = 160; dy < 172; dy = dy + 1) 
+    {
+        aRef = <device HCKB @[lsx+dx,lsy+dy] of ARCHITECTURE>;
+        sprintf(strVar, "HCKB_%d_%d", lsx+dx, lsy+dy);
+        get_coordinate_of_hckb(lsx+dx, lsy+dy);
+        fsRef = device HCKB ( structure fp_struct ) *strVar @[fsx,fsy];
+        map(fsRef => aRef);
+       // print_inst_fp_map("HCKB_p_", lsx+dx, lsy+dy);
+    }
+    for(dy = 180; dy < 192; dy = dy + 1) 
+    {
+        aRef = <device HCKB @[lsx+dx,lsy+dy] of ARCHITECTURE>;
+        sprintf(strVar, "HCKB_%d_%d", lsx+dx, lsy+dy);
+        get_coordinate_of_hckb(lsx+dx, lsy+dy);
+        fsRef = device HCKB ( structure fp_struct ) *strVar @[fsx,fsy];
+        map(fsRef => aRef);
+        //print_inst_fp_map("HCKB_p_", lsx+dx, lsy+dy);
+    }
+     for(dy = 200; dy < 212; dy = dy + 1) 
+    {
+        aRef = <device HCKB @[lsx+dx,lsy+dy] of ARCHITECTURE>;
+        sprintf(strVar, "HCKB_%d_%d", lsx+dx, lsy+dy);
+        get_coordinate_of_hckb(lsx+dx, lsy+dy);
+        fsRef = device HCKB ( structure fp_struct ) *strVar @[fsx,fsy];
+        map(fsRef => aRef);
+        //print_inst_fp_map("HCKB_p_", lsx+dx, lsy+dy);
+    }
+     for(dy = 220; dy < 232; dy = dy + 1) 
+    {
+        aRef = <device HCKB @[lsx+dx,lsy+dy] of ARCHITECTURE>;
+        sprintf(strVar, "HCKB_%d_%d", lsx+dx, lsy+dy);
+        get_coordinate_of_hckb(lsx+dx, lsy+dy);
+        fsRef = device HCKB ( structure fp_struct ) *strVar @[fsx,fsy];
+        map(fsRef => aRef);
+        //print_inst_fp_map("HCKB_p_", lsx+dx, lsy+dy);
+    }
+    
+     dx = 0;
+     for(dy = 271; dy < 365; dy = dy + 3) 
+    {
+        aRef = <device USCMMUX_TEST @[lsx+dx,lsy+dy] of ARCHITECTURE>;
+        sprintf(strVar, "USCMMUX_TEST_%d_%d", lsx+dx, lsy+dy);
+        get_coordinate_of_uscmtest(lsx+dx, lsy+dy);
+        fsRef = device USCMMUX_TEST ( structure fp_struct ) *strVar @[fsx,fsy];
+        map(fsRef => aRef);
+        //print_inst_fp_map("USCMMUX_TEST_p_", lsx+dx, lsy+dy);
+    }
+    
+     dx = 0;
+     for(dy = 121; dy < 133; dy = dy + 3) 
+    {
+        aRef = <device HCKMUX_TEST @[lsx+dx,lsy+dy] of ARCHITECTURE>;
+        sprintf(strVar, "HCKMUX_TEST_%d_%d", lsx+dx, lsy+dy);
+        get_coordinate_of_hckmuxtest(lsx+dx, lsy+dy);
+        fsRef = device HCKMUX_TEST ( structure fp_struct ) *strVar @[fsx,fsy];
+        map(fsRef => aRef);
+        //print_inst_fp_map("HCKMUX_TEST_p_", lsx+dx, lsy+dy);
+    }  
+    dx = 0;
+    dy = 151;
+    aRef = <device PREGMUXC_TEST @[lsx+dx,lsy+dy] of ARCHITECTURE>;
+    sprintf(strVar, "PREGMUXC_TEST_%d_%d", lsx+dx, lsy+dy);
+    get_coordinate_of_pregmuxctest(lsx+dx, lsy+dy);
+    fsRef = device PREGMUXC_TEST ( structure fp_struct ) *strVar @[fsx,fsy];
+    map(fsRef => aRef);
+    dx = 0;
+    dy = 457;
+    aRef = <device PREGMUXC_TEST @[lsx+dx,lsy+dy] of ARCHITECTURE>;
+    sprintf(strVar, "PREGMUXC_TEST_%d_%d", lsx+dx, lsy+dy);
+    get_coordinate_of_pregmuxctest(lsx+dx, lsy+dy);
+    fsRef = device PREGMUXC_TEST ( structure fp_struct ) *strVar @[fsx,fsy];
+    map(fsRef => aRef);    
+    //print_inst_fp_map("PREGMUXC_TEST_p_", lsx+dx, lsy+dy);      
+}
+function draw_uscm_tile_fp(unsigned int tx, ty)
+{
+    unsigned int lsx, lsy;
+    
+    lsx = tx * NUM_GRID_X + 3;
+    lsy = ty * NUM_GRID_Y;
+
+    // device reference variables
+    &device aRef, fsRef;
+    string strVar;
+
+   // unsigned int uscm_y_idxs[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14};
+
+    unsigned int dx = 0, dy = 0;
+
+    //foreach dy (uscm_y_idxs)
+    dx = 2;
+    for(dy = 270; dy < 364; dy = dy + 3) 
+    {
+        sprintf(strVar, "USCM_%d_%d", lsx+dx, lsy+dy);
+        aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+        get_coordinate_of_uscm(lsx+dx, lsy+dy);
+        adjust_floorplan_draw(lsx+dx, lsy+dy);
+        fsRef = device USCM ( symbol fpsym ) *strVar @[(fsx + 2) * 160 + 60+draw_x, (fsy + 1) * 320];
+        map(fsRef => aRef);
+
+        get_coordinate_of_uscm(lsx+dx, lsy+dy);
+        print_inst_fp_map("USCM", lsx+dx, lsy+dy);
+    }
+    dx = 0;
+   for(dy = 160; dy < 172; dy = dy + 1) 
+    {
+        sprintf(strVar, "HCKB_%d_%d", lsx+dx, lsy+dy);
+        aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+        get_coordinate_of_hckb(lsx+dx, lsy+dy);
+        adjust_floorplan_draw(lsx+dx, lsy+dy);
+        fsRef = device HCKB ( symbol fpsym ) *strVar @[(fsx + 2) * 160 + 60+draw_x, (fsy + 1) * 320];
+        map(fsRef => aRef);
+        print_inst_fp_map("HCKB", lsx+dx, lsy+dy);
+    }    
+    for(dy = 180; dy < 192; dy = dy + 1) 
+    {
+        sprintf(strVar, "HCKB_%d_%d", lsx+dx, lsy+dy);
+        aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+        get_coordinate_of_hckb(lsx+dx, lsy+dy);
+        adjust_floorplan_draw(lsx+dx, lsy+dy);
+        fsRef = device HCKB ( symbol fpsym ) *strVar @[(fsx + 2) * 160 + 60+draw_x, (fsy + 1) * 320];
+        map(fsRef => aRef);
+        print_inst_fp_map("HCKB", lsx+dx, lsy+dy);
+    }  
+    for(dy = 200; dy < 212; dy = dy + 1) 
+    {
+        sprintf(strVar, "HCKB_%d_%d", lsx+dx, lsy+dy);
+        aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+        get_coordinate_of_hckb(lsx+dx, lsy+dy);
+        adjust_floorplan_draw(lsx+dx, lsy+dy);
+        fsRef = device HCKB ( symbol fpsym ) *strVar @[(fsx + 2) * 160 + 60+draw_x, (fsy + 1) * 320];
+        map(fsRef => aRef);
+        print_inst_fp_map("HCKB", lsx+dx, lsy+dy);
+    }  
+    for(dy = 220; dy < 232; dy = dy + 1) 
+    {
+        sprintf(strVar, "HCKB_%d_%d", lsx+dx, lsy+dy);
+        aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+        get_coordinate_of_hckb(lsx+dx, lsy+dy);
+        adjust_floorplan_draw(lsx+dx, lsy+dy);
+        fsRef = device HCKB ( symbol fpsym ) *strVar @[(fsx + 2) * 160 + 60+draw_x, (fsy + 1) * 320];
+        map(fsRef => aRef);
+        print_inst_fp_map("HCKB", lsx+dx, lsy+dy);
+    } 
+    
+    dx =0;
+    for(dy = 271; dy < 365; dy = dy + 3) 
+    {
+        sprintf(strVar, "USCMMUX_TEST_%d_%d", lsx+dx, lsy+dy);
+        aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+        get_coordinate_of_uscmtest(lsx+dx, lsy+dy);
+        adjust_floorplan_draw(lsx+dx, lsy+dy);
+        fsRef = device USCMMUX_TEST ( symbol fpsym ) *strVar @[(fsx + 2) * 160 + 60+draw_x, (fsy + 1) * 320];
+        map(fsRef => aRef);
+        print_inst_fp_map("USCMMUX_TEST", lsx+dx, lsy+dy);
+    }
+    dx =0;
+    for(dy = 121; dy < 133; dy = dy + 3) 
+    {
+        sprintf(strVar, "HCKMUX_TEST_%d_%d", lsx+dx, lsy+dy);
+        aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+        get_coordinate_of_hckmuxtest(lsx+dx, lsy+dy);
+        adjust_floorplan_draw(lsx+dx, lsy+dy);
+        fsRef = device HCKMUX_TEST ( symbol fpsym ) *strVar @[(fsx + 2) * 160 + 60+draw_x, (fsy + 1) * 320];
+        map(fsRef => aRef);
+        print_inst_fp_map("HCKMUX_TEST", lsx+dx, lsy+dy);
+    }  
+    dx = 0;
+    dy = 151;  
+    sprintf(strVar, "PREGMUXC_TEST_%d_%d", lsx+dx, lsy+dy);
+    aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+    get_coordinate_of_pregmuxctest(lsx+dx, lsy+dy);
+    adjust_floorplan_draw(lsx+dx, lsy+dy);
+    fsRef = device PREGMUXC_TEST ( symbol fpsym ) *strVar @[(fsx + 2) * 160 + 60+draw_x, (fsy + 1) * 320];
+    map(fsRef => aRef);
+    print_inst_fp_map("PREGMUXC_TEST", lsx+dx, lsy+dy);    
+    dx = 0;
+    dy = 457;  
+    sprintf(strVar, "PREGMUXC_TEST_%d_%d", lsx+dx, lsy+dy);
+    aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+    get_coordinate_of_pregmuxctest(lsx+dx, lsy+dy);
+    adjust_floorplan_draw(lsx+dx, lsy+dy);
+    fsRef = device PREGMUXC_TEST ( symbol fpsym ) *strVar @[(fsx + 2) * 160 + 60+draw_x, (fsy + 1) * 320];
+    map(fsRef => aRef);
+    print_inst_fp_map("PREGMUXC_TEST", lsx+dx, lsy+dy);        
+}
+
+function place_pregmuxc_tile_fp(unsigned int tx, ty)
+{
+    unsigned int lsx, lsy;
+    
+    lsx = tx * NUM_GRID_X + 3;
+    lsy = ty * NUM_GRID_Y;
+
+    // device reference variables
+    &device aRef, fsRef;
+    string strVar;
+    unsigned int dx = 0, dy = 0;   
+    for(dy = 160; dy < 172; dy = dy + 1) 
+    {
+        aRef = <device HCKB @[lsx+dx,lsy+dy] of ARCHITECTURE>;
+        sprintf(strVar, "HCKB_%d_%d", lsx+dx, lsy+dy);
+        get_coordinate_of_hckb(lsx+dx, lsy+dy);
+        fsRef = device HCKB ( structure fp_struct ) *strVar @[fsx,fsy];
+        map(fsRef => aRef);
+    }
+    for(dy = 180; dy < 192; dy = dy + 1) 
+    {
+        aRef = <device HCKB @[lsx+dx,lsy+dy] of ARCHITECTURE>;
+        sprintf(strVar, "HCKB_%d_%d", lsx+dx, lsy+dy);
+        get_coordinate_of_hckb(lsx+dx, lsy+dy);
+        fsRef = device HCKB ( structure fp_struct ) *strVar @[fsx,fsy];
+        map(fsRef => aRef);
+    }
+    dx = 0;
+    dy = 151;
+    aRef = <device PREGMUXC_TEST @[lsx+dx,lsy+dy] of ARCHITECTURE>;
+    sprintf(strVar, "PREGMUXC_TEST_%d_%d", lsx+dx, lsy+dy);
+    get_coordinate_of_pregmuxctest(lsx+dx, lsy+dy);
+    fsRef = device PREGMUXC_TEST ( structure fp_struct ) *strVar @[fsx,fsy];
+    map(fsRef => aRef);  
+    dx = 0;  
+    for(dy = 121; dy < 125; dy = dy + 3) 
+    {
+        aRef = <device HCKMUX_TEST @[lsx+dx,lsy+dy] of ARCHITECTURE>;
+        sprintf(strVar, "HCKMUX_TEST_%d_%d", lsx+dx, lsy+dy);
+        get_coordinate_of_hckmuxtest(lsx+dx, lsy+dy);
+        fsRef = device HCKMUX_TEST ( structure fp_struct ) *strVar @[fsx,fsy];
+        map(fsRef => aRef);
+    }          
+}
+function draw_pregmuxc_tile_fp(unsigned int tx, ty)
+{
+    unsigned int lsx, lsy;
+    
+    lsx = tx * NUM_GRID_X + 3;
+    lsy = ty * NUM_GRID_Y;
+
+    // device reference variables
+    &device aRef, fsRef;
+    string strVar;
+
+    unsigned int dx = 0, dy = 0;
+    for(dy = 160; dy < 172; dy = dy + 1) 
+    {
+        sprintf(strVar, "HCKB_%d_%d", lsx+dx, lsy+dy);
+        aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+        get_coordinate_of_hckb(lsx+dx, lsy+dy);
+         adjust_floorplan_draw(lsx+dx, lsy+dy);
+        fsRef = device HCKB ( symbol fpsym ) *strVar @[(fsx + 2) * 160 + 60+draw_x, (fsy + 1) * 320];
+        map(fsRef => aRef);
+        print_inst_fp_map("HCKB", lsx+dx, lsy+dy);
+    }    
+    for(dy = 180; dy < 192; dy = dy + 1) 
+    {
+        sprintf(strVar, "HCKB_%d_%d", lsx+dx, lsy+dy);
+        aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+        get_coordinate_of_hckb(lsx+dx, lsy+dy);
+        adjust_floorplan_draw(lsx+dx, lsy+dy);
+        fsRef = device HCKB ( symbol fpsym ) *strVar @[(fsx + 2) * 160 + 60+draw_x, (fsy + 1) * 320];
+        map(fsRef => aRef);
+        print_inst_fp_map("HCKB", lsx+dx, lsy+dy);
+    } 
+    dx = 0;
+    dy = 151;
+    sprintf(strVar, "PREGMUXC_TEST_%d_%d", lsx+dx, lsy+dy);
+    aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+    get_coordinate_of_pregmuxctest(lsx+dx, lsy+dy);
+    adjust_floorplan_draw(lsx+dx, lsy+dy);
+    fsRef = device PREGMUXC_TEST ( symbol fpsym ) *strVar @[(fsx + 2) * 160 + 60+draw_x, (fsy + 1) * 320];
+    map(fsRef => aRef);
+    print_inst_fp_map("PREGMUXC_TEST", lsx+dx, lsy+dy); 
+    dx = 0;  
+    for(dy = 121; dy < 125; dy = dy + 3) 
+    {
+        sprintf(strVar, "HCKMUX_TEST_%d_%d", lsx+dx, lsy+dy);
+        aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+        get_coordinate_of_hckmuxtest(lsx+dx, lsy+dy);
+        adjust_floorplan_draw(lsx+dx, lsy+dy);
+        fsRef = device HCKMUX_TEST ( symbol fpsym ) *strVar @[(fsx + 2) * 160 + 60+draw_x, (fsy + 1) * 320];
+        map(fsRef => aRef);
+        print_inst_fp_map("HCKMUX_TEST", lsx+dx, lsy+dy);
+    }      
+}
+function place_ppll_tile_fp(unsigned int tx, ty)
+{
+    unsigned int lsx, lsy;
+    unsigned int lsx0, lsy0;
+    unsigned int dy;
+    lsx = tx * NUM_GRID_X;
+    lsy = ty * NUM_GRID_Y;
+    lsx0 = lsx + 1;
+    lsy0 = lsy + 1;
+    unsigned int ddrphy[] = {1,3};
+    unsigned int tserdes[] = {1,2,3,4};
+    // device reference variables
+    &device aRef, fsRef;
+    string strVar;
+
+    aRef = <device PPLL @[lsx0,lsy0] of ARCHITECTURE>;
+    sprintf(strVar, "PPLL_%d_%d", lsx0, lsy0);
+    get_coordinate_of_pll(lsx0, lsy0);
+    fsRef = device PPLL ( structure fp_struct ) *strVar @[fsx,fsy];
+    map(fsRef => aRef);
+     unsigned int dx = 0;
+     dx = 3;
+    foreach dy (ddrphy)
+    {
+        aRef = <device DDR_PHY @[lsx+dx,lsy+dy] of ARCHITECTURE>;
+        sprintf(strVar, "DDR_PHY_%d_%d", lsx+dx, lsy+dy);
+        get_coordinate_of_ddrphy(lsx+dx, lsy+dy);
+        fsRef = device DDR_PHY ( structure fp_struct ) *strVar @[fsx,fsy];
+        map(fsRef => aRef);
+    } 
+    dx = 2;
+    dy = 4;  
+    aRef = <device DDRPHY_IOCLK_DIV @[lsx+dx,lsy+dy] of ARCHITECTURE>;
+    sprintf(strVar, "DDRPHY_IOCLK_DIV_%d_%d", lsx+dx, lsy+dy);
+    get_coordinate_of_ddrphyioclkdiv(lsx+dx, lsy+dy);
+    fsRef = device DDRPHY_IOCLK_DIV ( structure fp_struct ) *strVar @[fsx,fsy];
+    map(fsRef => aRef);       
+    dx = 3;
+    dy = 4;  
+    aRef = <device DDRPHY_CPD @[lsx+dx,lsy+dy] of ARCHITECTURE>;
+    sprintf(strVar, "DDRPHY_CPD_%d_%d", lsx+dx, lsy+dy);
+    get_coordinate_of_ddrphycpd(lsx+dx, lsy+dy);
+    fsRef = device DDRPHY_CPD ( structure fp_struct ) *strVar @[fsx,fsy];
+    map(fsRef => aRef);       
+    dx = 5;
+    foreach dy (tserdes)
+    {
+        aRef = <device TSERDES @[lsx+dx,lsy+dy] of ARCHITECTURE>;
+        sprintf(strVar, "TSERDES_%d_%d", lsx+dx, lsy+dy);
+        get_coordinate_of_tserdes(lsx+dx, lsy+dy);
+        fsRef = device TSERDES ( structure fp_struct ) *strVar @[fsx,fsy];
+        map(fsRef => aRef);
+    } 
+    dx = 3;
+    dy = 7;   
+    aRef = <device PLLMRMUX_TEST @[lsx+dx,lsy+dy] of ARCHITECTURE>;
+    sprintf(strVar, "PLLMRMUX_TEST_%d_%d", lsx+dx, lsy+dy);
+    get_coordinate_of_pllmrmuxtest(lsx+dx, lsy+dy);
+    fsRef = device PLLMRMUX_TEST ( structure fp_struct ) *strVar @[fsx,fsy];
+    map(fsRef => aRef);    
+    dx = 0;
+    dy = 7;   
+    aRef = <device PLLREFMUX_TEST @[lsx+dx,lsy+dy] of ARCHITECTURE>;
+    sprintf(strVar, "PLLREFMUX_TEST_%d_%d", lsx+dx, lsy+dy);
+    get_coordinate_of_pllrefmuxtest(lsx+dx, lsy+dy);
+    fsRef = device PLLREFMUX_TEST ( structure fp_struct ) *strVar @[fsx,fsy];
+    map(fsRef => aRef);        
+}
+function draw_ppll_tile_fp(unsigned int tx, ty)
+{
+    unsigned int lsx, lsy;
+    unsigned int lsx0, lsy0;  
+    
+    unsigned int ddrphy[] = {1,3};
+    unsigned int tserdes[] = {1,2,3,4};
+    lsx = tx * NUM_GRID_X;
+    lsy = ty * NUM_GRID_Y;   
+    lsx0 = lsx + 1;
+    lsy0 = lsy + 1;
+    
+    // device reference variables
+    &device aRef, fsRef;
+    string strVar;
+
+    sprintf(strVar, "PPLL_%d_%d", lsx0, lsy0);
+    aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+    get_coordinate_of_pll(lsx0, lsy0);
+    adjust_floorplan_draw(lsx0, lsy0);
+    fsRef = device PPLL ( symbol fpsym ) *strVar @[(fsx + 2) * 160 + draw_x, (fsy + 1) * 320 + draw_y];
+    map(fsRef => aRef);
+    print_inst_fp_map("PPLL", lsx0, lsy0);
+    
+    unsigned int dx = 0, dy = 0;
+    dx = 3;
+    foreach dy (ddrphy) 
+    {
+        sprintf(strVar, "DDR_PHY_%d_%d", lsx+dx, lsy+dy);
+        aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+        get_coordinate_of_ddrphy(lsx+dx, lsy+dy);
+        adjust_floorplan_draw(lsx+dx, lsy+dy);
+        fsRef = device DDR_PHY ( symbol fpsym ) *strVar @[(fsx + 2) * 160 + 10 + draw_x, (fsy + 1) * 320 + draw_y];
+        map(fsRef => aRef);
+        print_inst_fp_map("DDR_PHY", lsx+dx, lsy+dy);
+    } 
+     dx = 2;
+     dy = 4;         
+     sprintf(strVar, "DDRPHY_IOCLK_DIV_%d_%d", lsx+dx, lsy+dy);
+     aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+     get_coordinate_of_ddrphyioclkdiv(lsx+dx, lsy+dy);
+     adjust_floorplan_draw(lsx+dx, lsy+dy);
+     fsRef = device DDRPHY_IOCLK_DIV ( symbol fpsym ) *strVar @[(fsx + 2) * 160 + 10 + draw_x, (fsy + 1) * 320 + draw_y];
+     map(fsRef => aRef);
+     print_inst_fp_map("DDRPHY_IOCLK_DIV_", lsx+dx, lsy+dy);      
+
+     dx = 3;
+     dy = 4;         
+     sprintf(strVar, "DDRPHY_CPD_%d_%d", lsx+dx, lsy+dy);
+     aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+     get_coordinate_of_ddrphycpd(lsx+dx, lsy+dy);
+     adjust_floorplan_draw(lsx+dx, lsy+dy);
+     fsRef = device DDRPHY_CPD ( symbol fpsym ) *strVar @[(fsx + 2) * 160 + 10+draw_x, (fsy + 1) * 320+draw_y];
+     map(fsRef => aRef);
+     print_inst_fp_map("DDRPHY_CPD_", lsx+dx, lsy+dy);  
+    dx = 5;
+    foreach dy (tserdes) 
+    {
+        sprintf(strVar, "TSERDES_%d_%d", lsx+dx, lsy+dy);
+        aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+        get_coordinate_of_tserdes(lsx+dx, lsy+dy);
+        adjust_floorplan_draw(lsx+dx, lsy+dy);
+        fsRef = device TSERDES ( symbol fpsym ) *strVar @[(fsx + 2) * 160 + 10 + draw_x, (fsy + 1) * 320+draw_y];
+        map(fsRef => aRef);
+        print_inst_fp_map("TSERDES", lsx+dx, lsy+dy);
+    } 
+    dx = 3;
+    dy = 7;
+    sprintf(strVar, "PLLMRMUX_TEST_%d_%d", lsx+dx, lsy+dy);
+    aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+    get_coordinate_of_pllmrmuxtest(lsx+dx, lsy+dy);
+    adjust_floorplan_draw(lsx+dx, lsy+dy);
+    fsRef = device PLLMRMUX_TEST ( symbol fpsym ) *strVar @[(fsx + 2) * 160 + 10+draw_x, (fsy + 1) * 320+draw_y];
+    map(fsRef => aRef);
+    print_inst_fp_map("PLLMRMUX_TEST", lsx+dx, lsy+dy);    
+    
+    dx = 0;
+    dy = 7;
+    sprintf(strVar, "PLLREFMUX_TEST_%d_%d", lsx+dx, lsy+dy);
+    aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+    get_coordinate_of_pllrefmuxtest(lsx+dx, lsy+dy);
+    adjust_floorplan_draw(lsx+dx, lsy+dy);
+    fsRef = device PLLREFMUX_TEST ( symbol fpsym ) *strVar @[(fsx + 2) * 160 + 10 + draw_x, (fsy + 1) * 320+draw_y];
+    map(fsRef => aRef);
+    print_inst_fp_map("PLLREFMUX_TEST", lsx+dx, lsy+dy);    
+}
+
+function place_gpll_tile_fp(unsigned int tx, ty)
+{
+    unsigned int lsx, lsy;
+    unsigned int lsx0, lsy0,lsx1, lsy1;
+    lsx = tx * NUM_GRID_X;
+    lsy = ty * NUM_GRID_Y;
+    lsx0 = lsx + 1;
+    lsy0 = lsy + 1;
+    unsigned int dx;
+    unsigned int dy;
+    unsigned int tserdes[] = {1,2,3,4};
+    // device reference variables
+    &device aRef, fsRef;
+    string strVar;
+    
+    aRef = <device GPLL @[lsx0,lsy0] of ARCHITECTURE>;
+    sprintf(strVar, "GPLL_%d_%d", lsx0, lsy0);
+    get_coordinate_of_pll(lsx0, lsy0);
+    fsRef = device GPLL ( structure fp_struct ) *strVar @[fsx,fsy];
+    map(fsRef => aRef);
+
+    lsx1 = lsx + 3;
+    lsy1 = lsy + 1;
+    
+    aRef = <device DDR_PHY @[lsx1,lsy1] of ARCHITECTURE>;
+    sprintf(strVar, "DDR_PHY_%d_%d", lsx1, lsy1);
+    get_coordinate_of_ddrphy(lsx1, lsy1);
+    fsRef = device DDR_PHY ( structure fp_struct ) *strVar @[fsx,fsy];
+    map(fsRef => aRef);
+    lsx1 = lsx + 3;
+    lsy1 = lsy + 3;   
+    aRef = <device DDR_PHY @[lsx1,lsy1] of ARCHITECTURE>;
+    sprintf(strVar, "DDR_PHY_%d_%d", lsx1, lsy1);
+    get_coordinate_of_ddrphy(lsx1, lsy1);
+    fsRef = device DDR_PHY ( structure fp_struct ) *strVar @[fsx,fsy];
+    map(fsRef => aRef);
+     
+    dx = 3;
+    dy = 4;  
+    aRef = <device DDRPHY_CPD @[lsx+dx,lsy+dy] of ARCHITECTURE>;
+    sprintf(strVar, "DDRPHY_CPD_%d_%d", lsx+dx, lsy+dy);
+    get_coordinate_of_ddrphycpd(lsx+dx, lsy+dy);
+    fsRef = device DDRPHY_CPD ( structure fp_struct ) *strVar @[fsx,fsy];
+    map(fsRef => aRef);         
+
+    dx = 5;
+    foreach dy (tserdes)
+    {
+        aRef = <device TSERDES @[lsx+dx,lsy+dy] of ARCHITECTURE>;
+        sprintf(strVar, "TSERDES_%d_%d", lsx+dx, lsy+dy);
+        get_coordinate_of_tserdes(lsx+dx, lsy+dy);
+        fsRef = device TSERDES ( structure fp_struct ) *strVar @[fsx,fsy];
+        map(fsRef => aRef); 
+    }
+}
+function draw_gpll_tile_fp(unsigned int tx, ty)
+{
+    unsigned int lsx, lsy;
+    unsigned int lsx0, lsy0;  
+    
+    unsigned int ddr_phy[] = {1,3};
+    unsigned int tserdes[] = {1,2,3,4};
+    
+    lsx = tx * NUM_GRID_X;
+    lsy = ty * NUM_GRID_Y;   
+    lsx0 = lsx + 1;
+    lsy0 = lsy + 1;
+    
+    // device reference variables
+    &device aRef, fsRef;
+    string strVar;
+
+    sprintf(strVar, "GPLL_%d_%d", lsx0, lsy0);
+    aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+    get_coordinate_of_pll(lsx0, lsy0);
+    adjust_floorplan_draw(lsx0, lsy0);
+    fsRef = device GPLL ( symbol fpsym ) *strVar @[(fsx + 2) * 160 +draw_x, (fsy + 1) * 320+draw_y];
+    map(fsRef => aRef);
+    print_inst_fp_map("GPLL", lsx0, lsy0);
+    
+    unsigned int dx = 0, dy = 0;
+    dx = 3;
+    foreach dy (ddr_phy)
+    {
+        sprintf(strVar, "DDR_PHY_%d_%d", lsx+dx, lsy+dy);
+        aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+        get_coordinate_of_ddrphy(lsx+dx, lsy+dy);
+        adjust_floorplan_draw(lsx+dx, lsy+dy);
+        fsRef = device DDR_PHY ( symbol fpsym ) *strVar @[(fsx + 2) * 160 +10+draw_x, (fsy + 1) * 320+draw_y];
+        map(fsRef => aRef);
+        print_inst_fp_map("DDR_PHY", lsx+dx, lsy+dy);
+    }  
+     
+    dx = 3;
+    dy = 4;         
+    sprintf(strVar, "DDRPHY_CPD_%d_%d", lsx+dx, lsy+dy);
+    aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+    get_coordinate_of_ddrphycpd(lsx+dx, lsy+dy);
+    adjust_floorplan_draw(lsx+dx, lsy+dy);
+    fsRef = device DDRPHY_CPD ( symbol fpsym ) *strVar @[(fsx + 2) * 160 + 10 + draw_x, (fsy + 1) * 320+draw_y];
+    map(fsRef => aRef);
+    print_inst_fp_map("DDRPHY_CPD_", lsx+dx, lsy+dy);       
+    
+    dx = 5;
+    foreach dy (tserdes)
+    {
+        sprintf(strVar, "TSERDES_%d_%d", lsx+dx, lsy+dy);
+        aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+        get_coordinate_of_tserdes(lsx+dx, lsy+dy);
+        adjust_floorplan_draw(lsx+dx, lsy+dy);
+        fsRef = device TSERDES ( symbol fpsym ) *strVar @[(fsx + 2) * 160 +10+draw_x, (fsy + 1) * 320+draw_y];
+        map(fsRef => aRef);
+        print_inst_fp_map("TSERDES", lsx+dx, lsy+dy);
+    }
+}
+
+function place_pll_tile_fp(unsigned int tx, ty,ud)
+{
+   if (ud == 1)
+   {
+      place_ppll_tile_fp(tx, ty);
+   }
+   else
+   {
+      place_gpll_tile_fp(tx, ty);
+   }
+}
+function draw_pll_tile_fp(unsigned int tx, ty,ud)
+{
+   if (ud == 1)
+   {
+      draw_ppll_tile_fp(tx, ty);
+   }
+   else
+   {
+      draw_gpll_tile_fp(tx, ty);
+   }
+}
+function place_ccs_tile_fp(unsigned int tx, ty, tx_srb)
+{   
+    unsigned int lsx, lsy;
+    unsigned int lsx0, lsy0;
+    lsx = tx * NUM_GRID_X + 3;
+    lsy = ty * NUM_GRID_Y;
+    lsx0 = lsx;
+    lsy0 = lsy + 10;
+    // device reference variables
+    &device aRef, fsRef;
+    string strVar;
+
+    aRef = <device CCS @[lsx0,lsy0] of ARCHITECTURE>;
+    sprintf(strVar, "CCS_%d_%d", lsx0, lsy0);
+    get_coordinate_of_ccs(lsx0, lsy0);
+    fsRef = device CCS ( structure fp_struct ) *strVar @[fsx,fsy];
+    map(fsRef => aRef);
+    //print_inst_fp_map("CCS", lsx0, lsy0);
+    lsx0 = lsx + 1;
+    lsy0 = lsy + 6;    
+    aRef = <device SCANCHAIN @[lsx0,lsy0] of ARCHITECTURE>;
+    sprintf(strVar, "SCANCHAIN_%d_%d", lsx0, lsy0);
+    get_coordinate_of_scanchain(lsx0, lsy0);
+    fsRef = device SCANCHAIN ( structure fp_struct ) *strVar @[fsx,fsy];
+    map(fsRef => aRef);   
+    
+    lsx0 = lsx + 0;
+    lsy0 = lsy + 11;    
+    aRef = <device KEYRAM @[lsx0,lsy0] of ARCHITECTURE>;
+    sprintf(strVar, "KEYRAM_%d_%d", lsx0, lsy0);
+    get_coordinate_of_keyram(lsx0, lsy0);
+    fsRef = device KEYRAM ( structure fp_struct ) *strVar @[fsx,fsy];
+    map(fsRef => aRef);   
+    lsx0 = lsx + 0;
+    lsy0 = lsy + 12;    
+    aRef = <device ANALOG @[lsx0,lsy0] of ARCHITECTURE>;
+    sprintf(strVar, "ANALOG_%d_%d", lsx0, lsy0);
+    get_coordinate_of_analog(lsx0, lsy0);
+    fsRef = device ANALOG ( structure fp_struct ) *strVar @[fsx,fsy];
+    map(fsRef => aRef);         
+    
+}
+
+
+
+function draw_ccs_tile_fp(unsigned int tx, ty,tx_srb)
+{
+    unsigned int lsx, lsy;
+    unsigned int lsx0, lsy0;
+    lsx = tx * NUM_GRID_X + 3;
+    lsy = ty * NUM_GRID_Y;
+
+    // device reference variables
+    &device aRef, fsRef;
+    string strVar;
+    lsx0 = lsx;
+    lsy0 = lsy + 10;
+    sprintf(strVar, "CCS_%d_%d", lsx0, lsy0);
+    aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+    get_coordinate_of_ccs(lsx0, lsy0);
+    adjust_floorplan_draw(lsx0, lsy0);
+    fsRef = device CCS ( symbol fpsym ) *strVar @[(fsx + 2) * 160 + draw_x, (fsy + 1) * 320 + draw_y];
+    map(fsRef => aRef);
+    print_inst_fp_map("CCS", lsx0, lsy0);
+    lsx0 = lsx + 1;
+    lsy0 = lsy + 6;   
+    sprintf(strVar, "SCANCHAIN_%d_%d", lsx0, lsy0);
+    aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+    get_coordinate_of_scanchain(lsx0, lsy0);
+    adjust_floorplan_draw(lsx0, lsy0);
+    fsRef = device SCANCHAIN ( symbol fpsym ) *strVar @[(fsx + 2) * 160 + draw_x, (fsy + 1) * 320 + draw_y];
+    map(fsRef => aRef);
+    print_inst_fp_map("SCANCHAIN_", lsx0, lsy0);  
+    
+    lsx0 = lsx + 0;
+    lsy0 = lsy + 11;   
+    sprintf(strVar, "KEYRAM_%d_%d", lsx0, lsy0);
+    aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+    get_coordinate_of_keyram(lsx0, lsy0);
+    adjust_floorplan_draw(lsx0, lsy0);
+    fsRef = device KEYRAM ( symbol fpsym ) *strVar @[(fsx + 2) * 160 + draw_x, (fsy + 1) * 320 + draw_y];
+    map(fsRef => aRef);
+    print_inst_fp_map("KEYRAM_", lsx0, lsy0);       
+    
+    lsx0 = lsx + 0;
+    lsy0 = lsy + 12;   
+    sprintf(strVar, "ANALOG_%d_%d", lsx0, lsy0);
+    aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+    get_coordinate_of_analog(lsx0, lsy0);
+    adjust_floorplan_draw(lsx0, lsy0);
+    fsRef = device ANALOG ( symbol fpsym ) *strVar @[(fsx + 2) * 160 + draw_x, (fsy + 1) * 320 + draw_y];
+    map(fsRef => aRef);
+    print_inst_fp_map("ANALOG_", lsx0, lsy0);          
+}
+function place_adc_tile_fp(unsigned int tx, ty, tx_srb)
+{   
+    unsigned int lsx, lsy;
+    lsx = tx * NUM_GRID_X + 3;
+    lsy = ty * NUM_GRID_Y;
+    // device reference variables
+    &device aRef, fsRef;
+    string strVar;
+
+    aRef = <device ADC @[lsx,lsy] of ARCHITECTURE>;
+    sprintf(strVar, "ADC_%d_%d", lsx, lsy);
+    get_coordinate_of_adc(lsx, lsy);
+    fsRef = device ADC ( structure fp_struct ) *strVar @[fsx,fsy];
+    map(fsRef => aRef);
+    //print_inst_fp_map("ADC", lsx, lsy);
+}
+
+
+
+function draw_adc_tile_fp(unsigned int tx, ty,tx_srb)
+{
+    unsigned int lsx, lsy;
+    lsx = tx * NUM_GRID_X + 3;
+    lsy = ty * NUM_GRID_Y;
+
+    // device reference variables
+    &device aRef, fsRef;
+    string strVar;
+    sprintf(strVar, "ADC_%d_%d", lsx, lsy);
+    aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+    get_coordinate_of_adc(lsx, lsy);
+    adjust_floorplan_draw(lsx, lsy);
+    fsRef = device ADC ( symbol fpsym ) *strVar @[(fsx + 2) * 160 + draw_x, (fsy + 1) * 320 + draw_y];
+    map(fsRef => aRef);
+    print_inst_fp_map("ADC", lsx, lsy);
+
+ 
+}
+
+function place_iock_tile_fp(unsigned int tx, ty)
+{   
+    unsigned int lsx, lsy;
+    unsigned int lsx0, lsy0;
+    lsx = tx * NUM_GRID_X;
+    lsy = ty * NUM_GRID_Y;
+    lsx0 = lsx;
+    lsy0 = lsy + 10;
+    // device reference variables
+    &device aRef, fsRef;
+    string strVar;
+
+    unsigned int dx = 0, dy = 0;
+    unsigned int mrckb_x = 1;
+    unsigned int mrckb_y[] = {0,1};
+    foreach dy (mrckb_y) {
+        dx = mrckb_x;
+        aRef = <device MRCKB @[lsx+dx,lsy+dy] of ARCHITECTURE>;
+        sprintf(strVar, "MRCKB_%d_%d", lsx+dx, lsy+dy);
+        get_coordinate_of_mrckb(lsx+dx, lsy+dy);
+        fsRef = device MRCKB ( structure fp_struct ) *strVar @[fsx,fsy];
+        map(fsRef => aRef);
+        //print_inst_fp_map("MRCKB_p", lsx+dx, lsy+dy);
+    }
+    
+    
+    unsigned int rckb_x = 3;
+    unsigned int rckb_y[] = {0,1,2,3};
+    foreach dy (rckb_y) {
+        dx = rckb_x;
+        aRef = <device RCKB @[lsx+dx,lsy+dy] of ARCHITECTURE>;
+        sprintf(strVar, "RCKB_%d_%d", lsx+dx, lsy+dy);
+        get_coordinate_of_rckb(lsx+dx, lsy+dy);
+        fsRef = device RCKB ( structure fp_struct ) *strVar @[fsx,fsy];
+        map(fsRef => aRef);
+        //print_inst_fp_map("RCKB_p", lsx+dx, lsy+dy);
+    }
+ 
+    unsigned int iockb_x0 = 3;
+    unsigned int iockb_y0[] = {4,5};
+    foreach dy (iockb_y0) {
+        dx = iockb_x0;
+        aRef = <device IOCKB @[lsx+dx,lsy+dy] of ARCHITECTURE>;
+        sprintf(strVar, "IOCKB_%d_%d", lsx+dx, lsy+dy);
+        get_coordinate_of_iockb(lsx+dx, lsy+dy);
+        fsRef = device IOCKB ( structure fp_struct ) *strVar @[fsx,fsy];
+        map(fsRef => aRef);
+        //print_inst_fp_map("IOCKB_p", lsx+dx, lsy+dy);
+    }
+    unsigned int iockb_x1 = 5;
+    unsigned int iockb_y1[] = {3,4};
+    foreach dy (iockb_y1) {
+        dx = iockb_x1;
+        aRef = <device IOCKB @[lsx+dx,lsy+dy] of ARCHITECTURE>;
+        sprintf(strVar, "IOCKB_%d_%d", lsx+dx, lsy+dy);
+        get_coordinate_of_iockb(lsx+dx, lsy+dy);
+        fsRef = device IOCKB ( structure fp_struct ) *strVar @[fsx,fsy];
+        map(fsRef => aRef);
+        //print_inst_fp_map("IOCKB_p", lsx+dx, lsy+dy);
+    } 
+    dx = 2;
+    dy = 4;
+    aRef = <device IOCKMUX_TEST @[lsx+dx,lsy+dy] of ARCHITECTURE>;
+    sprintf(strVar, "IOCKMUX_TEST_%d_%d", lsx+dx, lsy+dy);
+    get_coordinate_of_iockmuxtest(lsx+dx, lsy+dy);
+    fsRef = device IOCKMUX_TEST ( structure fp_struct ) *strVar @[fsx,fsy];
+    map(fsRef => aRef);
+    //print_inst_fp_map("IOCKMUX_TEST_p", lsx+dx, lsy+dy);    
+ 
+    dx = 0;
+    dy = 1;
+    aRef = <device MRCKMUX_TEST @[lsx+dx,lsy+dy] of ARCHITECTURE>;
+    sprintf(strVar, "MRCKMUX_TEST_%d_%d", lsx+dx, lsy+dy);
+    get_coordinate_of_mrckmuxtest(lsx+dx, lsy+dy);
+    fsRef = device MRCKMUX_TEST ( structure fp_struct ) *strVar @[fsx,fsy];
+    map(fsRef => aRef);
+    //print_inst_fp_map("MRCKMUX_TEST_p", lsx+dx, lsy+dy);   
+
+    dx = 0;
+    dy = 4;
+    aRef = <device MRPOSTMUX_TEST @[lsx+dx,lsy+dy] of ARCHITECTURE>;
+    sprintf(strVar, "MRPOSTMUX_TEST_%d_%d", lsx+dx, lsy+dy);
+    get_coordinate_of_mrpostmuxtest(lsx+dx, lsy+dy);
+    fsRef = device MRPOSTMUX_TEST ( structure fp_struct ) *strVar @[fsx,fsy];
+    map(fsRef => aRef);
+    //print_inst_fp_map("MRPOSTMUX_TEST_p", lsx+dx, lsy+dy); 
+    dx = 2;
+    dy = 1;
+    aRef = <device RCKMUX_TEST @[lsx+dx,lsy+dy] of ARCHITECTURE>;
+    sprintf(strVar, "RCKMUX_TEST_%d_%d", lsx+dx, lsy+dy);
+    get_coordinate_of_rckmuxtest(lsx+dx, lsy+dy);
+    fsRef = device RCKMUX_TEST ( structure fp_struct ) *strVar @[fsx,fsy];
+    map(fsRef => aRef);
+    //print_inst_fp_map("RCKMUX_TEST_p", lsx+dx, lsy+dy);   
+    dx = 6;
+    dy = 1;
+    aRef = <device PCKMUX_TEST @[lsx+dx,lsy+dy] of ARCHITECTURE>;
+    sprintf(strVar, "PCKMUX_TEST_%d_%d", lsx+dx, lsy+dy);
+    get_coordinate_of_pckmuxtest(lsx+dx, lsy+dy);
+    fsRef = device PCKMUX_TEST ( structure fp_struct ) *strVar @[fsx,fsy];
+    map(fsRef => aRef);
+    //print_inst_fp_map("PCKMUX_TEST_p", lsx+dx, lsy+dy);   
+    dx = 6;
+    dy = 4;
+    aRef = <device PCKMUX_TEST @[lsx+dx,lsy+dy] of ARCHITECTURE>;
+    sprintf(strVar, "PCKMUX_TEST_%d_%d", lsx+dx, lsy+dy);
+    get_coordinate_of_pckmuxtest(lsx+dx, lsy+dy);
+    fsRef = device PCKMUX_TEST ( structure fp_struct ) *strVar @[fsx,fsy];
+    map(fsRef => aRef);
+    //print_inst_fp_map("PCKMUX_TEST_p", lsx+dx, lsy+dy);           
+    dx = 5;
+    dy = 1;
+    aRef = <device PREGMUXLR_TEST @[lsx+dx,lsy+dy] of ARCHITECTURE>;
+    sprintf(strVar, "PREGMUXLR_TEST_%d_%d", lsx+dx, lsy+dy);
+    get_coordinate_of_pregmuxlrtest(lsx+dx, lsy+dy);
+    fsRef = device PREGMUXLR_TEST ( structure fp_struct ) *strVar @[fsx,fsy];
+    map(fsRef => aRef);
+    //print_inst_fp_map("PREGMUXLR_TEST_p", lsx+dx, lsy+dy);  
+    
+    dx = 7;
+    for( dy = 1; dy < 5; dy = dy + 4)
+    {
+       aRef = <device SCKMUX_TEST @[lsx+dx,lsy+dy] of ARCHITECTURE>;
+       sprintf(strVar, "SCKMUX_TEST_%d_%d", lsx+dx, lsy+dy);
+       get_coordinate_of_sckmuxtest(lsx+dx, lsy+dy);
+       fsRef = device SCKMUX_TEST ( structure fp_struct ) *strVar @[fsx,fsy];
+       map(fsRef => aRef);
+       //print_inst_fp_map("SCKMUX_TEST_p", lsx+dx, lsy+dy);
+    }                 
+}
+function draw_iock_tile_fp(unsigned int tx, ty)
+{   
+    unsigned int lsx, lsy;
+    unsigned int lsx0, lsy0;
+    lsx = tx * NUM_GRID_X;
+    lsy = ty * NUM_GRID_Y;
+    lsx0 = lsx;
+    lsy0 = lsy + 10;
+    // device reference variables
+    &device aRef, fsRef;
+    string strVar;
+
+    unsigned int dx = 0, dy = 0;
+    unsigned int mrckb_x = 1;
+    unsigned int mrckb_y[] = {0,1};
+    foreach dy (mrckb_y) {
+        dx = mrckb_x;
+        sprintf(strVar, "MRCKB_%d_%d", lsx+dx, lsy+dy);
+        aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+        get_coordinate_of_mrckb(lsx+dx, lsy+dy);
+        adjust_floorplan_draw(lsx+dx, lsy+dy);
+        fsRef = device MRCKB ( symbol fpsym  ) *strVar @[(fsx + 2) * 160+10+draw_x, (fsy + 1) * 320+draw_y];
+        map(fsRef => aRef);       
+        print_inst_fp_map("MRCKB", lsx+dx, lsy+dy);
+    }
+    unsigned int rckb_x = 3;
+    unsigned int rckb_y[] = {0,1,2,3};
+    foreach dy (rckb_y) {
+        dx = rckb_x;
+        sprintf(strVar, "RCKB_%d_%d", lsx+dx, lsy+dy);
+        aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+        get_coordinate_of_rckb(lsx+dx, lsy+dy);
+        adjust_floorplan_draw(lsx+dx, lsy+dy);
+        fsRef = device RCKB ( symbol fpsym ) *strVar @[(fsx + 2) * 160+10+draw_x, (fsy + 1) * 320+draw_y];
+        map(fsRef => aRef);       
+        print_inst_fp_map("RCKB", lsx+dx, lsy+dy);
+    }
+    
+    unsigned int iockb_x0 = 3;
+    unsigned int iockb_y0[] = {4,5};
+    foreach dy (iockb_y0) {
+        dx = iockb_x0;
+        sprintf(strVar, "IOCKB_%d_%d", lsx+dx, lsy+dy);
+        aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+        get_coordinate_of_iockb(lsx+dx, lsy+dy);
+        adjust_floorplan_draw(lsx+dx, lsy+dy);
+        fsRef = device IOCKB ( symbol fpsym ) *strVar @[(fsx + 2) * 160+draw_x, (fsy + 1) * 320+draw_y];
+        map(fsRef => aRef);       
+        print_inst_fp_map("IOCKB", lsx+dx, lsy+dy);
+    }
+    unsigned int iockb_x1 = 5;
+    unsigned int iockb_y1[] = {3,4};
+    foreach dy (iockb_y1) {
+        dx = iockb_x1;
+        sprintf(strVar, "IOCKB_%d_%d", lsx+dx, lsy+dy);
+        aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+        get_coordinate_of_iockb(lsx+dx, lsy+dy);
+        adjust_floorplan_draw(lsx+dx, lsy+dy);
+        fsRef = device IOCKB ( symbol fpsym ) *strVar @[(fsx + 2) * 160+draw_x, (fsy + 1) * 320+draw_y];
+        map(fsRef => aRef);       
+        print_inst_fp_map("IOCKB", lsx+dx, lsy+dy);
+    }  
+    dx = 2;
+    dy = 4;
+    sprintf(strVar, "IOCKMUX_TEST_%d_%d", lsx+dx, lsy+dy);
+    aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+    get_coordinate_of_iockmuxtest(lsx+dx, lsy+dy);
+    adjust_floorplan_draw(lsx+dx, lsy+dy);
+    fsRef = device IOCKMUX_TEST ( symbol fpsym ) *strVar @[(fsx + 2) * 160+draw_x, (fsy + 1) * 320+draw_y];
+    map(fsRef => aRef);       
+    print_inst_fp_map("IOCKMUX_TEST", lsx+dx, lsy+dy);   
+
+    dx = 0;
+    dy = 1;
+    sprintf(strVar, "MRCKMUX_TEST_%d_%d", lsx+dx, lsy+dy);
+    aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+    get_coordinate_of_mrckmuxtest(lsx+dx, lsy+dy);
+    adjust_floorplan_draw(lsx+dx, lsy+dy);
+    fsRef = device MRCKMUX_TEST ( symbol fpsym ) *strVar @[(fsx + 2) * 160 + draw_x, (fsy + 1) * 320+draw_y];
+    map(fsRef => aRef);       
+    print_inst_fp_map("MRCKMUX_TEST", lsx+dx, lsy+dy);   
+    
+    dx = 0;
+    dy = 4;
+    sprintf(strVar, "MRPOSTMUX_TEST_%d_%d", lsx+dx, lsy+dy);
+    aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+    get_coordinate_of_mrpostmuxtest(lsx+dx, lsy+dy);
+    adjust_floorplan_draw(lsx+dx, lsy+dy);
+    fsRef = device MRPOSTMUX_TEST ( symbol fpsym ) *strVar @[(fsx + 2) * 160 + draw_x, (fsy + 1) * 320+draw_y];
+    map(fsRef => aRef);       
+    print_inst_fp_map("MRPOSTMUX_TEST", lsx+dx, lsy+dy);  
+    
+    dx = 2;
+    dy = 1;
+    sprintf(strVar, "RCKMUX_TEST_%d_%d", lsx+dx, lsy+dy);
+    aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+    get_coordinate_of_rckmuxtest(lsx+dx, lsy+dy);
+    adjust_floorplan_draw(lsx+dx, lsy+dy);
+    fsRef = device RCKMUX_TEST ( symbol fpsym ) *strVar @[(fsx + 2) * 160 + draw_x, (fsy + 1) * 320+draw_y];
+    map(fsRef => aRef);       
+    print_inst_fp_map("RCKMUX_TEST", lsx+dx, lsy+dy);   
+    dx = 6;
+    dy = 1;
+    sprintf(strVar, "PCKMUX_TEST_%d_%d", lsx+dx, lsy+dy);
+    aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+    get_coordinate_of_pckmuxtest(lsx+dx, lsy+dy);
+    adjust_floorplan_draw(lsx+dx, lsy+dy);
+    fsRef = device PCKMUX_TEST ( symbol fpsym ) *strVar @[(fsx + 2) * 160 + draw_x, (fsy + 1) * 320+draw_y];
+    map(fsRef => aRef);       
+    print_inst_fp_map("PCKMUX_TEST", lsx+dx, lsy+dy); 
+    dx = 6;
+    dy = 4;
+    sprintf(strVar, "PCKMUX_TEST_%d_%d", lsx+dx, lsy+dy);
+    aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+    get_coordinate_of_pckmuxtest(lsx+dx, lsy+dy);
+    adjust_floorplan_draw(lsx+dx, lsy+dy);
+    fsRef = device PCKMUX_TEST ( symbol fpsym ) *strVar @[(fsx + 2) * 160+draw_x, (fsy + 1) * 320+draw_y];
+    map(fsRef => aRef);       
+    print_inst_fp_map("PCKMUX_TEST", lsx+dx, lsy+dy);     
+
+    dx = 5;
+    dy = 1;
+    sprintf(strVar, "PREGMUXLR_TEST_%d_%d", lsx+dx, lsy+dy);
+    aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+    get_coordinate_of_pregmuxlrtest(lsx+dx, lsy+dy);
+    adjust_floorplan_draw(lsx+dx, lsy+dy);
+    fsRef = device PREGMUXLR_TEST ( symbol fpsym ) *strVar @[(fsx + 2) * 160 + 10 + draw_x, (fsy + 1) * 320+draw_y];
+    map(fsRef => aRef);       
+    print_inst_fp_map("PREGMUXLR_TEST", lsx+dx, lsy+dy);   
+    dx = 7;
+    for( dy = 1; dy < 5; dy = dy + 4)
+    {
+       sprintf(strVar, "SCKMUX_TEST_%d_%d", lsx+dx, lsy+dy);
+       aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+       get_coordinate_of_sckmuxtest(lsx+dx, lsy+dy);
+       adjust_floorplan_draw(lsx+dx, lsy+dy);
+       fsRef = device SCKMUX_TEST ( symbol fpsym ) *strVar @[(fsx + 2) * 160 + 10 +draw_x, (fsy + 1) * 320+draw_y];
+       map(fsRef => aRef);       
+       print_inst_fp_map("SCKMUX_TEST", lsx+dx, lsy+dy);   
+    }     
+            
+}
+
+function place_hsst_tile_fp(unsigned int tx, ty, tx_srb)
+{   
+    unsigned int lsx, lsy;
+    unsigned int lsx0, lsy0;
+    unsigned int dx, dy;
+
+    lsx = tx * NUM_GRID_X + 3 + 1;
+    lsy = ty * NUM_GRID_Y;
+
+    // device reference variables
+    &device aRef, fsRef;
+    string strVar;
+
+    aRef = <device HSSTLP @[lsx,lsy] of ARCHITECTURE>;
+    sprintf(strVar, "HSSTLP_%d_%d", lsx, lsy);
+    get_coordinate_of_hsstlp(lsx, lsy);
+    fsRef = device HSSTLP ( structure fp_struct ) *strVar @[fsx,fsy];
+    map(fsRef => aRef);
+
+    dx = -1;
+    for(dy = 1; dy <= 4; dy = dy + 1)
+    {
+        lsx0 = lsx + dx;
+        lsy0 = lsy + dy;
+        aRef = <device SPAD @[lsx0,lsy0] of ARCHITECTURE>;
+        sprintf(strVar, "SPAD_%d_%d", lsx0, lsy0);
+        get_coordinate_of_spad(lsx0, lsy0);
+        fsRef = device SPAD ( structure fp_struct ) *strVar @[fsx,fsy];
+        map(fsRef => aRef);
+    }
+}
+
+
+
+function draw_hsst_tile_fp(unsigned int tx, ty,tx_srb)
+{
+    unsigned int lsx, lsy;
+    unsigned int lsx0, lsy0;
+    unsigned int dx, dy;
+
+    lsx = tx * NUM_GRID_X + 3 + 1;
+    lsy = ty * NUM_GRID_Y;
+
+    // device reference variables
+    &device aRef, fsRef;
+    string strVar;
+
+    sprintf(strVar, "HSSTLP_%d_%d", lsx, lsy);
+    aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+    get_coordinate_of_hsstlp(lsx, lsy);
+    adjust_floorplan_draw(lsx, lsy);
+    fsRef = device HSSTLP ( schematic floorplan_view ) *strVar @[(fsx + 2) * 160 + draw_x, (fsy + 1) * 320 + draw_y];
+    map(fsRef => aRef);
+    print_inst_fp_map("HSSTLP", lsx, lsy);
+
+    dx = -1;
+    for(dy = 1; dy <= 4; dy = dy + 1)
+    {
+        lsx0 = lsx + dx;
+        lsy0 = lsy + dy;
+
+        sprintf(strVar, "SPAD_%d_%d", lsx0, lsy0);
+        aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+        get_coordinate_of_spad(lsx0, lsy0);
+        adjust_floorplan_draw(lsx0, lsy0);
+        fsRef = device SPAD ( symbol fpsym ) *strVar @[(fsx + 2) * 160 + draw_x, (fsy + 1) * 320 + draw_y];
+        map(fsRef => aRef);
+        print_inst_fp_map("SPAD", lsx, lsy);
+        
+        
+    }
+ 
+}
+
+
+function place_pcie_tile_fp(unsigned int tx, ty)
+{   
+    unsigned int lsx, lsy;
+
+    lsx = tx * NUM_GRID_X + 3;
+    lsy = ty * NUM_GRID_Y;
+
+    // device reference variables
+    &device aRef, fsRef;
+    string strVar;
+
+    aRef = <device PCIE @[lsx,lsy] of ARCHITECTURE>;
+    sprintf(strVar, "PCIE_%d_%d", lsx, lsy);
+    get_coordinate_of_pcie(lsx, lsy);
+    fsRef = device PCIE ( structure fp_struct ) *strVar @[fsx,fsy];
+    map(fsRef => aRef);
+    //print_inst_fp_map("PCIE", lsx, lsy);
+}
+
+
+
+function draw_pcie_tile_fp(unsigned int tx, ty)
+{
+    unsigned int lsx, lsy;
+
+    lsx = tx * NUM_GRID_X + 3;
+    lsy = ty * NUM_GRID_Y;
+
+    // device reference variables
+    &device aRef, fsRef;
+    string strVar;
+
+    sprintf(strVar, "PCIE_%d_%d", lsx, lsy);
+    aRef = <instance *strVar of ARCHITECTURE (structure fp_struct)>;
+    get_coordinate_of_pcie(lsx, lsy);
+    adjust_floorplan_draw(lsx, lsy);
+    fsRef = device PCIE ( symbol fpsym ) *strVar @[(fsx + 2) * 160 + draw_x, (fsy + 1) * 320 - 6 * 320+draw_y];
+    map(fsRef => aRef);
+    print_inst_fp_map("PCIE", lsx, lsy);
+
+ 
+}
+} // end of package pg2l_floorplan_funcs

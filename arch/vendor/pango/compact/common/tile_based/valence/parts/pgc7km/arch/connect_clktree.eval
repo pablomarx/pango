@@ -1,0 +1,143 @@
+*************************************************************************
+****************************************************************************************/
+library work;
+use pgc_defs,pgc7km_defs,pgc_funcs_place,pgc_funcs_connect_logic;
+//use pgc_funcs_connect_clk;
+use pgc7km_funcs_connect_clk;
+
+
+structure arch_nl connect_CLKTREE of devPGC7KM
+{
+
+    unsigned int tx,ty;
+    unsigned int tx_ckeb2, tx_iock;
+
+    int tx_uscm = USCM_TILE_X;
+    int ty_uscm = USCM_TILE_Y;
+    int tx_ckeb2_l = CKEB2_TILE_X_L;
+    int tx_ckeb2_r = CKEB2_TILE_X_R;
+    int ty_ckeb = CKEB_TILE_Y;
+    int tx_iock_l = IOCK_TILE_X_L;
+    int tx_iock_r = IOCK_TILE_X_R;
+    int ty_iock = IOCK_TILE_Y;
+    int tx_analog = ANALOG_TILE_X;
+    int ty_analog = ANALOG_TILE_Y;
+    int tx_ccs = CCS_TILE_X;
+    int ty_ccs = CCS_TILE_Y;
+    int tx_pll = PLL_TILE_X;
+    int ty_pll = PLL_TILE_Y;
+    int tx_dll_l = DLL_TILE_X_L;
+    int ty_dll_l = DLL_TILE_Y_L;
+    int tx_dll_r = DLL_TILE_X_R;
+    int ty_dll_r = DLL_TILE_Y_R;
+
+    int ty_blank = CRAM_CTRL_TILE_Y;
+
+    int ty_iob_u = IOB2_TILE_Y;
+    int ty_iob_d = IOB0_TILE_Y;
+
+    string tile_ckeb2 = "CKEB2_TILE";
+    string tile_ckeb = "CKEB_TILE";
+    string tile_ckebd = "CKEBD_TILE";
+
+    string tile_uscm = "USCM_7KM_TILE";
+    string tile_analog = "ANALOG_7KM_TILE";
+    string tile_ccs = "CCS_7KM_TILE";
+    string tile_iock_l = "IOCK_7KM_TILE";
+    string tile_iock_r = "IOCK_7KM1_TILE";
+    string tile_pll = "PLL_TILE";
+    string tile_dll = "DLL_TILE";
+
+    string tile_iob0 = "IOB0_7KM_TILE";
+    string tile_iob1 = "IOB1_7KM_TILE";
+    string tile_iob2 = "IOB2_7KM_TILE";
+
+//connect_uscm_input_7km
+
+    connect_uscm_input_7km(USCM_TILE_X, USCM_TILE_Y, tx_ckeb2_l, tx_ckeb2_r, ty_ckeb, tile_ckeb2, tile_uscm);
+
+//connect_ckeb2_input_7km
+
+    connect_ckeb2_input_7km(CKEB2_TILE_X_L, ty_ckeb, tx_uscm, ty_uscm, ty_iock, tile_uscm, tile_iock_l, tile_ckeb2);
+
+    connect_ckeb2_input_7km(CKEB2_TILE_X_R, ty_ckeb, tx_uscm, ty_uscm, ty_iock, tile_uscm, tile_iock_r, tile_ckeb2);
+
+//connect_iock_input_7km
+
+    connect_iock_input_7km(tx_iock_l, ty_iock, tx_ckeb2_l, ty_ckeb, tx_pll, ty_pll, ty_dll_l, ty_analog, ty_iob_u, ty_iob_d, 
+                           tile_ckeb2, tile_pll, tile_dll, tile_analog, tile_iob0, tile_iob1, tile_iob2, tile_iock_l );
+
+    connect_iock_input_7km(tx_iock_r, ty_iock, tx_ckeb2_r, ty_ckeb, tx_pll, ty_pll, ty_dll_r, ty_analog, ty_iob_u, ty_iob_d, 
+                           tile_ckeb2, tile_pll, tile_dll, tile_analog, tile_iob0, tile_iob1, tile_iob2, tile_iock_r );
+
+
+//connect_DLLCLK_input_7km
+
+    connect_DLLCLK_input_7km(tx_dll_l, ty_dll_l, ty_iock, tile_iock_l, tile_dll);
+
+    connect_DLLCLK_input_7km(tx_dll_r, ty_dll_r, ty_iock, tile_iock_r, tile_dll);
+
+//connect_CKEB_input_7km
+
+    foreach tx( L_CKEB_TILES_X )
+    {
+        tx_ckeb2 = (tx < tx_uscm ) ? tx_ckeb2_l : tx_ckeb2_r;
+
+        connect_CKEB_input_7km(tx, ty_ckeb, tx_ckeb2, tx_uscm, tile_ckeb2, tile_ckeb);
+    }
+
+    foreach tx( L_CKEBD_TILES_X )
+    {
+        tx_ckeb2 = (tx < tx_uscm ) ? tx_ckeb2_l : tx_ckeb2_r;
+
+        connect_CKEB_input_7km(tx, ty_ckeb, tx_ckeb2, tx_uscm, tile_ckeb2, tile_ckebd);
+    }
+
+//connect_SRB_CLK_input_7km
+
+    foreach tx( L_SRB_TILES_X )
+    {
+        foreach ty( L_TILES_Y )
+        {
+            connect_SRB_CLK_input_7km( tx, ty, tx_uscm, ty_uscm, ty_blank, tx_ckeb2_l, tx_ckeb2_r, NUM_TILE_X );
+        }
+    }
+
+
+
+
+//  foreach tx( L_IOLL_TILES_X )
+//  {
+//      foreach ty( L_IOLL_TILES_Y )
+//      { 
+//        connect_IOLCLK_7KM_input(tx, ty, ty_iock);
+//      }
+//  }
+
+//  connect_DLLCLK_7KM_input(DLL_TILE0_X , DLL_TILE0_Y, ty_iock);
+//  connect_DLLCLK_7KM_input(DLL_TILE1_X , DLL_TILE1_Y, ty_iock);
+
+
+//  foreach tx( L_IOLR_TILES_X )
+//  {
+//      foreach ty( L_IOLR_TILES_Y )
+//      { 
+//        connect_IOLCLK_7KM_input(tx, ty, ty_iock);
+//      }
+//  }
+
+//  
+//  foreach tx ( L_SRB_TILES_X )
+//  {
+//      foreach ty ( L_SRB_TILES_Y )
+//      {
+//          connect_SRB_CLK_7km_input( tx, ty, USCM_TILE_X, USCM_TILE_Y, CRAM_CTRL_TILE_Y, CKEB2_TILE_X, CKEB2D_TILE_X, NUM_TILE_X);
+//      } 
+//  }
+
+
+
+};//end of structure arch_nl connect_CLKTREE of PGC7KM
+
+
+

@@ -1,0 +1,146 @@
+use pgl_defs,pgl25g_defs,pgl_CCS_SRB_inc,pgl_ANALOG_SRB_inc;
+use pgl_PLL_B_SRB_inc,pgl_PLL_T_SRB_inc,pgl_IOL_SRB_inc,pgl_CLMA_SRB_inc,pgl_CLMS_SRB_inc,pgl_USCM_SRB_inc,pgl_IOCKGATEDLL_SRB_inc,pgl_IOCKDLL_SRB_inc;
+use pgl_IOB0_SRB_inc,pgl_TIEHI_SRB_inc;
+
+package pgl25g_funcs_place
+{
+
+/****************************************************************************************************
+*****************************************************************************************************/
+function place_idcode_tile(unsigned int tx, ty)
+{
+    unsigned int sx, sy;
+    
+    sx = tx * NUM_GRID_X + 2;
+    sy = ty * NUM_GRID_Y;
+    
+    unsigned int temp_ty;
+    for(temp_ty = ty;temp_ty > MID_TILE_REGION;temp_ty = temp_ty - NUM_TILES_REGION)
+    {
+      sy = sy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+    }
+
+    string strVar;
+    sprintf(strVar,"ntIDCODE_H12_%d_%d",sx,sy);
+    &wire ntRef_ntIDCODE_H12[11:0] = wire *strVar[11:0];
+
+    sprintf(strVar,"ntIDCODE_L18_%d_%d",sx,sy);
+    &wire ntRef_ntIDCODE_L18[17:0] = wire *strVar[17:0];
+
+    sprintf(strVar,"IDCODE_PGL25G_TILE_%d_%d",sx,sy);
+    device IDCODE_PGL25G_TILE *strVar
+        port map (
+                   IDCODE_H12 => ntRef_ntIDCODE_H12,
+                   IDCODE_L18 => ntRef_ntIDCODE_L18
+                 )
+        @ [sx,sy];       
+} // end of place_idcode_tile
+/*******************************************************************
+********************************************************************/
+function place_iob_tile_u(unsigned int tx,ty)
+{  
+    unsigned int sx, sy;
+    
+    sx = tx * NUM_GRID_X;
+    sy = ty * NUM_GRID_Y;
+
+    unsigned int temp_ty;
+    for(temp_ty = ty;temp_ty > MID_TILE_REGION;temp_ty = temp_ty - NUM_TILES_REGION)
+    {
+      sy = sy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+    }
+
+    string strVar;
+    sprintf(strVar,"ntCLK_XTAL_%d_%d",sx,sy);
+    &wire ntRef_ntCLK_XTAL = wire *strVar;
+    
+    sprintf(strVar,"ntCLOCK_DR_O_%d_%d",sx,sy);
+    &wire ntRef_ntCLOCK_DR_O = wire *strVar;
+    
+    sprintf(strVar,"ntDIN_%d_%d",sx,sy);
+    &wire ntRef_ntDIN[67:0] = wire *strVar[67:0];
+    
+    sprintf(strVar,"ntS11_DIN_MIPI_LP_%d_%d",sx,sy);
+    &wire ntRef_ntS11_DIN_MIPI_LP[33:0] = wire *strVar[33:0];
+    
+    sprintf(strVar,"ntS11_PAD_STATE_O_L_%d_%d",sx,sy);
+    &wire ntRef_ntS11_PAD_STATE_O_L = wire *strVar;
+    
+    sprintf(strVar,"ntS11_PAD_STATE_O_R_%d_%d",sx,sy);
+    &wire ntRef_ntS11_PAD_STATE_O_R = wire *strVar;
+    
+    sprintf(strVar,"ntSO_%d_%d",sx,sy);
+    &wire ntRef_ntSO = wire *strVar;
+
+
+    sprintf(strVar, "IOB0_TILE_%d_%d", sx, sy);
+    device IOB0_TILE *strVar
+         port map (
+                     CLK_XTAL          => ntRef_ntCLK_XTAL,         
+                     CLOCK_DR_O        => ntRef_ntCLOCK_DR_O,       
+                     DIN               => ntRef_ntDIN,              
+                     S11_DIN_MIPI_LP   => ntRef_ntS11_DIN_MIPI_LP,  
+                     S11_PAD_STATE_O_L => ntRef_ntS11_PAD_STATE_O_L,
+                     S11_PAD_STATE_O_R => ntRef_ntS11_PAD_STATE_O_R,
+                     SO                => ntRef_ntSO
+                   )
+        @([sx,sy]);
+
+
+      STRUCT inc_spec_IOB0 incVar;
+      string pin_SRB;
+      string pin_logic_device;
+      string attribute_IO;
+      int loc_SRB;
+      int sy_srb,ty_srb,sx_srb;
+
+      foreach incVar(inc_IOB0_SRB_spec)
+      {
+          pin_SRB = incVar.port_name_SRB;
+          pin_logic_device = incVar.port_name_device;
+          attribute_IO = incVar.attribute_IO;
+          loc_SRB = incVar.loc_SRB;
+         
+          sy_srb = sy - NUM_GRID_Y; 
+
+          sx_srb =  sx + loc_SRB*NUM_GRID_Y ; 
+
+          
+          if(attribute_IO =="I")
+          { 
+            
+             connect(<pin *pin_logic_device of <device IOB0_TILE @[sx,sy]>> => <wire *pin_SRB of <device SRB_TILE @[sx_srb,sy_srb]>>);
+          }
+          else
+          {
+            connect(<pin *pin_SRB of<device SRB_TILE@[sx_srb,sy_srb]>> =>  <wire *pin_logic_device of <device IOB0_TILE @[sx,sy]>>); 
+          }
+      }         
+
+}//end of function place_iob_tile_u
+/********************************************************************************
+********************************************************************************/
+function place_esd_tile(unsigned int tx,ty)
+{   
+    unsigned int sx, sy;
+    
+    sx = tx * NUM_GRID_X;
+    sy = ty * NUM_GRID_Y;
+    
+    unsigned int temp_ty;
+    for(temp_ty = ty;temp_ty > MID_TILE_REGION;temp_ty = temp_ty - NUM_TILES_REGION)
+    {
+      sy = sy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+    }
+
+    string strVar;
+
+      sprintf(strVar, "ESD_PGL25G_TILE_%d_%d", sx, sy);
+      device ESD_PGL25G_TILE *strVar
+//         port map (
+//                  )
+        @([sx,sy]);  
+   
+}
+} // end of pkgs pgl25g_funcs_place
+

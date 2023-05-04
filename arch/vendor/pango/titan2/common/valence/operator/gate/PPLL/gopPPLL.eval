@@ -1,0 +1,498 @@
+*****************************************************************
+
+  Operator  [gopPPLL]
+
+  Author    [liujiao]
+
+  Revision History:
+
+ ********************************************************************************/
+gate
+operator gopPPLL
+{
+    parameter
+    (
+        real CLKIN_FREQ = 50.0,
+        bit LOCK_MODE = 1'b0,
+        int STATIC_RATIOI = 1 /* 1 ~ 128 */,
+        int STATIC_RATIOM = 1 /* 1 ~ 128 */,
+        int STATIC_RATIO0 = 1 /* 1 ~ 128 */,
+        int STATIC_RATIO1 = 1 /* 1 ~ 128 */,
+        int STATIC_RATIO2 = 1 /* 1 ~ 128 */,
+        int STATIC_RATIO3 = 1 /* 1 ~ 128 */,
+        int STATIC_RATIO4 = 1 /* 1 ~ 128 */,
+        int STATIC_RATIOPHY = 1 /* 1 ~ 128 */,
+        int STATIC_RATIOF = 1 /* 1 ~ 128 */,
+        int STATIC_DUTY0 = 2,
+        int STATIC_DUTY1 = 2,
+        int STATIC_DUTY2 = 2,
+        int STATIC_DUTY3 = 2,
+        int STATIC_DUTY4 = 2,
+        int STATIC_DUTYPHY = 2,
+        int STATIC_DUTYF = 2,
+        int STATIC_PHASE0 = 0 /* 0 ~ 7 */,
+        int STATIC_PHASE1 = 0 /* 0 ~ 7 */,
+        int STATIC_PHASE2 = 0 /* 0 ~ 7 */,
+        int STATIC_PHASE3 = 0 /* 0 ~ 7 */,
+        int STATIC_PHASE4 = 0 /* 0 ~ 7 */,
+        int STATIC_PHASEPHY = 0 /* 0 ~ 7 */,
+        int STATIC_PHASEF = 0 /* 0 ~ 7 */,
+        int STATIC_CPHASE0 = 0 /* 0 ~ 127 */,
+        int STATIC_CPHASE1 = 0 /* 0 ~ 127 */,
+        int STATIC_CPHASE2 = 0 /* 0 ~ 127 */,
+        int STATIC_CPHASE3 = 0 /* 0 ~ 127 */,
+        int STATIC_CPHASE4 = 0 /* 0 ~ 127 */,
+        int STATIC_CPHASEPHY = 0 /* 0 ~ 127 */,
+        int STATIC_CPHASEF = 0 /* 0 ~ 127 */,
+        string CLKOUT0_SYN_EN = "FALSE" ,
+        string CLKOUT1_SYN_EN = "FALSE" ,
+        string CLKOUT2_SYN_EN = "FALSE" ,
+        string CLKOUT3_SYN_EN = "FALSE" ,
+        string CLKOUT4_SYN_EN = "FALSE" ,
+        string CLKOUTPHY_SYN_EN = "FALSE" ,
+        string CLKOUTF_SYN_EN = "FALSE" ,
+        string INTERNAL_FB = "CLKOUTF" ,
+        string EXTERNAL_FB = "DISABLE" ,
+        string BANDWIDTH = "OPTIMIZED", 
+        //hard code
+        bit CP_CLKIN_STASEL = 1'b0,
+        string CP_DYNSEL_ENABLE = "FALSE",
+        string CP_PLL_USE_APB = "FALSE",
+        string CP_PLL_PWD_ENABLE = "FALSE",
+        string CP_PLL_RST_ENABLE = "FALSE",    
+        
+        string CP_ODIV0_MUXSEL_EN = "TRUE",    
+        string CP_ODIV1_MUXSEL_EN = "TRUE",    
+        string CP_ODIV2_MUXSEL_EN = "TRUE",
+        string CP_ODIV3_MUXSEL_EN = "TRUE",    
+        string CP_ODIV4_MUXSEL_EN = "TRUE",
+        string CP_ODIVPHY_MUXSEL_EN = "TRUE",
+        string CP_FDIV_MUXSEL_EN  = "TRUE"        
+        
+    );
+    port
+    (
+        output CLKOUT0 /*pragma PAP_ARC_GOP_CTRL_PIN="GCLK|RCLK|IOCLK"*/,
+        output CLKOUT0N /*pragma PAP_ARC_GOP_CTRL_PIN="GCLK"*/,
+        output CLKOUT1 /*pragma PAP_ARC_GOP_CTRL_PIN="GCLK|RCLK|IOCLK"*/,
+        output CLKOUT1N,
+        output CLKOUT2 /*pragma PAP_ARC_GOP_CTRL_PIN="GCLK|RCLK|IOCLK"*/,
+        output CLKOUT2N,
+        output CLKOUT3 /*pragma PAP_ARC_GOP_CTRL_PIN="GCLK|RCLK|IOCLK"*/,
+        output CLKOUT3N,
+        output CLKOUT4 /*pragma PAP_ARC_GOP_CTRL_PIN="GCLK|RCLK|IOCLK"*/,
+        output CLKOUT4N /*pragma PAP_ARC_GOP_CTRL_PIN="GCLK"*/,
+        output CLKOUTPHY /*pragma PAP_ARC_GOP_CTRL_PIN="IOCLK"*/,
+        output CLKOUTPHYN /*pragma PAP_ARC_GOP_CTRL_PIN="IOCLK"*/,
+        output CLKOUTF /*pragma PAP_ARC_GOP_CTRL_PIN="GCLK"*/,
+        output CLKOUTFN /*pragma PAP_ARC_GOP_CTRL_PIN="GCLK"*/,
+        output LOCK,
+        output APB_RDATA[15:0],
+        output APB_READY,
+        input CLKIN1 /*pragma PAP_ARC_GOP_CTRL_PIN="GCLK|RCLK"*/,
+        input CLKIN2 /*pragma PAP_ARC_GOP_CTRL_PIN="GCLK|RCLK"*/,
+        input CLKFB /*pragma PAP_ARC_GOP_CTRL_PIN="GCLK|RCLK"*/,
+        input CLKIN_SEL,
+        //input PFDEN,
+        input CLKOUT0_SYN,
+        input CLKOUT1_SYN,
+        input CLKOUT2_SYN,
+        input CLKOUT3_SYN,
+        input CLKOUT4_SYN,
+        input CLKOUTPHY_SYN,
+        input CLKOUTF_SYN,
+        input PLL_PWD,
+        input RST /*pragma PAP_ARC_GOP_CTRL_PIN="RST"*/,
+        input APB_CLK /*pragma PAP_ARC_GOP_CTRL_PIN="GCLK|RCLK|COLCLK"*/,
+        input APB_RST_N,
+        input APB_ADDR[4:0],
+        input APB_SEL,
+        input APB_EN,
+        input APB_WRITE,
+        input APB_WDATA[15:0]       
+    );
+};
+
+/**Implementation Body*******************************************************************
+
+  Author    [liuwenyi]
+
+  Abstract  []
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_ppll of gopPPLL
+{
+    int divider = 1;   
+    int FEEDBK_SEL = 0;    
+    
+                    
+    if (INTERNAL_FB == "CLKOUT0" && EXTERNAL_FB == "DISABLE")
+    {
+        FEEDBK_SEL = 1;
+        divider = STATIC_RATIO0 * STATIC_RATIOM;
+    }
+    else if (INTERNAL_FB == "CLKOUT1" && EXTERNAL_FB == "DISABLE")
+    {
+        FEEDBK_SEL = 2;
+        divider = STATIC_RATIO1 * STATIC_RATIOM;
+    }
+    else if (INTERNAL_FB == "CLKOUT2" && EXTERNAL_FB == "DISABLE")
+    {
+        FEEDBK_SEL = 3;
+        divider = STATIC_RATIO2 * STATIC_RATIOM;
+    }  
+    else if (INTERNAL_FB == "CLKOUT3" && EXTERNAL_FB == "DISABLE")
+    {
+        FEEDBK_SEL = 4;
+        divider = STATIC_RATIO3 * STATIC_RATIOM;
+    }
+    else if (INTERNAL_FB == "CLKOUT4" && EXTERNAL_FB == "DISABLE")
+    {
+        FEEDBK_SEL = 5;
+        divider = STATIC_RATIO4 * STATIC_RATIOM;
+    }
+    else if (INTERNAL_FB == "CLKOUTF" && EXTERNAL_FB == "DISABLE")
+    {
+        FEEDBK_SEL = 0;
+        divider = STATIC_RATIOF * STATIC_RATIOM;
+    }
+    else if (INTERNAL_FB == "DISABLE" && EXTERNAL_FB == "CLKOUT0")
+    {
+        FEEDBK_SEL = 9;
+        divider = STATIC_RATIO0 * STATIC_RATIOM;
+    } 
+    else if (INTERNAL_FB == "DISABLE" && EXTERNAL_FB == "CLKOUT1")
+    {
+        FEEDBK_SEL = 10;
+        divider = STATIC_RATIO1 * STATIC_RATIOM;
+    }
+    else if (INTERNAL_FB == "DISABLE" && EXTERNAL_FB == "CLKOUT2")
+    {
+        FEEDBK_SEL = 11;
+        divider = STATIC_RATIO2 * STATIC_RATIOM;
+    }
+    else if (INTERNAL_FB == "DISABLE" && EXTERNAL_FB == "CLKOUT3")
+    {
+        FEEDBK_SEL = 12;
+        divider = STATIC_RATIO3 * STATIC_RATIOM;
+    }
+    else if (INTERNAL_FB == "DISABLE" && EXTERNAL_FB == "CLKOUT4")
+    {
+        FEEDBK_SEL = 13;
+        divider = STATIC_RATIO4 * STATIC_RATIOM;
+    }   
+    else if (INTERNAL_FB == "DISABLE" && EXTERNAL_FB == "CLKOUTF")
+    {
+        FEEDBK_SEL = 8;
+        divider = STATIC_RATIOF * STATIC_RATIOM;
+    }
+    
+    real PFD = CLKIN_FREQ / STATIC_RATIOI;
+    int CP_SELFBIAS_SEL = 1;
+    int ICP_BASE_SEL = 1;
+    int CP_CUR_SEL = 3;
+    int LPF_R = 4;
+    bit LPF_C = 1'b0;
+    
+    if (BANDWIDTH == "LOW" || BANDWIDTH == "OPTIMIZED")
+    {
+        if (PFD >= 19 && PFD <= 80)
+        {
+            CP_SELFBIAS_SEL = 1;
+            LPF_R = 4;
+            LPF_C = 1'b0;
+            if (divider >= 12 && divider <= 15)
+            {
+                ICP_BASE_SEL = 1;
+                CP_CUR_SEL = 3;
+            }
+            if (divider >= 16 && divider <= 19)
+            {
+                ICP_BASE_SEL = 1;
+                CP_CUR_SEL = 4;
+            }
+            if (divider >= 20 && divider <= 23)
+            {
+                ICP_BASE_SEL = 1;
+                CP_CUR_SEL = 5;
+            }
+            if (divider >= 24 && divider <= 27)
+            {
+                ICP_BASE_SEL = 1;
+                CP_CUR_SEL = 6;
+            }
+            if (divider >= 28 && divider <= 31)
+            {
+                ICP_BASE_SEL = 1;
+                CP_CUR_SEL = 7;
+            }
+            if (divider >= 32 && divider <= 35)
+            {
+                ICP_BASE_SEL = 1;
+                CP_CUR_SEL = 12;
+            }
+            if (divider >= 36 && divider <= 39)
+            {
+                ICP_BASE_SEL = 1;
+                CP_CUR_SEL = 13;
+            }
+            if (divider >= 40 && divider <= 43)
+            {
+                ICP_BASE_SEL = 1;
+                CP_CUR_SEL = 14;
+            }
+            if (divider >= 44 && divider <= 47)
+            {
+                ICP_BASE_SEL = 1;
+                CP_CUR_SEL = 15;
+            }
+            if (divider >= 48 && divider <= 54)
+            {
+                ICP_BASE_SEL = 2;
+                CP_CUR_SEL = 6;
+            }
+            if (divider >= 55 && divider <= 59)
+            {
+                ICP_BASE_SEL = 2;
+                CP_CUR_SEL = 7;
+            }
+            if (divider >= 60 && divider <= 69)
+            {
+                ICP_BASE_SEL = 3;
+                CP_CUR_SEL = 5;
+            }
+            if (divider >= 70 && divider <= 79)
+            {
+                ICP_BASE_SEL = 2;
+                CP_CUR_SEL = 12;
+            }
+            if (divider >= 80 && divider <= 89)
+            {
+                ICP_BASE_SEL = 2;
+                CP_CUR_SEL = 14;
+            }
+            if (divider >= 90 && divider <= 99)
+            {
+                ICP_BASE_SEL = 2;
+                CP_CUR_SEL = 15;
+            }
+            if (divider >= 100 && divider <= 106)
+            {
+                ICP_BASE_SEL = 3;
+                CP_CUR_SEL = 12;
+            }
+            if (divider >= 107 && divider <= 112)
+            {
+                ICP_BASE_SEL = 3;
+                CP_CUR_SEL = 13;
+            }
+        }
+    }
+    else if (BANDWIDTH == "HIGH")
+    {
+        if (PFD >= 80 && PFD <= 450)
+        {
+            CP_SELFBIAS_SEL = 1;           
+            LPF_C = 1'b0;
+            if (divider == 2)
+            {
+                LPF_R = 0;
+                ICP_BASE_SEL = 2;
+                CP_CUR_SEL = 2;
+            }
+            else if (divider == 3)
+            {
+                LPF_R = 0;
+                ICP_BASE_SEL = 2;
+                CP_CUR_SEL = 3;
+            }
+            else if (divider >= 4)
+            {
+                LPF_R = 0;
+                ICP_BASE_SEL = 2;
+                CP_CUR_SEL = 4;
+            }
+            else if (divider >= 5)
+            {
+                LPF_R = 0;
+                ICP_BASE_SEL = 2;
+                CP_CUR_SEL = 5;
+            }
+            else if (divider >= 6)
+            {
+                LPF_R = 0;
+                ICP_BASE_SEL = 2;
+                CP_CUR_SEL = 6;
+            }
+            else if (divider >= 7)
+            {
+                LPF_R = 0;
+                ICP_BASE_SEL = 2;
+                CP_CUR_SEL = 7;
+            }
+            else if (divider >= 8)
+            {
+                LPF_R = 0;
+                ICP_BASE_SEL = 2;
+                CP_CUR_SEL = 12;
+            }
+            else if (divider >= 9)
+            {
+                LPF_R = 0;
+                ICP_BASE_SEL = 2;
+                CP_CUR_SEL = 13;
+            }
+            else if (divider >= 10)
+            {
+                LPF_R = 0;
+                ICP_BASE_SEL = 2;
+                CP_CUR_SEL = 14;
+            }
+            else if (divider >= 11)
+            {
+                LPF_R = 0;
+                ICP_BASE_SEL = 2;
+                CP_CUR_SEL = 15;
+            }
+            else if (divider >= 12 && divider <= 13)
+            {
+                LPF_R = 0;
+                ICP_BASE_SEL = 3;
+                CP_CUR_SEL = 12;
+            }
+            else if (divider >= 14 && divider <= 15)
+            {
+                LPF_R = 0;
+                ICP_BASE_SEL = 3;
+                CP_CUR_SEL = 13;
+            }
+            else if (divider >= 16 && divider <= 19)
+            {
+                LPF_R = 0;
+                ICP_BASE_SEL = 3;
+                CP_CUR_SEL = 14;
+            }
+            else if (divider >= 20 && divider <= 23)
+            {
+                LPF_R = 1;
+                ICP_BASE_SEL = 3;
+                CP_CUR_SEL = 13;
+            }
+            else if (divider >= 24 && divider <= 28)
+            {
+                LPF_R = 1;
+                ICP_BASE_SEL = 3;
+                CP_CUR_SEL = 14;
+            }
+        }
+    }
+       
+    device PPLL ppll_inst
+    parameter map
+    (
+
+        CP_ODIV0_MUXSEL_EN         =>        CP_ODIV0_MUXSEL_EN,    
+        CP_ODIV1_MUXSEL_EN         =>        CP_ODIV1_MUXSEL_EN,    
+        CP_ODIV2_MUXSEL_EN         =>        CP_ODIV2_MUXSEL_EN,
+        CP_ODIV3_MUXSEL_EN         =>        CP_ODIV3_MUXSEL_EN,    
+        CP_ODIV4_MUXSEL_EN         =>        CP_ODIV4_MUXSEL_EN,
+        CP_ODIVPHY_MUXSEL_EN       =>        CP_ODIVPHY_MUXSEL_EN,
+        CP_FDIV_MUXSEL_EN          =>        CP_FDIV_MUXSEL_EN ,    
+        //CP_PFDEN_ENABLE            =>        PFDEN_EN            , 
+        CP_FREQ_LOCKDET_MODE_SEL   =>        LOCK_MODE           ,
+        CP_IDIV_RATIO              =>        STATIC_RATIOI       , 
+        CP_MDIV_RATIO              =>        STATIC_RATIOM       , 
+        CP_ODIV0_RATIO             =>        STATIC_RATIO0       , 
+        CP_ODIV1_RATIO             =>        STATIC_RATIO1       , 
+        CP_ODIV2_RATIO             =>        STATIC_RATIO2       , 
+        CP_ODIV3_RATIO             =>        STATIC_RATIO3       , 
+        CP_ODIV4_RATIO             =>        STATIC_RATIO4       , 
+        CP_ODIVPHY_RATIO           =>        STATIC_RATIOPHY     , 
+        CP_FDIV_RATIO              =>        STATIC_RATIOF       , 
+        CP_ODIV0_DUTY              =>        STATIC_DUTY0        , 
+        CP_ODIV1_DUTY              =>        STATIC_DUTY1        , 
+        CP_ODIV2_DUTY              =>        STATIC_DUTY2        , 
+        CP_ODIV3_DUTY              =>        STATIC_DUTY3        , 
+        CP_ODIV4_DUTY              =>        STATIC_DUTY4        , 
+        CP_ODIVPHY_DUTY            =>        STATIC_DUTYPHY      , 
+        CP_FDIV_DUTY               =>        STATIC_DUTYF        , 
+        CP_ODIV0_FPHASE            =>        STATIC_PHASE0       , 
+        CP_ODIV1_FPHASE            =>        STATIC_PHASE1       , 
+        CP_ODIV2_FPHASE            =>        STATIC_PHASE2       , 
+        CP_ODIV3_FPHASE            =>        STATIC_PHASE3       , 
+        CP_ODIV4_FPHASE            =>        STATIC_PHASE4       , 
+        CP_ODIVPHY_FPHASE          =>        STATIC_PHASEPHY     , 
+        CP_FDIV_FPHASE             =>        STATIC_PHASEF       , 
+        CP_ODIV0_CPHASE            =>        STATIC_CPHASE0      , 
+        CP_ODIV1_CPHASE            =>        STATIC_CPHASE1      , 
+        CP_ODIV2_CPHASE            =>        STATIC_CPHASE2      , 
+        CP_ODIV3_CPHASE            =>        STATIC_CPHASE3      , 
+        CP_ODIV4_CPHASE            =>        STATIC_CPHASE4      , 
+        CP_ODIVPHY_CPHASE          =>        STATIC_CPHASEPHY    , 
+        CP_FDIV_CPHASE             =>        STATIC_CPHASEF      , 
+        CP_CLKOUT0_GATE_EN         =>        CLKOUT0_SYN_EN      , 
+        CP_CLKOUT1_GATE_EN         =>        CLKOUT1_SYN_EN      , 
+        CP_CLKOUT2_GATE_EN         =>        CLKOUT2_SYN_EN      , 
+        CP_CLKOUT3_GATE_EN         =>        CLKOUT3_SYN_EN      , 
+        CP_CLKOUT4_GATE_EN         =>        CLKOUT4_SYN_EN      , 
+        CP_CLKOUTPHY_GATE_EN       =>        CLKOUTPHY_SYN_EN    , 
+        CP_CLKFBOUT_GATE_EN        =>        CLKOUTF_SYN_EN      ,                             
+        
+        CP_FEEDBK_SEL             =>     FEEDBK_SEL      ,
+        CP_CP_SELFBIAS_SEL        =>     CP_SELFBIAS_SEL ,
+        CP_ICP_BASE_SEL           =>     ICP_BASE_SEL    ,
+        CP_CP_CUR_SEL             =>     CP_CUR_SEL      ,
+        CP_LPF_R                  =>     LPF_R           , 
+        CP_LPF_C                  =>     LPF_C           ,
+        
+        CP_CLKIN_STASEL           =>     CP_CLKIN_STASEL   ,
+        CP_DYNSEL_ENABLE          =>     CP_DYNSEL_ENABLE  ,
+        CP_PLL_USE_APB            =>     CP_PLL_USE_APB    ,
+        CP_PLL_PWD_ENABLE         =>     CP_PLL_PWD_ENABLE ,
+        CP_PLL_RST_ENABLE         =>     CP_PLL_RST_ENABLE
+    )
+    port map
+    (
+        CLKOUT0              =>   CLKOUT0        , 
+        CLKOUT0N             =>   CLKOUT0N       , 
+        CLKOUT1              =>   CLKOUT1        , 
+        CLKOUT1N             =>   CLKOUT1N       , 
+        CLKOUT2              =>   CLKOUT2        , 
+        CLKOUT2N             =>   CLKOUT2N       , 
+        CLKOUT3              =>   CLKOUT3        , 
+        CLKOUT3N             =>   CLKOUT3N       , 
+        CLKOUT4              =>   CLKOUT4        , 
+        CLKOUT4N             =>   CLKOUT4N       , 
+        CLKOUTPHY            =>   CLKOUTPHY      , 
+        CLKOUTPHYN           =>   CLKOUTPHYN     , 
+        CLKFBOUT             =>   CLKOUTF        , 
+        CLKFBOUTN            =>   CLKOUTFN       , 
+        PLL_LOCK             =>   LOCK           , 
+        PRDATA               =>   APB_RDATA      , 
+        PREADY               =>   APB_READY      , 
+        CLK_IN0              =>   CLKIN1         , 
+        CLK_IN1              =>   CLKIN2         , 
+        CLK_FB               =>   CLKFB          ,
+        DYNSEL_CLKIN         =>   CLKIN_SEL      , 
+        //PFDEN                =>   PFDEN          , 
+        CLKOUT0_GATE         =>   CLKOUT0_SYN    , 
+        CLKOUT1_GATE         =>   CLKOUT1_SYN    , 
+        CLKOUT2_GATE         =>   CLKOUT2_SYN    , 
+        CLKOUT3_GATE         =>   CLKOUT3_SYN    , 
+        CLKOUT4_GATE         =>   CLKOUT4_SYN    , 
+        CLKOUTPHY_GATE       =>   CLKOUTPHY_SYN  , 
+        CLKFBOUT_GATE        =>   CLKOUTF_SYN    , 
+        PLL_PWD              =>   PLL_PWD        , 
+        PLL_RST              =>   RST            , 
+        PCLK                 =>   APB_CLK        , 
+        PRESETN              =>   APB_RST_N      , 
+        PADDR                =>   APB_ADDR       , 
+        PSEL                 =>   APB_SEL        , 
+        PENABLE              =>   APB_EN         , 
+        PWRITE               =>   APB_WRITE      , 
+        PWDATA               =>   APB_WDATA 
+    );
+
+};// end of implementation impl_ppll of gopPPLL

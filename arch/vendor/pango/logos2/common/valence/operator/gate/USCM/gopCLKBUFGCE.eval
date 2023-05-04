@@ -1,0 +1,79 @@
+*******************************************************************
+
+  Operator  [gopCLKBUFGCE]
+
+  Author    [liujiao]
+
+  Revision History:
+
+ ********************************************************************************/
+gate
+operator gopCLKBUFGCE
+{
+    parameter
+    (
+        string SOURCE_CLK = "CLK0",  // "CLK0", "CLK1";
+        bit DEFAULT_VALUE = 1'b0   //1'b0; 1'b1
+    );
+
+    port
+    (
+        input   CLK, 
+        input   CE,
+        output  CLKOUT,
+        input SEL_CLK,
+        input DIS_CLK0,
+        input DIS_CLK1
+    );
+};
+
+/**Implementation Body*******************************************************************
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_uscm of gopCLKBUFGCE
+{
+    string CP_USCM_MODE = "BUFCE_A_0";    // "BUFGCE"    "BUFGCEB"   "BUFGCE_H"  "BUFGCEB_H"
+
+    if( SOURCE_CLK == "CLK0")
+    {
+        if(DEFAULT_VALUE == 1'b0)
+        {
+            CP_USCM_MODE = "BUFCE_A_0";
+        }
+    }
+    else if( SOURCE_CLK == "CLK1")
+    {
+        if(DEFAULT_VALUE == 1'b0)
+        {
+            CP_USCM_MODE = "BUFCE_B_0";
+        }
+    }
+
+    device USCM uscm_inst
+        parameter map
+        (
+           CP_MODE     => "CLKBUFGCE",
+           CP_EDGE     => (DEFAULT_VALUE == 1'b0) ? "NEGEDGE" : "POSEDGE",
+           CP_INIT_SEL => SOURCE_CLK,
+           CP_GLITCH   => "ENABLE"
+        )
+        port map
+        (
+            CLKIN0    => (SOURCE_CLK == "CLK0")? CLK : 1'bx, 
+            CLKIN1    => (SOURCE_CLK == "CLK1")? CLK : 1'bx,  
+            EN_CLK    => CE,
+            CLKOUT    => CLKOUT,
+            SEL_CLK   => SEL_CLK,
+            DIS_CLK0  => DIS_CLK0,
+            DIS_CLK1  => DIS_CLK1
+        );
+
+}; // end of implementation impl_uscm of gopCLKBUFGCE
+
+

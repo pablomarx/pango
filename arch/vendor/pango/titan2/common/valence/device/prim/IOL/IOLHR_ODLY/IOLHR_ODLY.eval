@@ -1,0 +1,103 @@
+*****************************************************************
+
+  Device    [IOLHR_ODLY]
+
+  Author    [clwang]
+
+  Abstract  [The Prim Device Of IOLHR_ODLY]
+
+  Revision History:
+
+********************************************************************************/
+prim
+device IOLHR_ODLY
+{
+    parameter
+    (
+        config string       CP_ODLY_EN       = "FALSE",
+        //config bit          CP_LDO_CTRL[1:0] = 2'b00,
+        config string       CP_ODYN_EN       = "FALSE",
+        config bit          CP_ODLY_SET[7:0] = 8'b00000000           
+    );
+    port 
+    (
+        input           ODLY_DYN_SET[7:0],
+        input           ODLY_SEL,  
+        input           DI,
+        output          D_DLY
+    );
+
+}; // end of device IOLHR_ODLY
+
+/**Device***********************************************************************
+
+  Device    [IOLHR_ODLY]
+  
+  Author    [kongbiao]  
+
+  Abstract  [This specified how to propagate the input signal to the outputs based on
+             configuration]
+
+  Revision History:
+
+********************************************************************************/
+propagation pop of IOLHR_ODLY
+{
+    if (CP_ODLY_EN == "TRUE")
+    {
+       propagate ( DI |-> D_DLY );
+       propagate ( ODLY_SEL |-> D_DLY );
+
+       if (CP_ODYN_EN == "TRUE")
+       {
+           propagate ( ODLY_DYN_SET[0] |-> D_DLY );
+           propagate ( ODLY_DYN_SET[1] |-> D_DLY );
+           propagate ( ODLY_DYN_SET[2] |-> D_DLY );
+           propagate ( ODLY_DYN_SET[3] |-> D_DLY );
+           propagate ( ODLY_DYN_SET[4] |-> D_DLY );
+           propagate ( ODLY_DYN_SET[5] |-> D_DLY );
+           propagate ( ODLY_DYN_SET[6] |-> D_DLY );
+           propagate ( ODLY_DYN_SET[7] |-> D_DLY );
+       }
+    }
+}; // end of propagation for IOLHR_ODLY
+
+/**Device***********************************************************************                  
+                                                                                                  
+  Device    [IOLHR_ODLY]                                                                                
+                                                                                                  
+  Author    [kongbiao]                                                                               
+                                                                                                  
+  Abstract  [This specified the timing model under specific configuration]                        
+                                                                                                  
+  Revision History:                                                                               
+                                                                                                  
+********************************************************************************/                 
+                                                                                                  
+timing  mux21_tnl of IOLHR_ODLY  
+{
+    if (CP_ODLY_EN == "TRUE")
+    {
+        operator V_IODELAY_E2 ODLY
+        parameter map
+        (
+//            LDO_CTRL         => (CP_LDO_CTRL == 2'b00) ? "26ps" :
+//                                (CP_LDO_CTRL == 2'b01) ? "24ps" :
+//                                (CP_LDO_CTRL == 2'b10) ? "22ps" :
+//                                (CP_LDO_CTRL == 2'b11) ? "20ps" : "",
+            DELAY_STEP_SEL   => (CP_ODYN_EN == "TRUE") ? "PORT" : "PARAMETER",
+            DELAY_STEP_VALUE =>  CP_ODLY_SET
+        )        
+        port map
+        (
+           DI           =>  DI,
+           DO           =>  D_DLY,
+           DELAY_SEL    =>  ODLY_SEL,
+           DELAY_STEP   =>  ODLY_DYN_SET
+        );
+    }
+    else
+    {
+        D_DLY <= 1'b0;
+    }
+};

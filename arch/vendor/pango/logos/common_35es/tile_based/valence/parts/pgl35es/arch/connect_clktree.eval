@@ -1,0 +1,215 @@
+*************************************************************************
+****************************************************************************************/
+library work;
+use pgl_defs,pgl35es_defs,pgl_funcs_place,pgl_funcs_connect_logic;
+//use pgl_funcs_connect_io_bank,
+use pgl_funcs_connect_clk;
+//use pgl35es_funcs;
+
+
+structure arch_nl connect_CLKTREE of PGL35ES
+{
+    connect_PLL_input();
+    connect_USCM_input();
+    connect_IOCKGATEDLL_input();
+
+    connect_WLSR2_input();
+
+    int L_REGIONS[] = {[0:2]};
+
+    int s_hmemc = NUM_TILE_Y - 1;
+    int n_hmemc = 0;
+    int tx_wlsr1_l = WLSR1_TILE_X_L;
+    int tx_wlsr1_r = WLSR1_TILE_X_R;
+
+    string attribute_LR;
+    int region_index;
+    foreach attribute_LR({"L"})
+    {
+        foreach region_index( L_REGIONS )
+        { 
+          connect_IOCLK_input(attribute_LR, region_index, tx_wlsr1_l, NUM_TILE_X, NUM_REGION, s_hmemc, n_hmemc, 2);
+        }
+    }
+
+    int tx_wlsr2 = 33; 
+    int tx_pll = PLL_TILE_X;
+    int tx_dll_l = 1;
+    int tx_dll_r = NUM_TILE_X - 1;
+    int tx,ty,tx_wlsr1;
+    string type_lr;
+
+    foreach ty( L_WLSR_TILES_Y )
+    {
+      connect_CLKBUF_input(ty, tx_wlsr1_l, tx_wlsr1_r, tx_pll, tx_dll_l, tx_dll_r, s_hmemc, n_hmemc, 2);
+    }
+
+  
+    foreach ty( L_WLSR_TILES_Y )
+    {
+        foreach tx ( L_WLSR_TILES_X )
+        {
+            tx_wlsr1 = (tx<=tx_wlsr2) ? tx_wlsr1_l : tx_wlsr1_r;
+            type_lr = ((tx<=tx_wlsr1_l)||((tx>tx_wlsr2)&&(tx<=tx_wlsr1_r))) ? "L" : "R";
+            connect_CLKEB_input( tx, ty, type_lr, tx_wlsr1, "WLSR_TILE");
+
+        }  
+        foreach tx ( L_WLSR1_TILES_X )
+        {
+            tx_wlsr1 = (tx<=tx_wlsr2) ? tx_wlsr1_l : tx_wlsr1_r;
+            type_lr = ((tx<=tx_wlsr1_l)||((tx>tx_wlsr2)&&(tx<=tx_wlsr1_r))) ? "L" : "R";
+            connect_CLKEB_input( tx, ty, type_lr, tx_wlsr1, "WLSR1_TILE");
+
+        } 
+        foreach tx ( L_WLSR2_TILES_X )
+        {
+            tx_wlsr1 = (tx<=tx_wlsr2) ? tx_wlsr1_l : tx_wlsr1_r;
+            type_lr = ((tx<=tx_wlsr1_l)||((tx>tx_wlsr2)&&(tx<=tx_wlsr1_r))) ? "L" : "R";
+            connect_CLKEB_input( tx, ty, type_lr, tx_wlsr1, "WLSR2_TILE");
+        } 
+        foreach tx ( L_IOCKGATEDLL_TILES_X )
+        {
+            tx_wlsr1 = (tx<=tx_wlsr2) ? tx_wlsr1_l : tx_wlsr1_r;
+            type_lr = ((tx<=tx_wlsr1_l)||((tx>tx_wlsr2)&&(tx<=tx_wlsr1_r))) ? "L" : "R";
+            connect_CLKEB_input( tx, ty, type_lr, tx_wlsr1, "IOCKGATEDLL_TILE");     
+        }
+        foreach tx ( L_WLSRA_TILES_X )
+        {
+            tx_wlsr1 = (tx<=tx_wlsr2) ? tx_wlsr1_l : tx_wlsr1_r;
+            type_lr = ((tx<=tx_wlsr1_l)||((tx>tx_wlsr2)&&(tx<=tx_wlsr1_r))) ? "L" : "R";
+            connect_CLKEB_input( tx, ty, type_lr, tx_wlsr1, "WLSRA_TILE"); 
+        }
+        foreach tx ( L_WLSRD_TILES_X )
+        {
+            tx_wlsr1 = (tx<=tx_wlsr2) ? tx_wlsr1_l : tx_wlsr1_r;
+            type_lr = ((tx<=tx_wlsr1_l)||((tx>tx_wlsr2)&&(tx<=tx_wlsr1_r))) ? "L" : "R";
+            connect_CLKEB_input( tx, ty, type_lr, tx_wlsr1, "WLSRD_TILE"); 
+        }
+        foreach tx ( L_RCKB_TILES_X )
+        {
+            tx_wlsr1 = (tx<=tx_wlsr2) ? tx_wlsr1_l : tx_wlsr1_r;
+            type_lr = ((tx<=tx_wlsr1_l)||((tx>tx_wlsr2)&&(tx<=tx_wlsr1_r))) ? "L" : "R";
+            connect_CLKEB_input( tx, ty, type_lr, tx_wlsr1, "RCKB_TILE"); 
+        }
+    }
+
+    string wlsr;
+
+    int ty_wlsr,tmp_ty,tmp_tx;
+    int rx;
+    foreach tx ( L_SRB_TILES_X )
+    {
+        foreach ty ( L_SRB_TILES_Y )
+        {
+          rx = 0;
+          for(tmp_ty = ty;tmp_ty>=0;tmp_ty=tmp_ty-NUM_TILES_REGION)
+          {
+             rx = rx + 1;
+          }
+          ty_wlsr =  (rx-1)*NUM_TILES_REGION + MID_TILE_REGION;
+          if(!((tx>CCS_TILE_X) && (tx<=(CCS_TILE_X+NUM_GRID_CCS_X/NUM_GRID_X)) && (ty>=CCS_TILE_Y)))
+          {
+              wlsr = "WLSR_TILE";
+              foreach tmp_tx(L_WLSR1_TILES_X)
+              {
+                if(tmp_tx==tx)
+                {
+                    wlsr = "WLSR1_TILE";
+                    break;
+                 }
+              }
+              foreach tmp_tx(L_WLSR2_TILES_X)
+              {
+                if(tmp_tx==tx)
+                {
+                    wlsr = "WLSR2_TILE";
+                    break;
+                 }
+              }
+              foreach tmp_tx(L_WLSRA_TILES_X)
+              {
+                  if(tmp_tx==tx)
+                  {
+                     wlsr = "WLSRA_TILE";
+                     break;
+                  }
+              }
+              foreach tmp_tx(L_WLSRD_TILES_X)
+              {
+                  if(tmp_tx==tx)
+                  {
+                     wlsr = "WLSRD_TILE";
+                     break;
+                  }
+              }
+              foreach tmp_tx(L_IOCKGATEDLL_TILES_X)
+              {
+                  if(tmp_tx==tx)
+                  {
+                     wlsr = "IOCKGATEDLL_TILE";
+                     break;
+                  }
+              }
+              foreach tmp_tx(L_RCKB_TILES_X)
+              {
+                  if(tmp_tx==tx)
+                  {
+                     wlsr = "RCKB_TILE";
+                     break;
+                  }
+              }
+              connect_SRB_CLK_input(tx, ty, wlsr);
+          }
+        } 
+    }
+
+
+    foreach ty ( L_IOCKGATEDLL_TILES_Y )
+    {
+        foreach tx ( L_IOCKGATEDLL_TILES_X )
+        {
+            connect_hsst_clk_iockgate ( tx, ty, "IOCKGATEDLL_TILE", "DLL_TIHI");
+          
+        } 
+    }
+
+    foreach ty ( L_IOCKGATEDLL_TILES_Y )
+    {
+        foreach tx ( L_RCKB_TILES_X )
+        {
+            connect_hsst_clk_iockgate ( tx, ty, "RCKB_TILE", "TIEH");
+          
+        } 
+    }
+
+
+};//end of structure arch_nl connect_CLKTREE of PGL35ES
+/***************************************************************************************
+****************************************************************************************/
+library work;
+use pgl_defs,pgl35es_defs,pgl_funcs_place,pgl_funcs_connect_clk;
+use pgl35es_funcs;
+structure arch_nl connect_rlybufs_tile of PGL35ES
+{
+    unsigned int tx_pll = 33;
+    unsigned int ty_pll0 = 78;
+    unsigned int ty_pll1 = 73;
+    unsigned int tx_wlsr2 = 33;
+    unsigned int ty_wlsr2 = 46;
+
+    connect_rlybufs_tile(RLYBUFS_TILE_X, RLYBUFS_TILE_Y, tx_pll, ty_pll0, ty_pll1, 
+                          tx_wlsr2, ty_wlsr2);
+
+
+    int tx, ty;
+    foreach tx( L_IOL_TILES_X )
+    {
+      foreach ty( L_RLYBUFS5_TILES_Y )
+      {
+        connect_rlybufs5_tile(tx, ty, 0, 0, 2);
+      }
+    }
+
+};//end of structure arch_nl connect_rlybufs_tile of PGL35ES
+
+

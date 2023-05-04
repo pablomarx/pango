@@ -1,0 +1,610 @@
+*********************************************************************
+
+  Operator    [gopQ]
+  
+  Author    [liujiao]
+
+  Abstract  []
+
+  Revision History:
+
+ ********************************************************************************/
+gate
+operator gopQ
+{
+    parameter
+    (
+        string FF_RS          = "RESET"     ,     // "RESET" "SET"
+        bit    FF_INIT        = 1'b1      ,
+        string QMUX_SEL       = "MX"      ,
+        
+        string RS_MODE        = "SYNC"    ,     // "SYNC" "ASYNC" 
+        string LRS_POL        = "FALSE"   ,
+        string LRS_EN         = "FALSE"   ,     // "TRUE"   "FALSE"
+        string LCE_POL        = "FALSE"   ,
+        string LCE_EN         = "FALSE"   ,     // "TRUE"   "FALSE"
+        string CLK_POL        = "FALSE"   ,
+        string RSMUX_SEL      = "LOCAL"   ,     // "LOCAL" "CHAIN"
+        string CEMUX_SEL      = "LOCAL"   ,     // "LOCAL" "CHAIN"
+        string GRS_EN         = "TRUE"    ,     // "TRUE" "FALSE"
+        string LATCH_EN       = "FALSE"         // "TRUE"   "FALSE"
+        
+    );
+
+    port
+    (
+        input  D,
+        input  RS /*pragma PAP_ARC_GOP_CTRL_PIN="RST"*/,
+        input  CE /*pragma PAP_ARC_GOP_CTRL_PIN="CE"*/,
+        input  CLK /*pragma PAP_ARC_GOP_CTRL_PIN="GCLK|RCLK|COLCLK"*/,
+        output CECO, RSCO, Q
+    );
+};
+
+
+implementation impl_devAQ0_S of gopQ
+{    
+    device devAQ0_S gatedev
+        parameter map 
+        ( 
+            CP_FF0_RS       => FF_RS                                     ,
+            CP_FF0_INIT     => FF_INIT                                   ,
+            CP_Q0MUX_SEL    => QMUX_SEL                                  ,
+            CP_RS_MODE      => RS_MODE                                   ,
+            CP_LRS_POL      => LRS_POL    ,
+            CP_LRS_EN       => LRS_EN     ,
+            CP_LCE_POL      => LCE_POL    ,
+            CP_LCE_EN       => LCE_EN     ,
+            CP_CLK_POL      => CLK_POL                                   ,
+            CP_RSMUX_SEL    => RSMUX_SEL                                 ,
+            CP_CEMUX_SEL    => CEMUX_SEL                                 ,
+            CP_GRS_EN       => GRS_EN                                    ,
+            CP_LATCH_EN     => LATCH_EN                                       
+              
+        )
+        port map 
+        (
+            M0              => D                                                                    ,      
+            Q0              => Q                                                                    ,          
+            RS              => (RSMUX_SEL == "LOCAL")  ?  RS  : 1'bx , 
+            CE              => (CEMUX_SEL == "LOCAL")  ?  CE  : 1'bx , 
+            CLK             => CLK                                                                  , 
+            RSCI            => (RSMUX_SEL == "LOCAL")  ? 1'bx : RS                                  ,         
+            RSCO            => RSCO                                                                 ,       
+            CECI            => (CEMUX_SEL == "LOCAL")  ? 1'bx : CE                                  ,        
+            CECO            => CECO
+        );
+}; // end of implementation impl_devAQ0_S of gopQ
+
+implementation impl_devAQ1_S of gopQ
+{    
+    device devAQ1_S gatedev
+        parameter map 
+        (
+            CP_FFAPP0_RS      => FF_RS                                  ,
+            CP_FFAPP0_INIT    => FF_INIT                                ,
+            CP_FFAPP0MUX_SEL  => QMUX_SEL                              ,
+            CP_CR0POSTMUX_SEL => "QPX"                               ,
+            CP_RS_MODE        => RS_MODE                                   ,
+            CP_LRS_POL        =>  LRS_POL   ,
+            CP_LRS_EN         =>  LRS_EN    ,
+            CP_LCE_POL        =>  LCE_POL   ,
+            CP_LCE_EN         =>  LCE_EN    ,
+            CP_CLK_POL        => CLK_POL                                   ,
+            CP_RSMUX_SEL      => RSMUX_SEL                                 ,
+            CP_CEMUX_SEL      => CEMUX_SEL                                 ,
+            CP_GRS_EN         => GRS_EN                                    ,
+            CP_LATCH_EN       => LATCH_EN                                       
+              
+        )
+        port map 
+        (
+            M0                => D                                                                     ,  
+            CR0               => Q                                                                     ,       
+            RS                => (RSMUX_SEL == "LOCAL")  ?  RS  : 1'bx  ,
+            CE                => (CEMUX_SEL == "LOCAL")  ?  CE  : 1'bx  ,
+            CLK               => CLK                                                                   ,
+            RSCI              => (RSMUX_SEL == "LOCAL")  ? 1'bx : RS                                   ,      
+            RSCO              => RSCO                                                                  ,    
+            CECI              => (CEMUX_SEL == "LOCAL")  ? 1'bx : CE                                   ,    
+            CECO              => CECO
+        );
+}; // end of implementation impl_devAQ1_S of gopQ
+
+
+implementation impl_devBQ0_S of gopQ
+{    
+    device devBQ0_S gatedev
+        parameter map 
+        ( 
+            CP_FF1_RS       => FF_RS                                     ,
+            CP_FF1_INIT     => FF_INIT                                   ,
+            CP_Q1MUX_SEL    => QMUX_SEL                                  ,
+            CP_RS_MODE      => RS_MODE                                   ,
+            CP_LRS_POL      => LRS_POL   ,
+            CP_LRS_EN       => LRS_EN    ,
+            CP_LCE_POL      => LCE_POL   ,
+            CP_LCE_EN       => LCE_EN    ,
+            CP_CLK_POL      => CLK_POL                                   ,
+            CP_RSMUX_SEL    => RSMUX_SEL                                 ,
+            CP_CEMUX_SEL    => CEMUX_SEL                                 ,
+            CP_GRS_EN       => GRS_EN                                    ,
+            CP_LATCH_EN     => LATCH_EN                                       
+              
+        )
+        port map 
+        (
+            M1              => D                                                                            ,      
+            Q1              => Q                                                                            ,          
+            RS              => (RSMUX_SEL == "LOCAL")  ?  RS : 1'bx         , 
+            CE              => (CEMUX_SEL == "LOCAL")  ?  CE : 1'bx         , 
+            CLK             => CLK                                                                          , 
+            RSCI            => (RSMUX_SEL == "LOCAL")  ? 1'bx : RS                                          ,         
+            RSCO            => RSCO                                                                         ,       
+            CECI            => (CEMUX_SEL == "LOCAL")  ? 1'bx : CE                                          ,        
+            CECO            => CECO
+        );
+}; // end of implementation impl_devBQ0_S of gopQ
+
+implementation impl_devBQ1_S of gopQ
+{    
+    device devBQ1_S gatedev
+        parameter map 
+        (
+            CP_FFAPP1_RS      => FF_RS                                  ,
+            CP_FFAPP1_INIT    => FF_INIT                                ,
+            CP_FFAPP1MUX_SEL  => QMUX_SEL                              ,
+            CP_CR1POSTMUX_SEL => "QPX"                               ,
+            CP_RS_MODE        => RS_MODE                                   ,
+            CP_LRS_POL        => LRS_POL    ,
+            CP_LRS_EN         => LRS_EN     ,
+            CP_LCE_POL        => LCE_POL    ,
+            CP_LCE_EN         => LCE_EN     ,
+            CP_CLK_POL        => CLK_POL                                   ,
+            CP_RSMUX_SEL      => RSMUX_SEL                                 ,
+            CP_CEMUX_SEL      => CEMUX_SEL                                 ,
+            CP_GRS_EN         => GRS_EN                                    ,
+            CP_LATCH_EN       => LATCH_EN                                       
+              
+        )
+        port map 
+        (
+            M1                => D                                                                     ,  
+            CR1               => Q                                                                     ,       
+            RS                => (RSMUX_SEL == "LOCAL")  ?  RS : 1'bx  ,
+            CE                => (CEMUX_SEL == "LOCAL")  ?  CE : 1'bx  ,
+            CLK               => CLK                                                                   ,
+            RSCI              => (RSMUX_SEL == "LOCAL")  ? 1'bx : RS                                   ,      
+            RSCO              => RSCO                                                                  ,    
+            CECI              => (CEMUX_SEL == "LOCAL")  ? 1'bx : CE                                   ,    
+            CECO              => CECO
+        );
+}; // end of implementation impl_devBQ1_S of gopQ
+
+
+implementation impl_devCQ0_S of gopQ
+{    
+    device devCQ0_S gatedev
+        parameter map 
+        ( 
+            CP_FF2_RS       => FF_RS                                     ,
+            CP_FF2_INIT     => FF_INIT                                   ,
+            CP_Q2MUX_SEL    => QMUX_SEL                                  ,
+            CP_RS_MODE      => RS_MODE                                   ,
+            CP_LRS_POL      => LRS_POL   ,
+            CP_LRS_EN       => LRS_EN    ,
+            CP_LCE_POL      => LCE_POL   ,
+            CP_LCE_EN       => LCE_EN    ,
+            CP_CLK_POL      => CLK_POL                                   ,
+            CP_RSMUX_SEL    => RSMUX_SEL                                 ,
+            CP_CEMUX_SEL    => CEMUX_SEL                                 ,
+            CP_GRS_EN       => GRS_EN                                    ,
+            CP_LATCH_EN     => LATCH_EN                                       
+              
+        )
+        port map 
+        (
+            M2              => D                                                                    ,      
+            Q2              => Q                                                                    ,          
+            RS              => (RSMUX_SEL == "LOCAL")  ? RS : 1'bx , 
+            CE              => (CEMUX_SEL == "LOCAL")  ? CE : 1'bx , 
+            CLK             => CLK                                                                  , 
+            RSCI            => (RSMUX_SEL == "LOCAL")  ? 1'bx : RS                                  ,         
+            RSCO            => RSCO                                                                 ,       
+            CECI            => (CEMUX_SEL == "LOCAL")  ? 1'bx : CE                                  ,        
+            CECO            => CECO
+        );
+}; // end of implementation impl_devCQ0_S of gopQ
+
+implementation impl_devCQ1_S of gopQ
+{    
+    device devCQ1_S gatedev
+        parameter map 
+        (
+            CP_FFAPP2_RS      => FF_RS                                  ,
+            CP_FFAPP2_INIT    => FF_INIT                                ,
+            CP_FFAPP2MUX_SEL  => QMUX_SEL                              ,
+            CP_CR2POSTMUX_SEL => "QPX"                               ,
+            CP_RS_MODE        => RS_MODE                                   ,
+            CP_LRS_POL        => LRS_POL   ,
+            CP_LRS_EN         => LRS_EN    ,
+            CP_LCE_POL        => LCE_POL   ,
+            CP_LCE_EN         => LCE_EN    ,
+            CP_CLK_POL        => CLK_POL                                   ,
+            CP_RSMUX_SEL      => RSMUX_SEL                                 ,
+            CP_CEMUX_SEL      => CEMUX_SEL                                 ,
+            CP_GRS_EN         => GRS_EN                                    ,
+            CP_LATCH_EN       => LATCH_EN                                       
+              
+        )
+        port map 
+        (
+            M2                => D                                                                     ,  
+            CR2               => Q                                                                     ,       
+            RS                => (RSMUX_SEL == "LOCAL")  ? RS : 1'bx  ,
+            CE                => (CEMUX_SEL == "LOCAL")  ? CE : 1'bx  ,
+            CLK               => CLK                                                                   ,
+            RSCI              => (RSMUX_SEL == "LOCAL")  ? 1'bx : RS                                   ,      
+            RSCO              => RSCO                                                                  ,    
+            CECI              => (CEMUX_SEL == "LOCAL")  ? 1'bx : CE                                   ,    
+            CECO              => CECO
+        );
+}; // end of implementation impl_devCQ1_S of gopQ
+
+
+implementation impl_devDQ0_S of gopQ
+{    
+    device devDQ0_S gatedev
+        parameter map 
+        ( 
+            CP_FF3_RS       => FF_RS                                     ,
+            CP_FF3_INIT     => FF_INIT                                   ,
+            CP_Q3MUX_SEL    => QMUX_SEL                                  ,
+            CP_RS_MODE      => RS_MODE                                   ,
+            CP_LRS_POL      => LRS_POL   ,
+            CP_LRS_EN       => LRS_EN    ,
+            CP_LCE_POL      => LCE_POL   ,
+            CP_LCE_EN       => LCE_EN    ,
+            CP_CLK_POL      => CLK_POL                                   ,
+            CP_RSMUX_SEL    => RSMUX_SEL                                 ,
+            CP_CEMUX_SEL    => CEMUX_SEL                                 ,
+            CP_GRS_EN       => GRS_EN                                    ,
+            CP_LATCH_EN     => LATCH_EN                                       
+              
+        )
+        port map 
+        (
+            M3              => D                                                                    ,      
+            Q3              => Q                                                                    ,          
+            RS              => (RSMUX_SEL == "LOCAL")  ?  RS : 1'bx , 
+            CE              => (CEMUX_SEL == "LOCAL")  ?  CE : 1'bx , 
+            CLK             => CLK                                                                  , 
+            RSCI            => (RSMUX_SEL == "LOCAL")  ? 1'bx : RS                                  ,         
+            RSCO            => RSCO                                                                 ,       
+            CECI            => (CEMUX_SEL == "LOCAL")  ? 1'bx : CE                                  ,        
+            CECO            => CECO
+        );
+}; // end of implementation impl_devDQ0_S of gopQ
+
+
+implementation impl_devDQ1_S of gopQ
+{    
+    device devDQ1_S gatedev
+        parameter map 
+        (
+            CP_FFAPP3_RS      => FF_RS                                  ,
+            CP_FFAPP3_INIT    => FF_INIT                                ,
+            CP_FFAPP3MUX_SEL  => QMUX_SEL                              ,
+            CP_CR3POSTMUX_SEL => "QPX"                                 ,
+            CP_RS_MODE        => RS_MODE                                   ,
+            CP_LRS_POL        => LRS_POL    ,
+            CP_LRS_EN         => LRS_EN     ,
+            CP_LCE_POL        => LCE_POL    ,
+            CP_LCE_EN         => LCE_EN     ,
+            CP_CLK_POL        => CLK_POL                                   ,
+            CP_RSMUX_SEL      => RSMUX_SEL                                 ,
+            CP_CEMUX_SEL      => CEMUX_SEL                                 ,
+            CP_GRS_EN         => GRS_EN                                    ,
+            CP_LATCH_EN       => LATCH_EN                                       
+              
+        )
+        port map 
+        (
+            M3                => D                                                                     ,  
+            CR3               => Q                                                                     ,       
+            RS                => (RSMUX_SEL == "LOCAL")  ?  RS : 1'bx  ,
+            CE                => (CEMUX_SEL == "LOCAL")  ?  CE : 1'bx  ,
+            CLK               => CLK                                                                   ,
+            RSCI              => (RSMUX_SEL == "LOCAL")  ? 1'bx : RS                                   ,      
+            RSCO              => RSCO                                                                  ,    
+            CECI              => (CEMUX_SEL == "LOCAL")  ? 1'bx : CE                                   ,    
+            CECO              => CECO
+        );
+}; // end of implementation impl_devDQ1_S of gopQ
+
+
+implementation impl_devAQ0 of gopQ
+{    
+    device devAQ0 gatedev
+        parameter map 
+        ( 
+            CP_FF0_RS       => FF_RS                                     ,
+            CP_FF0_INIT     => FF_INIT                                   ,
+            CP_Q0MUX_SEL    => QMUX_SEL                                  ,
+            CP_RS_MODE      => RS_MODE                                   ,
+            CP_LRS_POL      => LRS_POL    ,
+            CP_LRS_EN       => LRS_EN     ,
+            CP_LCE_POL      => LCE_POL    ,
+            CP_LCE_EN       => LCE_EN     ,
+            CP_CLK_POL      => CLK_POL                                   ,
+            CP_RSMUX_SEL    => RSMUX_SEL                                 ,
+            CP_CEMUX_SEL    => CEMUX_SEL                                 ,
+            CP_GRS_EN       => GRS_EN                                    ,
+            CP_LATCH_EN     => LATCH_EN                                       
+              
+        )
+        port map 
+        (
+            M0              => D                                                                     ,      
+            Q0              => Q                                                                     ,          
+            RS              => (RSMUX_SEL == "LOCAL")  ?  RS : 1'bx  , 
+            CE              => (CEMUX_SEL == "LOCAL")  ?  CE : 1'bx  , 
+            CLK             => CLK                                                                   , 
+            RSCI            => (RSMUX_SEL == "LOCAL")  ? 1'bx : RS                                   ,         
+            RSCO            => RSCO                                                                  ,       
+            CECI            => (CEMUX_SEL == "LOCAL")  ? 1'bx : CE                                   ,        
+            CECO            => CECO
+        );
+}; // end of implementation impl_devAQ0 of gopQ
+
+
+implementation impl_devAQ1 of gopQ
+{    
+    device devAQ1 gatedev
+        parameter map 
+        (
+            CP_FFAPP0_RS      => FF_RS                                  ,
+            CP_FFAPP0_INIT    => FF_INIT                                ,
+            CP_FFAPP0MUX_SEL  => QMUX_SEL                              ,
+            CP_CR0POSTMUX_SEL => "QPX"                               ,
+            CP_RS_MODE        => RS_MODE                                   ,
+            CP_LRS_POL        => LRS_POL   ,
+            CP_LRS_EN         => LRS_EN    ,
+            CP_LCE_POL        => LCE_POL   ,
+            CP_LCE_EN         => LCE_EN    ,
+            CP_CLK_POL        => CLK_POL                                   ,
+            CP_RSMUX_SEL      => RSMUX_SEL                                 ,
+            CP_CEMUX_SEL      => CEMUX_SEL                                 ,
+            CP_GRS_EN         => GRS_EN                                    ,
+            CP_LATCH_EN       => LATCH_EN                                       
+              
+        )
+        port map 
+        (
+            M0                => D                                                                     ,  
+            CR0               => Q                                                                     ,       
+            RS                => (RSMUX_SEL == "LOCAL")  ?  RS : 1'bx  ,
+            CE                => (CEMUX_SEL == "LOCAL")  ?  CE : 1'bx  ,
+            CLK               => CLK                                                                   ,
+            RSCI              => (RSMUX_SEL == "LOCAL")  ? 1'bx : RS                                   ,      
+            RSCO              => RSCO                                                                  ,    
+            CECI              => (CEMUX_SEL == "LOCAL")  ? 1'bx : CE                                   ,    
+            CECO              => CECO
+        );
+}; // end of implementation impl_devAQ1 of gopQ
+
+
+implementation impl_devBQ0 of gopQ
+{    
+    device devBQ0 gatedev
+        parameter map 
+        ( 
+            CP_FF1_RS       => FF_RS                                     ,
+            CP_FF1_INIT     => FF_INIT                                   ,
+            CP_Q1MUX_SEL    => QMUX_SEL                                  ,
+            CP_RS_MODE      => RS_MODE                                   ,
+            CP_LRS_POL      => LRS_POL    ,
+            CP_LRS_EN       => LRS_EN     ,
+            CP_LCE_POL      => LCE_POL    ,
+            CP_LCE_EN       => LCE_EN     ,
+            CP_CLK_POL      => CLK_POL                                   ,
+            CP_RSMUX_SEL    => RSMUX_SEL                                 ,
+            CP_CEMUX_SEL    => CEMUX_SEL                                 ,
+            CP_GRS_EN       => GRS_EN                                    ,
+            CP_LATCH_EN     => LATCH_EN                                       
+         )
+            
+        port map 
+        (
+            M1              => D                                                                    ,      
+            Q1              => Q                                                                    ,          
+            RS              => (RSMUX_SEL == "LOCAL")  ?  RS : 1'bx , 
+            CE              => (CEMUX_SEL == "LOCAL")  ?  CE : 1'bx , 
+            CLK             => CLK                                                                  , 
+            RSCI            => (RSMUX_SEL == "LOCAL")  ? 1'bx : RS                                  ,         
+            RSCO            => RSCO                                                                 ,       
+            CECI            => (CEMUX_SEL == "LOCAL")  ? 1'bx : CE                                  ,        
+            CECO            => CECO
+        );
+}; // end of implementation impl_devBQ0 of gopQ
+
+
+
+implementation impl_devBQ1 of gopQ
+{    
+    device devBQ1 gatedev
+        parameter map 
+        (
+            CP_FFAPP1_RS      => FF_RS                                  ,
+            CP_FFAPP1_INIT    => FF_INIT                                ,
+            CP_FFAPP1MUX_SEL  => QMUX_SEL                              ,
+            CP_CR1POSTMUX_SEL => "QPX"                               ,
+            CP_RS_MODE        => RS_MODE                                   ,
+            CP_LRS_POL        => LRS_POL    ,
+            CP_LRS_EN         => LRS_EN     ,
+            CP_LCE_POL        => LCE_POL    ,
+            CP_LCE_EN         => LCE_EN     ,
+            CP_CLK_POL        => CLK_POL                                   ,
+            CP_RSMUX_SEL      => RSMUX_SEL                                 ,
+            CP_CEMUX_SEL      => CEMUX_SEL                                 ,
+            CP_GRS_EN         => GRS_EN                                    ,
+            CP_LATCH_EN       => LATCH_EN                                       
+              
+        )
+        port map 
+        (
+            M1    => D                                                                     ,  
+            CR1   => Q                                                                     ,       
+            RS    => (RSMUX_SEL == "LOCAL")  ? RS : 1'bx  ,
+            CE    => (CEMUX_SEL == "LOCAL")  ? CE : 1'bx  ,
+            CLK   => CLK                                                                   ,
+            RSCI  => (RSMUX_SEL == "LOCAL")  ? 1'bx : RS                                   ,      
+            RSCO  => RSCO                                                                  ,    
+            CECI  => (CEMUX_SEL == "LOCAL")  ? 1'bx : CE                                   ,    
+            CECO  => CECO
+        );
+}; // end of implementation impl_devBQ1 of gopQ
+
+
+implementation impl_devCQ0 of gopQ
+{    
+    device devCQ0 gatedev
+        parameter map 
+        ( 
+            CP_FF2_RS       => FF_RS                                     ,
+            CP_FF2_INIT     => FF_INIT                                   ,
+            CP_Q2MUX_SEL    => QMUX_SEL                                  ,
+            CP_RS_MODE      => RS_MODE                                   ,
+            CP_LRS_POL      => LRS_POL    ,
+            CP_LRS_EN       => LRS_EN     ,
+            CP_LCE_POL      => LCE_POL    ,
+            CP_LCE_EN       => LCE_EN     ,
+            CP_CLK_POL      => CLK_POL                                   ,
+            CP_RSMUX_SEL    => RSMUX_SEL                                 ,
+            CP_CEMUX_SEL    => CEMUX_SEL                                 ,
+            CP_GRS_EN       => GRS_EN                                    ,
+            CP_LATCH_EN     => LATCH_EN                                       
+              
+        )
+        port map 
+        (
+            M2              => D                                                                      ,      
+            Q2              => Q                                                                      ,          
+            RS              => (RSMUX_SEL == "LOCAL")  ? RS : 1'bx   , 
+            CE              => (CEMUX_SEL == "LOCAL")  ? CE : 1'bx   , 
+            CLK             => CLK, 
+            RSCI            => (RSMUX_SEL == "LOCAL")  ? 1'bx : RS                                    ,         
+            RSCO            => RSCO                                                                   ,       
+            CECI            => (CEMUX_SEL == "LOCAL")  ? 1'bx : CE                                    ,        
+            CECO            => CECO
+        );
+}; // end of implementation impl_devCQ0 of gopQ
+
+
+implementation impl_devCQ1 of gopQ
+{    
+    device devCQ1 gatedev
+        parameter map 
+        (
+            CP_FFAPP2_RS      => FF_RS                                  ,
+            CP_FFAPP2_INIT    => FF_INIT                                ,
+            CP_FFAPP2MUX_SEL  => QMUX_SEL                              ,
+            CP_CR2POSTMUX_SEL => "QPX"                               ,
+            CP_RS_MODE        => RS_MODE                                   ,
+            CP_LRS_POL        => LRS_POL    ,
+            CP_LRS_EN         => LRS_EN     ,
+            CP_LCE_POL        => LCE_POL    ,
+            CP_LCE_EN         => LCE_EN     ,
+            CP_CLK_POL        => CLK_POL                                   ,
+            CP_RSMUX_SEL      => RSMUX_SEL                                 ,
+            CP_CEMUX_SEL      => CEMUX_SEL                                 ,
+            CP_GRS_EN         => GRS_EN                                    ,
+            CP_LATCH_EN       => LATCH_EN                                       
+              
+        )
+        port map 
+        (
+            M2                => D                                                                     ,  
+            CR2               => Q                                                                     ,       
+            RS                => (RSMUX_SEL == "LOCAL")  ?  RS : 1'bx  ,
+            CE                => (CEMUX_SEL == "LOCAL")  ?  CE : 1'bx  ,
+            CLK               => CLK                                                                   ,
+            RSCI              => (RSMUX_SEL == "LOCAL")  ? 1'bx : RS                                   ,      
+            RSCO              => RSCO                                                                  ,    
+            CECI              => (CEMUX_SEL == "LOCAL")  ? 1'bx : CE                                   ,    
+            CECO              => CECO
+        );
+}; // end of implementation impl_devCQ1 of gopQ
+
+
+
+implementation impl_devDQ0 of gopQ
+{    
+    device devDQ0 gatedev
+        parameter map 
+        ( 
+            CP_FF3_RS       => FF_RS                                     ,
+            CP_FF3_INIT     => FF_INIT                                   ,
+            CP_Q3MUX_SEL    => QMUX_SEL                                  ,
+            CP_RS_MODE      => RS_MODE                                   ,
+            CP_LRS_POL      => LRS_POL    ,
+            CP_LRS_EN       => LRS_EN     ,
+            CP_LCE_POL      => LCE_POL    ,
+            CP_LCE_EN       => LCE_EN     ,
+            CP_CLK_POL      => CLK_POL                                   ,
+            CP_RSMUX_SEL    => RSMUX_SEL                                 ,
+            CP_CEMUX_SEL    => CEMUX_SEL                                 ,
+            CP_GRS_EN       => GRS_EN                                    ,
+            CP_LATCH_EN     => LATCH_EN                                       
+              
+        )
+        port map 
+        (
+            M3              => D                                                                    ,      
+            Q3              => Q                                                                    ,          
+            RS              => (RSMUX_SEL == "LOCAL")  ? RS : 1'bx , 
+            CE              => (CEMUX_SEL == "LOCAL")  ? CE : 1'bx , 
+            CLK             => CLK                                                                  , 
+            RSCI            => (RSMUX_SEL == "LOCAL")  ? 1'bx : RS                                  ,         
+            RSCO            => RSCO                                                                 ,       
+            CECI            => (CEMUX_SEL == "LOCAL")  ? 1'bx : CE                                  ,        
+            CECO            => CECO
+        );
+}; // end of implementation impl_devDQ0 of gopQ
+
+
+implementation impl_devDQ1 of gopQ
+{    
+    device devDQ1 gatedev
+        parameter map 
+        (
+            CP_FFAPP3_RS      => FF_RS                                  ,
+            CP_FFAPP3_INIT    => FF_INIT                                ,
+            CP_FFAPP3MUX_SEL  => QMUX_SEL                              ,
+            CP_CR3POSTMUX_SEL => "QPX"                               ,
+            CP_RS_MODE        => RS_MODE                                   ,
+            CP_LRS_POL        => LRS_POL    ,
+            CP_LRS_EN         => LRS_EN     ,
+            CP_LCE_POL        => LCE_POL    ,
+            CP_LCE_EN         => LCE_EN     ,
+            CP_CLK_POL        => CLK_POL                                   ,
+            CP_RSMUX_SEL      => RSMUX_SEL                                 ,
+            CP_CEMUX_SEL      => CEMUX_SEL                                 ,
+            CP_GRS_EN         => GRS_EN                                    ,
+            CP_LATCH_EN       => LATCH_EN                                       
+              
+        )
+        port map 
+        (
+            M3                => D                                                                     ,  
+            CR3               => Q                                                                     ,       
+            RS                => (RSMUX_SEL == "LOCAL")  ? RS : 1'bx  ,
+            CE                => (CEMUX_SEL == "LOCAL")  ? CE : 1'bx  ,
+            CLK               => CLK                                                                   ,
+            RSCI              => (RSMUX_SEL == "LOCAL")  ? 1'bx : RS                                   ,      
+            RSCO              => RSCO                                                                  ,    
+            CECI              => (CEMUX_SEL == "LOCAL")  ? 1'bx : CE                                   ,    
+            CECO              => CECO
+        );
+}; // end of implementation impl_devDQ1 of gopQ
+

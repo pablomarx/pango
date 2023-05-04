@@ -1,0 +1,88 @@
+tarted
+grid
+device OSC
+{
+    // grid_property_def_start
+    // grid_property_def_end
+
+    parameter
+    (
+        config string CP_USER_DIV_EN = "TRUE",
+        config int CP_CLK_USER_DIV = 0
+    );
+    port
+    (
+// configuration_body_def_on
+
+
+    config input SC_USER_DIV_EN = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_USER_DIV_EN" */,
+
+    config input SC_CLK_USER_DIV[6:0] = 7'h0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_CLK_USER_DIV[6],SC_CLK_USER_DIV[5],SC_CLK_USER_DIV[4],SC_CLK_USER_DIV[3],SC_CLK_USER_DIV[2],SC_CLK_USER_DIV[1],SC_CLK_USER_DIV[0]" */,
+
+// configuration_body_def_end
+
+        input OSC_EN = 1'b1,
+        output CLK_USER,
+        output CLK_SED
+    );
+};
+//grid device end
+
+//grid device structure netlist started
+structure netlist of OSC
+{
+
+};
+//grid device structure netlist end
+
+//grid device configure body started
+
+configuration cfg of OSC
+{
+
+//initial config body0 begin
+    if(CP_USER_DIV_EN == "FALSE")
+    {
+        SC_USER_DIV_EN  :=  1'b0;
+    }
+    else if(CP_USER_DIV_EN == "TRUE")
+    {
+        SC_USER_DIV_EN  :=  1'b1;
+    }
+    else
+    {
+        SC_USER_DIV_EN  :=  1'bx;
+        error("illegal setting for CP_USER_DIV_EN  :=  %s",CP_USER_DIV_EN);
+    }
+
+//initial config body0 end
+
+
+//initial config body1 begin
+        SC_CLK_USER_DIV  :=  CP_CLK_USER_DIV;
+   
+//initial config body1 end
+
+};
+
+//grid device configure body end
+
+
+timing  osc_tnl of OSC
+{
+    operator V_OSC_E2 V_OSC_E2
+        parameter map
+        (
+            CLK_DIV      =>   CP_CLK_USER_DIV,
+            USER_DIV_EN  =>   CP_USER_DIV_EN
+        )
+        port map
+        (
+            EN_N       =>  OSC_EN   ,   
+            CLKOUT     =>  CLK_USER ,
+            CLKCRC     =>  CLK_SED  
+        );
+};
+

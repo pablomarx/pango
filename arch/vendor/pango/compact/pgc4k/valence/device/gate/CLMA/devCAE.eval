@@ -1,0 +1,85 @@
+*****************************************************************
+
+  Device    [devCAE]
+
+  Author    [liujiao]
+
+  Abstract  [THE DEVICE MODELLED FOR THE END OF CARRY CHAIN. FOR THE OUTPUT PORT 
+             HAD BEEN USED BY SUM OF CARRY CHAIN, SIGNAL OF THE PORT COUT CAN NOT
+             PASS TO IT DERECTLY.]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devCAE : device devC
+{
+    parameter
+    (
+        config bit CP_INITC[31:0]     = 32'h0000_ffff,        
+        config string CP_MODEC         = "CYE",                // "LUT5" "ROM" "WMUX" "ARITH"        
+        config string CP_Y2MUX_SEL    := "CYX"                   //"FX":F2 "CYX":CYC "MF":QP1
+    );
+    
+    port
+    (
+               output   Y2,  
+        logic  input    FGC_CIN
+    );
+}; // end of device devCAE
+
+
+/*******************************************************************************
+
+  Device    [devCAE]
+
+  Author    [liujiao]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devCAE
+{
+    // Wires connecting to output ports
+    wire ntY2;
+    // Internal wires
+    wire ntCYC;   
+    wire ntCYB;
+
+    //
+    // Connection to ports
+    //
+    ntCYB     <= FGC_CIN;
+    Y2        <= ntY2;
+    
+    //
+    // Instances. FGA section
+    //
+
+    device LUT5 FYC 
+        parameter map
+        (
+            CP_INIT => CP_INITC,
+            CP_MODE => CP_MODEC
+        )
+        port map 
+        (            
+            CIN  => ntCYB,
+            COUT => ntCYC
+        );   
+
+    device YMUX Y2MUX
+        parameter map
+        (
+            CP_OUT_SEL  => CP_Y2MUX_SEL
+        )    
+        port map
+        (            
+            CYX  => ntCYC,
+            Y     => ntY2
+        );
+}; // end of structure netlist of devCAE
+
+

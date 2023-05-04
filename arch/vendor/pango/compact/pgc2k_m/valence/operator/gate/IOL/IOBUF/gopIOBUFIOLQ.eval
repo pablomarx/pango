@@ -1,0 +1,208 @@
+*******************************************************************
+
+  Operator    [gopIOBUFIOLQ]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+gate
+operator gopIOBUFIOLQ
+{
+    parameter
+    (
+        string GRS_EN          = "FALSE",   
+        string TSFF_CE_EN      = "UNUSED", 
+        string TSFF_LRS_EN     = "UNUSED", 
+        string TSFF_SET        = "RESET",   
+        string TSFF_SYNC       = "ASYNC",         
+
+        string OFF_CE_EN      = "UNUSED",
+        string OFF_LRS_EN     = "UNUSED", 
+        string OFF_SET        = "RESET",   
+        string OFF_SYNC       = "ASYNC",        
+
+        string IFF_CE_EN      = "UNUSED",
+        string IFF_LRS_EN     = "UNUSED", 
+        string IFF_SET        = "RESET",   
+        string IFF_SYNC       = "ASYNC",         
+
+        string CE_I_INV       = "FALSE",
+        string CE_O_INV       = "FALSE",
+        string CE_T_INV       = "FALSE",
+        string CLK_I_INV      = "FALSE",
+        string CLK_O_INV      = "FALSE",
+        string LRS_INV        = "FALSE",
+
+        string    OFF_USED       =  "UNUSED", 
+        string    TSFF_USED      =  "UNUSED", 
+        string    IFF_USED       =  "UNUSED",
+
+        string CP_D0_POL  = "FALSE",
+        string CP_TD0_POL = "FALSE",
+        string CP_TQMODE  = "DD",
+        string CP_DIN_POL = "FALSE",
+        string CP_Y_SEL   = "STA",
+        bit    CP_DQMODE[1:0] = 2'b00,
+        string CP_MIPI_EN = "DISABLE",
+        string CP_IN0_SEL = "FALSE",
+        string CP_PDIFF = "DISABLE",
+        string CP_SCLK_EN = "DISABLE"
+    );
+    port
+    (
+        input   DIN_MIPI,
+        input   IN,
+        input   TS,
+        output  OUT,
+        output  Z,
+
+        input   SYSCLK /*pragma PAP_ARC_GOP_CTRL_PIN="GCLK|RCLK"*/,
+        input   CE_I /*pragma PAP_ARC_GOP_CTRL_PIN="CE"*/,
+        input   CE_O,
+        input   CE_T,
+        input   LRS /*pragma PAP_ARC_GOP_CTRL_PIN="RST"*/,
+
+        // from to IOB
+        output  T,
+        input   I,
+        output  O,
+
+        input   MI,
+        output  MO,
+        output  DQ_CAS_OUT,
+        output  TQ_CAS_OUT,
+        output  DIN_ISERDES
+    );
+};
+
+implementation impl of gopIOBUFIOLQ
+{
+
+    string TS_MUX_SEL     = "TS_IN"; 
+    if(TSFF_USED == "USED" )
+    {
+         TS_MUX_SEL = "TS_TSFF";
+    }
+    string OUT_MUX_SEL    = "DATAIN";
+    if(OFF_USED == "USED" )
+    {
+         OUT_MUX_SEL = "OFF_Q";
+    } 
+    
+    if(IFF_USED == "USED")
+    {
+        device devIOL gate_iobufiolq
+            parameter map
+            (
+                CP_GRS_DIS      => GRS_EN == "TRUE" ? "FALSE" : "TRUE",
+                CP_TSR_EN       => TSFF_LRS_EN == "USED" ? "ENABLE" : "DISABLE",
+                CP_TSREG_SET    => TSFF_SET,
+
+                CP_OSR_EN       => OFF_LRS_EN == "USED" ? "ENABLE" : "DISABLE",
+                CP_OREG_SET     => OFF_SET,
+
+                CP_ISR_EN       => IFF_LRS_EN == "USED" ? "ENABLE" : "DISABLE",
+                CP_IREG_SET     => IFF_SET,
+                CP_REG_SYNC     => IFF_SYNC,
+                CP_ILATCH_EN    => "DISABLE",  
+          
+                CP_CLK_POL    =>  CLK_I_INV,
+                CP_CLK_POL    =>  CLK_O_INV,
+                CP_SR_POL     =>  LRS_INV,
+                
+                CP_D0_POL  =>  CP_D0_POL ,
+                CP_TD0_POL =>  CP_TD0_POL,
+                CP_TQMODE  =>  TSFF_USED == "USED" ? "SDR" : "DD" ,
+                CP_DIN_POL =>  CP_DIN_POL,
+                CP_Y_SEL   =>  CP_Y_SEL  ,
+                CP_DQMODE  =>  OFF_USED == "USED" ? 2'b01 : 2'b00,
+                CP_MIPI_EN =>  CP_MIPI_EN,
+                CP_IN0_SEL =>  CP_IN0_SEL,
+                CP_PDIFF   =>  CP_PDIFF,
+                CP_SCLK_EN =>  CP_SCLK_EN,
+                CP_ICLK_EN =>  "ENABLE",
+                CP_OCLK_EN =>  "ENABLE" 
+            )
+            port map 
+            (
+                D0    =>  IN,
+                TD0   =>  TS,
+                Q1    =>  OUT,
+                Y     =>  Z,
+          
+                CLK          =>  SYSCLK,
+                CE_IREG      =>  CE_I,
+                CE_OREG      =>  CE_O,
+                CE_TSREG     =>  CE_T,
+                SR           =>  LRS,
+          
+                TQ           =>  T,
+                DIN          =>  I,
+                DQ           =>  O,
+          
+               MIPI_SW_DYN_I       =>  MI,
+               MIPI_SW_DYN_O       =>  MO,
+               DQ_CAS_OUT    =>  DQ_CAS_OUT,
+               TQ_CAS_OUT    =>  TQ_CAS_OUT
+            );
+    }    
+    else
+    {
+        device devIOL gate_iobufiolq
+            parameter map
+            (
+                CP_GRS_DIS      => GRS_EN == "TRUE" ? "FALSE" : "TRUE",
+                CP_TSR_EN       => TSFF_LRS_EN == "USED" ? "ENABLE" : "DISABLE",
+                CP_TSREG_SET    => TSFF_SET,
+
+                CP_OSR_EN       => OFF_LRS_EN == "USED" ? "ENABLE" : "DISABLE",
+                CP_OREG_SET     => OFF_SET,
+                CP_REG_SYNC     => OFF_USED == "USED" ? OFF_SYNC : TSFF_SYNC,
+
+                CP_ISR_EN       => IFF_LRS_EN == "USED" ? "ENABLE" : "DISABLE",
+                CP_IREG_SET     => IFF_SET,
+                CP_ILATCH_EN    => "DISABLE",
+          
+                CP_CLK_POL    =>  CLK_I_INV,
+                CP_CLK_POL    =>  CLK_O_INV,
+                CP_SR_POL     =>  LRS_INV,
+                
+                CP_D0_POL  =>  CP_D0_POL ,
+                CP_TD0_POL =>  CP_TD0_POL,
+                CP_TQMODE  =>  TSFF_USED == "USED" ? "SDR" : "DD" ,
+                CP_DIN_POL =>  CP_DIN_POL,
+                CP_Y_SEL   =>  CP_Y_SEL  ,
+                CP_DQMODE  =>  OFF_USED == "USED" ? 2'b01 : 2'b00,
+                CP_MIPI_EN =>  CP_MIPI_EN,
+                CP_IN0_SEL =>  CP_IN0_SEL,
+                CP_PDIFF   =>  CP_PDIFF,
+                CP_SCLK_EN =>  CP_SCLK_EN,
+                CP_ICLK_EN =>  "ENABLE",
+                CP_OCLK_EN =>  "ENABLE" 
+            )
+            port map 
+            (
+                D0       =>  IN,
+                TD0      =>  TS,
+                Y        =>  OUT,
+          
+                CLK          =>  SYSCLK,
+                CE_IREG      =>  CE_I,
+                CE_OREG      =>  CE_O,
+                CE_TSREG     =>  CE_T,
+                SR           =>  LRS,
+          
+                TQ           =>  T,
+                DIN          =>  I,
+                DQ           =>  O,
+          
+               MIPI_SW_DYN_I       =>  MI,
+               MIPI_SW_DYN_O       =>  MO,
+               DQ_CAS_OUT    =>  DQ_CAS_OUT,
+               TQ_CAS_OUT    =>  TQ_CAS_OUT
+            );
+    }
+};        
+

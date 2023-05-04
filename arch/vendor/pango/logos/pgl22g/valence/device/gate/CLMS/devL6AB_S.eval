@@ -1,0 +1,204 @@
+*******************************************************************
+
+  Device    [devL6AB_S]
+
+  Author    [guoxi]
+
+  Abstract  [LUT-6 by LABMUX]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devL6AB_S : device CLMS
+{
+    parameter
+    (
+        config bit     CP_INITB[31:0] = 32'hffff_ffff,        
+        config bit     CP_INITA[31:0] = 32'hffff_ffff,
+        config string  CP_MODEB       = "LUT5",         //"LUT5" "ROM" "WMUX" "RAM" "ARITH" "PRIENC" "MUX4" "XOR" "COMP" "RAM"
+        config string  CP_MASK      := "FALSE",
+        config string  CP_Y1MUX_SEL   := "FX",           //"FX":F1 "CYX":CYB "MF":L7
+        config string  CP_MODEA       = "LUT5",         //"LUT5" "ROM" "WMUX" "RAM" "ARITH" "PRIENC" "MUX4" "XOR" "COMP" "RAM"
+        config string  CP_Y0MUX_SEL   := "FX"            //"FX":F0 "CYX":CYA "MF":QP0
+    );
+    port
+    (  
+        // These are the ports of FGB.
+        input    B0,
+        input    B1,
+        input    B2,
+        input    B3,
+        input    B4,
+        input    BD,
+        output   Y1, 
+        
+        input    A0,
+        input    A1,
+        input    A2,
+        input    A3,
+        input    A4,
+        input    AD,
+        output   Y0, 
+
+        // These are the ports shared with FGA and FGB.
+        output   Y6AB,
+
+        // These are the ports of RAM.
+        // Here are the ports of RAM write adress( WA[3:0] ), and shared with ROM. 
+        input    M0
+    );
+
+}// end of device devL6AB_S
+
+/*******************************************************************************
+
+  Device    [devL6AB_S]
+
+  Author    [guoxi]
+
+  Abstract  [The structure netlist of devL6AB_S is described in the similar fashion 
+             as in HDL. In unit instantiation statement, the formal pin may be 
+             connected to net which is declared explicitly. 
+             
+             In Valence, the connection can also be made from formal pin to other 
+             pin or port, in which case Valence compiler shall create the net to 
+             fulfil the connection. The built-in naming convention is kicked in 
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devL6AB_S
+{
+    // Wires for input ports
+    wire ntB0;
+    wire ntB1;
+    wire ntB2;
+    wire ntB3;
+    wire ntB4;
+    wire ntBD;
+    wire ntA0;
+    wire ntA1;
+    wire ntA2;
+    wire ntA3;
+    wire ntA4;
+    wire ntAD;
+    wire ntM0;
+
+    // Wires connecting to output ports
+    wire ntY1;
+    wire ntY0;
+    wire ntY6AB;  
+     
+    // Internal wires
+    wire ntL5A;
+    wire ntL5B;
+        
+    //
+    // Connection to ports
+    //
+    ntB0      <= B0;
+    ntB1      <= B1; 
+    ntB2      <= B2;
+    ntB3      <= B3;
+    ntB4      <= B4;
+    ntBD      <= BD;
+ 
+    ntA0      <= A0;
+    ntA1      <= A1;
+    ntA2      <= A2;
+    ntA3      <= A3;
+    ntA4      <= A4;
+    ntAD      <= AD;
+
+    ntM0      <= M0;
+
+    Y1        <= ntY1;
+    Y0        <= ntY0;
+    Y6AB      <= ntY6AB; 
+    //
+    // Instances. FGB section
+    //
+
+    device FYSC FYB
+        parameter map
+        (
+            CP_INIT   => CP_INITB,
+            CP_MODE   => CP_MODEB,
+            CP_MASK   => CP_MASK 
+        )
+        port map
+        (
+            A0   => ntB0,
+            A1   => ntB1,
+            A2   => ntB2,
+            A3   => ntB3,
+            A4   => ntB4,
+            AD   => ntBD,
+            L5   => ntL5B
+         );
+    
+    device YMUX  Y1MUX
+        parameter map
+        (
+            CP_OUT_SEL => CP_Y1MUX_SEL
+        )
+        port map
+        (
+            Y    => ntY1,
+            FX   => ntL5B
+        );
+    
+    //
+    // Instances. FGA section
+    //
+
+    device FYS FYA
+        parameter map
+        (
+            CP_INIT   => CP_INITA,
+            CP_MODE   => CP_MODEA,
+            CP_MASK   => CP_MASK               
+         )
+         port map
+         (
+            A0   => ntA0,
+            A1   => ntA1,
+            A2   => ntA2,
+            A3   => ntA3,
+            A4   => ntA4,
+            AD   => ntAD,
+            L5   => ntL5A
+         );  
+    
+    device YMUX  Y0MUX
+        parameter map
+        (
+            CP_OUT_SEL => CP_Y0MUX_SEL
+        )
+        port map
+        (
+            Y    => ntY0,
+            FX   => ntL5A
+        );
+    
+    //
+    // Instances. Common to FGA and FGB sections
+    //
+    
+    device MUX2 L6ABMUX
+        port map
+        (
+            DI0  => ntL5A,
+            DI1  => ntL5B,
+            DOUT => ntY6AB,
+            SEL  => ntM0
+        );
+
+}; // end of structure netlist of devL6AB_S
+
+

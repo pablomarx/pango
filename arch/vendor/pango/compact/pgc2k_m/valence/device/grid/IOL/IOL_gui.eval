@@ -1,0 +1,714 @@
+*******************************************************************
+
+  Device    [IOL]
+
+  Author    [rjliu]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+symbol logsym of IOL // pragma PAP_ARC_COLOR="64:64:128"
+{
+    // The bounding box
+    generate ( 40 # 100 );
+    //
+    // Poloygon declaration
+    //
+    shape
+    [ 0, 0 ]  ->  [ , 100 ] 
+                            <
+                                CLK_SYS_SERDES      @[ , 2],
+                                SR_O                @[ , 4],
+                                
+                                Y                   @[ ,12],
+                                Q0                  @[ ,14],
+                                Q1                  @[ ,16],
+                                
+                                CLK                 @[ ,22],
+                                SR                  @[ ,24],
+                                CE_IREG             @[ ,26],
+                                CE_OREG             @[ ,28],
+                                CE_TSREG            @[ ,30],
+                                
+                                D0                  @[ ,68],
+                                D1                  @[ ,70],
+                                TD0                 @[ ,72],
+                                TD1                 @[ ,74],
+                                MIPI_SW_DYN_I       @[ ,76],
+                                INBUF_DYN_DIS_N_I   @[ ,78]
+                            >
+              ->  [ 40, ]
+              
+              ->  [ , 0]
+                            <
+                                DIN_MIPI            @[ ,5],
+                                DIN                 @[ ,10],
+                                DO_IN               @[ ,12],
+                                
+                                TQ_CAS_IN           @[ ,30],
+                                DQ_CAS_IN           @[ ,32],
+                                
+                                DQ_CAS_OUT          @[ ,40],
+                                TQ_CAS_OUT          @[ ,42],
+                                
+                                DIN_ISERDES         @[ ,60],
+                                
+                                DQ                  @[ ,82],
+                                TQ                  @[ ,86],
+                                MIPI_SW_DYN_O       @[ ,90],
+                                INBUF_DYN_DIS_N_O   @[ ,94]
+                            >
+              ->  [ 0, ]   ;
+
+}; // symbol logsym of IOL
+
+
+symbol logsym_1 of IOL // pragma PAP_ARC_COLOR="64:64:128"
+{
+    // The bounding box
+    generate ( 40 # 100 );
+    //
+    // Poloygon declaration
+    //
+    shape
+    [ 0, 0 ]  ->  [ , 100 ]
+    
+              ->  [ 40, ]
+              
+              ->  [ , 0]
+              
+              ->  [ 0, ]   ;
+
+}; // symbol logsym_1 of IOL
+      
+/*******************************************************************************
+
+  Device    [IOL]
+
+  Author    [jiang tao]
+
+  Abstract  [The schematic for IOL]
+
+  Revision History:
+
+********************************************************************************/
+schematic schm of IOL
+{
+    //The bounding box
+    generate ( 320 # 320 );
+    
+    //
+    // Layout all symbols. 
+    // 
+    // Currently, the size of instance is made the same as its symbol
+    // definition. This is becasue that the port location in symbol definition has been nicely
+    // aligned. If no size is specified, the relative location of ports is preserved.
+    //
+    
+    //column 1
+    unsigned int OFF_X = 100;
+    unsigned int OFF_Y = 40;
+ 
+    unsigned int OREG_X = OFF_X + 60;
+    unsigned int OREG_Y = OFF_Y;
+    unsigned int TSREG_X = OREG_X;
+    unsigned int TSREG_Y = OREG_Y + 70;
+    unsigned int IREG_X = TSREG_X;
+    unsigned int IREG_Y = TSREG_Y + 90;
+    
+    
+    unsigned int D_POL_X = OFF_X - 50 - 13;
+    unsigned int D_POL_Y = OREG_Y + 28;
+    unsigned int TD_POL_X = D_POL_X;
+    unsigned int TD_POL_Y = TSREG_Y + 14;
+    
+    device TSREG ( symbol logsym ) TSREG
+        @[TSREG_X, TSREG_Y];
+        
+    device OREG ( symbol logsym ) OREG
+        @[OREG_X, OREG_Y];
+    
+    device IREG ( symbol logsym ) IREG
+        @[IREG_X, IREG_Y];
+        
+    device POLMUX ( symbol logsym ) TD0_POL_MUX
+        @[TD_POL_X, TD_POL_Y + 15];
+        
+    device POLMUX ( symbol logsym ) TD1_POL_MUX
+        @[TD_POL_X, TD_POL_Y ];
+        
+    device POLMUX ( symbol logsym ) D0_POL_MUX
+        @[D_POL_X, D_POL_Y - 5];
+        
+    device POLMUX ( symbol logsym ) D1_POL_MUX
+        @[D_POL_X, D_POL_Y - 14];
+    
+    device POLMUX ( symbol logsym ) SR_POL_MUX
+        @[D_POL_X, IREG_Y + 3];
+        
+    device X_EN ( symbol logsym ) ISR_EN_MUX
+        @[D_POL_X + 40, IREG_Y + 4];
+    
+    device X_EN ( symbol logsym ) TSR_EN_MUX
+        @[D_POL_X + 40, TSREG_Y - 1];
+    
+    device X_EN ( symbol logsym ) OSR_EN_MUX
+        @[D_POL_X + 40, OREG_Y - 1];
+    
+    device POLMUX ( symbol logsym ) CLK_POL_MUX
+        @[D_POL_X, IREG_Y + 19];
+    
+    device X_EN ( symbol logsym ) ICLK_EN_MUX
+        @[D_POL_X + 40, IREG_Y + 20];
+    
+    device X_EN ( symbol logsym ) OCLK_EN_MUX
+        @[D_POL_X + 40, OREG_Y + 11];
+    
+    device X_EN ( symbol logsym ) SCLK_EN_MUX
+        @[D_POL_X + 40, TSREG_Y + 80];
+    
+    device TQ_MUX41 ( symbol logsym ) TQ_MUX
+        @[TSREG_X + 60, TSREG_Y + 23];
+    "0" @[(<pin X3 of <instance TQ_MUX>>)#| - 5, <pin X3 of <instance TQ_MUX>>#-];
+    
+    device ENMUX21 ( symbol logsym ) TQ_PDIFF_MUX
+        @[TSREG_X + 90, TSREG_Y + 28];
+    
+    device MUX21 ( symbol logsym ) IN0_MUX0
+        @[TSREG_X + 50, OREG_Y + 22];
+    
+    device DQ_MUX41 ( symbol logsym ) DQ_MUX
+        @[TSREG_X + 78, OREG_Y + 10];
+    
+    device ENMUX21 ( symbol logsym ) DQ_PDIFF_MUX
+        @[TSREG_X + 95, OREG_Y + 15];
+    
+    device MUX21_1 ( symbol logsym ) DQMODE_MUX1
+        @[OREG_X + 50, OREG_Y - 14];
+    "0" @[(<pin X0 of <instance DQMODE_MUX1>>)#| - 5, <pin X0 of <instance DQMODE_MUX1>>#-];
+    "1" @[(<pin X1 of <instance DQMODE_MUX1>>)#| - 5, <pin X1 of <instance DQMODE_MUX1>>#-];
+    
+    device MUX21_1 ( symbol logsym ) DQMODE_MUX0
+        @[OREG_X + 50, OREG_Y -8];
+    "0" @[(<pin X0 of <instance DQMODE_MUX0>>)#| - 5, <pin X0 of <instance DQMODE_MUX0>>#-];
+    "1" @[(<pin X1 of <instance DQMODE_MUX0>>)#| - 5, <pin X1 of <instance DQMODE_MUX0>>#-];
+    
+    device ENMUX21 ( symbol logsym ) DQ_SEL_MUX1
+        @[OREG_X + 63, OREG_Y - 13];
+        
+    device ENMUX21 ( symbol logsym ) DQ_SEL_MUX0
+        @[OREG_X + 63, OREG_Y -7];
+    
+    device ENMUX21 ( symbol logsym ) DYN_CTRL0_SEL
+        @[D_POL_X + 20, 308];
+    "0" @[(<pin X0 of <instance DYN_CTRL0_SEL>>)#| - 5, <pin X0 of <instance DYN_CTRL0_SEL>>#-];
+    
+    device ENMUX21 ( symbol logsym ) DYN_CTRL1_SEL
+        @[D_POL_X + 20, 296];
+    "0" @[(<pin X0 of <instance DYN_CTRL1_SEL>>)#| - 5, <pin X0 of <instance DYN_CTRL1_SEL>>#-];
+    
+    device ENMUX21 ( symbol logsym ) DIN_SEL_MUX
+        @[D_POL_X + 35, IREG_Y + 54];
+    
+    device POLMUX ( symbol logsym ) DIN_POL_MUX
+        @[D_POL_X, IREG_Y + 34];
+    
+    device DYN_MUX21 ( symbol logsym ) DYN_CTRL0_MUX
+        @[D_POL_X + 50, 286];
+    
+    device DYN_MUX21 ( symbol logsym ) DYN_CTRL1_MUX
+        @[D_POL_X + 50, 276];
+    
+    device MUX21 ( symbol logsym ) IREG_IN_MUX
+        @[D_POL_X + 80, IREG_Y + 35];
+    
+    device Y_MUX41 ( symbol logsym ) Y0_MUX
+        @[IREG_X, 260];
+    
+    
+    
+    //
+    // All device has been drawn. Now map the graphical object to the corresponding object
+    // in the logic structure netlist
+    //
+    map (
+            <instance TSREG>              => <instance TSREG                    of device IOL (structure netlist)> ,
+            <instance OREG>               => <instance OREG                     of device IOL (structure netlist)> ,
+            <instance IREG>               => <instance IREG                     of device IOL (structure netlist)> ,
+            <instance TD0_POL_MUX>        => <instance TD0_POL_MUX              of device IOL (structure netlist)> ,
+            <instance TD1_POL_MUX>        => <instance TD1_POL_MUX              of device IOL (structure netlist)> ,
+            <instance D0_POL_MUX>         => <instance D0_POL_MUX               of device IOL (structure netlist)> ,
+            <instance D1_POL_MUX>         => <instance D1_POL_MUX               of device IOL (structure netlist)> ,
+            <instance SR_POL_MUX>         => <instance SR_POL_MUX               of device IOL (structure netlist)> ,
+            <instance ISR_EN_MUX>         => <instance ISR_EN_MUX               of device IOL (structure netlist)> ,
+            <instance TSR_EN_MUX>         => <instance TSR_EN_MUX               of device IOL (structure netlist)> ,
+            <instance OSR_EN_MUX>         => <instance OSR_EN_MUX               of device IOL (structure netlist)> ,  
+            <instance CLK_POL_MUX>        => <instance CLK_POL_MUX              of device IOL (structure netlist)> , 
+            <instance ICLK_EN_MUX>        => <instance ICLK_EN_MUX              of device IOL (structure netlist)> ,
+            <instance OCLK_EN_MUX>        => <instance OCLK_EN_MUX              of device IOL (structure netlist)> ,
+            <instance SCLK_EN_MUX>        => <instance SCLK_EN_MUX              of device IOL (structure netlist)> ,
+            <instance TQ_MUX>             => <instance TQ_MUX                   of device IOL (structure netlist)> ,
+            <instance TQ_PDIFF_MUX>       => <instance TQ_PDIFF_MUX             of device IOL (structure netlist)> ,
+            <instance IN0_MUX0>           => <instance IN0_MUX0                 of device IOL (structure netlist)> ,
+            <instance DQ_MUX>             => <instance DQ_MUX                   of device IOL (structure netlist)> ,
+            <instance DQ_PDIFF_MUX>       => <instance DQ_PDIFF_MUX             of device IOL (structure netlist)> ,
+            <instance DQMODE_MUX1>        => <instance DQMODE_MUX1              of device IOL (structure netlist)> ,
+            <instance DQMODE_MUX0>        => <instance DQMODE_MUX0              of device IOL (structure netlist)> ,
+            <instance DQ_SEL_MUX1>        => <instance DQ_SEL_MUX1              of device IOL (structure netlist)> ,
+            <instance DQ_SEL_MUX0>        => <instance DQ_SEL_MUX0              of device IOL (structure netlist)> ,
+            <instance DYN_CTRL0_SEL>      => <instance DYN_CTRL0_SEL            of device IOL (structure netlist)> ,
+            <instance DYN_CTRL1_SEL>      => <instance DYN_CTRL1_SEL            of device IOL (structure netlist)> ,
+            <instance DIN_SEL_MUX>        => <instance DIN_SEL_MUX              of device IOL (structure netlist)> ,
+            <instance DIN_POL_MUX>        => <instance DIN_POL_MUX              of device IOL (structure netlist)> ,
+            <instance DYN_CTRL0_MUX>      => <instance DYN_CTRL0_MUX            of device IOL (structure netlist)> ,
+            <instance DYN_CTRL1_MUX>      => <instance DYN_CTRL1_MUX            of device IOL (structure netlist)> ,
+            <instance IREG_IN_MUX>        => <instance IREG_IN_MUX              of device IOL (structure netlist)> ,
+            <instance Y0_MUX>             => <instance Y0_MUX                   of device IOL (structure netlist)> 
+        
+        );
+    
+    //
+    // Layout all ports. 
+    // 
+    // Since ports drive or are driven by pins of symbol instance, derive the port
+    // location from those pins
+    //
+    
+    //INPUT
+    port CE_TSREG               @[20, (<pin CE  of <instance TSREG>>#-)];
+    port TD1                    @[20, (<pin TD1  of <instance TSREG>>#-)];
+    port TD0                    @[20, (<pin X  of <instance TD0_POL_MUX>>#-)];
+    port TQ_CAS_IN              @[20, (<pin X1  of <instance TQ_PDIFF_MUX>>#-) + 20];
+    
+    port CE_OREG                @[20, (<pin CE  of <instance OREG>>#-)];
+    port D1                     @[20, (<pin D1  of <instance OREG>>#-)];
+    port D0                     @[20, (<pin X  of <instance D0_POL_MUX>>#-)];
+    port DQ_CAS_IN              @[20, (<pin X1  of <instance DQ_PDIFF_MUX>>#-) + 25];
+    
+    port CE_IREG                @[20, (<pin CE  of <instance IREG>>#-)];
+    port CLK                    @[20, (<pin CLK  of <instance IREG>>#-)];
+    port SR                     @[20, (<pin SR  of <instance IREG>>#-)];
+    port DO_IN                  @[20, (<pin CE  of <instance OREG>>#- - 26)];
+    port MIPI_SW_DYN_I          @[20, 25];
+    port INBUF_DYN_DIS_N_I      @[20, 19];
+    port DIN                    @[20, (<pin X  of <instance DIN_POL_MUX>>#-)];
+    port DIN_MIPI               @[20, (<pin X1  of <instance DIN_SEL_MUX>>#-)];
+    
+    
+    //OUTPUT
+    port Q1                     @[280, (<pin Q1  of <instance IREG>>#-)];
+    port Q0                     @[280, (<pin Q0  of <instance IREG>>#-)];
+    port Y                      @[280, (<pin Y   of <instance Y0_MUX>>#-)];
+    port DIN_ISERDES            @[280, 250];
+    port TQ                     @[280, (<pin Y   of <instance TQ_PDIFF_MUX>>#-)];
+    port TQ_CAS_OUT             @[280, (<pin Y  of <instance TQ_PDIFF_MUX>>#-) - 20];
+    port DQ                     @[280, (<pin Y   of <instance DQ_PDIFF_MUX>>#-)];
+    port DQ_CAS_OUT             @[280, (<pin Y  of <instance DQ_PDIFF_MUX>>#-) - 20];
+    port CLK_SYS_SERDES         @[280, (<pin Y   of <instance SCLK_EN_MUX>>#-)];
+    port SR_O                   @[280, 10];
+    port MIPI_SW_DYN_O          @[280, 25];
+    port INBUF_DYN_DIS_N_O      @[280, 19];
+    
+    
+    //
+    // Layout all lines (wires in the logic netlist)
+    //
+    // The name of line is preceeded with "ln"
+    //
+    
+    line lnMIPI_SW_DYN
+           <port MIPI_SW_DYN_I> ->
+           [(<instance OREG>#|)+40, ] ->
+           <port MIPI_SW_DYN_O>,
+           
+           [(<instance OREG>#|)+40, <port MIPI_SW_DYN_I>#-] ->
+           [(<instance OREG>#|)+40, <pin X1 of <instance DQ_SEL_MUX1>>#-] ->
+           <pin X1 of <instance DQ_SEL_MUX1>>,
+           
+           [(<instance OREG>#|)+40, <pin X1 of <instance DQ_SEL_MUX1>>#-] ->
+           [(<instance OREG>#|)+40, <pin X1 of <instance DQ_SEL_MUX0>>#-] ->
+           <pin X1 of <instance DQ_SEL_MUX0>>;
+    
+    line lnINBUF_DYN_DIS_N
+           <port INBUF_DYN_DIS_N_I> ->
+           <port INBUF_DYN_DIS_N_O>;
+    
+    line lnCE_O
+           <port CE_OREG> ->
+           <pin CE of <instance OREG>>;
+    
+    line lnCE_TS
+           <port CE_TSREG> ->
+           <pin CE of <instance TSREG>>;
+    
+    line lnCE_I
+           <port CE_IREG> ->
+           <pin CE of <instance IREG>>;
+    
+    line lnCLK
+           <port CLK> ->
+           <pin X of <instance CLK_POL_MUX>>;
+    
+    line lnCLK_POL_MUX
+           <pin Y of <instance CLK_POL_MUX>> ->
+           [(<instance ICLK_EN_MUX>#|)-10, ] ->
+           <pin A of <instance ICLK_EN_MUX>>,
+           
+           [(<instance ICLK_EN_MUX>#|)-10, <pin Y of <instance CLK_POL_MUX>>#-] ->
+           [, <pin A of <instance SCLK_EN_MUX>>#-] ->
+           <pin A of <instance SCLK_EN_MUX>>,
+           
+           [(<instance ICLK_EN_MUX>#|)-10, <pin A of <instance SCLK_EN_MUX>>#-] ->
+           [, <pin A of <instance OCLK_EN_MUX>>#-] ->
+           <pin A of <instance OCLK_EN_MUX>>;
+    
+    line ICLK_EN_MUX
+           <pin Y of <instance ICLK_EN_MUX>> ->
+           <pin CLK of <instance IREG>>;
+    
+    line OCLK_EN_MUX
+           <pin Y of <instance OCLK_EN_MUX>> ->
+           [(<pin Y of <instance OCLK_EN_MUX>>#|)+13, ] ->
+           <pin CLK of <instance OREG>>,
+           
+           [(<pin Y of <instance OCLK_EN_MUX>>#|)+13, (<pin Y of <instance OCLK_EN_MUX>>#-)] ->
+           [, (<pin CLK of <instance TSREG>>#-)] ->
+           <pin CLK of <instance TSREG>>;
+    
+    line SCLK_EN_MUX
+           <pin Y of <instance SCLK_EN_MUX>> ->
+           <port CLK_SYS_SERDES>;
+    
+    line lnD1
+           <port D1> ->
+           <pin X of <instance D1_POL_MUX>>;
+    
+    line lnD1_POL_MUX_D1
+           <pin Y of <instance D1_POL_MUX>> ->
+           <pin D1 of <instance OREG>>;
+    
+    line lnD0
+           <port D0> ->
+           <pin X of <instance D0_POL_MUX>>;
+    
+    line lnTD1
+           <port TD1> ->
+           <pin X of <instance TD1_POL_MUX>>;
+    
+    line lnTD1_POL_MUX_TD1
+           <pin Y of <instance TD1_POL_MUX>> ->
+           <pin TD1 of <instance TSREG>>;
+    
+    line lnTD0
+           <port TD0> ->
+           <pin X of <instance TD0_POL_MUX>>;
+           
+    line lnSR
+           <port SR> ->
+           <pin X of <instance SR_POL_MUX>>;
+           
+                  
+    line lnSR_POL_MUX   
+           <pin Y of <instance SR_POL_MUX>> ->
+           [(<instance ISR_EN_MUX>#|)-20, ] ->
+           <pin A of <instance ISR_EN_MUX>>,
+           
+           [(<instance ISR_EN_MUX>#|)-20, <pin A of <instance ISR_EN_MUX>>#-] ->
+           [, <pin A of <instance TSR_EN_MUX>>#-] ->
+           <pin A of <instance TSR_EN_MUX>>,
+           
+           [(<instance TSR_EN_MUX>#|)-20, <pin A of <instance TSR_EN_MUX>>#-] ->
+           [, <pin A of <instance OSR_EN_MUX>>#-] ->
+           <pin A of <instance OSR_EN_MUX>>,
+           
+           [(<instance OSR_EN_MUX>#|)-20, <pin A of <instance OSR_EN_MUX>>#-] ->
+           [, <port SR_O>#-] ->
+           <port SR_O>; 
+           
+    line lnDIN
+           <port DIN> ->
+           <pin X of <instance DIN_POL_MUX>>;
+    
+    line lnDIN_POL_MUX
+           <pin Y of <instance DIN_POL_MUX>> ->
+           [(<pin Y of <instance DIN_POL_MUX>>#|)+10,] ->
+           <pin X0 of <instance IREG_IN_MUX>>,
+           
+           [(<pin Y of <instance DIN_POL_MUX>>#|)+10, (<pin Y of <instance DIN_POL_MUX>>#-)] ->
+           [(<pin Y of <instance DIN_POL_MUX>>#|)+10, (<pin X0 of <instance DIN_SEL_MUX>>#-)] ->
+           <pin X0 of <instance DIN_SEL_MUX>>,
+           
+           [(<pin Y of <instance DIN_POL_MUX>>#|)+10, (<pin X0 of <instance DIN_SEL_MUX>>#-)] ->
+           [(<pin Y of <instance DIN_POL_MUX>>#|)+10, (<pin X0 of <instance DYN_CTRL1_MUX>>#-)] ->
+           <pin X0 of <instance DYN_CTRL1_MUX>>,
+           
+           [(<pin Y of <instance DIN_POL_MUX>>#|)+10, (<pin X0 of <instance DYN_CTRL1_MUX>>#-)] ->
+           [(<pin Y of <instance DIN_POL_MUX>>#|)+10, (<pin X0 of <instance DYN_CTRL0_MUX>>#-)] ->
+           <pin X0 of <instance DYN_CTRL0_MUX>>;
+       
+    line lnDIN_SEL_MUX
+           <pin X1 of <instance DIN_SEL_MUX>> ->
+           <port DIN_MIPI>;
+    
+    line lnDIN_SEL_MUX_Y
+           <pin Y of <instance DIN_SEL_MUX>> ->
+           [(<pin Y of <instance DIN_SEL_MUX>>#|)+5, (<pin Y of <instance DIN_SEL_MUX>>#-)] ->
+           [(<pin Y of <instance DIN_SEL_MUX>>#|)+5, (<pin X0 of <instance Y0_MUX>>#-)] ->
+           <pin X0 of <instance Y0_MUX>>;
+    
+    line lnIREG_IN_MUX
+           <pin Y of <instance IREG_IN_MUX>> ->
+           [(<pin Y of <instance IREG_IN_MUX>>#|)+10,] ->
+           <pin D of <instance IREG>>,
+           
+           [(<pin Y of <instance IREG_IN_MUX>>#|)+10, (<pin Y of <instance IREG_IN_MUX>>#-)] ->
+           [(<pin Y of <instance IREG_IN_MUX>>#|)+10, (<port DIN_ISERDES>#-)] ->
+           <port DIN_ISERDES>;
+    
+    line lnOSR_EN_MUX
+           <pin Y of <instance OSR_EN_MUX>> ->
+           <pin SR of <instance OREG>>;
+    
+    line lnTSR_EN_MUX
+           <pin Y of <instance TSR_EN_MUX>> ->
+           <pin SR of <instance TSREG>>;
+    
+    line lnISR_EN_MUX
+           <pin Y of <instance ISR_EN_MUX>> ->
+           <pin SR of <instance IREG>>;
+    
+    line lnQ1
+           <pin Q1 of <instance IREG>> ->
+           <port Q1>;
+    
+    line lnQ0
+           <pin Q0 of <instance IREG>> ->
+           <port Q0>;
+    
+    line lnTSREG_SDR
+           <pin TQ_SDR of <instance TSREG>> ->
+           <pin X1 of <instance TQ_MUX>>;
+    
+    line lnTSREG_DDR
+           <pin TQ_DDR of <instance TSREG>> ->
+           <pin X2 of <instance TQ_MUX>>;
+    
+    line lnTQ_MUX
+           <pin Y of <instance TQ_MUX>> ->
+           [(<pin Y of <instance TQ_MUX>>#|) + 5,] ->
+           <pin X0 of <instance TQ_PDIFF_MUX>>,
+           
+           [(<pin Y of <instance TQ_MUX>>#|) + 5, (<pin Y of <instance TQ_MUX>>#-)] ->
+           [(<pin Y of <instance TQ_MUX>>#|) + 5, (<pin Y of <instance TQ_MUX>>#-) - 19] ->
+           <port TQ_CAS_OUT>;
+    
+    line lnTQ
+           <pin Y of <instance TQ_PDIFF_MUX>> ->
+           [(<pin Y of <instance TQ_PDIFF_MUX>>#|)+8, ] ->
+           <port TQ>,
+           
+           [(<pin Y of <instance TQ_PDIFF_MUX>>#|)+8, (<pin Y of <instance TQ_PDIFF_MUX>>#-)] ->
+           [(<pin Y of <instance TQ_PDIFF_MUX>>#|)+8, (<pin Y of <instance TQ_PDIFF_MUX>>#-)+10] ->
+           [(<instance TD0_POL_MUX>#|)-5, (<pin Y of <instance TQ_PDIFF_MUX>>#-)+10] ->
+           [(<instance TD0_POL_MUX>#|)-5, 268] ->
+           <pin X3 of <instance Y0_MUX>>,
+           
+           [(<instance TD0_POL_MUX>#|)-5, 268] ->
+           [(<instance TD0_POL_MUX>#|)-5, 300] ->
+           <pin X1 of <instance DYN_CTRL1_SEL>>,
+           
+           [(<instance TD0_POL_MUX>#|)-5, 300] ->
+           [(<instance TD0_POL_MUX>#|)-5, 312] ->
+           <pin X1 of <instance DYN_CTRL0_SEL>>;
+    
+    line lnOREG_SDR
+           <pin DQ_SDR of <instance OREG>> ->
+           [(<instance IN0_MUX0>#|)-10, ] ->
+           <pin X1 of <instance DQ_MUX>>,
+           
+           [(<pin DQ_SDR of <instance OREG>>#|)+10, (<pin DQ_SDR of <instance OREG>>#-)] ->
+           [(<pin DQ_SDR of <instance OREG>>#|)+10, (<pin DQ_SDR of <instance OREG>>#-)+4] ->
+           <pin X1 of <instance IN0_MUX0>>;
+    
+    line lnIN0_MUX0_Y
+           <pin Y of <instance IN0_MUX0>> ->
+           [(<pin Y of <instance IN0_MUX0>>#|)+5, (<pin Y of <instance IN0_MUX0>>#-)] ->
+           [(<pin Y of <instance IN0_MUX0>>#|)+5, (<pin Y of <instance IN0_MUX0>>#-)-3] ->
+           <pin X0 of <instance DQ_MUX>>;
+    
+    line lnOREG_DDR
+           <pin DQ_DDR of <instance OREG>> ->
+           <pin X2 of <instance DQ_MUX>>;
+    
+    line lnDQ_MUX
+           <pin Y of <instance DQ_MUX>> ->
+           [(<pin Y of <instance DQ_MUX>>#|) + 5,] ->
+           <pin X0 of <instance DQ_PDIFF_MUX>>,
+           
+           [(<pin Y of <instance DQ_MUX>>#|) + 5, (<pin Y of <instance DQ_MUX>>#-)] ->
+           [(<pin Y of <instance DQ_MUX>>#|) + 5, (<pin Y of <instance DQ_MUX>>#-) - 19] ->
+           <port DQ_CAS_OUT>;
+    
+    line lnDQ
+           <pin Y of <instance DQ_PDIFF_MUX>> ->
+           [(<pin Y of <instance DQ_PDIFF_MUX>>#|)+5, ] ->
+           <port DQ>,
+           
+           [(<pin Y of <instance DQ_PDIFF_MUX>>#|)+5, (<pin Y of <instance DQ_PDIFF_MUX>>#-)] ->
+           [(<pin Y of <instance DQ_PDIFF_MUX>>#|)+5, (<pin Y of <instance DQ_PDIFF_MUX>>#-)+20] ->
+           [(<instance D0_POL_MUX>#|)-10, (<pin Y of <instance DQ_PDIFF_MUX>>#-)+20] ->
+           [(<instance D0_POL_MUX>#|)-10, (<pin X2 of <instance Y0_MUX>>#-)] ->
+           <pin X2 of <instance Y0_MUX>>,
+           
+           [(<instance D0_POL_MUX>#|)-10, (<pin X2 of <instance Y0_MUX>>#-)] ->
+           [(<instance D0_POL_MUX>#|)-10, 280] ->
+           <pin X1 of <instance DYN_CTRL1_MUX>>,
+           
+           [(<instance D0_POL_MUX>#|)-10, 280] ->
+           [(<instance D0_POL_MUX>#|)-10, 290] ->
+           <pin X1 of <instance DYN_CTRL0_MUX>>;
+    
+    line lnTD0_POL_MUX
+           <pin Y of <instance TD0_POL_MUX>> ->
+           [(<instance OREG>#|)-10, ] ->
+           <pin X0 of <instance TQ_MUX>>,
+           
+           [(<instance TSREG>#|)-10, (<pin Y of <instance TD0_POL_MUX>>#-)] ->
+           [(<instance TSREG>#|)-10, (<pin Y of <instance TD0_POL_MUX>>#-)-5] ->
+           [, <pin TD0 of <instance TSREG>>#-] ->
+           <pin TD0 of <instance TSREG>>;
+    
+    line lnD0_POL_MUX
+           <pin Y of <instance D0_POL_MUX>> ->
+           [(<instance OREG>#|)-10, ] ->
+           <pin D0 of <instance OREG>>,
+           
+           [(<instance OREG>#|)-10, <pin D0 of <instance OREG>>#-] ->
+           [(<instance OREG>#|)-10, <pin D0 of <instance OREG>>#- + 5] ->
+           [(<pin D0 of<instance OREG>>#|) + 35, <pin D0 of <instance OREG>>#- + 5] ->
+           [, <pin X0 of <instance IN0_MUX0>>#-] ->
+           <pin X0 of <instance IN0_MUX0>>;
+    
+    line lnDO_IN
+           <port DO_IN> ->
+           [(<instance OREG>#|)+35, ] ->
+           [(<instance OREG>#|)+35, (<port DO_IN>#-) + 33] ->
+           <pin X3 of <instance DQ_MUX>>;
+    
+    line lnDYN_CTRL0_SEL
+           <pin Y of <instance DYN_CTRL0_SEL>> ->
+           [(<pin Y of <instance DYN_CTRL0_SEL>>#|)+10, ] ->
+           [(<pin Y of <instance DYN_CTRL0_SEL>>#|)+10, (<pin Y of <instance DYN_CTRL0_SEL>>#-)-1] ->
+           [(<pin Y of <instance DYN_CTRL0_SEL>>#|)+10, (<pin SEL of <instance DYN_CTRL0_MUX>>#-)] ->
+           <pin SEL of <instance DYN_CTRL0_MUX>>;
+    
+    line lnDYN_CTRL1_SEL
+           <pin Y of <instance DYN_CTRL1_SEL>> ->
+           [(<pin Y of <instance DYN_CTRL1_SEL>>#|)+5, ] ->
+           [(<pin Y of <instance DYN_CTRL1_SEL>>#|)+5, (<pin Y of <instance DYN_CTRL1_SEL>>#-)-1] ->
+           [(<pin Y of <instance DYN_CTRL1_SEL>>#|)+5, (<pin SEL of <instance DYN_CTRL1_MUX>>#-)] ->
+           <pin SEL of <instance DYN_CTRL1_MUX>>;
+    
+    line lnDYN_CTRL1_MUX_Y
+           <pin Y of <instance DYN_CTRL1_MUX>> ->
+           [(<pin Y of <instance DYN_CTRL1_MUX>>#|)+7, (<pin Y of <instance DYN_CTRL1_MUX>>#-)] ->
+           [(<pin Y of <instance DYN_CTRL1_MUX>>#|)+7, (<pin X1 of <instance IREG_IN_MUX>>#-)] ->
+           <pin X1 of <instance IREG_IN_MUX>>;
+    
+    line lnDYN_CTRL0_MUX_Y
+           <pin Y of <instance DYN_CTRL0_MUX>> ->
+           [(<pin Y of <instance DYN_CTRL0_MUX>>#|)+15, (<pin Y of <instance DYN_CTRL0_MUX>>#-)] ->
+           [(<pin Y of <instance DYN_CTRL0_MUX>>#|)+15, (<pin X1 of <instance Y0_MUX>>#-)] ->
+           <pin X1 of <instance Y0_MUX>>;
+    
+    line lnDQ_SEL_MUX0_Y
+           <pin Y of <instance DQ_SEL_MUX0>> ->
+           [(<pin Y of <instance DQ_SEL_MUX0>>#|)+3, (<pin Y of <instance DQ_SEL_MUX0>>#-)] ->
+           [(<pin Y of <instance DQ_SEL_MUX0>>#|)+3, (<pin SEL[0] of <instance DQ_MUX>>#-)] ->
+           <pin SEL[0] of <instance DQ_MUX>>;
+    
+    line lnDQ_SEL_MUX1_Y
+           <pin Y of <instance DQ_SEL_MUX1>> ->
+           [(<pin Y of <instance DQ_SEL_MUX1>>#|)+5, (<pin Y of <instance DQ_SEL_MUX1>>#-)] ->
+           [(<pin Y of <instance DQ_SEL_MUX1>>#|)+5, (<pin SEL[1] of <instance DQ_MUX>>#-)] ->
+           <pin SEL[1] of <instance DQ_MUX>>;
+    
+    line lnY0_MUX_Y
+           <pin Y of <instance Y0_MUX>> ->
+           <port Y>;
+    
+    line lnDYN_CTRL0_SEL_0
+        [(<instance DYN_CTRL0_SEL>#|)-4, <pin X0 of <instance DYN_CTRL0_SEL>>#-] ->
+        <pin X0 of <instance DYN_CTRL0_SEL>>;
+    
+    line lnDYN_CTRL1_SEL_0
+        [(<instance DYN_CTRL1_SEL>#|)-4, <pin X0 of <instance DYN_CTRL1_SEL>>#-] ->
+        <pin X0 of <instance DYN_CTRL1_SEL>>;
+    
+    line lnDQMODE_MUX0_0
+        [(<instance DQMODE_MUX0>#|)-4, <pin X0 of <instance DQMODE_MUX0>>#-] ->
+        <pin X0 of <instance DQMODE_MUX0>>;
+    
+    line lnDQMODE_MUX0_1
+        [(<instance DQMODE_MUX0>#|)-4, <pin X1 of <instance DQMODE_MUX0>>#-] ->
+        <pin X1 of <instance DQMODE_MUX0>>;
+    
+    line lnDQMODE_MUX1_0
+        [(<instance DQMODE_MUX1>#|)-4, <pin X0 of <instance DQMODE_MUX1>>#-] ->
+        <pin X0 of <instance DQMODE_MUX1>>;
+    
+    line lnDQMODE_MUX1_1
+        [(<instance DQMODE_MUX1>#|)-4, <pin X1 of <instance DQMODE_MUX1>>#-] ->
+        <pin X1 of <instance DQMODE_MUX1>>;
+        
+    line lnTQ_MUX_X3
+        [(<instance TQ_MUX>#|)-4, <pin X3 of <instance TQ_MUX>>#-] ->
+        <pin X3 of <instance TQ_MUX>>;
+    
+    line lnDQMODE_MUX0_Y
+           <pin Y of <instance DQMODE_MUX0>> ->
+           <pin X0 of <instance DQ_SEL_MUX0>>;
+    
+    line lnDQMODE_MUX1_Y
+           <pin Y of <instance DQMODE_MUX1>> ->
+           <pin X0 of <instance DQ_SEL_MUX1>>;
+           
+    line lnTQ_CAS_IN
+           <port TQ_CAS_IN> ->
+           [(<instance TQ_PDIFF_MUX>#|) - 5, ] -> 
+           [(<instance TQ_PDIFF_MUX>#|) - 5, <pin X1 of <instance TQ_PDIFF_MUX>>#-] ->
+           <pin X1 of <instance TQ_PDIFF_MUX>>; 
+           
+    line lnDQ_CAS_IN
+           <port DQ_CAS_IN> ->
+           [(<instance DQ_PDIFF_MUX>#|) - 3, ] ->
+           [(<instance DQ_PDIFF_MUX>#|) - 3, <pin X1 of <instance DQ_PDIFF_MUX>>#-] ->
+           <pin X1 of <instance DQ_PDIFF_MUX>>;  
+            
+    map (  
+            <line lnTSREG_DDR>                => <wire ntTQ_DDR                      of device IOL (structure netlist)> , 
+            <line lnTQ_MUX>                   => <wire ntTQ_CAS_OUT                  of device IOL (structure netlist)> , 
+            <line lnTQ>                       => <wire ntTQ                          of device IOL (structure netlist)> , 
+            <line lnOREG_SDR>                 => <wire ntDQ_SDR                      of device IOL (structure netlist)> , 
+            <line lnIN0_MUX0_Y>               => <wire ntDQ_IN0                      of device IOL (structure netlist)> , 
+            <line lnOREG_DDR>                 => <wire ntDQ_DDR                      of device IOL (structure netlist)> , 
+            <line lnDQ_MUX>                   => <wire ntDQ_CAS_OUT                  of device IOL (structure netlist)> , 
+            <line lnDQ>                       => <wire ntDQ                          of device IOL (structure netlist)> , 
+            <line lnTD0_POL_MUX>              => <wire ntTD0_O                       of device IOL (structure netlist)> , 
+            <line lnD0_POL_MUX>               => <wire ntD0_O                        of device IOL (structure netlist)> , 
+            <line lnDO_IN>                    => <wire ntDO_IN                       of device IOL (structure netlist)> , 
+            <line lnDYN_CTRL0_SEL>            => <wire ntDYN_CTRL0                   of device IOL (structure netlist)> , 
+            <line lnDYN_CTRL1_SEL>            => <wire ntDYN_CTRL1                   of device IOL (structure netlist)> , 
+            <line lnDYN_CTRL1_MUX_Y>          => <wire ntDYN_MUX1_O                  of device IOL (structure netlist)> , 
+            <line lnDYN_CTRL0_MUX_Y>          => <wire ntDYN_MUX0_O                  of device IOL (structure netlist)> , 
+            <line lnDQ_SEL_MUX0_Y>            => <wire ntSEL[0]                      of device IOL (structure netlist)> , 
+            <line lnDQ_SEL_MUX1_Y>            => <wire ntSEL[1]                      of device IOL (structure netlist)> , 
+            <line lnY0_MUX_Y>                 => <wire ntY                           of device IOL (structure netlist)> , 
+            <line lnDQMODE_MUX0_Y>            => <wire ntSTA_SEL[0]                  of device IOL (structure netlist)> , 
+            <line lnDQMODE_MUX1_Y>            => <wire ntSTA_SEL[1]                  of device IOL (structure netlist)> , 
+            <line lnTQ_CAS_IN>                => <wire ntTQ_CAS_IN                   of device IOL (structure netlist)> , 
+            <line lnDQ_CAS_IN>                => <wire ntDQ_CAS_IN                   of device IOL (structure netlist)>  
+        ); 
+}; // end of schematic schm of IOL        

@@ -1,0 +1,773 @@
+*************************************************************
+
+Copyright (c) 2014 by PANGO MICROSYSTEMS, INC
+ALL RIGHTS RESERVED.
+
+THE SOURCE CODE CONTAINED HEREIN IS PROPRIETARY TO PANGO MICROSYSTEMS, INC.
+IT SHALL NOT BE REPRODUCED OR DISCLOSED IN WHOLE OR IN PART OR USED BY
+PARTIES WITHOUT WRITTEN AUTHORIZATION FROM THE OWNER.
+
+  Operator  [GTP_DRM18K_E1]
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+***************************************************************************/
+fabric
+implementation impl of GTP_DRM18K_E1 @ (1, 0 # 1, 0)
+{
+// GTP_DRM18K_E1 parameters
+//      RESET_TYPE : SYNC_RESET
+//                   ASYNC_RESET
+//                   ASYNC_RESET_SYNC_RELEASE
+//      DOA_REG : 1'b0 disabled
+//                1'b1 enabled
+    string drm_mode = (RAM_MODE == "ROM") ? "ROM" : (
+                      (RAM_MODE == "SINGLE_PORT") ? "SPR" : (
+                      (RAM_MODE == "SIMPLE_DUAL_PORT") ? "SDP" : "TDP"));
+    bit is_sdp = ((DATA_WIDTH_A > 18) || (DATA_WIDTH_B > 18)) ? 1'b1 : 1'b0;
+    bit bipart = ((DATA_WIDTH_A != DATA_WIDTH_B) || (DATA_WIDTH_A % 2) || (DATA_WIDTH_A >= 16)) ? 1'b0 : 1'b1;
+
+    bit init_csa[7:0] = (CSA_MASK == 3'b000) ? 8'h01 : (
+                        (CSA_MASK == 3'b001) ? 8'h02 : (
+                        (CSA_MASK == 3'b010) ? 8'h04 : (
+                        (CSA_MASK == 3'b011) ? 8'h08 : (
+                        (CSA_MASK == 3'b100) ? 8'h10 : (
+                        (CSA_MASK == 3'b101) ? 8'h20 : (
+                        (CSA_MASK == 3'b110) ? 8'h40 : (
+                      /*(CSA_MASK == 3'b111)*/ 8'h80 )))))));
+    bit init_csb[7:0] = (CSB_MASK == 3'b000) ? 8'h01 : (
+                        (CSB_MASK == 3'b001) ? 8'h02 : (
+                        (CSB_MASK == 3'b010) ? 8'h04 : (
+                        (CSB_MASK == 3'b011) ? 8'h08 : (
+                        (CSB_MASK == 3'b100) ? 8'h10 : (
+                        (CSB_MASK == 3'b101) ? 8'h20 : (
+                        (CSB_MASK == 3'b110) ? 8'h40 : (
+                      /*(CSB_MASK == 3'b111)*/ 8'h80 )))))));
+
+  if ((RAM_MODE == "ROM18K") || (RAM_MODE == "DRM18K"))
+  {
+    operator gopDRM drm18k
+    parameter map
+    (
+        CP_DRM_EN_0   => "TRUE",
+        CP_DRM_EN_1   => "TRUE",
+        CP_MASK       =>   RAM_MODE == "ROM18K" ? 2'b00 : 2'b11,
+        CP_RESET_TYPE_0 => RST_TYPE == "SYNC" ? "SYNC_RESET" : (RST_TYPE == "ASYNC" ? "ASYNC_RESET" : "ASYNC_RESET_SYNC_RELEASE"),
+        CP_RESET_TYPE_1 => RST_TYPE == "SYNC" ? "SYNC_RESET" : (RST_TYPE == "ASYNC" ? "ASYNC_RESET" : "ASYNC_RESET_SYNC_RELEASE"),
+        CP_GRS_DIS_0  => GRS_EN == "TRUE" ? "FALSE" : "TRUE",
+        CP_GRS_DIS_1  => GRS_EN == "TRUE" ? "FALSE" : "TRUE",
+        CP_CSA_POL    => { CSA_MASK[2] ? 1'b0 : 1'b1, CSA_MASK[1] ? 1'b0 : 1'b1, CSA_MASK[0] ? 1'b0 : 1'b1},
+        CP_CSB_POL    => { CSB_MASK[2] ? 1'b0 : 1'b1, CSB_MASK[1] ? 1'b0 : 1'b1, CSB_MASK[0] ? 1'b0 : 1'b1},
+        CP_DATA_WIDTH_A_0 => DATA_WIDTH_A,
+        CP_DATA_WIDTH_A_1 => DATA_WIDTH_A,
+        CP_DATA_WIDTH_B_0 => DATA_WIDTH_B,
+        CP_DATA_WIDTH_B_1 => DATA_WIDTH_B,
+        CP_OUTPUT_REG_A_0 => DOA_REG ? "ENABLE" : "DISABLE",
+        CP_OUTPUT_REG_A_1 => DOA_REG ? "ENABLE" : "DISABLE",
+        CP_OUTPUT_REG_B_0 => DOB_REG ? "ENABLE" : "DISABLE",
+        CP_OUTPUT_REG_B_1 => DOB_REG ? "ENABLE" : "DISABLE",
+        CP_CLKA_OR_POL_INV_0 => DOA_REG_CLKINV ? "TRUE" : "FALSE",
+        CP_CLKA_OR_POL_INV_1 => DOA_REG_CLKINV ? "TRUE" : "FALSE",
+        CP_CLKB_OR_POL_INV_0 => DOB_REG_CLKINV ? "TRUE" : "FALSE",
+        CP_CLKB_OR_POL_INV_1 => DOB_REG_CLKINV ? "TRUE" : "FALSE",
+        CP_WRITE_MODE_A_0 => WRITE_MODE_A,
+        CP_WRITE_MODE_A_1 => WRITE_MODE_A,
+        CP_WRITE_MODE_B_0 => WRITE_MODE_B,
+        CP_WRITE_MODE_B_1 => WRITE_MODE_B,
+        CP_INIT_00 => INIT_00,
+        CP_INIT_01 => INIT_01,
+        CP_INIT_02 => INIT_02,
+        CP_INIT_03 => INIT_03,
+        CP_INIT_04 => INIT_04,
+        CP_INIT_05 => INIT_05,
+        CP_INIT_06 => INIT_06,
+        CP_INIT_07 => INIT_07,
+        CP_INIT_08 => INIT_08,
+        CP_INIT_09 => INIT_09,
+        CP_INIT_0A => INIT_0A,
+        CP_INIT_0B => INIT_0B,
+        CP_INIT_0C => INIT_0C,
+        CP_INIT_0D => INIT_0D,
+        CP_INIT_0E => INIT_0E,
+        CP_INIT_0F => INIT_0F,
+        CP_INIT_10 => INIT_10,
+        CP_INIT_11 => INIT_11,
+        CP_INIT_12 => INIT_12,
+        CP_INIT_13 => INIT_13,
+        CP_INIT_14 => INIT_14,
+        CP_INIT_15 => INIT_15,
+        CP_INIT_16 => INIT_16,
+        CP_INIT_17 => INIT_17,
+        CP_INIT_18 => INIT_18,
+        CP_INIT_19 => INIT_19,
+        CP_INIT_1A => INIT_1A,
+        CP_INIT_1B => INIT_1B,
+        CP_INIT_1C => INIT_1C,
+        CP_INIT_1D => INIT_1D,
+        CP_INIT_1E => INIT_1E,
+        CP_INIT_1F => INIT_1F,
+        CP_INIT_20 => INIT_20,
+        CP_INIT_21 => INIT_21,
+        CP_INIT_22 => INIT_22,
+        CP_INIT_23 => INIT_23,
+        CP_INIT_24 => INIT_24,
+        CP_INIT_25 => INIT_25,
+        CP_INIT_26 => INIT_26,
+        CP_INIT_27 => INIT_27,
+        CP_INIT_28 => INIT_28,
+        CP_INIT_29 => INIT_29,
+        CP_INIT_2A => INIT_2A,
+        CP_INIT_2B => INIT_2B,
+        CP_INIT_2C => INIT_2C,
+        CP_INIT_2D => INIT_2D,
+        CP_INIT_2E => INIT_2E,
+        CP_INIT_2F => INIT_2F,
+        CP_INIT_30 => INIT_30,
+        CP_INIT_31 => INIT_31,
+        CP_INIT_32 => INIT_32,
+        CP_INIT_33 => INIT_33,
+        CP_INIT_34 => INIT_34,
+        CP_INIT_35 => INIT_35,
+        CP_INIT_36 => INIT_36,
+        CP_INIT_37 => INIT_37,
+        CP_INIT_38 => INIT_38,
+        CP_INIT_39 => INIT_39,
+        CP_INIT_3A => INIT_3A,
+        CP_INIT_3B => INIT_3B,
+        CP_INIT_3C => INIT_3C,
+        CP_INIT_3D => INIT_3D,
+        CP_INIT_3E => INIT_3E,
+        CP_INIT_3F => INIT_3F,
+        CP_DRM_18K => "TRUE"
+    )
+    port map
+    (
+        CLKA[0]  => CLKA,
+        CEA[0]   => CEA,
+        CSA      => CSA,
+        ADA0     => ADDRA[12:0],
+        ADA_CAS  => ADDRA[13],
+        ADSA[0]  => ADDRA_HOLD,
+        DA0      => DIA,
+        WEA[0]   => WEA,
+        OCEA[0]  => ORCEA,
+        RSTA[0]  => RSTA,
+
+        CLKB[0]  => CLKB,
+        CEB[0]   => CEB,
+        CSB      => CSB,
+        ADB0     => ADDRB[12:0],
+        ADB_CAS  => ADDRB[13],
+        ADSB[0]  => ADDRB_HOLD,
+        DB0      => DIB,
+        WEB[0]   => WEB,
+        OCEB[0]  => ORCEB,
+        RSTB[0]  => RSTB,
+
+        QA0      => DOA,
+        QB0      => DOB
+    )@[0,0];
+  }
+  else if ((RAM_MODE == "ROM9K") || (RAM_MODE == "DRM9K"))
+  {
+    operator gopDRM2 drm9k
+    parameter map
+    (
+        GRS_EN         =>  GRS_EN        ,
+        DATA_WIDTH_A   =>  DATA_WIDTH_A  ,
+        DATA_WIDTH_B   =>  DATA_WIDTH_B  ,
+        DOA_REG        =>  DOA_REG       ,
+        DOB_REG        =>  DOB_REG       ,
+        DOA_REG_CLKINV =>  DOA_REG_CLKINV,
+        DOB_REG_CLKINV =>  DOB_REG_CLKINV,
+        RST_TYPE       =>  RST_TYPE      ,
+        RAM_MODE       => (RAM_MODE == "ROM9K") ? "ROM" : RAM_MODE ,
+        WRITE_MODE_A   =>  WRITE_MODE_A  ,
+        WRITE_MODE_B   =>  WRITE_MODE_B  ,
+        INIT_00        =>  INIT_00       ,
+        INIT_01        =>  INIT_01       ,
+        INIT_02        =>  INIT_02       ,
+        INIT_03        =>  INIT_03       ,
+        INIT_04        =>  INIT_04       ,
+        INIT_05        =>  INIT_05       ,
+        INIT_06        =>  INIT_06       ,
+        INIT_07        =>  INIT_07       ,
+        INIT_08        =>  INIT_08       ,
+        INIT_09        =>  INIT_09       ,
+        INIT_0A        =>  INIT_0A       ,
+        INIT_0B        =>  INIT_0B       ,
+        INIT_0C        =>  INIT_0C       ,
+        INIT_0D        =>  INIT_0D       ,
+        INIT_0E        =>  INIT_0E       ,
+        INIT_0F        =>  INIT_0F       ,
+        INIT_10        =>  INIT_10       ,
+        INIT_11        =>  INIT_11       ,
+        INIT_12        =>  INIT_12       ,
+        INIT_13        =>  INIT_13       ,
+        INIT_14        =>  INIT_14       ,
+        INIT_15        =>  INIT_15       ,
+        INIT_16        =>  INIT_16       ,
+        INIT_17        =>  INIT_17       ,
+        INIT_18        =>  INIT_18       ,
+        INIT_19        =>  INIT_19       ,
+        INIT_1A        =>  INIT_1A       ,
+        INIT_1B        =>  INIT_1B       ,
+        INIT_1C        =>  INIT_1C       ,
+        INIT_1D        =>  INIT_1D       ,
+        INIT_1E        =>  INIT_1E       ,
+        INIT_1F        =>  INIT_1F       ,
+        INIT_FILE      =>  INIT_FILE     ,
+        BLOCK_X        =>  BLOCK_X       ,
+        BLOCK_Y        =>  BLOCK_Y       ,
+        RAM_DATA_WIDTH =>  RAM_DATA_WIDTH,
+        RAM_ADDR_WIDTH =>  RAM_ADDR_WIDTH,
+        INIT_FORMAT    =>  INIT_FORMAT    
+    )
+    port map
+    (
+        DOA         => DOA       ,
+        DOB         => DOB       ,
+        DIA         => DIA       ,
+        DIB         => DIB       ,
+        ADDRA       => ADDRA[12:0],
+        ADDRA_HOLD  => ADDRA_HOLD,
+        ADDRB       => ADDRB[12:0],
+        ADDRB_HOLD  => ADDRB_HOLD,
+        CLKA        => CLKA      ,
+        CLKB        => CLKB      ,
+        CEA         => CEA       ,
+        CEB         => CEB       ,
+        WEA         => WEA       ,
+        WEB         => WEB       ,
+        ORCEA       => ORCEA     ,
+        ORCEB       => ORCEB     ,
+        RSTA        => RSTA      ,
+        RSTB        => RSTB      
+    )@[0,0];
+  }
+  else if (bipart)
+  {
+    wire xCEA, xCEB;
+    
+
+    int data_width_A = DATA_WIDTH_A / 2;
+    int data_width_B = DATA_WIDTH_B / 2;
+    wire dummy_DOA_0[17:data_width_A];
+    wire dummy_DOA_1[17:data_width_A];
+    wire dummy_DOB_0[17:data_width_B];
+    wire dummy_DOB_1[17:data_width_B];
+    wire dummy_DO_0[17:0];
+    wire dummy_DO_1[17:0];
+    operator gopDRM2 drm9k_0
+    parameter map
+    (
+        GRS_EN         =>  GRS_EN        ,
+        DATA_WIDTH_A   =>  data_width_A  ,
+        DATA_WIDTH_B   =>  data_width_B  ,
+        DOA_REG        =>  DOA_REG       ,
+        DOB_REG        =>  DOB_REG       ,
+        DOA_REG_CLKINV =>  DOA_REG_CLKINV,
+        DOB_REG_CLKINV =>  DOB_REG_CLKINV,
+        RST_TYPE       =>  RST_TYPE      ,
+        RAM_MODE       =>  RAM_MODE      ,
+        WRITE_MODE_A   =>  WRITE_MODE_A  ,
+        WRITE_MODE_B   =>  WRITE_MODE_B  ,
+        INIT_00        =>  INIT_00       ,
+        INIT_01        =>  INIT_02       ,
+        INIT_02        =>  INIT_04       ,
+        INIT_03        =>  INIT_06       ,
+        INIT_04        =>  INIT_08       ,
+        INIT_05        =>  INIT_0A       ,
+        INIT_06        =>  INIT_0C       ,
+        INIT_07        =>  INIT_0E       ,
+        INIT_08        =>  INIT_10       ,
+        INIT_09        =>  INIT_12       ,
+        INIT_0A        =>  INIT_14       ,
+        INIT_0B        =>  INIT_16       ,
+        INIT_0C        =>  INIT_18       ,
+        INIT_0D        =>  INIT_1A       ,
+        INIT_0E        =>  INIT_1C       ,
+        INIT_0F        =>  INIT_1E       ,
+        INIT_10        =>  INIT_20       ,
+        INIT_11        =>  INIT_22       ,
+        INIT_12        =>  INIT_24       ,
+        INIT_13        =>  INIT_26       ,
+        INIT_14        =>  INIT_28       ,
+        INIT_15        =>  INIT_2A       ,
+        INIT_16        =>  INIT_2C       ,
+        INIT_17        =>  INIT_2E       ,
+        INIT_18        =>  INIT_30       ,
+        INIT_19        =>  INIT_32       ,
+        INIT_1A        =>  INIT_34       ,
+        INIT_1B        =>  INIT_36       ,
+        INIT_1C        =>  INIT_38       ,
+        INIT_1D        =>  INIT_3A       ,
+        INIT_1E        =>  INIT_3C       ,
+        INIT_1F        =>  INIT_3E       ,
+        INIT_FILE      =>  INIT_FILE     ,
+        BLOCK_X        =>  BLOCK_X       ,
+        BLOCK_Y        =>  BLOCK_Y       ,
+        RAM_DATA_WIDTH =>  RAM_DATA_WIDTH,
+        RAM_ADDR_WIDTH =>  RAM_ADDR_WIDTH,
+        INIT_FORMAT    =>  INIT_FORMAT    
+    )
+    port map
+    (
+        DOA         => is_sdp ? dummy_DO_0 : {dummy_DOA_0,        DOA[data_width_A-1:0]} ,
+        DOB         => is_sdp ? DOA        : {dummy_DOB_0,        DOB[data_width_B-1:0]} ,
+        DIA         => is_sdp ? DIA   : {{18-data_width_A{1'b0}}, DIA[data_width_A-1:0]} ,
+        DIB         => is_sdp ? 18'h0 : {{18-data_width_B{1'b0}}, DIB[data_width_B-1:0]} ,
+        ADDRA       => ADDRA[13:1],
+        ADDRA_HOLD  => ADDRA_HOLD,
+        ADDRB       => ADDRB[13:1],
+        ADDRB_HOLD  => ADDRB_HOLD,
+        CLKA        => CLKA      ,
+        CLKB        => CLKB      ,
+        CEA         => xCEA      ,
+        CEB         => xCEB      ,
+        WEA         => WEA       ,
+        WEB         => WEB       ,
+        ORCEA       => ORCEA     ,
+        ORCEB       => ORCEB     ,
+        RSTA        => RSTA      ,
+        RSTB        => RSTB      
+    )@[0,0];
+
+    operator gopDRM2 drm9k_1
+    parameter map
+    (
+        GRS_EN         =>  GRS_EN        ,
+        DATA_WIDTH_A   =>  data_width_A  ,
+        DATA_WIDTH_B   =>  data_width_B  ,
+        DOA_REG        =>  DOA_REG       ,
+        DOB_REG        =>  DOB_REG       ,
+        DOA_REG_CLKINV =>  DOA_REG_CLKINV,
+        DOB_REG_CLKINV =>  DOB_REG_CLKINV,
+        RST_TYPE       =>  RST_TYPE      ,
+        RAM_MODE       =>  RAM_MODE      ,
+        WRITE_MODE_A   =>  WRITE_MODE_A  ,
+        WRITE_MODE_B   =>  WRITE_MODE_B  ,
+        INIT_00        =>  INIT_01       ,
+        INIT_01        =>  INIT_03       ,
+        INIT_02        =>  INIT_05       ,
+        INIT_03        =>  INIT_07       ,
+        INIT_04        =>  INIT_09       ,
+        INIT_05        =>  INIT_0B       ,
+        INIT_06        =>  INIT_0D       ,
+        INIT_07        =>  INIT_0F       ,
+        INIT_08        =>  INIT_11       ,
+        INIT_09        =>  INIT_13       ,
+        INIT_0A        =>  INIT_15       ,
+        INIT_0B        =>  INIT_17       ,
+        INIT_0C        =>  INIT_19       ,
+        INIT_0D        =>  INIT_1B       ,
+        INIT_0E        =>  INIT_1D       ,
+        INIT_0F        =>  INIT_1F       ,
+        INIT_10        =>  INIT_21       ,
+        INIT_11        =>  INIT_23       ,
+        INIT_12        =>  INIT_25       ,
+        INIT_13        =>  INIT_27       ,
+        INIT_14        =>  INIT_29       ,
+        INIT_15        =>  INIT_2B       ,
+        INIT_16        =>  INIT_2D       ,
+        INIT_17        =>  INIT_2F       ,
+        INIT_18        =>  INIT_31       ,
+        INIT_19        =>  INIT_33       ,
+        INIT_1A        =>  INIT_35       ,
+        INIT_1B        =>  INIT_37       ,
+        INIT_1C        =>  INIT_39       ,
+        INIT_1D        =>  INIT_3B       ,
+        INIT_1E        =>  INIT_3D       ,
+        INIT_1F        =>  INIT_3F       ,
+        INIT_FILE      =>  INIT_FILE     ,
+        BLOCK_X        =>  BLOCK_X       ,
+        BLOCK_Y        =>  BLOCK_Y       ,
+        RAM_DATA_WIDTH =>  RAM_DATA_WIDTH,
+        RAM_ADDR_WIDTH =>  RAM_ADDR_WIDTH,
+        INIT_FORMAT    =>  INIT_FORMAT    
+    )
+    port map
+    (
+        DOA         => is_sdp ? dummy_DO_1 : {dummy_DOA_1,        DOA[2*data_width_A-1:data_width_A]} ,
+        DOB         => is_sdp ? DOB        : {dummy_DOB_1,        DOB[2*data_width_B-1:data_width_B]} ,
+        DIA         => is_sdp ? DIB   : {{18-data_width_A{1'b0}}, DIA[2*data_width_A-1:data_width_A]} ,
+        DIB         => is_sdp ? 18'h0 : {{18-data_width_B{1'b0}}, DIB[2*data_width_B-1:data_width_B]} ,
+        ADDRA       => ADDRA[13:1],
+        ADDRA_HOLD  => ADDRA_HOLD,
+        ADDRB       => ADDRB[13:1],
+        ADDRB_HOLD  => ADDRB_HOLD,
+        CLKA        => CLKA      ,
+        CLKB        => CLKB      ,
+        CEA         => xCEA      ,
+        CEB         => xCEB      ,
+        WEA         => WEA       ,
+        WEB         => WEB       ,
+        ORCEA       => ORCEA     ,
+        ORCEB       => ORCEB     ,
+        RSTA        => RSTA      ,
+        RSTB        => RSTB      
+    )@[0,0];
+    
+    operator gopLUT5 xcea
+        parameter map ( INIT => {init_csa, 8'h00, init_csa, 8'h00} )
+        port map ( L0 => CSA[0], L1 => CSA[1], L2 => CSA[2], L3 => CEA, Z => xCEA );
+    operator gopLUT5 xceb
+        parameter map ( INIT => {init_csb, 8'h00, init_csb, 8'h00} )
+        port map ( L0 => CSB[0], L1 => CSB[1], L2 => CSB[2], L3 => CEB, Z => xCEB );
+        
+  }
+  else
+  {
+    wire CEA_0, CEB_0, CEA_1, CEB_1;
+    wire ADDRA_13_q, ADDRB_13_q, ADDRA_13_qq, ADDRB_13_qq;
+    wire addra13CE, addrb13CE;
+    wire DOA_0[17:0];
+    wire DOB_0[17:0];
+    wire DOA_1[17:0];
+    wire DOB_1[17:0];    
+
+    operator gopDRM2 drm9k_0
+    parameter map
+    (
+        GRS_EN         =>  GRS_EN        ,
+        DATA_WIDTH_A   =>  DATA_WIDTH_A  ,
+        DATA_WIDTH_B   =>  DATA_WIDTH_B  ,
+        DOA_REG        =>  DOA_REG       ,
+        DOB_REG        =>  DOB_REG       ,
+        DOA_REG_CLKINV =>  DOA_REG_CLKINV,
+        DOB_REG_CLKINV =>  DOB_REG_CLKINV,
+        RST_TYPE       =>  RST_TYPE      ,
+        RAM_MODE       =>  RAM_MODE      ,
+        WRITE_MODE_A   =>  WRITE_MODE_A  ,
+        WRITE_MODE_B   =>  WRITE_MODE_B  ,
+        INIT_00        =>  INIT_00       ,
+        INIT_01        =>  INIT_01       ,
+        INIT_02        =>  INIT_02       ,
+        INIT_03        =>  INIT_03       ,
+        INIT_04        =>  INIT_04       ,
+        INIT_05        =>  INIT_05       ,
+        INIT_06        =>  INIT_06       ,
+        INIT_07        =>  INIT_07       ,
+        INIT_08        =>  INIT_08       ,
+        INIT_09        =>  INIT_09       ,
+        INIT_0A        =>  INIT_0A       ,
+        INIT_0B        =>  INIT_0B       ,
+        INIT_0C        =>  INIT_0C       ,
+        INIT_0D        =>  INIT_0D       ,
+        INIT_0E        =>  INIT_0E       ,
+        INIT_0F        =>  INIT_0F       ,
+        INIT_10        =>  INIT_10       ,
+        INIT_11        =>  INIT_11       ,
+        INIT_12        =>  INIT_12       ,
+        INIT_13        =>  INIT_13       ,
+        INIT_14        =>  INIT_14       ,
+        INIT_15        =>  INIT_15       ,
+        INIT_16        =>  INIT_16       ,
+        INIT_17        =>  INIT_17       ,
+        INIT_18        =>  INIT_18       ,
+        INIT_19        =>  INIT_19       ,
+        INIT_1A        =>  INIT_1A       ,
+        INIT_1B        =>  INIT_1B       ,
+        INIT_1C        =>  INIT_1C       ,
+        INIT_1D        =>  INIT_1D       ,
+        INIT_1E        =>  INIT_1E       ,
+        INIT_1F        =>  INIT_1F       ,
+        INIT_FILE      =>  INIT_FILE     ,
+        BLOCK_X        =>  BLOCK_X       ,
+        BLOCK_Y        =>  BLOCK_Y       ,
+        RAM_DATA_WIDTH =>  RAM_DATA_WIDTH,
+        RAM_ADDR_WIDTH =>  RAM_ADDR_WIDTH,
+        INIT_FORMAT    =>  INIT_FORMAT    
+    )
+    port map
+    (
+        DOA         => DOA_0     ,
+        DOB         => DOB_0     ,
+        DIA         => DIA       ,
+        DIB         => DIB       ,
+        ADDRA       => ADDRA[12:0],
+        ADDRA_HOLD  => ADDRA_HOLD,
+        ADDRB       => ADDRB[12:0],
+        ADDRB_HOLD  => ADDRB_HOLD,
+        CLKA        => CLKA      ,
+        CLKB        => CLKB      ,
+        CEA         => CEA_0     ,
+        CEB         => CEB_0     ,
+        WEA         => WEA       ,
+        WEB         => WEB       ,
+        ORCEA       => ORCEA     ,
+        ORCEB       => ORCEB     ,
+        RSTA        => RSTA      ,
+        RSTB        => RSTB      
+    )@[0,0];
+
+    operator gopDRM2 drm9k_1
+    parameter map
+    (
+        GRS_EN         =>  GRS_EN        ,
+        DATA_WIDTH_A   =>  DATA_WIDTH_A  ,
+        DATA_WIDTH_B   =>  DATA_WIDTH_B  ,
+        DOA_REG        =>  DOA_REG       ,
+        DOB_REG        =>  DOB_REG       ,
+        DOA_REG_CLKINV =>  DOA_REG_CLKINV,
+        DOB_REG_CLKINV =>  DOB_REG_CLKINV,
+        RST_TYPE       =>  RST_TYPE      ,
+        RAM_MODE       =>  RAM_MODE      ,
+        WRITE_MODE_A   =>  WRITE_MODE_A  ,
+        WRITE_MODE_B   =>  WRITE_MODE_B  ,
+        INIT_00        =>  INIT_20       ,
+        INIT_01        =>  INIT_21       ,
+        INIT_02        =>  INIT_22       ,
+        INIT_03        =>  INIT_23       ,
+        INIT_04        =>  INIT_24       ,
+        INIT_05        =>  INIT_25       ,
+        INIT_06        =>  INIT_26       ,
+        INIT_07        =>  INIT_27       ,
+        INIT_08        =>  INIT_28       ,
+        INIT_09        =>  INIT_29       ,
+        INIT_0A        =>  INIT_2A       ,
+        INIT_0B        =>  INIT_2B       ,
+        INIT_0C        =>  INIT_2C       ,
+        INIT_0D        =>  INIT_2D       ,
+        INIT_0E        =>  INIT_2E       ,
+        INIT_0F        =>  INIT_2F       ,
+        INIT_10        =>  INIT_30       ,
+        INIT_11        =>  INIT_31       ,
+        INIT_12        =>  INIT_32       ,
+        INIT_13        =>  INIT_33       ,
+        INIT_14        =>  INIT_34       ,
+        INIT_15        =>  INIT_35       ,
+        INIT_16        =>  INIT_36       ,
+        INIT_17        =>  INIT_37       ,
+        INIT_18        =>  INIT_38       ,
+        INIT_19        =>  INIT_39       ,
+        INIT_1A        =>  INIT_3A       ,
+        INIT_1B        =>  INIT_3B       ,
+        INIT_1C        =>  INIT_3C       ,
+        INIT_1D        =>  INIT_3D       ,
+        INIT_1E        =>  INIT_3E       ,
+        INIT_1F        =>  INIT_3F       ,
+        INIT_FILE      =>  INIT_FILE     ,
+        BLOCK_X        =>  BLOCK_X       ,
+        BLOCK_Y        =>  BLOCK_Y       ,
+        RAM_DATA_WIDTH =>  RAM_DATA_WIDTH,
+        RAM_ADDR_WIDTH =>  RAM_ADDR_WIDTH,
+        INIT_FORMAT    =>  INIT_FORMAT    
+    )
+    port map
+    (
+        DOA         => DOA_1     ,
+        DOB         => DOB_1     ,
+        DIA         => DIA       ,
+        DIB         => DIB       ,
+        ADDRA       => ADDRA[12:0],
+        ADDRA_HOLD  => ADDRA_HOLD,
+        ADDRB       => ADDRB[12:0],
+        ADDRB_HOLD  => ADDRB_HOLD,
+        CLKA        => CLKA      ,
+        CLKB        => CLKB      ,
+        CEA         => CEA_1     ,
+        CEB         => CEB_1     ,
+        WEA         => WEA       ,
+        WEB         => WEB       ,
+        ORCEA       => ORCEA     ,
+        ORCEB       => ORCEB     ,
+        RSTA        => RSTA      ,
+        RSTB        => RSTB      
+    )@[0,0];
+    
+    operator gopLUT5 cea_0
+    parameter map
+    (
+        INIT => {16'h0000, init_csa, 8'h00}
+    )
+    port map
+    (
+        L0 => CSA[0],
+        L1 => CSA[1],
+        L2 => CSA[2],
+        L3 => CEA,
+        L4 => ADDRA[13],
+        Z  => CEA_0
+    );
+
+    operator gopLUT5 cea_1
+    parameter map
+    (
+        INIT => {init_csa, 8'h00, 16'h0000}
+    )
+    port map
+    (
+        L0 => CSA[0],
+        L1 => CSA[1],
+        L2 => CSA[2],
+        L3 => CEA,
+        L4 => ADDRA[13],
+        Z  => CEA_1
+    );
+
+    operator gopLUT5 ceb_0
+    parameter map
+    (
+        INIT => {16'h0000, init_csb, 8'h00}
+    )
+    port map
+    (
+        L0 => CSB[0],
+        L1 => CSB[1],
+        L2 => CSB[2],
+        L3 => CEB,
+        L4 => ADDRB[13],
+        Z  => CEB_0
+    );
+
+    operator gopLUT5 ceb_1
+    parameter map
+    (
+        INIT => {init_csb, 8'h00, 16'h0000}
+    )
+    port map
+    (
+        L0 => CSB[0],
+        L1 => CSB[1],
+        L2 => CSB[2],
+        L3 => CEB,
+        L4 => ADDRB[13],
+        Z  => CEB_1
+    );
+
+    operator gopLUT5 addra13ce
+    parameter map ( INIT => {16'h0000, init_csa, 8'h00} )
+    port map (
+        L0 => CSA[0], L1 => CSA[1], L2 => CSA[2],
+        L3 => CEA,
+        L4 => (WRITE_MODE_A == "NORMAL_WRITE") ? WEA : 1'b0,
+        Z => addra13CE );
+
+    operator gopQ addra13
+    parameter map
+    (
+        GRS_EN  =>  GRS_EN ,
+        CE_USED => "USED",
+        RS_USED => "UNUSED"
+    )
+    port map
+    (
+        CLK => CLKA,
+        CE  => addra13CE,
+        D => ADDRA[13],
+        Q => ADDRA_13_q
+    );
+  if (DOA_REG)
+  {
+    operator gopQ addra13p
+    parameter map
+    (
+        GRS_EN  =>  GRS_EN ,
+        CE_USED => "USED",
+        RS_USED => "UNUSED"
+    )
+    port map
+    (
+        CLK => CLKA,
+        CE  => ORCEA,
+        D => ADDRA_13_q,
+        Q => ADDRA_13_qq
+    );
+  }
+
+    operator gopLUT5 addrb13ce
+    parameter map ( INIT => {18'h0000, init_csb, 8'h00} )
+    port map (
+        L0 => CSB[0], L1 => CSB[1], L2 => CSB[2],
+        L3 => CEB,
+        L4 => (WRITE_MODE_B == "NORMAL_WRITE") ? WEB : 1'b0,
+        Z => addrb13CE );
+
+    operator gopQ addrb13
+    parameter map
+    (
+        GRS_EN  =>  GRS_EN ,
+        CE_USED => "USED",
+        RS_USED => "UNUSED"
+    )
+    port map
+    (
+        CLK => CLKB,
+        CE  => addrb13CE,
+        D => ADDRB[13],
+        Q => ADDRB_13_q
+    );
+  if (DOB_REG)
+  {
+    operator gopQ addrb13p
+    parameter map
+    (
+        GRS_EN  =>  GRS_EN ,
+        CE_USED => "USED",
+        RS_USED => "UNUSED"
+    )
+    port map
+    (
+        CLK => CLKB,
+        CE  => ORCEB,
+        D => ADDRB_13_q,
+        Q => ADDRB_13_qq
+    );
+  }
+
+    string nameVar;
+    unsigned int idx;
+
+    for (idx = 0; idx < 18/*DATA_WIDTH_A*/; idx += 1)
+    {
+        sprintf(nameVar, "mx2doa%d", idx);
+        operator gopLUT5 *nameVar
+        parameter map
+        (
+            INIT => 32'hCACA_CACA
+        )
+        port map
+        (
+            L0 => DOA_0[idx],
+            L1 => DOA_1[idx],
+            L2 => is_sdp ? (DOB_REG ? ADDRB_13_qq : ADDRB_13_q) : (DOA_REG ? ADDRA_13_qq : ADDRA_13_q),
+            L3 => 1'by, L4 => 1'by,
+            Z  => DOA[idx]
+        );
+    }
+
+    for (idx = 0; idx < 18/*DATA_WIDTH_B*/; idx += 1)
+    {
+        sprintf(nameVar, "mx2dob%d", idx);
+        operator gopLUT5 *nameVar
+        parameter map
+        (
+            INIT => 32'hCACA_CACA
+        )
+        port map
+        (
+            L0 => DOB_0[idx],
+            L1 => DOB_1[idx],
+            L2 => DOB_REG ? ADDRB_13_qq : ADDRB_13_q,
+            L3 => 1'by, L4 => 1'by,
+            Z  => DOB[idx]
+        );
+    }
+  }
+};
+
+
+
+
+
+
+
+
+
+
+

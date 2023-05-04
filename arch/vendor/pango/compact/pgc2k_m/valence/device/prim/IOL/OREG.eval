@@ -1,0 +1,121 @@
+*****************************************************************
+
+  Device    [OREG]
+
+  Author    [jiang tao]
+
+  Abstract  [The Prim Device Of IOL]
+
+  Revision History:
+
+********************************************************************************/
+prim
+device OREG
+{
+    parameter
+    (
+        config string CP_GRS_DIS = "FALSE",
+        config string CP_OREG_SET  = "SET",    //1'b1 => set; 1'b0 => reset
+        config string CP_REG_SYNC  = "ASYNC"  //1'b1 => sync; 1'b0 => async
+    );
+    port 
+    ( 
+        // Input Ports of OREG
+        input D0,
+        input D1,
+        input CLK,
+        input CE,
+        input SR,
+        
+        // Output Ports for OREG
+        output DQ_SDR,
+        output DQ_DDR
+    );
+
+};
+
+/**Device***********************************************************************
+
+  Device    [OREG]
+
+  Abstract  [This specified how to propagate the input signal to the outputs based on
+             configuration]
+
+  Revision History:
+
+********************************************************************************/
+propagation pop of OREG
+{
+    propagate ( CLK |-> DQ_SDR );
+    propagate ( CLK |-> DQ_DDR );
+    propagate ( D0  |-> DQ_SDR );
+    propagate ( D0  |-> DQ_DDR );
+    propagate ( D1  |-> DQ_DDR );
+    propagate ( CE  |-> DQ_SDR );
+    propagate ( CE  |-> DQ_DDR );
+    propagate ( SR  |-> DQ_SDR );
+    propagate ( SR  |-> DQ_DDR );
+}; // end of propagation for OREG
+
+
+//timing oreg_tnl of OREG
+//{
+//   // operator V_ODDR V_ODDR
+//   //     parameter map 
+//   //     (
+//   //         GRS_EN  => (CP_GRS_DIS == "FALSE") ? "TRUE"  :
+//   //                    (CP_GRS_DIS == "TRUE" ) ? "FALSE" : "",
+//   //         SYNC_RS => (CP_OREG_SET == "SET"   && CP_REG_SYNC == "ASYNC") ? "ASYNC_SET"   :
+//   //                    (CP_OREG_SET == "SET"   && CP_REG_SYNC == "SYNC" ) ? "SYNC_SET"    :
+//   //                    (CP_OREG_SET == "RESET" && CP_REG_SYNC == "ASYNC") ? "ASYNC_RESET" :
+//   //                    (CP_OREG_SET == "RESET" && CP_REG_SYNC == "SYNC" ) ? "SYNC_RESET"  : ""
+//   //     )
+//   //     port map
+//   //     (
+//   //         D0   => D0    ,
+//   //         D1   => D1    ,
+//   //         CE   => CE    ,
+//   //         RS   => SR    ,
+//   //         CLK  => CLK   ,
+//   //         Q    => DQ_DDR
+//   //     );
+//
+//    if (CP_REG_SYNC == "ASYNC")
+//    {
+//        operator V_FFASYN  V_FFASYN
+//            parameter map 
+//            (
+//                GRS_EN  => (CP_GRS_DIS == "FALSE") ? "TRUE"  :
+//                           (CP_GRS_DIS == "TRUE" ) ? "FALSE" : "",
+//                SET_RESET => CP_OREG_SET,
+//                LRS_EN    => "TRUE"
+//            )
+//            port map 
+//            (
+//                Q  => DQ_SDR,
+//                D  => D0, 
+//                SR => SR,
+//                CK => CLK,
+//                CE => CE
+//            );
+//    }
+//    else
+//    {
+//        operator V_FFSYN  V_FFSYN
+//            parameter map 
+//            (
+//                GRS_EN  => (CP_GRS_DIS == "FALSE") ? "TRUE"  :
+//                           (CP_GRS_DIS == "TRUE" ) ? "FALSE" : "",
+//                SET_RESET => CP_OREG_SET,
+//                LRS_EN    => "TRUE"
+//            )
+//            port map 
+//            (
+//                Q  => DQ_SDR,
+//                D  => D0, 
+//                SR => SR,
+//                CK => CLK,
+//                CE => CE
+//            );
+//    }
+//};

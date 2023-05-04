@@ -1,0 +1,1945 @@
+use pgl_defs;
+
+package pgl_funcs_connect_blsr
+{
+/*******************************************************************
+********************************************************************/
+function connect_blsr_gs_output
+(
+    unsigned int rx,
+    unsigned int tx,
+    unsigned int tx_blsr,
+    unsigned int tx_ccs,
+    unsigned int ty_ccs,
+    string device_wlsr
+)
+{
+    int sx = ((device_wlsr=="IOCKGATEDLL_TILE")||(device_wlsr=="HMEMCIOCKGATEDLL_TILE")) ? tx * NUM_GRID_X + 2 : tx * NUM_GRID_X;
+    int sy = ((device_wlsr=="IOCKGATEDLL_TILE")||(device_wlsr=="HMEMCIOCKGATEDLL_TILE")) ? (rx*NUM_TILES_REGION+MID_TILE_REGION-1)*NUM_GRID_Y
+                                                                                                                     : (rx*NUM_TILES_REGION+MID_TILE_REGION)*NUM_GRID_Y;
+    int sx_blsr = tx_blsr * NUM_GRID_X;
+    int sy_blsr = rx * NUM_GRID_BLSR_Y;
+    int sx_ccs = tx_ccs * NUM_GRID_X + 2;
+    int sy_ccs = ty_ccs * NUM_GRID_Y;
+    string wlsr = device_wlsr;
+    int sx_iob = tx * NUM_GRID_X;
+    int sy_iob = rx * NUM_TILES_REGION * NUM_GRID_Y;
+
+    if(device_wlsr == "IOB_TILE" || device_wlsr == "IOB_WO_ODIFF_TILE")
+    {
+      connect
+        (
+          <pin BUS_WLSRB_IN of <device *wlsr @[sx_iob,sy_iob]>>  => (tx>tx_blsr) ? <wire BUS_WLSR_OUTR of <device BLSR_TILE @[sx_blsr,sy_blsr]>>
+                                                                                 : <wire BUS_WLSR_OUTL of <device BLSR_TILE @[sx_blsr,sy_blsr]>>,
+
+          <pin WLSHFT_REF of <device *wlsr @[sx_iob,sy_iob]>>   => (tx>tx_blsr) ? <wire WLSR_REF[1] of <device BLSR_TILE @[sx_blsr,sy_blsr]>>
+                                                                                : <wire WLSR_REF[0] of <device BLSR_TILE @[sx_blsr,sy_blsr]>>
+        );
+            
+    }
+    else
+    {
+      connect
+        (
+          <pin BUS_WLSR_IN of <device *wlsr @[sx,sy]>>        => (tx>tx_blsr) ? <wire BUS_WLSR_OUTR of <device BLSR_TILE @[sx_blsr,sy_blsr]>>
+                                                                              : <wire BUS_WLSR_OUTL of <device BLSR_TILE @[sx_blsr,sy_blsr]>>,
+
+          <pin WLSHFT_REF of <device *wlsr @[sx,sy]>>          => (tx>tx_blsr) ? <wire WLSR_REF[1] of <device BLSR_TILE @[sx_blsr,sy_blsr]>>
+                                                                               : <wire WLSR_REF[0] of <device BLSR_TILE @[sx_blsr,sy_blsr]>>
+      );
+    }
+
+    if(device_wlsr=="WLSRD_TILE")
+    {
+      connect
+        (
+          <pin MCE of <device *wlsr @[sx,sy]>>   => (tx>tx_blsr) ? <wire MCE_OR of <device BLSR_TILE @[sx_blsr,sy_blsr]>>
+                                                                 : <wire MCE_OL of <device BLSR_TILE @[sx_blsr,sy_blsr]>>,
+          <pin MCLKB of <device *wlsr @[sx,sy]>> => (tx>tx_blsr) ? <wire MCLKB_OR of <device BLSR_TILE @[sx_blsr,sy_blsr]>>
+                                                                 : <wire MCLKB_OL of <device BLSR_TILE @[sx_blsr,sy_blsr]>>,
+          <pin MWR of <device *wlsr @[sx,sy]>>   => (tx>tx_blsr) ? <wire MWR_OR of <device BLSR_TILE @[sx_blsr,sy_blsr]>>
+                                                                 : <wire MWR_OL of <device BLSR_TILE @[sx_blsr,sy_blsr]>>
+        );
+    }
+    
+    if(device_wlsr!="IOB_TILE" && device_wlsr != "IOB_WO_ODIFF_TILE")
+    {
+      connect
+        (
+          <pin VCTRL of <device *wlsr @[sx,sy]>>              => <wire NGB of <device CCS_TILE @[sx_ccs,sy_ccs]>>
+//          <pin WLSHFT_POR_ERASE_N of <device *wlsr @[sx,sy]>> => <wire POR_N_OUT of <device *wlsr @[sx,sy]>>
+        );
+    }
+    
+    
+}//end of function connect_blsr_gs_output
+
+/*******************************************************************
+********************************************************************/
+function connect_blsr_gs_output1 
+(
+    unsigned int rx,
+    unsigned int tx_blsr,
+    unsigned int tx_wlsr1_l,
+    unsigned int tx_wlsr1_r,
+    unsigned int tx_dll_l,
+    unsigned int tx_dll_r,
+    unsigned int flag
+)
+{
+    int sy_blsr = rx * NUM_GRID_BLSR_Y;
+    int sx_blsr = tx_blsr * NUM_GRID_X;
+    int sy_wlsr = rx * ((NUM_TILES_REGION-1)*NUM_GRID_Y+NUM_GRID_WLSR_Y) + MID_TILE_REGION*NUM_GRID_Y;
+    int sx_wlsr1_l = tx_wlsr1_l * NUM_GRID_X;
+    int sx_wlsr1_r = tx_wlsr1_r * NUM_GRID_X;
+    int sx_dll_l = tx_dll_l * NUM_GRID_X + 2;
+    int sx_dll_r = tx_dll_r * NUM_GRID_X + 2;
+
+    string device_dll_l =  "IOCKGATEDLL_TILE";
+    string device_dll_r =  "IOCKGATEDLL_TILE";
+
+
+    connect
+      (
+        <pin BUS_BSCAN_IN of <device WLSR1_TILE @ [sx_wlsr1_l,sy_wlsr]>>    => <wire BUS_BSCAN_OUTL of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+        <pin BUS_BSCAN_IN of <device WLSR1_TILE @ [sx_wlsr1_r,sy_wlsr]>>    => <wire BUS_BSCAN_OUTR of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+
+        <pin CLK_ADC_IN of <device WLSR1_TILE @ [sx_wlsr1_l,sy_wlsr]>>      => <wire CLK_ADC_L of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+        <pin CLK_ADC_IN of <device WLSR1_TILE @ [sx_wlsr1_r,sy_wlsr]>>      => <wire CLK_ADC_R of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+
+        <pin BUS_BSCAN_IN of <device *device_dll_l @ [sx_dll_l,sy_wlsr-NUM_GRID_Y]>>   => <wire BUS_BSCAN_OUT of <device WLSR1_TILE @ [sx_wlsr1_l,sy_wlsr]>>,
+        <pin BUS_BSCAN_IN of <device *device_dll_r @ [sx_dll_r,sy_wlsr-NUM_GRID_Y]>>   => <wire BUS_BSCAN_OUT of <device WLSR1_TILE @ [sx_wlsr1_r,sy_wlsr]>>
+      );
+
+
+}//end of function connect_blsr_gs_output
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_BLSR_input_pgl
+(
+   unsigned int region_index,
+   unsigned int tx_wlsr1_l,
+   unsigned int tx_wlsr1_r,
+   unsigned int tx_blsr,
+   unsigned int tx_ccs,
+   unsigned int ty_ccs,
+   unsigned int tx_wlsr2,
+   unsigned int num_region,
+   unsigned int num_tx,
+   unsign)
+{
+  int sx = tx_blsr * NUM_GRID_X;
+  int sy = region_index * NUM_GRID_BLSR_Y;
+
+  int sy_wlsr = region_index * ((NUM_TILES_REGION - 1) * NUM_GRID_Y + NUM_GRID_DLL_Y) + MID_TILE_REGION * NUM_GRID_Y;
+  int sx_bkcl_l = 0;
+  int sx_bkcl_r = (num_tx-1)*NUM_GRID_X;
+
+  int sx_wlsr1_l = tx_wlsr1_l * NUM_GRID_X;
+  int sx_wlsr1_r = tx_wlsr1_r * NUM_GRID_X;
+  int sy_iob = region_index * ((NUM_TILES_REGION - 1) * NUM_GRID_Y + NUM_GRID_DLL_Y);
+
+
+
+  connect
+    (
+      <pin COL_INC_I of <device BLSR_TILE @ [sx,sy]>>         => <wire COL_INC_OUT of <device IOB_TILE @ [sx_bkcl_r,sy_iob]>>,
+
+      <pin NONDRM_REG_INC_I of <device BLSR_TILE @ [sx,sy]>>  => <wire REGION_INC of <device IOB_TILE @ [sx_bkcl_r,sy_iob]>>,
+      <pin CAL_DONE_L_IN of <device BLSR_TILE @ [sx,sy]>>     => <wire CAL_DONE_OUT of <device WLSR1_TILE @ [sx_wlsr1_l,sy_wlsr]>>,
+      <pin CAL_DONE_R_IN of <device BLSR_TILE @ [sx,sy]>>     => <wire CAL_DONE_OUT of <device WLSR1_TILE @ [sx_wlsr1_r,sy_wlsr]>>
+    );
+
+  int sx_ccs = tx_ccs * NUM_GRID_X + 2;
+  int sy_ccs = ty_ccs * NUM_GRID_Y;
+
+  int ty;
+  for(ty=ty_ccs;ty>MID_TILE_REGION;ty=ty-NUM_TILES_REGION)
+  {
+    sy_ccs = sy_ccs + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+  }
+
+  if(region_index==(num_region-1))
+  {
+    connect
+      (
+        <pin DATA_IN of <device BLSR_TILE @ [sx,sy]>>       => <wire DATA_O of <device CCS_TILE @ [sx_ccs,sy_ccs]>>,
+        <pin CLK_IN of <device BLSR_TILE @ [sx,sy]>>        => <wire BLSRCLK_O of <device CCS_TILE @ [sx_ccs,sy_ccs]>>,
+        <pin ERASE_EN of <device BLSR_TILE @ [sx,sy]>>      => <wire ERASE_EN_O of <device CCS_TILE @ [sx_ccs,sy_ccs]>>,
+        <pin POR_ERASE_N of <device BLSR_TILE @ [sx,sy]>>   => <wire POR_N_O of <device CCS_TILE @ [sx_ccs,sy_ccs]>>,
+        <pin PRECHG of <device BLSR_TILE @ [sx,sy]>>        => <wire PRECHG_O of <device CCS_TILE @ [sx_ccs,sy_ccs]>>,
+        <pin PROG_CAP of <device BLSR_TILE @ [sx,sy]>>      => <wire PROG_CAP_O of <device CCS_TILE @ [sx_ccs,sy_ccs]>>,
+        <pin PROG_ON of <device BLSR_TILE @ [sx,sy]>>       => <wire PROG_ON_O of <device CCS_TILE @ [sx_ccs,sy_ccs]>>,
+        <pin READ of <device BLSR_TILE @ [sx,sy]>>          => <wire READ_O of <device CCS_TILE @ [sx_ccs,sy_ccs]>>,
+        <pin RDBK_CAP of <device BLSR_TILE @ [sx,sy]>>      => <wire RDBK_CAP_O of <device CCS_TILE @ [sx_ccs,sy_ccs]>>,
+        <pin WL_ON_I of <device BLSR_TILE @ [sx,sy]>>       => <wire WL_ON_O of <device CCS_TILE @ [sx_ccs,sy_ccs]>>,
+        <pin PD_IN of <device BLSR_TILE @ [sx,sy]>>         => <wire PD_OUT of <device CCS_TILE @ [sx_ccs,sy_ccs]>>,
+        <pin PUB_IN of <device BLSR_TILE @ [sx,sy]>>        => <wire PUB_OUT of <device CCS_TILE @ [sx_ccs,sy_ccs]>>,
+        <pin WLSR_SEL_I of <device BLSR_TILE @ [sx,sy]>>    => <wire WLSHFT_SEL_O of <device CCS_TILE @ [sx_ccs,sy_ccs]>>,
+        <pin RSTN of <device BLSR_TILE @ [sx,sy]>>          => <wire RST_BLSR_O of <device CCS_TILE @ [sx_ccs,sy_ccs]>>,
+        <pin BLSR_SEL of <device BLSR_TILE @ [sx,sy]>>      => <wire BLSHFT_SEL_O of <device CCS_TILE @ [sx_ccs,sy_ccs]>>,
+        <pin REGION_RW_EN of <device BLSR_TILE @ [sx,sy]>>  => <wire REGION_RW_EN_O of <device CCS_TILE @ [sx_ccs,sy_ccs]>>,
+        <pin COL_IN_I of <device BLSR_TILE @ [sx,sy]>>      => <wire COL_IN_O of <device CCS_TILE @ [sx_ccs,sy_ccs]>>,
+        <pin TYPE_I of <device BLSR_TILE @ [sx,sy]>>        => <wire TYPE_O of <device CCS_TILE @ [sx_ccs,sy_ccs]>>,
+        <pin FRAME_ADDR_I of <device BLSR_TILE @ [sx,sy]>>  => <wire FRAME_ADDR_O of <device CCS_TILE @ [sx_ccs,sy_ccs]>>,
+
+        <pin MCLKB_I of <device BLSR_TILE @ [sx,sy]>>       => <wire MCLKB_O of <device CCS_TILE @ [sx_ccs,sy_ccs]>>,
+        <pin MCE_I of <device BLSR_TILE @ [sx,sy]>>         => <wire MCE_O of <device CCS_TILE @ [sx_ccs,sy_ccs]>>,
+        <pin MWR_I of <device BLSR_TILE @ [sx,sy]>>         => <wire MWR_O of <device CCS_TILE @ [sx_ccs,sy_ccs]>>,
+
+        <pin BUS_BSCAN_IN of <device BLSR_TILE @ [sx,sy]>>  => <wire BUS_BSCAN_OUT of <device CCS_TILE @ [sx_ccs,sy_ccs]>>,
+        <pin CLK_REL_IN of <device BLSR_TILE @ [sx,sy]>>    => <wire RELCK of <device CCS_TILE @ [sx_ccs,sy_ccs]>>,
+        <pin GLOGEN_IN of <device BLSR_TILE @ [sx,sy]>>     => <wire GLOGEN of <device CCS_TILE @ [sx_ccs,sy_ccs]>>,
+        <pin GRS_N_IN of <device BLSR_TILE @ [sx,sy]>>      => <wire GRS_N of <device CCS_TILE @ [sx_ccs,sy_ccs]>>,
+        <pin GWEN_IN of <device BLSR_TILE @ [sx,sy]>>       => <wire GWEN of <device CCS_TILE @ [sx_ccs,sy_ccs]>>,
+        <pin POR_N_IN of <device BLSR_TILE @ [sx,sy]>>      => <wire POR_N of <device CCS_TILE @ [sx_ccs,sy_ccs]>>,
+        <pin PUP_REL_N_IN of <device BLSR_TILE @ [sx,sy]>>  => <wire PUP_SEL_N of <device CCS_TILE @ [sx_ccs,sy_ccs]>>,
+
+        <pin CLK_ADC_IN0 of <device BLSR_TILE @ [sx,sy]>>   => <wire CLK_ADC of <device CCS_TILE @ [sx_ccs,sy_ccs]>>,
+        <pin CLK_ADC_IN1 of <device BLSR_TILE @ [sx,sy]>>   => <wire CLK_ADC of <device CCS_TILE @ [sx_ccs,sy_ccs]>>,
+        <pin CLK_ADC_IN2 of <device BLSR_TILE @ [sx,sy]>>   => <wire CLK_ADC of <device CCS_TILE @ [sx_ccs,sy_ccs]>>,
+        <pin CLK_USER_IN of <device BLSR_TILE @ [sx,sy]>>   => <wire CLK_USER of <device CCS_TILE @ [sx_ccs,sy_ccs]>>
+
+      );
+  }
+  else
+  {
+     connect
+      (
+        <pin DATA_IN of <device BLSR_TILE @ [sx,sy]>>       => <wire DATA_TO_NEXT of <device BLSR_TILE @ [sx,sy+NUM_GRID_BLSR_Y]>>,
+        <pin CLK_IN of <device BLSR_TILE @ [sx,sy]>>        => <wire CLKOUT_M of <device BLSR_TILE @ [sx,sy+NUM_GRID_BLSR_Y]>>,
+        <pin ERASE_EN of <device BLSR_TILE @ [sx,sy]>>      => <wire ERASE_EN_O of <device BLSR_TILE @ [sx,sy+NUM_GRID_BLSR_Y]>>,
+        <pin POR_ERASE_N of <device BLSR_TILE @ [sx,sy]>>   => <wire POR_ERASE_N_O of <device BLSR_TILE @ [sx,sy+NUM_GRID_BLSR_Y]>>,
+        <pin PRECHG of <device BLSR_TILE @ [sx,sy]>>        => <wire PRECHG_O of <device BLSR_TILE @ [sx,sy+NUM_GRID_BLSR_Y]>>,
+        <pin PROG_CAP of <device BLSR_TILE @ [sx,sy]>>      => <wire PROG_CAP_O of <device BLSR_TILE @ [sx,sy+NUM_GRID_BLSR_Y]>>,
+        <pin PROG_ON of <device BLSR_TILE @ [sx,sy]>>       => <wire PROG_ON_O of <device BLSR_TILE @ [sx,sy+NUM_GRID_BLSR_Y]>>,
+        <pin READ of <device BLSR_TILE @ [sx,sy]>>          => <wire READ_O of <device BLSR_TILE @ [sx,sy+NUM_GRID_BLSR_Y]>>,
+        <pin RDBK_CAP of <device BLSR_TILE @ [sx,sy]>>      => <wire RDBK_CAP_O of <device BLSR_TILE @ [sx,sy+NUM_GRID_BLSR_Y]>>,
+        <pin WL_ON_I of <device BLSR_TILE @ [sx,sy]>>       => <wire WL_ON_O of <device BLSR_TILE @ [sx,sy+NUM_GRID_BLSR_Y]>>,
+        <pin PD_IN of <device BLSR_TILE @ [sx,sy]>>         => <wire PD_OUT of <device BLSR_TILE @ [sx,sy+NUM_GRID_BLSR_Y]>>,
+        <pin PUB_IN of <device BLSR_TILE @ [sx,sy]>>        => <wire PUB_OUT of <device BLSR_TILE @ [sx,sy+NUM_GRID_BLSR_Y]>>,
+        <pin WLSR_SEL_I of <device BLSR_TILE @ [sx,sy]>>    => <wire WLSR_SEL_O of <device BLSR_TILE @ [sx,sy+NUM_GRID_BLSR_Y]>>,
+        <pin RSTN of <device BLSR_TILE @ [sx,sy]>>          => <wire RSTN_O of <device BLSR_TILE @ [sx,sy+NUM_GRID_BLSR_Y]>>,
+        <pin BLSR_SEL of <device BLSR_TILE @ [sx,sy]>>      => <wire BLSR_SEL_O of <device BLSR_TILE @ [sx,sy+NUM_GRID_BLSR_Y]>>,
+        <pin REGION_RW_EN of <device BLSR_TILE @ [sx,sy]>>  => <wire REGION_RW_EN_O of <device BLSR_TILE @ [sx,sy+NUM_GRID_BLSR_Y]>>,
+        <pin COL_IN_I of <device BLSR_TILE @ [sx,sy]>>      => <wire COL_IN_O of <device BLSR_TILE @ [sx,sy+NUM_GRID_BLSR_Y]>>,
+        <pin TYPE_I of <device BLSR_TILE @ [sx,sy]>>        => <wire TYPE_O of <device BLSR_TILE @ [sx,sy+NUM_GRID_BLSR_Y]>>,
+        <pin FRAME_ADDR_I of <device BLSR_TILE @ [sx,sy]>>  => <wire FRAME_ADDR_O of <device BLSR_TILE @ [sx,sy+NUM_GRID_BLSR_Y]>>,
+
+        <pin MCLKB_I of <device BLSR_TILE @ [sx,sy]>>       => <wire MCLKB_O of <device BLSR_TILE @ [sx,sy+NUM_GRID_BLSR_Y]>>,
+        <pin MCE_I of <device BLSR_TILE @ [sx,sy]>>         => <wire MCE_O of <device BLSR_TILE @ [sx,sy+NUM_GRID_BLSR_Y]>>,
+        <pin MWR_I of <device BLSR_TILE @ [sx,sy]>>         => <wire MWR_O of <device BLSR_TILE @ [sx,sy+NUM_GRID_BLSR_Y]>>,
+
+        <pin BUS_BSCAN_IN of <device BLSR_TILE @ [sx,sy]>>    => <wire BUS_BSCAN_OUTM of <device BLSR_TILE @ [sx,sy+NUM_GRID_BLSR_Y]>>,
+        <pin CLK_REL_IN of <device BLSR_TILE @ [sx,sy]>>      => <wire CLK_REL_OUT_M of <device BLSR_TILE @ [sx,sy+NUM_GRID_BLSR_Y]>>,
+        <pin GLOGEN_IN of <device BLSR_TILE @ [sx,sy]>>       => <wire GLOGEN_OUT of <device BLSR_TILE @ [sx,sy+NUM_GRID_BLSR_Y]>>,
+        <pin GRS_N_IN of <device BLSR_TILE @ [sx,sy]>>        => <wire GRS_N_OUT_M of <device BLSR_TILE @ [sx,sy+NUM_GRID_BLSR_Y]>>,
+        <pin GWEN_IN of <device BLSR_TILE @ [sx,sy]>>         => <wire GWEN_OUT_M of <device BLSR_TILE @ [sx,sy+NUM_GRID_BLSR_Y]>>,
+        <pin POR_N_IN of <device BLSR_TILE @ [sx,sy]>>        => <wire POR_N_OUT_M of <device BLSR_TILE @ [sx,sy+NUM_GRID_BLSR_Y]>>,
+        <pin PUP_REL_N_IN of <device BLSR_TILE @ [sx,sy]>>    => <wire PUP_REL_N_OUT_M of <device BLSR_TILE @ [sx,sy+NUM_GRID_BLSR_Y]>>,
+
+        <pin CLK_ADC_IN0 of <device BLSR_TILE @ [sx,sy]>>     => <wire CLK_ADC_OUT of <device BLSR_TILE @ [sx,sy+NUM_GRID_BLSR_Y]>>,
+        <pin CLK_ADC_IN1 of <device BLSR_TILE @ [sx,sy]>>     => <wire CLK_ADC_OUT of <device BLSR_TILE @ [sx,sy+NUM_GRID_BLSR_Y]>>,
+        <pin CLK_ADC_IN2 of <device BLSR_TILE @ [sx,sy]>>     => <wire CLK_ADC_OUT of <device BLSR_TILE @ [sx,sy+NUM_GRID_BLSR_Y]>>,
+        <pin CLK_USER_IN of <device BLSR_TILE @ [sx,sy]>>     => <wire CLK_USER_OUT of <device BLSR_TILE @ [sx,sy+NUM_GRID_BLSR_Y]>>
+      );
+  }
+
+  unsigned int sx_wlsr = tx_wlsr2 * NUM_GRID_Y;
+
+  if(region_index==0)
+  {
+    connect
+      (
+        <pin DSOUT_PRE[31] of <device BLSR_TILE @ [sx,sy]>>          => <wire TIEL1 of <device BLSR_TILE @ [sx,sy]>>,
+        <pin DSOUT_PRE[30] of <device BLSR_TILE @ [sx,sy]>>          => <wire TIEL1 of <device BLSR_TILE @ [sx,sy]>>,
+        <pin DSOUT_PRE[29] of <device BLSR_TILE @ [sx,sy]>>          => <wire TIEL1 of <device BLSR_TILE @ [sx,sy]>>,
+        <pin DSOUT_PRE[28] of <device BLSR_TILE @ [sx,sy]>>          => <wire TIEL1 of <device BLSR_TILE @ [sx,sy]>>,
+        <pin DSOUT_PRE[27] of <device BLSR_TILE @ [sx,sy]>>          => <wire TIEL1 of <device BLSR_TILE @ [sx,sy]>>,
+        <pin DSOUT_PRE[26] of <device BLSR_TILE @ [sx,sy]>>          => <wire TIEL1 of <device BLSR_TILE @ [sx,sy]>>,
+        <pin DSOUT_PRE[25] of <device BLSR_TILE @ [sx,sy]>>          => <wire TIEL1 of <device BLSR_TILE @ [sx,sy]>>,
+        <pin DSOUT_PRE[24] of <device BLSR_TILE @ [sx,sy]>>          => <wire TIEL1 of <device BLSR_TILE @ [sx,sy]>>,
+        <pin DSOUT_PRE[23] of <device BLSR_TILE @ [sx,sy]>>          => <wire TIEL1 of <device BLSR_TILE @ [sx,sy]>>,
+        <pin DSOUT_PRE[22] of <device BLSR_TILE @ [sx,sy]>>          => <wire TIEL1 of <device BLSR_TILE @ [sx,sy]>>,
+        <pin DSOUT_PRE[21] of <device BLSR_TILE @ [sx,sy]>>          => <wire TIEL1 of <device BLSR_TILE @ [sx,sy]>>,
+        <pin DSOUT_PRE[20] of <device BLSR_TILE @ [sx,sy]>>          => <wire TIEL1 of <device BLSR_TILE @ [sx,sy]>>,
+        <pin DSOUT_PRE[19] of <device BLSR_TILE @ [sx,sy]>>          => <wire TIEL1 of <device BLSR_TILE @ [sx,sy]>>,
+        <pin DSOUT_PRE[18] of <device BLSR_TILE @ [sx,sy]>>          => <wire TIEL1 of <device BLSR_TILE @ [sx,sy]>>,
+        <pin DSOUT_PRE[17] of <device BLSR_TILE @ [sx,sy]>>          => <wire TIEL1 of <device BLSR_TILE @ [sx,sy]>>,
+        <pin DSOUT_PRE[16] of <device BLSR_TILE @ [sx,sy]>>          => <wire TIEL1 of <device BLSR_TILE @ [sx,sy]>>,
+        <pin DSOUT_PRE[15] of <device BLSR_TILE @ [sx,sy]>>          => <wire TIEL1 of <device BLSR_TILE @ [sx,sy]>>,
+        <pin DSOUT_PRE[14] of <device BLSR_TILE @ [sx,sy]>>          => <wire TIEL1 of <device BLSR_TILE @ [sx,sy]>>,
+        <pin DSOUT_PRE[13] of <device BLSR_TILE @ [sx,sy]>>          => <wire TIEL1 of <device BLSR_TILE @ [sx,sy]>>,
+        <pin DSOUT_PRE[12] of <device BLSR_TILE @ [sx,sy]>>          => <wire TIEL1 of <device BLSR_TILE @ [sx,sy]>>,
+        <pin DSOUT_PRE[11] of <device BLSR_TILE @ [sx,sy]>>          => <wire TIEL1 of <device BLSR_TILE @ [sx,sy]>>,
+        <pin DSOUT_PRE[10] of <device BLSR_TILE @ [sx,sy]>>          => <wire TIEL1 of <device BLSR_TILE @ [sx,sy]>>,
+        <pin DSOUT_PRE[9] of <device BLSR_TILE @ [sx,sy]>>           => <wire TIEL1 of <device BLSR_TILE @ [sx,sy]>>,
+        <pin DSOUT_PRE[8] of <device BLSR_TILE @ [sx,sy]>>           => <wire TIEL1 of <device BLSR_TILE @ [sx,sy]>>,
+        <pin DSOUT_PRE[7] of <device BLSR_TILE @ [sx,sy]>>           => <wire TIEL1 of <device BLSR_TILE @ [sx,sy]>>,
+        <pin DSOUT_PRE[6] of <device BLSR_TILE @ [sx,sy]>>           => <wire TIEL1 of <device BLSR_TILE @ [sx,sy]>>,
+        <pin DSOUT_PRE[5] of <device BLSR_TILE @ [sx,sy]>>           => <wire TIEL1 of <device BLSR_TILE @ [sx,sy]>>,
+        <pin DSOUT_PRE[4] of <device BLSR_TILE @ [sx,sy]>>           => <wire TIEL1 of <device BLSR_TILE @ [sx,sy]>>,
+        <pin DSOUT_PRE[3] of <device BLSR_TILE @ [sx,sy]>>           => <wire TIEL1 of <device BLSR_TILE @ [sx,sy]>>,
+        <pin DSOUT_PRE[2] of <device BLSR_TILE @ [sx,sy]>>           => <wire TIEL1 of <device BLSR_TILE @ [sx,sy]>>,
+        <pin DSOUT_PRE[1] of <device BLSR_TILE @ [sx,sy]>>           => <wire TIEL1 of <device BLSR_TILE @ [sx,sy]>>,
+        <pin DSOUT_PRE[0] of <device BLSR_TILE @ [sx,sy]>>           => <wire TIEL1 of <device BLSR_TILE @ [sx,sy]>>,
+        <pin COL_INC_PREV_I of <device BLSR_TILE @ [sx,sy]>>         => <wire TIEL2 of <device BLSR_TILE @ [sx,sy]>>,
+        <pin NONDRM_REG_INC_PREV_I of <device BLSR_TILE @ [sx,sy]>>  => <wire TIEL2 of <device BLSR_TILE @ [sx,sy]>>,
+        <pin NONDRM_END_I of <device BLSR_TILE @ [sx,sy]>>             => <wire NONDRM_END_LOCAL of <device BLSR_TILE @ [sx,sy]>>,
+
+        <pin CAL_DONE_M_IN of <device BLSR_TILE @ [sx,sy]>>          => <wire TIEHI of <device WLSR2_TILE @ [sx_wlsr,sy_wlsr]>>
+      );
+  }
+  else
+  {
+    connect
+      (
+        <pin DSOUT_PRE of <device BLSR_TILE @ [sx,sy]>>              => <wire DSROUTTO_CONFIG of <device BLSR_TILE @ [sx,sy-NUM_GRID_BLSR_Y]>>,
+        <pin COL_INC_PREV_I of <device BLSR_TILE @ [sx,sy]>>         => <wire COL_INC_O of <device BLSR_TILE @ [sx,sy-NUM_GRID_BLSR_Y]>>,
+        <pin NONDRM_REG_INC_PREV_I of <device BLSR_TILE @ [sx,sy]>>  => <wire NONDRM_REG_INC_O of <device BLSR_TILE @ [sx,sy-NUM_GRID_BLSR_Y]>>,
+        <pin NONDRM_END_I of <device BLSR_TILE @ [sx,sy]>>           => <wire NONDRM_END_O of <device BLSR_TILE @ [sx,sy-NUM_GRID_BLSR_Y]>>,
+        <pin CAL_DONE_M_IN of <device BLSR_TILE @ [sx,sy]>>          => <wire DCI_INIT of <device BLSR_TILE @ [sx,sy-NUM_GRID_BLSR_Y]>>
+      );
+  }
+
+}//end of function connect_BLSR_input_pgl
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_SRB_bl_input
+(
+    unsigned int tx,
+    unsigned int region_index, 
+    unsigned int tx_blsr,
+    unsigned int flag
+)
+{
+    int sx_blsr = tx_blsr * NUM_GRID_X;
+    int sy_blsr = region_index * NUM_GRID_BLSR_Y;
+    int sx,sy;
+
+    sy = (flag==0) ? region_index*((NUM_TILES_REGION-1)*NUM_GRID_Y+NUM_GRID_WLSR_Y) 
+                   : region_index*((NUM_TILES_REGION-1)*NUM_GRID_Y+NUM_GRID_WLSR_Y)+MID_TILE_REGION*NUM_GRID_Y+NUM_GRID_WLSR_Y;
+
+    sx = tx * NUM_GRID_X;
+    if(flag==1)
+    {
+        connect
+          (   
+            <pin DATA of <device SRB_TILE @ [sx,sy]>>   => <wire DATA[1167:1096] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+            <pin DATAN of <device SRB_TILE @ [sx,sy]>>  => <wire DATAN[1167:1096] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+
+            <pin DATA of <device SRB_TILE @ [sx,sy+NUM_GRID_Y]>>   => <wire DATA[1239:1168] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+            <pin DATAN of <device SRB_TILE @ [sx,sy+NUM_GRID_Y]>>  => <wire DATAN[1239:1168] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+
+            <pin DATA of <device SRB_TILE @ [sx,sy+2*NUM_GRID_Y]>>   => <wire DATA[1311:1240] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+            <pin DATAN of <device SRB_TILE @ [sx,sy+2*NUM_GRID_Y]>>  => <wire DATAN[1311:1240] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,    
+
+            <pin DATA of <device SRB_TILE @ [sx,sy+3*NUM_GRID_Y]>>   => <wire DATA[1383:1312] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+            <pin DATAN of <device SRB_TILE @ [sx,sy+3*NUM_GRID_Y]>>  => <wire DATAN[1383:1312] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+
+            <pin DATA of <device SRB_TILE @ [sx,sy+4*NUM_GRID_Y]>>   => <wire DATA[1455:1384] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+            <pin DATAN of <device SRB_TILE @ [sx,sy+4*NUM_GRID_Y]>>  => <wire DATAN[1455:1384] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+
+            <pin DATA of <device SRB_TILE @ [sx,sy+5*NUM_GRID_Y]>>   => <wire DATA[1527:1456] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+            <pin DATAN of <device SRB_TILE @ [sx,sy+5*NUM_GRID_Y]>>  => <wire DATAN[1527:1456] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+
+            <pin DATA of <device SRB_TILE @ [sx,sy+6*NUM_GRID_Y]>>   => <wire DATA[1599:1528] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+            <pin DATAN of <device SRB_TILE @ [sx,sy+6*NUM_GRID_Y]>>  => <wire DATAN[1599:1528] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+
+            <pin DATA of <device SRB_TILE @ [sx,sy+7*NUM_GRID_Y]>>   => <wire DATA[1671:1600] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+            <pin DATAN of <device SRB_TILE @ [sx,sy+7*NUM_GRID_Y]>>  => <wire DATAN[1671:1600] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+
+            <pin DATA of <device SRB_TILE @ [sx,sy+8*NUM_GRID_Y]>>   => <wire DATA[1743:1672] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+            <pin DATAN of <device SRB_TILE @ [sx,sy+8*NUM_GRID_Y]>>  => <wire DATAN[1743:1672] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+        
+            <pin DATA of <device SRB_TILE @ [sx,sy+9*NUM_GRID_Y]>>   => <wire DATA[1815:1744] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+            <pin DATAN of <device SRB_TILE @ [sx,sy+9*NUM_GRID_Y]>>  => <wire DATAN[1815:1744] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+
+            <pin DATA of <device SRB_TILE @ [sx,sy+10*NUM_GRID_Y]>>   => <wire DATA[1887:1816] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+            <pin DATAN of <device SRB_TILE @ [sx,sy+10*NUM_GRID_Y]>>  => <wire DATAN[1887:1816] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+
+            <pin DATA of <device SRB_TILE @ [sx,sy+11*NUM_GRID_Y]>>   => <wire DATA[1959:1888] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+            <pin DATAN of <device SRB_TILE @ [sx,sy+11*NUM_GRID_Y]>>  => <wire DATAN[1959:1888] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+
+            <pin DATA of <device SRB_TILE @ [sx,sy+12*NUM_GRID_Y]>>   => <wire DATA[2031:1960] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+            <pin DATAN of <device SRB_TILE @ [sx,sy+12*NUM_GRID_Y]>>  => <wire DATAN[2031:1960] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+
+            <pin DATA of <device SRB_TILE @ [sx,sy+13*NUM_GRID_Y]>>   => <wire DATA[2103:2032] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+            <pin DATAN of <device SRB_TILE @ [sx,sy+13*NUM_GRID_Y]>>  => <wire DATAN[2103:2032] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+
+            <pin DATA of <device SRB_TILE @ [sx,sy+14*NUM_GRID_Y]>>   => <wire DATA[2175:2104] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+            <pin DATAN of <device SRB_TILE @ [sx,sy+14*NUM_GRID_Y]>>  => <wire DATAN[2175:2104] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+          );
+    }  
+    else
+    {
+        connect
+          (
+            <pin DATA of <device SRB_TILE @ [sx,sy]>>   => <wire DATA[71:0] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+            <pin DATAN of <device SRB_TILE @ [sx,sy]>>  => <wire DATAN[71:0] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+           
+            <pin DATA of <device SRB_TILE @ [sx,sy+NUM_GRID_Y]>>   => <wire DATA[143:72] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+            <pin DATAN of <device SRB_TILE @ [sx,sy+NUM_GRID_Y]>>  => <wire DATAN[143:72] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+
+            <pin DATA of <device SRB_TILE @ [sx,sy+2*NUM_GRID_Y]>>   => <wire DATA[215:144] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+            <pin DATAN of <device SRB_TILE @ [sx,sy+2*NUM_GRID_Y]>>  => <wire DATAN[215:144] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+
+            <pin DATA of <device SRB_TILE @ [sx,sy+3*NUM_GRID_Y]>>   => <wire DATA[287:216] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+            <pin DATAN of <device SRB_TILE @ [sx,sy+3*NUM_GRID_Y]>>  => <wire DATAN[287:216] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+ 
+            <pin DATA of <device SRB_TILE @ [sx,sy+4*NUM_GRID_Y]>>   => <wire DATA[359:288] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+            <pin DATAN of <device SRB_TILE @ [sx,sy+4*NUM_GRID_Y]>>  => <wire DATAN[359:288] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+
+            <pin DATA of <device SRB_TILE @ [sx,sy+5*NUM_GRID_Y]>>   => <wire DATA[431:360] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+            <pin DATAN of <device SRB_TILE @ [sx,sy+5*NUM_GRID_Y]>>  => <wire DATAN[431:360] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+
+            <pin DATA of <device SRB_TILE @ [sx,sy+6*NUM_GRID_Y]>>   => <wire DATA[503:432] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+            <pin DATAN of <device SRB_TILE @ [sx,sy+6*NUM_GRID_Y]>>  => <wire DATAN[503:432] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+
+            <pin DATA of <device SRB_TILE @ [sx,sy+7*NUM_GRID_Y]>>   => <wire DATA[575:504] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+            <pin DATAN of <device SRB_TILE @ [sx,sy+7*NUM_GRID_Y]>>  => <wire DATAN[575:504] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+
+            <pin DATA of <device SRB_TILE @ [sx,sy+8*NUM_GRID_Y]>>   => <wire DATA[647:576] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+            <pin DATAN of <device SRB_TILE @ [sx,sy+8*NUM_GRID_Y]>>  => <wire DATAN[647:576] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+
+            <pin DATA of <device SRB_TILE @ [sx,sy+9*NUM_GRID_Y]>>   => <wire DATA[719:648] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+            <pin DATAN of <device SRB_TILE @ [sx,sy+9*NUM_GRID_Y]>>  => <wire DATAN[719:648] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+
+            <pin DATA of <device SRB_TILE @ [sx,sy+10*NUM_GRID_Y]>>   => <wire DATA[791:720] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+            <pin DATAN of <device SRB_TILE @ [sx,sy+10*NUM_GRID_Y]>>  => <wire DATAN[791:720] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+
+            <pin DATA of <device SRB_TILE @ [sx,sy+11*NUM_GRID_Y]>>   => <wire DATA[863:792] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+            <pin DATAN of <device SRB_TILE @ [sx,sy+11*NUM_GRID_Y]>>  => <wire DATAN[863:792] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+
+            <pin DATA of <device SRB_TILE @ [sx,sy+12*NUM_GRID_Y]>>   => <wire DATA[935:864] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+            <pin DATAN of <device SRB_TILE @ [sx,sy+12*NUM_GRID_Y]>>  => <wire DATAN[935:864] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+
+            <pin DATA of <device SRB_TILE @ [sx,sy+13*NUM_GRID_Y]>>   => <wire DATA[1007:936] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+            <pin DATAN of <device SRB_TILE @ [sx,sy+13*NUM_GRID_Y]>>  => <wire DATAN[1007:936] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+
+            <pin DATA of <device SRB_TILE @ [sx,sy+14*NUM_GRID_Y]>>   => <wire DATA[1079:1008] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+            <pin DATAN of <device SRB_TILE @ [sx,sy+14*NUM_GRID_Y]>>  => <wire DATAN[1079:1008] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+          );
+    }
+}//end of connect_SRB_bl_input
+
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_CLM_bl_input
+(
+    unsigned int region_index, 
+    unsigned int tx,
+    unsigned int ty,
+    unsigned int tx_blsr, 
+    unsigned int flag
+)
+{
+    int sx_blsr = tx_blsr * NUM_GRID_X;
+    int sy_blsr = region_index * NUM_GRID_BLSR_Y;
+    int sx,sy;
+
+    string device_clm;
+    device_clm = flag ? "CLMA_TILE" : "CLMS_TILE";
+
+    sx = tx * NUM_GRID_X;
+
+    sy = region_index * ((NUM_TILES_REGION-1)*NUM_GRID_Y+NUM_GRID_WLSR_Y) + (ty-1)*NUM_GRID_Y + NUM_GRID_WLSR_Y;
+
+    if(ty==16)
+    {
+      connect
+        (   
+          <pin DATA of <device *device_clm @ [sx+2,sy]>>   => <wire DATA[1167:1096] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN of <device *device_clm @ [sx+2,sy]>>  => <wire DATAN[1167:1096] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+        );
+    }
+    if(ty==17)
+    {
+      connect
+        (
+          <pin DATA of <device *device_clm @ [sx+2,sy]>>   => <wire DATA[1239:1168] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN of <device *device_clm @ [sx+2,sy]>>  => <wire DATAN[1239:1168] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+        );
+    }
+    if(ty==18)
+    {
+      connect
+        (
+          <pin DATA of <device *device_clm @ [sx+2,sy]>>   => <wire DATA[1311:1240] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN of <device *device_clm @ [sx+2,sy]>>  => <wire DATAN[1311:1240] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+        );
+    }
+   if(ty==19)
+    {
+      connect
+        (
+          <pin DATA of <device *device_clm @ [sx+2,sy]>>   => <wire DATA[1383:1312] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN of <device *device_clm @ [sx+2,sy]>>  => <wire DATAN[1383:1312] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+        );
+    }
+    if(ty==20)
+    {
+      connect
+        (
+          <pin DATA of <device *device_clm @ [sx+2,sy]>>   => <wire DATA[1455:1384] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN of <device *device_clm @ [sx+2,sy]>>  => <wire DATAN[1455:1384] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+        );
+    }
+    if(ty==21)
+    {
+      connect
+        (
+          <pin DATA of <device *device_clm @ [sx+2,sy]>>   => <wire DATA[1527:1456] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN of <device *device_clm @ [sx+2,sy]>>  => <wire DATAN[1527:1456] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+        );
+    }
+    if(ty==22)
+    {
+      connect
+        (
+          <pin DATA of <device *device_clm @ [sx+2,sy]>>   => <wire DATA[1599:1528] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN of <device *device_clm @ [sx+2,sy]>>  => <wire DATAN[1599:1528] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+        );
+    }
+    if(ty==23)
+    {
+      connect
+        (
+          <pin DATA of <device *device_clm @ [sx+2,sy]>>   => <wire DATA[1671:1600] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN of <device *device_clm @ [sx+2,sy]>>  => <wire DATAN[1671:1600] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+        );
+    }
+    if(ty==24)
+    {
+      connect
+        (
+          <pin DATA of <device *device_clm @ [sx+2,sy]>>   => <wire DATA[1743:1672] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN of <device *device_clm @ [sx+2,sy]>>  => <wire DATAN[1743:1672] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+        );
+    }
+    if(ty==25)
+    {
+      connect
+        (
+          <pin DATA of <device *device_clm @ [sx+2,sy]>>   => <wire DATA[1815:1744] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN of <device *device_clm @ [sx+2,sy]>>  => <wire DATAN[1815:1744] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+        );
+    }
+    if(ty==26)
+    {
+      connect
+        (
+          <pin DATA of <device *device_clm @ [sx+2,sy]>>   => <wire DATA[1887:1816] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN of <device *device_clm @ [sx+2,sy]>>  => <wire DATAN[1887:1816] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+        );
+    }
+    if(ty==27)
+    {
+      connect
+        (
+          <pin DATA of <device *device_clm @ [sx+2,sy]>>   => <wire DATA[1959:1888] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN of <device *device_clm @ [sx+2,sy]>>  => <wire DATAN[1959:1888] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+        );
+    }
+    if(ty==28)
+    {
+      connect
+        (
+          <pin DATA of <device *device_clm @ [sx+2,sy]>>   => <wire DATA[2031:1960] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN of <device *device_clm @ [sx+2,sy]>>  => <wire DATAN[2031:1960] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+        );
+    }
+    if(ty==29)
+    {
+      connect
+        (
+          <pin DATA of <device *device_clm @ [sx+2,sy]>>   => <wire DATA[2103:2032] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN of <device *device_clm @ [sx+2,sy]>>  => <wire DATAN[2103:2032] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+        );
+    }
+    if(ty==30)
+    {
+      connect
+        (
+          <pin DATA of <device *device_clm @ [sx+2,sy]>>   => <wire DATA[2175:2104] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN of <device *device_clm @ [sx+2,sy]>>  => <wire DATAN[2175:2104] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+        );
+    }
+
+    sy = region_index * ((NUM_TILES_REGION-1)*NUM_GRID_Y+NUM_GRID_WLSR_Y) + ty*NUM_GRID_Y;
+    if(ty==0)  
+    {
+      connect
+        (
+          <pin DATA of <device *device_clm @ [sx+2,sy]>>   => <wire DATA[71:0] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN of <device *device_clm @ [sx+2,sy]>>  => <wire DATAN[71:0] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+        );
+    }
+    if(ty==1)  
+    {
+      connect
+        (
+          <pin DATA of <device *device_clm @ [sx+2,sy]>>   => <wire DATA[143:72] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN of <device *device_clm @ [sx+2,sy]>>  => <wire DATAN[143:72] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+        );
+    }
+    if(ty==2)  
+    {
+      connect
+        (
+          <pin DATA of <device *device_clm @ [sx+2,sy]>>   => <wire DATA[215:144] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN of <device *device_clm @ [sx+2,sy]>>  => <wire DATAN[215:144] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+        );
+    }
+    if(ty==3)  
+    {
+      connect
+        (
+          <pin DATA of <device *device_clm @ [sx+2,sy]>>   => <wire DATA[287:216] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN of <device *device_clm @ [sx+2,sy]>>  => <wire DATAN[287:216] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+        );
+    }
+    if(ty==4)  
+    {
+      connect
+        (
+          <pin DATA of <device *device_clm @ [sx+2,sy]>>   => <wire DATA[359:288] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN of <device *device_clm @ [sx+2,sy]>>  => <wire DATAN[359:288] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+        );
+    }
+    if(ty==5)  
+    {
+      connect
+        (
+          <pin DATA of <device *device_clm @ [sx+2,sy]>>   => <wire DATA[431:360] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN of <device *device_clm @ [sx+2,sy]>>  => <wire DATAN[431:360] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+        );
+    }
+    if(ty==6)  
+    {
+      connect
+        (
+          <pin DATA of <device *device_clm @ [sx+2,sy]>>   => <wire DATA[503:432] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN of <device *device_clm @ [sx+2,sy]>>  => <wire DATAN[503:432] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+        );
+    }
+    if(ty==7)  
+    {
+      connect
+        (
+          <pin DATA of <device *device_clm @ [sx+2,sy]>>   => <wire DATA[575:504] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN of <device *device_clm @ [sx+2,sy]>>  => <wire DATAN[575:504] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+        );
+    }
+    if(ty==8)  
+    {
+      connect
+        (
+          <pin DATA of <device *device_clm @ [sx+2,sy]>>   => <wire DATA[647:576] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN of <device *device_clm @ [sx+2,sy]>>  => <wire DATAN[647:576] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+        );
+    } 
+    if(ty==9)  
+    {
+      connect
+        (
+          <pin DATA of <device *device_clm @ [sx+2,sy]>>   => <wire DATA[719:648] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN of <device *device_clm @ [sx+2,sy]>>  => <wire DATAN[719:648] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+        );
+    } 
+    if(ty==10)  
+    {
+      connect
+        (
+          <pin DATA of <device *device_clm @ [sx+2,sy]>>   => <wire DATA[791:720] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN of <device *device_clm @ [sx+2,sy]>>  => <wire DATAN[791:720] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+        );
+    } 
+    if(ty==11)  
+    {
+      connect
+        (
+          <pin DATA of <device *device_clm @ [sx+2,sy]>>   => <wire DATA[863:792] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN of <device *device_clm @ [sx+2,sy]>>  => <wire DATAN[863:792] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+        );
+    } 
+    if(ty==12)  
+    {
+      connect
+        (
+          <pin DATA of <device *device_clm @ [sx+2,sy]>>   => <wire DATA[935:864] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN of <device *device_clm @ [sx+2,sy]>>  => <wire DATAN[935:864] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+        );
+    }
+    if(ty==13)  
+    {
+      connect
+        (
+          <pin DATA of <device *device_clm @ [sx+2,sy]>>   => <wire DATA[1007:936] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN of <device *device_clm @ [sx+2,sy]>>  => <wire DATAN[1007:936] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+        );
+    }
+    if(ty==14)  
+    {
+      connect
+        (
+          <pin DATA of <device *device_clm @ [sx+2,sy]>>   => <wire DATA[1079:1008] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN of <device *device_clm @ [sx+2,sy]>>  => <wire DATAN[1079:1008] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+        );
+    }
+
+}//end of connect_CLM_bl_input
+
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_APM_bl_input
+(
+    unsigned int region_index,
+    unsigned int tx,
+    unsigned int tx_blsr
+)
+{
+    int sx_blsr = tx_blsr * NUM_GRID_X;
+    int sy_blsr = region_index * NUM_GRID_BLSR_Y;
+
+    int ty;
+    int sx,sy;
+
+    sx = tx * NUM_GRID_X;
+    foreach ty({[6:10]})
+    {
+        sy = region_index * ((NUM_TILES_REGION-1)*NUM_GRID_Y+NUM_GRID_WLSR_Y) + (ty-1)*NUM_GRID_APM_Y + NUM_GRID_WLSR_Y;
+        if(ty==6)
+        {
+          connect
+            (   
+              <pin DATA of <device APM_TILE @ [sx+2,sy]>>   => <wire DATA[1311:1096] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+              <pin DATAN of <device APM_TILE @ [sx+2,sy]>>  => <wire DATAN[1311:1096] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+            );
+        }
+        if(ty==7)
+        {
+          connect
+            (
+              <pin DATA of <device APM_TILE @ [sx+2,sy]>>   => <wire DATA[1527:1312] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+              <pin DATAN of <device APM_TILE @ [sx+2,sy]>>  => <wire DATAN[1527:1312] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+            );
+        }
+        if(ty==8)
+        {
+          connect
+            (
+              <pin DATA of <device APM_TILE @ [sx+2,sy]>>   => <wire DATA[1743:1528] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+              <pin DATAN of <device APM_TILE @ [sx+2,sy]>>  => <wire DATAN[1743:1528] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+            );
+        }
+       if(ty==9)
+        {
+          connect
+            (
+              <pin DATA of <device APM_TILE @ [sx+2,sy]>>   => <wire DATA[1959:1744] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+              <pin DATAN of <device APM_TILE @ [sx+2,sy]>>  => <wire DATAN[1959:1744] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+            );
+        }
+        if(ty==10)
+        {
+          connect
+            (
+              <pin DATA of <device APM_TILE @ [sx+2,sy]>>   => <wire DATA[2175:1960] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+              <pin DATAN of <device APM_TILE @ [sx+2,sy]>>  => <wire DATAN[2175:1960] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+            );
+        }
+    }
+    foreach ty({[0:4]})
+    {
+        sy = region_index * ((NUM_TILES_REGION-1)*NUM_GRID_Y+NUM_GRID_WLSR_Y) + ty*NUM_GRID_APM_Y;
+        if(ty==0)  
+        {
+          connect
+            (
+              <pin DATA of <device APM_TILE @ [sx+2,sy]>>   => <wire DATA[215:0] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+              <pin DATAN of <device APM_TILE @ [sx+2,sy]>>  => <wire DATAN[215:0] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+            );
+        }
+        if(ty==1)  
+        {
+          connect
+            (
+              <pin DATA of <device APM_TILE @ [sx+2,sy]>>   => <wire DATA[431:216] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+              <pin DATAN of <device APM_TILE @ [sx+2,sy]>>  => <wire DATAN[431:216] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+            );
+        }
+        if(ty==2)  
+        {
+          connect
+            (
+              <pin DATA of <device APM_TILE @ [sx+2,sy]>>   => <wire DATA[647:432] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+              <pin DATAN of <device APM_TILE @ [sx+2,sy]>>  => <wire DATAN[647:432] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+            );
+        }
+        if(ty==3)  
+        {
+          connect
+            (
+              <pin DATA of <device APM_TILE @ [sx+2,sy]>>   => <wire DATA[863:648] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+              <pin DATAN of <device APM_TILE @ [sx+2,sy]>>  => <wire DATAN[863:648] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+            );
+        }
+        if(ty==4)  
+        {
+          connect
+            (
+              <pin DATA of <device APM_TILE @ [sx+2,sy]>>   => <wire DATA[1079:864] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+              <pin DATAN of <device APM_TILE @ [sx+2,sy]>>  => <wire DATAN[1079:864] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+            );
+        }
+    }       
+}//end of connect_APM_bl_input
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_DRM_bl_input
+(
+    unsigned int rx,
+    unsigned int tx,
+    unsigned int ty,
+    unsigned int tx_blsr
+)
+{
+    int sx_blsr = tx_blsr * NUM_GRID_X;
+    int sy_blsr = rx * NUM_GRID_BLSR_Y;
+
+    int sx,sy;
+    sx = tx * NUM_GRID_X;
+    sy = (ty>MID_TILE_REGION) ? rx*((NUM_TILES_REGION-1)*NUM_GRID_Y+NUM_GRID_WLSR_Y)+(ty-1)*NUM_GRID_X+NUM_GRID_WLSR_Y
+                              : rx*((NUM_TILES_REGION-1)*NUM_GRID_Y+NUM_GRID_WLSR_Y)+ty*NUM_GRID_X;
+    if(ty==16)
+    {
+      connect
+        (   
+          <pin DATA of <device DRM_TILE @ [sx+2,sy]>>   => <wire DATA[1455:1096] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN of <device DRM_TILE @ [sx+2,sy]>>  => <wire DATAN[1455:1096] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+        );
+    }
+    if(ty==21)
+    {
+      connect
+        (
+          <pin DATA of <device DRM_TILE @ [sx+2,sy]>>   => <wire DATA[1815:1456] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN of <device DRM_TILE @ [sx+2,sy]>>  => <wire DATAN[1815:1456] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+        );
+    }
+    if(ty==26)
+    {
+      connect
+        (
+          <pin DATA of <device DRM_TILE @ [sx+2,sy]>>   => <wire DATA[2175:1816] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN of <device DRM_TILE @ [sx+2,sy]>>  => <wire DATAN[2175:1816] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+        );
+    }
+    if(ty==0)  
+    {
+      connect
+        (
+          <pin DATA of <device DRM_TILE @ [sx+2,sy]>>   => <wire DATA[359:0] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN of <device DRM_TILE @ [sx+2,sy]>>  => <wire DATAN[359:0] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+        );
+    }
+    if(ty==5)  
+    {
+      connect
+        (
+          <pin DATA of <device DRM_TILE @ [sx+2,sy]>>   => <wire DATA[719:360] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN of <device DRM_TILE @ [sx+2,sy]>>  => <wire DATAN[719:360] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+        );
+    }
+    if(ty==10)  
+    {
+      connect
+        (
+          <pin DATA of <device DRM_TILE @ [sx+2,sy]>>   => <wire DATA[1079:720] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN of <device DRM_TILE @ [sx+2,sy]>>  => <wire DATAN[1079:720] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+        );
+    }      
+}//end of connect_DRM_bl_input
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_PLL_bl_input
+(
+    unsigned int region_index,
+    unsigned int ty_int,
+    unsigned int tx_pll,
+    unsigned int tx_blsr
+)
+{
+    int sx_blsr = tx_blsr * NUM_GRID_X;
+    int sy_blsr = region_index * NUM_GRID_BLSR_Y;
+
+    int sx = tx_pll * NUM_GRID_X;
+    int sy = (ty_int>MID_TILE_REGION) ? region_index*((NUM_TILES_REGION-1)*NUM_GRID_Y+NUM_GRID_WLSR_Y)+(ty_int-1)*NUM_GRID_Y+NUM_GRID_WLSR_Y : region_index*((NUM_TILES_REGION-1)*NUM_GRID_Y+NUM_GRID_WLSR_Y)+ty_int*NUM_GRID_Y;
+
+    if(ty_int==11)
+    {
+      connect
+        (
+          <pin DATA of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1079:792] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN of <device PLL_TILE @ [sx+2,sy]>>  => <wire DATAN[1079:792] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+        );
+    }
+    if(ty_int==16)
+    {
+      connect
+        (
+          <pin DATA[0] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1383] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[1] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1382] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[2] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1381] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[3] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1380] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[4] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1379] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[5] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1378] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[6] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1377] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[7] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1376] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[8] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1375] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[9] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1374] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[10] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1373] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[11] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1372] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[12] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1371] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[13] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1370] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[14] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1369] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[15] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1368] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[16] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1367] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[17] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1366] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[18] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1365] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[19] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1364] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[20] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1363] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[21] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1362] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[22] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1361] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[23] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1360] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[24] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1359] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[25] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1358] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[26] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1357] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[27] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1356] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[28] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1355] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[29] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1354] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[30] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1353] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[31] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1352] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[32] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1351] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[33] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1350] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[34] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1349] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[35] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1348] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[36] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1347] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[37] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1346] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[38] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1345] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[39] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1344] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[40] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1343] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[41] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1342] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[42] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1341] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[43] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1340] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[44] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1339] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[45] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1338] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[46] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1337] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[47] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1336] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[48] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1335] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[49] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1334] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[50] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1333] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[51] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1332] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[52] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1331] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[53] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1330] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[54] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1329] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[55] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1328] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[56] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1327] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[57] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1326] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[58] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1325] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[59] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1324] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[60] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1323] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[61] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1322] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[62] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1321] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[63] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1320] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[64] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1319] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[65] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1318] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[66] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1317] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[67] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1316] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[68] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1315] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[69] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1314] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[70] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1313] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[71] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1312] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[72] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1311] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[73] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1310] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[74] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1309] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[75] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1308] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[76] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1307] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[77] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1306] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[78] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1305] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[79] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1304] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[80] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1303] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[81] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1302] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[82] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1301] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[83] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1300] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[84] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1299] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[85] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1298] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[86] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1297] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[87] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1296] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[88] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1295] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[89] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1294] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[90] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1293] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[91] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1292] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[92] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1291] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[93] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1290] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[94] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1289] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[95] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1288] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[96] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1287] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[97] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1286] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[98] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1285] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[99] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1284] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[100] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1283] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[101] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1282] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[102] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1281] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[103] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1280] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[104] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1279] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[105] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1278] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[106] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1277] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[107] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1276] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[108] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1275] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[109] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1274] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[110] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1273] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[111] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1272] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[112] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1271] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[113] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1270] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[114] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1269] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[115] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1268] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[116] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1267] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[117] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1266] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[118] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1265] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[119] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1264] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[120] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1263] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[121] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1262] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[122] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1261] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[123] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1260] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[124] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1259] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[125] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1258] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[126] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1257] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[127] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1256] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[128] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1255] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[129] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1254] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[130] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1253] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[131] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1252] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[132] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1251] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[133] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1250] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[134] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1249] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[135] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1248] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[136] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1247] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[137] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1246] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[138] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1245] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[139] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1244] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[140] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1243] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[141] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1242] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[142] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1241] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[143] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1240] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[144] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1239] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[145] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1238] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[146] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1237] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[147] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1236] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[148] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1235] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[149] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1234] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[150] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1233] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[151] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1232] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[152] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1231] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[153] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1230] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[154] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1229] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[155] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1228] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[156] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1227] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[157] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1226] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[158] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1225] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[159] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1224] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[160] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1223] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[161] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1222] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[162] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1221] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[163] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1220] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[164] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1219] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[165] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1218] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[166] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1217] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[167] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1216] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[168] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1215] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[169] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1214] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[170] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1213] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[171] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1212] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[172] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1211] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[173] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1210] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[174] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1209] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[175] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1208] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[176] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1207] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[177] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1206] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[178] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1205] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[179] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1204] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[180] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1203] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[181] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1202] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[182] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1201] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[183] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1200] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[184] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1199] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[185] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1198] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[186] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1197] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[187] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1196] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[188] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1195] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[189] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1194] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[190] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1193] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[191] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1192] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[192] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1191] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[193] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1190] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[194] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1189] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[195] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1188] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[196] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1187] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[197] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1186] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[198] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1185] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[199] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1184] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[200] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1183] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[201] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1182] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[202] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1181] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[203] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1180] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[204] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1179] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[205] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1178] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[206] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1177] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[207] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1176] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[208] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1175] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[209] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1174] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[210] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1173] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[211] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1172] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[212] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1171] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[213] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1170] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[214] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1169] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[215] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1168] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[216] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1167] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[217] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1166] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[218] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1165] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[219] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1164] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[220] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1163] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[221] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1162] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[222] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1161] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[223] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1160] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[224] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1159] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[225] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1158] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[226] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1157] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[227] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1156] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[228] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1155] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[229] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1154] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[230] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1153] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[231] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1152] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[232] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1151] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[233] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1150] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[234] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1149] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[235] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1148] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[236] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1147] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[237] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1146] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[238] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1145] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[239] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1144] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[240] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1143] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[241] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1142] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[242] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1141] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[243] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1140] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[244] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1139] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[245] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1138] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[246] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1137] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[247] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1136] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[248] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1135] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[249] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1134] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[250] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1133] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[251] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1132] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[252] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1131] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[253] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1130] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[254] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1129] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[255] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1128] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[256] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1127] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[257] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1126] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[258] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1125] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[259] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1124] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[260] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1123] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[261] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1122] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[262] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1121] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[263] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1120] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[264] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1119] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[265] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1118] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[266] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1117] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[267] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1116] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[268] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1115] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[269] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1114] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[270] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1113] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[271] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1112] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[272] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1111] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[273] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1110] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[274] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1109] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[275] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1108] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[276] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1107] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[277] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1106] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[278] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1105] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[279] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1104] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[280] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1103] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[281] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1102] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[282] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1101] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[283] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1100] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[284] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1099] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[285] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1098] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[286] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1097] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATA[287] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATA[1096] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+
+
+          <pin DATAN[0] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1383] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[1] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1382] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[2] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1381] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[3] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1380] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[4] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1379] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[5] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1378] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[6] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1377] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[7] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1376] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[8] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1375] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[9] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1374] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[10] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1373] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[11] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1372] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[12] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1371] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[13] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1370] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[14] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1369] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[15] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1368] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[16] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1367] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[17] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1366] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[18] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1365] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[19] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1364] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[20] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1363] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[21] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1362] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[22] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1361] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[23] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1360] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[24] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1359] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[25] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1358] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[26] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1357] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[27] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1356] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[28] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1355] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[29] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1354] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[30] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1353] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[31] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1352] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[32] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1351] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[33] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1350] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[34] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1349] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[35] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1348] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[36] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1347] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[37] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1346] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[38] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1345] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[39] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1344] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[40] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1343] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[41] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1342] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[42] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1341] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[43] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1340] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[44] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1339] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[45] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1338] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[46] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1337] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[47] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1336] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[48] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1335] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[49] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1334] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[50] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1333] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[51] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1332] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[52] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1331] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[53] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1330] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[54] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1329] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[55] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1328] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[56] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1327] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[57] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1326] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[58] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1325] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[59] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1324] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[60] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1323] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[61] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1322] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[62] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1321] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[63] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1320] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[64] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1319] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[65] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1318] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[66] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1317] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[67] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1316] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[68] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1315] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[69] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1314] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[70] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1313] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[71] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1312] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[72] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1311] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[73] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1310] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[74] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1309] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[75] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1308] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[76] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1307] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[77] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1306] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[78] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1305] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[79] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1304] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[80] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1303] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[81] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1302] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[82] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1301] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[83] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1300] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[84] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1299] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[85] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1298] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[86] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1297] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[87] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1296] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[88] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1295] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[89] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1294] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[90] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1293] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[91] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1292] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[92] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1291] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[93] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1290] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[94] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1289] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[95] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1288] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[96] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1287] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[97] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1286] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[98] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1285] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[99] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1284] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[100] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1283] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[101] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1282] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[102] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1281] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[103] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1280] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[104] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1279] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[105] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1278] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[106] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1277] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[107] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1276] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[108] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1275] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[109] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1274] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[110] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1273] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[111] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1272] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[112] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1271] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[113] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1270] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[114] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1269] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[115] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1268] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[116] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1267] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[117] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1266] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[118] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1265] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[119] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1264] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[120] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1263] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[121] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1262] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[122] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1261] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[123] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1260] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[124] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1259] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[125] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1258] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[126] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1257] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[127] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1256] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[128] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1255] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[129] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1254] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[130] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1253] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[131] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1252] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[132] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1251] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[133] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1250] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[134] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1249] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[135] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1248] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[136] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1247] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[137] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1246] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[138] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1245] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[139] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1244] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[140] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1243] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[141] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1242] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[142] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1241] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[143] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1240] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[144] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1239] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[145] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1238] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[146] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1237] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[147] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1236] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[148] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1235] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[149] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1234] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[150] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1233] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[151] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1232] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[152] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1231] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[153] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1230] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[154] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1229] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[155] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1228] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[156] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1227] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[157] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1226] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[158] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1225] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[159] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1224] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[160] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1223] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[161] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1222] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[162] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1221] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[163] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1220] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[164] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1219] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[165] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1218] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[166] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1217] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[167] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1216] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[168] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1215] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[169] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1214] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[170] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1213] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[171] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1212] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[172] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1211] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[173] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1210] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[174] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1209] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[175] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1208] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[176] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1207] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[177] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1206] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[178] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1205] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[179] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1204] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[180] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1203] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[181] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1202] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[182] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1201] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[183] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1200] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[184] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1199] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[185] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1198] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[186] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1197] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[187] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1196] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[188] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1195] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[189] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1194] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[190] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1193] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[191] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1192] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[192] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1191] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[193] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1190] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[194] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1189] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[195] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1188] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[196] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1187] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[197] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1186] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[198] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1185] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[199] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1184] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[200] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1183] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[201] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1182] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[202] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1181] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[203] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1180] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[204] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1179] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[205] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1178] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[206] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1177] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[207] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1176] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[208] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1175] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[209] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1174] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[210] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1173] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[211] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1172] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[212] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1171] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[213] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1170] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[214] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1169] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[215] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1168] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[216] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1167] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[217] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1166] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[218] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1165] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[219] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1164] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[220] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1163] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[221] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1162] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[222] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1161] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[223] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1160] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[224] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1159] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[225] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1158] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[226] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1157] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[227] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1156] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[228] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1155] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[229] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1154] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[230] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1153] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[231] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1152] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[232] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1151] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[233] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1150] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[234] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1149] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[235] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1148] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[236] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1147] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[237] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1146] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[238] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1145] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[239] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1144] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[240] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1143] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[241] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1142] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[242] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1141] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[243] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1140] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[244] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1139] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[245] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1138] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[246] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1137] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[247] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1136] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[248] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1135] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[249] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1134] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[250] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1133] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[251] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1132] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[252] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1131] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[253] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1130] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[254] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1129] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[255] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1128] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[256] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1127] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[257] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1126] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[258] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1125] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[259] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1124] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[260] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1123] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[261] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1122] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[262] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1121] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[263] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1120] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[264] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1119] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[265] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1118] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[266] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1117] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[267] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1116] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[268] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1115] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[269] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1114] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[270] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1113] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[271] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1112] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[272] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1111] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[273] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1110] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[274] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1109] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[275] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1108] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[276] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1107] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[277] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1106] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[278] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1105] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[279] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1104] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[280] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1103] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[281] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1102] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[282] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1101] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[283] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1100] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[284] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1099] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[285] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1098] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[286] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1097] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN[287] of <device PLL_TILE @ [sx+2,sy]>>   => <wire DATAN[1096] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+
+
+        );
+    }
+}//end of function connect_PLL_bl_input
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_USCM_bl_input
+(
+    unsigned int region_index,
+    unsigned int ty_uscm,
+    unsigned int ty_int,
+    unsigned int tx_uscm,
+    unsigned int tx_blsr
+)
+{
+    int sx_blsr = tx_blsr * NUM_GRID_X;
+    int sy_blsr = region_index * NUM_GRID_BLSR_Y;
+
+    int sx = tx_uscm * NUM_GRID_X;
+    int sy = ty_uscm * NUM_GRID_Y;
+
+    if(ty_int==0)
+    {
+      connect
+        (
+          <pin DATA of <device USCM_TILE @ [sx+2,sy]>>   => <wire DATA[143:0] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN of <device USCM_TILE @ [sx+2,sy]>>  => <wire DATAN[143:0] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+        );
+    }
+    if(ty_int==13)
+    {
+      connect
+        (
+          <pin DATA of <device USCM_TILE @ [sx+2,sy]>>   => <wire DATA[1079:936] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN of <device USCM_TILE @ [sx+2,sy]>>  => <wire DATAN[1079:936] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+        );
+    }
+    if(ty_int==16)
+    {
+      connect
+        (
+          <pin DATA of <device USCM_TILE @ [sx+2,sy]>>   => <wire DATA[1239:1096] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN of <device USCM_TILE @ [sx+2,sy]>>  => <wire DATAN[1239:1096] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+        );
+    }
+    if(ty_int==29)
+    {
+      connect
+        (
+          <pin DATA of <device USCM_TILE @ [sx+2,sy]>>   => <wire DATA[2175:2032] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+          <pin DATAN of <device USCM_TILE @ [sx+2,sy]>>  => <wire DATAN[2175:2032] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+        );
+    }
+
+}//end of function connect_USCM_bl_input
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_IOL_bl_input
+(
+    unsigned int tx,
+    unsigned int region_index, 
+    unsigned int tx_blsr,
+    unsigned int l_ty_iol[],
+    unsigned int l_ty_hmemciol[],
+    unsigned int l_ty_dqsl[],
+    unsigned int l_ty_hmemcdqsl[],
+    unsigned int l_ty_iockgate[],
+    unsigned int l_ty_hmemciockgate[],
+    unsigned int l_ty_cramsl2[],
+    unsigned int l_ty_rlybufs5[]
+)
+{
+    int sx_blsr = tx_blsr * NUM_GRID_X;
+    int sy_blsr = region_index * NUM_GRID_BLSR_Y;
+
+    int ty,tmp_ty,ty_all;
+    int sx,sy;
+
+    string device_iol;
+    sx = tx * NUM_GRID_X;  
+    foreach ty({[0:14],[16:30]})
+    {
+        sy =(ty>MID_TILE_REGION) ? region_index*((NUM_TILES_REGION-1)*NUM_GRID_Y+NUM_GRID_WLSR_Y)+(ty-1)*NUM_GRID_Y + NUM_GRID_WLSR_Y : region_index * ((NUM_TILES_REGION-1)*NUM_GRID_Y+NUM_GRID_WLSR_Y) + ty*NUM_GRID_Y;
+
+        ty_all = ty + region_index * NUM_TILES_REGION;  
+        foreach tmp_ty( l_ty_iol )
+        {
+          if(tmp_ty == ty_all)
+          {
+            device_iol = "IOL_TILE";
+            break;
+          }
+        }
+        foreach tmp_ty( l_ty_cramsl2 )
+        {
+          if(tmp_ty == ty_all)
+          {
+            device_iol = "CRAMSL2_TILE";
+            break;
+          }
+        }
+        foreach tmp_ty( l_ty_rlybufs5 )
+        {
+          if(tmp_ty == ty_all)
+          {
+            device_iol = "RLYBUFS5_TILE";
+            break;
+          }
+        }
+        foreach tmp_ty( l_ty_hmemciol )
+        {
+          if(tmp_ty == ty_all)
+          {
+            device_iol = "HMEMCIOL_TILE";
+            break;
+          }
+        }
+        foreach tmp_ty( l_ty_dqsl )
+        {
+          if(tmp_ty == ty_all)
+          {
+            device_iol = "DQSL_TILE";
+            break;
+          }
+        }
+        foreach tmp_ty( l_ty_hmemcdqsl )
+        {
+          if(tmp_ty == ty_all)
+          {
+            device_iol = "HMEMCDQSL_TILE";
+            break;
+          }
+        }
+        foreach tmp_ty( l_ty_iockgate )
+        {
+          if(tmp_ty == ty_all)
+          {
+            device_iol = "IOCKGATEDLL_TILE";
+            break;
+          }
+        }
+        foreach tmp_ty( l_ty_hmemciockgate )
+        {
+          if(tmp_ty == ty_all)
+          {
+            device_iol = "HMEMCIOCKGATEDLL_TILE";
+            break;
+          }
+        }
+
+
+
+        if(ty==17)
+        {
+          connect
+            (
+              <pin DATA of <device *device_iol @ [sx+2,sy]>>   => <wire DATA[1239:1168] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+              <pin DATAN of <device *device_iol @ [sx+2,sy]>>  => <wire DATAN[1239:1168] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+            );
+        }
+        if(ty==18)
+        {
+          connect
+            (
+              <pin DATA of <device *device_iol @ [sx+2,sy]>>   => <wire DATA[1311:1240] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+              <pin DATAN of <device *device_iol @ [sx+2,sy]>>  => <wire DATAN[1311:1240] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+            );
+        }
+        if(ty==19)
+        {
+          connect
+              (
+                <pin DATA of <device *device_iol @ [sx+2,sy]>>   => <wire DATA[1383:1312] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+                <pin DATAN of <device *device_iol @ [sx+2,sy]>>  => <wire DATAN[1383:1312] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+              );
+        }
+        if(ty==20)
+        {
+          connect
+            (
+              <pin DATA of <device *device_iol @ [sx+2,sy]>>   => <wire DATA[1455:1384] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+              <pin DATAN of <device *device_iol @ [sx+2,sy]>>  => <wire DATAN[1455:1384] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+            );
+        }
+        if(ty==21)
+          {
+            connect
+              (
+                <pin DATA of <device *device_iol @ [sx+2,sy]>>   => <wire DATA[1527:1456] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+                <pin DATAN of <device *device_iol @ [sx+2,sy]>>  => <wire DATAN[1527:1456] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+              );
+          }
+        if(ty==22)
+        {
+          connect
+            (
+              <pin DATA of <device *device_iol @ [sx+2,sy]>>   => <wire DATA[1599:1528] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+              <pin DATAN of <device *device_iol @ [sx+2,sy]>>  => <wire DATAN[1599:1528] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+            );
+        }
+        if(ty==23)
+        {
+          connect
+            (
+              <pin DATA of <device *device_iol @ [sx+2,sy]>>   => <wire DATA[1671:1600] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+              <pin DATAN of <device *device_iol @ [sx+2,sy]>>  => <wire DATAN[1671:1600] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+            );
+        }
+        if(ty==24)
+        {
+          connect
+            (
+              <pin DATA of <device *device_iol @ [sx+2,sy]>>   => <wire DATA[1743:1672] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+              <pin DATAN of <device *device_iol @ [sx+2,sy]>>  => <wire DATAN[1743:1672] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+            );
+        }
+        if(ty==25)
+        {
+          connect
+            (
+              <pin DATA of <device *device_iol @ [sx+2,sy]>>   => <wire DATA[1815:1744] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+              <pin DATAN of <device *device_iol @ [sx+2,sy]>>  => <wire DATAN[1815:1744] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+            );
+        }
+        if(ty==26)
+        {
+          connect
+            (
+              <pin DATA of <device *device_iol @ [sx+2,sy]>>   => <wire DATA[1887:1816] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+              <pin DATAN of <device *device_iol @ [sx+2,sy]>>  => <wire DATAN[1887:1816] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+            );
+        }
+        if(ty==27)
+        {
+          connect
+            (
+              <pin DATA of <device *device_iol @ [sx+2,sy]>>   => <wire DATA[1959:1888] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+              <pin DATAN of <device *device_iol @ [sx+2,sy]>>  => <wire DATAN[1959:1888] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+            );
+        }
+        if(ty==28)
+        {
+          connect
+            (
+              <pin DATA of <device *device_iol @ [sx+2,sy]>>   => <wire DATA[2031:1960] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+              <pin DATAN of <device *device_iol @ [sx+2,sy]>>  => <wire DATAN[2031:1960] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+            );
+        }
+        if(ty==29)
+        {
+          connect
+            (
+              <pin DATA of <device *device_iol @ [sx+2,sy]>>   => <wire DATA[2103:2032] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+              <pin DATAN of <device *device_iol @ [sx+2,sy]>>  => <wire DATAN[2103:2032] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+            );
+        }
+        if(ty==30)
+        {
+          connect
+            (
+              <pin DATA of <device *device_iol @ [sx+2,sy]>>   => <wire DATA[2175:2104] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+              <pin DATAN of <device *device_iol @ [sx+2,sy]>>  => <wire DATAN[2175:2104] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+            );
+        }
+        if(ty==0)  
+        {
+          connect
+            (
+              <pin DATA of <device *device_iol @ [sx+2,sy]>>   => <wire DATA[71:0] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+              <pin DATAN of <device *device_iol @ [sx+2,sy]>>  => <wire DATAN[71:0] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+            );
+        }
+        if(ty==1)  
+        {
+          connect
+            (
+              <pin DATA of <device *device_iol @ [sx+2,sy]>>   => <wire DATA[143:72] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+              <pin DATAN of <device *device_iol @ [sx+2,sy]>>  => <wire DATAN[143:72] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+            );
+        }
+        if(ty==2)  
+        {
+          connect
+            (
+              <pin DATA of <device *device_iol @ [sx+2,sy]>>   => <wire DATA[215:144] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+              <pin DATAN of <device *device_iol @ [sx+2,sy]>>  => <wire DATAN[215:144] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+            );
+        }
+        if(ty==3)  
+        {
+          connect
+            (
+              <pin DATA of <device *device_iol @ [sx+2,sy]>>   => <wire DATA[287:216] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+              <pin DATAN of <device *device_iol @ [sx+2,sy]>>  => <wire DATAN[287:216] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+            );
+        }
+        if(ty==4)  
+        {
+          connect
+            (
+              <pin DATA of <device *device_iol @ [sx+2,sy]>>   => <wire DATA[359:288] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+              <pin DATAN of <device *device_iol @ [sx+2,sy]>>  => <wire DATAN[359:288] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+            );
+        }
+        if(ty==5)  
+        {
+          connect
+            (
+              <pin DATA of <device *device_iol @ [sx+2,sy]>>   => <wire DATA[431:360] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+              <pin DATAN of <device *device_iol @ [sx+2,sy]>>  => <wire DATAN[431:360] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+            );
+        }
+        if(ty==6)  
+        {
+          connect
+            (
+              <pin DATA of <device *device_iol @ [sx+2,sy]>>   => <wire DATA[503:432] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+              <pin DATAN of <device *device_iol @ [sx+2,sy]>>  => <wire DATAN[503:432] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+            );
+        }
+        if(ty==7)  
+        {
+          connect
+            (
+              <pin DATA of <device *device_iol @ [sx+2,sy]>>   => <wire DATA[575:504] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+              <pin DATAN of <device *device_iol @ [sx+2,sy]>>  => <wire DATAN[575:504] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+            );
+        }
+        if(ty==8)  
+        {
+          connect
+            (
+              <pin DATA of <device *device_iol @ [sx+2,sy]>>   => <wire DATA[647:576] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+              <pin DATAN of <device *device_iol @ [sx+2,sy]>>  => <wire DATAN[647:576] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+            );
+        } 
+        if(ty==9)  
+        {
+          connect
+            (
+              <pin DATA of <device *device_iol @ [sx+2,sy]>>   => <wire DATA[719:648] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+              <pin DATAN of <device *device_iol @ [sx+2,sy]>>  => <wire DATAN[719:648] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+            );
+        } 
+        if(ty==10)  
+        {
+          connect
+            (
+              <pin DATA of <device *device_iol @ [sx+2,sy]>>   => <wire DATA[791:720] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+              <pin DATAN of <device *device_iol @ [sx+2,sy]>>  => <wire DATAN[791:720] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+            );
+        } 
+        if(ty==11)  
+        {
+          connect
+            (
+              <pin DATA of <device *device_iol @ [sx+2,sy]>>   => <wire DATA[863:792] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+              <pin DATAN of <device *device_iol @ [sx+2,sy]>>  => <wire DATAN[863:792] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+            );
+        } 
+        if(ty==12)  
+        {
+          connect
+            (
+              <pin DATA of <device *device_iol @ [sx+2,sy]>>   => <wire DATA[935:864] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+              <pin DATAN of <device *device_iol @ [sx+2,sy]>>  => <wire DATAN[935:864] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+            );
+        }
+        if(ty==13)  
+        {
+          connect
+            (
+              <pin DATA of <device *device_iol @ [sx+2,sy]>>   => <wire DATA[1007:936] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+              <pin DATAN of <device *device_iol @ [sx+2,sy]>>  => <wire DATAN[1007:936] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+            );
+        }
+        if(ty==14)  
+        {
+          connect
+            (
+              <pin DATA of <device *device_iol @ [sx+2,sy]>>   => <wire DATA[1167:1008] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+              <pin DATAN of <device *device_iol @ [sx+2,sy]>>  => <wire DATAN[1167:1008] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+            );
+         }
+    }
+}//end of function connect_IOL_bl_input
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_IOB_bl_input
+(
+    unsigned int rx, 
+    unsigned int tx,
+    unsigned int tx_blsr
+)
+{
+    int sx_blsr = tx_blsr * NUM_GRID_X;
+    int sy_blsr = rx * NUM_GRID_BLSR_Y;
+
+    int ty,tmp_ty;
+    int sx,sy;
+
+    string device_iob;
+
+    sx = tx * NUM_GRID_X; 
+    sy =  sy_blsr;
+
+    connect
+      (
+        <pin DATA of <device IOB_TILE @[sx,sy]>>  => <wire DATA of <device BLSR_TILE @[sx_blsr,sy_blsr]>>,
+        <pin DATAN of <device IOB_TILE @[sx,sy]>> => <wire DATAN of <device BLSR_TILE @[sx_blsr,sy_blsr]>>
+      );
+
+
+}//end of function connect_IOB_bl_input
+
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_IOB_WO_bl_input
+(
+    unsigned int rx, 
+    unsigned int tx,
+    unsigned int tx_blsr
+)
+{
+    int sx_blsr = tx_blsr * NUM_GRID_X;
+    int sy_blsr = rx * NUM_GRID_BLSR_Y;
+
+    int ty,tmp_ty;
+    int sx,sy;
+
+    string device_iob;
+
+    sx = tx * NUM_GRID_X; 
+    sy =  sy_blsr;
+
+    connect
+      (
+        <pin DATA of <device IOB_WO_ODIFF_TILE @[sx,sy]>>  => <wire DATA of <device BLSR_TILE @[sx_blsr,sy_blsr]>>,
+        <pin DATAN of <device IOB_WO_ODIFF_TILE @[sx,sy]>> => <wire DATAN of <device BLSR_TILE @[sx_blsr,sy_blsr]>>
+      );
+
+
+}//end of function connect_IOB_WO_bl_input
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_WLSR_bl_input
+(
+    unsigned int region_index, 
+    unsigned int tx,
+    unsigned int tx_blsr,
+    string wlsr
+)
+{
+    int sx_blsr = tx_blsr * NUM_GRID_X;
+    int sy_blsr = region_index * NUM_GRID_BLSR_Y;
+
+    int sy = region_index*NUM_TILES_REGION*NUM_GRID_Y+MID_TILE_REGION*NUM_GRID_Y;
+
+    int sx;
+    sx = tx * NUM_GRID_X;
+
+   string device_wlsr = wlsr;
+
+    connect
+      (
+        <pin DATA of <device *device_wlsr @[sx,sy]>>  => <wire DATA[1095:1080] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>,
+        <pin DATAN of <device *device_wlsr @[sx,sy]>> => <wire DATAN[1095:1080] of <device BLSR_TILE @ [sx_blsr,sy_blsr]>>
+      );
+
+
+}//end of function connect_WLSR_bl_input
+
+
+}//end of package pgl_funcs_connect_blsr
+

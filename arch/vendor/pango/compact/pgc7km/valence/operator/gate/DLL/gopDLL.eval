@@ -1,0 +1,71 @@
+*****************************************************************
+
+  Operator  [gopDLL]
+
+  Abstract  []
+
+  Revision History:
+
+ ********************************************************************************/
+gate
+operator gopDLL
+{
+    parameter
+    (
+        string CP_FAST_LOCK = "TRUE",
+        bit CP_CODE_OFFSET[3:0] = 4'b0000,
+        string CP_DLL_FORCE = "FALSE",
+        //bit CP_DLL_CTRL[2:0] = 3'b011
+        bit CP_GRS_EN = 1'b0
+    );
+    port
+    (
+        input CLK_IN /*pragma PAP_ARC_GOP_CTRL_PIN="GCLK|RCLK|IOCLK"*/,
+        input UPDATE_N        ,
+        input RST_DLL /*pragma PAP_ARC_GOP_CTRL_PIN="RST"*/,
+        input DLL_FREEZE      ,
+        output CTRL_CODE[7:0] ,
+        output CTRL_CODE_DYN[7:0],
+        output DLL_TIHI       ,
+        output DLL_TILO       ,
+        output DIV_OSCCLK_T   ,
+        output DIV_CLKIN_T    ,
+        output LOCK
+    );
+};
+
+/**Implementation Body*******************************************************************
+
+  Author    [jiang tao]
+
+  Abstract  []
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_dll of gopDLL
+{
+    device DLL dll_inst
+        parameter map
+        (
+            CP_FAST_LOCK     =>   CP_FAST_LOCK   ,
+            CP_CODE_OFFSET   =>   CP_CODE_OFFSET ,
+            CP_DLL_FORCE     =>   CP_DLL_FORCE   ,
+            CP_DLL_CTRL      =>   {CP_GRS_EN, 1'b1, 1'b1}
+        )
+        port map
+        (
+            CLK_IN           =>   CLK_IN         ,
+            UPDATE_N         =>   UPDATE_N       ,
+            RST_DLL          =>   RST_DLL        ,
+            DLL_FREEZE       =>   DLL_FREEZE     ,
+            CTRL_CODE        =>   CTRL_CODE      ,
+            CTRL_CODE_DYN    =>   CTRL_CODE_DYN  ,
+            DLL_TIHI         =>   DLL_TIHI       ,
+            DLL_TILO         =>   DLL_TILO       ,
+            DIV_OSCCLK_T     =>   DIV_OSCCLK_T   ,
+            DIV_CLKIN_T      =>   DIV_CLKIN_T    ,
+            LOCK             =>   LOCK
+        );
+
+}; // end of implementation impl_dll of gopDLL

@@ -1,0 +1,107 @@
+*******************************************************************
+
+  Operator    [gopOBUFTIOLOTQ]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+gate
+operator gopOBUFTIOLOTQ
+{
+    parameter
+    (
+        string GRS_EN          = "FALSE",           // "TRUE" "FALSE"  
+        string TSFF_CE_EN      = "UNUSED", 
+        string TSFF_LRS_EN     = "UNUSED", 
+        string TSFF_SET        = "RESET",   
+        string TSFF_SYNC       = "ASYNC",   
+        string TSFF_LATCH     = "FF",      
+
+        string OFF_CE_EN      = "UNUSED", 
+        string OFF_LRS_EN     = "UNUSED", 
+        string OFF_SET        = "RESET",   
+        string OFF_SYNC       = "ASYNC",   
+        string OFF_LATCH      = "FF",      
+
+        string CLK_O_INV      = "FALSE",
+        string CE_O_INV       = "FALSE",
+        string CE_T_INV       = "FALSE",
+        string LRS_INV        = "FALSE",
+        string CP_MIPI_EN      = "DISABLE",
+        string CP_PDIFF  =  "DISABLE",
+        string CP_TQMODE = "SDR",
+        bit CP_DQMODE[1:0] = 2'b01
+    ); 
+    port
+    (
+        input   IN,
+        input   TS,
+
+        input   SYSCLK /*pragma PAP_ARC_GOP_CTRL_PIN="GCLK|RCLK"*/,
+        input   CE_O,
+        input   CE_T,
+        input   LRS /*pragma PAP_ARC_GOP_CTRL_PIN="RST"*/,
+
+        // from to IOB
+        output  T,
+        output  O,
+        
+        input   MI,
+        output  MO,
+        
+        output  DQ_CAS_OUT,
+        output  TQ_CAS_OUT
+    );
+};
+
+implementation impl of gopOBUFTIOLOTQ
+{
+    device IOL gate_obuftioltq
+        parameter map
+        (
+            CP_OCLK_EN      => "ENABLE",
+            CP_GRS_DIS      => GRS_EN == "TRUE" ? "FALSE" : "TRUE",
+            //CP_OUTCE_EN    => TSFF_CE_EN == "USED" ? "ENABLE" : "DISABLE",
+            CP_TSR_EN   => TSFF_LRS_EN == "USED" ? "ENABLE" : "DISABLE",
+            CP_TSREG_SET    => TSFF_SET,
+            //CP_TSFF_LATCH   => TSFF_LATCH,
+
+
+            //CP_OUTCE_EN    => OFF_CE_EN == "USED" ? "ENABLE" : "DISABLE",
+            CP_OSR_EN   => OFF_LRS_EN == "USED" ? "ENABLE" : "DISABLE",
+            CP_OREG_SET     => OFF_SET,
+            CP_REG_SYNC     => OFF_SYNC,        
+            //CP_OFF_LATCH    => OFF_LATCH,
+
+            CP_CLK_POL   =>  CLK_O_INV,
+            //CP_CE_POL       =>  CE_INV,
+            CP_SR_POL      =>  LRS_INV,
+            
+            CP_MIPI_EN => CP_MIPI_EN,
+            CP_DQMODE  => CP_DQMODE,
+            CP_TQMODE  => CP_TQMODE,
+            CP_PDIFF   => CP_PDIFF
+        )
+        port map 
+        (
+            D0       =>  IN,
+            TD0      =>  TS,
+                      
+            CLK         =>  SYSCLK,
+            CE_TSREG    =>  CE_T,
+            CE_OREG     =>  CE_O,
+            SR          =>  LRS,
+
+            TQ           =>  T,
+            DQ           =>  O,
+
+            MIPI_SW_DYN_I       =>  MI,
+            MIPI_SW_DYN_O     =>  MO,
+           
+            DQ_CAS_OUT        =>  DQ_CAS_OUT,
+            TQ_CAS_OUT        =>  TQ_CAS_OUT
+        );
+};        
+

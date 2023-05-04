@@ -1,0 +1,141 @@
+*************************************************************
+
+Copyright (c) 2014 by PANGO MICROSYSTEMS, INC
+ALL RIGHTS RESERVED.
+
+THE SOURCE CODE CONTAINED HEREIN IS PROPRIETARY TO PANGO MICROSYSTEMS, INC.
+IT SHALL NOT BE REPRODUCED OR DISCLOSED IN WHOLE OR IN PART OR USED BY
+PARTIES WITHOUT WRITTEN AUTHORIZATION FROM THE OWNER.
+
+  Operator  [GTP_FIFO18K_E1]
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+***************************************************************************/
+
+implementation impl of GTP_FIFO18K_E1
+{
+    string OUTPUT_REG_B = "DISABLE";
+    if (DO_REG == 0)
+    {
+        OUTPUT_REG_B = "DISABLE";
+    }
+    else
+    {
+        OUTPUT_REG_B = "ENABLE";
+    }
+    
+    string FLAGEMPTY_EN = "DISABLE";
+    if (USE_EMPTY == 0)
+    {
+        FLAGEMPTY_EN = "FALSE";
+    }
+    else
+    {
+        FLAGEMPTY_EN = "TRUE";
+    }
+    
+    string FLAGFULL_EN = "DISABLE";
+    if (USE_FULL == 0)
+    {
+        FLAGFULL_EN = "FALSE";
+    }
+    else
+    {
+        FLAGFULL_EN = "TRUE";
+    }
+    
+    bit CP_SRVAL_B[17:0] = 18'h00000;
+    if (DATA_WIDTH == 1)
+    {
+        CP_SRVAL_B[8:0] = {1'b0, RST_VAL[0], RST_VAL[0],RST_VAL[0],RST_VAL[0],RST_VAL[0],RST_VAL[0],RST_VAL[0],RST_VAL[0]};
+        CP_SRVAL_B[17:9] = {1'b0, RST_VAL[0], RST_VAL[0],RST_VAL[0],RST_VAL[0],RST_VAL[0],RST_VAL[0],RST_VAL[0],RST_VAL[0]};
+    }
+    else if (DATA_WIDTH == 2)
+    {
+        CP_SRVAL_B[8:0] = {1'b0,RST_VAL[1:0],RST_VAL[1:0],RST_VAL[1:0],RST_VAL[1:0]};
+        CP_SRVAL_B[17:9] = {1'b0,RST_VAL[1:0],RST_VAL[1:0],RST_VAL[1:0],RST_VAL[1:0]};
+    }
+    else if (DATA_WIDTH == 4)
+    {
+        CP_SRVAL_B[8:0] = {1'b0, RST_VAL[3:0], RST_VAL[3:0]};
+        CP_SRVAL_B[17:9] = {1'b0, RST_VAL[3:0], RST_VAL[3:0]};
+    }
+    else if (DATA_WIDTH == 8)
+    {
+        CP_SRVAL_B = {1'b0, RST_VAL[7:0], 1'b0, RST_VAL[7:0]};
+    }
+    else if (DATA_WIDTH == 9)
+    {
+        CP_SRVAL_B = {RST_VAL[8:0], RST_VAL[8:0]};
+    }
+    else if (DATA_WIDTH == 16)
+    {
+        CP_SRVAL_B = {1'b0,RST_VAL[15:8],1'b0,RST_VAL[7:0]};
+    }
+    else if (DATA_WIDTH == 18)
+    {
+        CP_SRVAL_B = RST_VAL[17:0];
+    }
+
+    &port refDI[35:0] = (DATA_WIDTH % 9 == 0) ? DI[35:0] : {DI[35], DI[31:24], DI[34], DI[23:16], DI[33], DI[15:8], DI[32], DI[7:0]};
+    &port refDO[35:0] = (DATA_WIDTH % 9 == 0) ? DO[35:0] : {DO[35], DO[31:24], DO[34], DO[23:16], DO[33], DO[15:8], DO[32], DO[7:0]};
+    
+    wire nt_by_qa0[17:0];
+    
+    operator gopDRM18K gopdrm_fifo18k
+    parameter map
+    (
+        CP_GRS_DIS             => GRS_EN == "TRUE" ? "FALSE" : "TRUE",
+        CP_DATA_WIDTH_A        => DATA_WIDTH,
+        CP_DATA_WIDTH_B        => DATA_WIDTH, 
+        CP_OUTPUT_REG_B        => OUTPUT_REG_B, 
+        CP_ALMOST_FULL_OFFSET  => ALMOST_FULL_OFFSET, 
+        CP_ALMOST_EMPTY_OFFSET => ALMOST_EMPTY_OFFSET, 
+        CP_SRVAL_B             => CP_SRVAL_B,    
+        CP_FLAGEMPTY_EN        => FLAGEMPTY_EN, 
+        CP_FLAGFULL_EN         => FLAGFULL_EN, 
+        CP_SYNC_FIFO           => SYNC_FIFO,
+        CP_BELA_SET            => (DATA_WIDTH >= 16) ? "TRUE" : "FALSE",
+        CP_BEHA_SET            => (DATA_WIDTH >= 16) ? "TRUE" : "FALSE",
+        CP_BELB_SET            => (DATA_WIDTH >= 16) ? "TRUE" : "FALSE",
+        CP_BEHB_SET            => (DATA_WIDTH >= 16) ? "TRUE" : "FALSE",
+        CP_DRM_36K             => "FALSE",
+        CP_CAS_EN              => "FALSE",
+        CP_FIFO_EN             => "TRUE",
+        CP_DBW_EN              => "FALSE",
+        CP_DBR_EN              => "FALSE",
+        CP_DRM_EN              => "TRUE"
+    )
+    port map
+    (
+        ALMOST_EMPTY  => ALMOST_EMPTY,
+        ALMOST_FULL   => ALMOST_FULL,
+        EMPTY         => EMPTY,
+        FULL          => FULL,
+        QA            => (DATA_WIDTH > 18) ? refDO[17:0] : nt_by_qa0[17:0],
+        QB            => (DATA_WIDTH < 32) ? refDO[17:0] : refDO[35:18],
+        DA            => refDI[17:0],
+        DB            => (DATA_WIDTH > 18) ? refDI[35:18] : 18'byyyyyyyyyyyyyyyyyy,
+        CLKA          => WCLK,
+        CLKB          => RCLK,
+        CEA           => WCE,
+        CEB           => RCE,
+        OCEB          => ORCE,
+        RSTA          => RST,
+        RSTB          => RST,
+        
+        ADA_CAS       => 1'b1,
+        ADB_CAS       => 1'b1,
+        WEA           => 1'b1,
+                      
+        WEB           => 1'b0,
+        ADSA          => 1'b0,
+        ADSB          => 1'b0
+    );
+};
+

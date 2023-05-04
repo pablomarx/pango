@@ -1,0 +1,80 @@
+*****************************************************************
+
+  Device    [devCGND]
+
+  Author    [liujiao]
+
+  Abstract  [THE DEVICE CAN BE USED FOR LUT.]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devCGND : device devC
+{
+    parameter
+    (
+        config bit CP_INITC[31:0]     := 32'h0000_0000,        
+        config string CP_MODEC        := "LUT5",               // "LUT5" "ROM" "WMUX" "ARITH"
+        config string CP_Y2MUX_SEL    := "FX"                  //"FX":F2 "CYX":CYC "MF":QP1
+    );
+    
+    port
+    (
+               output   Y2
+    );
+}; // end of device devCGND
+
+
+/*******************************************************************************
+
+  Device    [devCGND]
+
+  Author    [liujiao]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devCGND
+{
+
+    // Wires connecting to output ports
+    wire ntY2;
+    // Internal wires
+    wire ntL5C;   
+
+    //
+    // Connection to ports
+    //
+
+    Y2        <= ntY2;
+    
+    //
+    // Instances. FGA section
+    //
+
+    device FY FYC 
+        parameter map
+        (
+            CP_INIT => CP_INITC,
+            CP_MODE => CP_MODEC
+        )
+        port map 
+        (           
+            L5    => ntL5C 
+        );   
+        
+    device YMUX Y2MUX
+        parameter map
+        (
+            CP_OUT_SEL  => CP_Y2MUX_SEL
+        )    
+        port map
+        (            
+            FX  => ntL5C,          
+            Y   => ntY2
+        );
+}; // end of structure netlist of devCGND
+

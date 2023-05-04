@@ -1,0 +1,139 @@
+*****************************************************************
+
+  Device    [devOBUFIOLL]
+
+  Author    [hzhang]
+
+  Abstract  [device base on IOL, used as inout path through to IOB ]
+
+  Revision History:
+
+********************************************************************************/
+
+gate
+device devOBUFIOLL : device IOL_L
+{
+    parameter
+    (
+        config string OUT_MUX_SEL   := "DATAIN",    //" DATAIN", "OFF_Q"
+        config string TS_MUX_SEL    := "ZERO",        //"ZERO" "TS_TSFF"  "TS_IN"
+        config string DO_SEL         = "DO",          // "DO", "DO_COMP"
+        config string DELAY_MODE    := "NODELAY",    //"NODELAY", "INDELAY", "OUTDELAY",
+        
+        config bit    TRI_FORCE[1:0]:= 2'b11
+    );
+    port
+    (
+        input   TX_DATA[0:0],
+        output  TO,
+        output  DO,
+
+        output  DO_OUT
+    );
+
+}// end of device devOBUFIOLL
+
+/*******************************************************************************
+
+  Device    [devOBUFIOLL]
+
+  Author    []
+
+  Abstract  [The structure netlist of devOBUFIOLL is described in the similar fashion
+             as in HDL. In unit instantiation statement, the formal pin may be
+             connected to net which is declared explicitly.
+
+             In Valence, the connection can also be made from formal pin to other
+             pin or port, in which case Valence compiler shall create the net to
+             fulfil the connection. The built-in naming convention is kicked in
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devOBUFIOLL
+{
+    // Wires connecting to output ports
+    wire ntOUT_DELSEL_MUX;
+
+
+    wire  ntDO_MUX;
+
+    DO_OUT   <= ntOUT_DELSEL_MUX;
+    DO       <= ntDO_MUX;
+
+    wire ntOUTPUT_MUX;
+
+
+    // connected with OFF & ODDR
+
+    device OUTPUT_MUX_L OUTPUT_MUX_L
+        parameter map
+        (
+           OUT_SEL    => OUT_MUX_SEL
+        )
+        port map
+        (
+            I2  => TX_DATA[0],
+            Y   => ntOUTPUT_MUX
+        );
+
+    // DELAY
+
+    device OUT_DELSEL_MUX_L OUT_DELSEL_MUX_L
+        parameter map
+        (
+           DELAY_MODE => DELAY_MODE
+        )
+        port map
+        (
+            I0   => ntOUTPUT_MUX,
+            Y    => ntOUT_DELSEL_MUX
+        );
+
+    device DO_MUX_L DO_MUX_L
+       parameter map
+       (
+           DO_SEL  => DO_SEL
+       )
+       port map
+       (
+           I0   => ntOUT_DELSEL_MUX,
+
+           Y    => ntDO_MUX
+       );
+
+}; // end of structure netlist of devOBUFIOLL
+
+timing tnl of devOBUFIOLL
+{
+    wire ntDO;
+    DO_OUT <= ntDO;
+
+    operator V_BUF obuf
+        parameter map
+        (
+           SECTION => "OBUF_IOL_DO"
+        )
+        port map
+        (
+            I => TX_DATA[0],
+            Z => ntDO
+        );
+
+    operator V_MUX V_MUX
+        parameter map
+        (
+            SECTION => "DMUX",
+            SEL     => "I0"
+        )
+        port map
+        (
+            I0  => ntDO,
+            Y   => DO
+        );
+}
+

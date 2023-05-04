@@ -1,0 +1,198 @@
+
+use pgl25g_fbg484_spec;
+
+/*******************************************************************************
+
+  Package   [pgl25g_fbg484]
+
+  Author    []
+
+  Abstract  [This describes how pgl25g is packaged into package fbg484
+
+             THE BODY NAME MUST BE THE CHIP PACKAGE NAME 'fbg484']
+
+  Revision History:
+
+********************************************************************************/
+packaging fbg484 of PGL25G
+{
+    STRUCT pkg_spec pkgVar;
+
+    string pkg_pin_name;
+    string device_name;
+    string type_name;
+    string hardware_name;
+    string shared_io;
+    string clk_pad;
+    string pll_pad;
+    int sx, sy;
+    int count = 0;
+    string UNBOND;
+
+    &PACKAGE PIN ppRefVar;
+    &DEVICE      devRefVar;
+
+    foreach pkgVar ( pgl25g_fbg484_spec )
+    {
+        device_name  = pkgVar.device_name;
+
+        // Some package pin has no underlying grid device mapping. However it may have symbol
+        if ( !device_name)
+        {
+            continue;
+        }
+
+        sx = pkgVar.DLX;
+        sy = pkgVar.DLY;
+
+        // Get the grid device
+        devRefVar = < DEVICE *device_name @[sx,sy] of ARCHITECTURE >;
+
+        //
+        // Assign properties to IOBM/IOBS
+        //
+        devRefVar->PAD_NAME = pkgVar.pad_name;
+
+        pkg_pin_name = pkgVar.pkg_pin_name;
+
+        if ( !pkg_pin_name)
+        {
+            devRefVar->DONT_USE = TRUE;
+            
+            if ( !strncmp(pkgVar.pad_name, "NOPAD", 5))
+            {
+                devRefVar->LOCATION = pkgVar.pad_name;                
+            }
+
+            if ( !strncmp(pkgVar.pad_name, "PAD", 3))
+            {
+                count = count + 1;
+                sprintf(UNBOND,"UNB%d",count);
+                devRefVar->LOCATION = UNBOND; 
+            }
+
+        } else {
+            devRefVar->PIN_NAME = pkg_pin_name;
+            devRefVar->LOCATION = pkg_pin_name;
+        }
+
+        hardware_name = pkgVar.hardware_name;
+        if (hardware_name)
+        {
+            devRefVar->HARDWARE_NAME = hardware_name;
+        }
+        
+        type_name = pkgVar.io_type;
+        if (type_name)
+        {
+            devRefVar->IO_TYPE = type_name;
+        }
+        
+        shared_io = pkgVar.shared_io;
+        if (shared_io)
+        {
+           devRefVar->SHARED_IO = TRUE;
+        }
+        
+        clk_pad = pkgVar.clk_pad;
+        if (clk_pad)
+        {
+           devRefVar->CLK_PAD = TRUE;
+        }
+        
+        pll_pad = pkgVar.pll_pad;
+        if (pll_pad)
+        {
+           devRefVar->PLL_PAD = pll_pad;
+        }
+        
+        // Some IOBs have no pkg pin, but have PAD name
+        if ( !pkg_pin_name)
+        {
+            continue;
+        }
+
+        // Get the package pin from their package. In following expression, the name of the
+        // chip package is not specified. During execution, Valence compiler finds out the
+        // chip package according to the context. In this body, the body name 'fbg484' is
+        // used
+        //
+        ppRefVar = < PACKAGE PIN *pkg_pin_name >;
+
+        // Map. In packaging body, the lhs (left-hand-side) is required to be package pin;
+        // while rhs is required to be grid device
+        map ( ppRefVar => devRefVar );
+    }
+
+}; // end of packaging fbg484 of devpgl25g
+
+
+
+library work;
+use PinSym_defs;
+use pgl25g_fbg484_spec;
+
+/*******************************************************************************
+
+  Package   [pgl25g_fbg484]
+
+  Author    []
+
+  Abstract  [This describes the TOP view schematics of this packaging. Top view of the
+             package is defined as viewing the package from the logo side of the package]
+
+  Revision History:
+
+********************************************************************************/
+schematic pkg_fbg484 of PGL25G ( packaging fbg484 )
+{
+    //
+    // Define the total GUI grid
+    //
+    unsigned int MAX_X = 22 * PIN_NUM_GUI_GRID_X ;
+    unsigned int MAX_Y = 22 * PIN_NUM_GUI_GRID_X ;
+
+    generate ( MAX_X # MAX_Y );
+
+    STRUCT pkg_spec pkgVar;
+
+    STRING pkg_pin_name;
+    STRING symbol_name;
+    INT    plx, ply, pgx, pgy;
+
+    &PACKAGE PIN ppRefVar;
+    &SYMBOL      symRefVar;
+
+    foreach pkgVar ( pgl25g_fbg484_spec )
+    {
+        pkg_pin_name = pkgVar.pkg_pin_name;
+        symbol_name  = pkgVar.symbol_name;
+        
+        if ( !symbol_name || !pkg_pin_name)
+        {
+            continue;
+        }
+
+        plx = pkgVar.PLX;
+        ply = pkgVar.PLY;
+
+        pgx = plx * PIN_NUM_GUI_GRID_X;
+        pgy = ply * PIN_NUM_GUI_GRID_X;
+
+        // Get the package pin. Again, Valence compiler shows a little intelligence here.
+        // From the current scope (pkg_schematic), the package pin is found thru the
+        // packaging body
+        //
+        ppRefVar = < PACKAGE PIN *pkg_pin_name >;
+
+        // Instantiate the pkg pin symbol
+        symRefVar = PACKAGE PIN ( symbol *symbol_name ) @[pgx,pgy];
+
+        // Map. As in packaging body, the lhs (left-hand-side) is required to be package pin;
+        // while rhs is required to be the pin symbol instance
+        map ( ppRefVar => symRefVar );
+    }
+
+}; // end of schematic pkg_fbg484 of devpgl25g ( packaging fbg484 )
+
+

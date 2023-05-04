@@ -1,0 +1,71 @@
+*****************************************************************
+
+  Device    [devBVCC]
+
+  Author    [liujiao]
+
+  Abstract  [THE DEVICE CAN BE USED FOR LUT.]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devBVCC : device devB
+{
+    parameter
+    (
+        config bit CP_INITB[31:0]       := 32'hffff_ffff,
+        config string CP_MODEB          := "LUT5",                // "LUT5" "ROM" "WMUX" "ARITH"        
+        config string CP_Y1MUX_SEL      := "FX"                   //"FX":F1 "CYX":CYB "MF":L7
+    );
+    
+    port
+    (
+        output   Y1
+    );
+}; // end of device devBVCC
+
+
+/*******************************************************************************
+
+  Device    [devBVCC]
+
+  Author    [liujiao]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devBVCC
+{
+
+    wire ntY1;  
+    wire ntL5B;    
+
+    Y1        <= ntY1;
+    
+
+    device FYC FYB 
+        parameter map
+        (
+            CP_INIT => CP_INITB,
+            CP_MODE => CP_MODEB
+        )
+        port map 
+        (            
+            L5    => ntL5B 
+        );
+
+    device YMUX Y1MUX
+        parameter map
+        (
+            CP_OUT_SEL  => CP_Y1MUX_SEL
+        )       
+        port map
+        (
+            FX  => ntL5B,
+            Y   => ntY1
+        );
+}; // end of structure netlist of devBVCC
+

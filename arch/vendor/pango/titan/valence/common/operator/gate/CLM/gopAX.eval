@@ -1,0 +1,105 @@
+*********************************************************************
+
+  Operator    [gopAX]
+  
+  Author    []
+
+  Abstract  [For there is no routing path, The signal which is controled by user 
+            cannot connect with the Port "CIN" derectly. ]
+
+  Revision History:
+
+ ********************************************************************************/
+gate
+operator gopAX
+{
+    parameter
+    (
+        bit    INIT[31:0]      = 32'h0000_0000,
+        string LUT_USED        = "UNUSED"          // UNUSED : Cin pass from A4.
+                                                   // USED   : Cin pass from A0~A3
+    );
+
+    port
+    (
+        input  Cin,
+        output Cout
+    );
+};
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devAAX_S to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devAAX_S of gopAX
+{
+    string MODE;
+    if (LUT_USED == "USED")
+    {
+        MODE = "CY01";
+    }
+    else
+    {
+        MODE = "CYX";
+    }
+    device devAAX_S gatedev
+        parameter map 
+        ( 
+            INITA     => INIT,
+            FGA_MODE  => MODE
+        )
+        port map
+        (
+            A0       => (MODE == "CY01") ? Cin  : 1'bx,  
+            //A1       => (MODE == "CY01") ? 1'by : 1'bx,
+            //A2       => (MODE == "CY01") ? 1'by : 1'bx,
+            //A3       => (MODE == "CY01") ? 1'by : 1'bx,                       
+            A4       => (MODE == "CYX") ? Cin : 1'bx,
+            FGA_COUT => Cout
+        );
+}; // end of implementation impl_devAAX_S of gopAX
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devAAX to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devAAX of gopAX
+{
+    string MODE;
+    if (LUT_USED == "USED")
+    {
+        MODE = "CY01";
+    }
+    else
+    {
+        MODE = "CYX";
+    }
+    
+    device devAAX gatedev
+        parameter map 
+        ( 
+            INITA     => INIT,
+            FGA_MODE  => MODE
+        )
+        port map
+        (
+            A0       => (MODE == "CY01") ? Cin  : 1'bx,
+            //A1       => (MODE == "CY01") ? 1'by : 1'bx,
+            //A2       => (MODE == "CY01") ? 1'by : 1'bx,
+            //A3       => (MODE == "CY01") ? 1'by : 1'bx,            
+            A4       => (MODE == "CYX") ? Cin : 1'bx,
+            FGA_COUT => Cout
+        );
+}; // end of implementation impl_devAAX of gopAX
+
+

@@ -1,0 +1,1445 @@
+use pg2l_defs;
+//use pg2l_WLSR2_input_inc,pg2l_PLL_input_inc,pg2l_USCM_input_inc;
+
+package pg2l_funcs_connect_clk
+{
+
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_iolclk_input
+(
+    string type_lr,
+    int rx,
+    int num_tile_x,
+    string device_iol
+)
+{
+    int tx,ty,sx,sy;
+    int sx_iock,sy_iock;
+
+
+    if(type_lr == "L")
+    {
+      sx = 2*NUM_GRID_X + 3; 
+      sx_iock = NUM_GRID_X ;
+    }
+    else 
+    {
+      sx = (num_tile_x-3) * NUM_GRID_X + 3;
+      sx_iock = (num_tile_x-3) * NUM_GRID_X;
+    }
+
+    sy_iock = (rx*NUM_TILES_REGION+25) * NUM_GRID_Y;
+
+    unsigned int l_ty_iol[] = {[0:24,26:50]};
+    string iol = device_iol;
+    int ty_iol,sy_iol;
+
+    foreach ty(l_ty_iol)
+    {
+      ty_iol = rx*NUM_TILES_REGION + ty;
+      sy_iol = ty_iol * NUM_GRID_Y;
+
+
+      connect
+        (
+          <pin IOCLK of <device *iol @[sx,sy_iol]>>   => (ty>25) ? <wire CLK_IOP_U of <device IOCK_TILE @[sx_iock,sy_iock]>>
+                                                                 : <wire CLK_IOP_D of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+
+          <pin IOCLK_N of <device *iol @[sx,sy_iol]>> => (ty>25) ? <wire CLK_ION_U of <device IOCK_TILE @[sx_iock,sy_iock]>>
+                                                                 : <wire CLK_ION_D of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+
+          <pin GCLK of <device *iol @[sx,sy_iol]>>   => (ty>25) ? <wire CLK_SCKMUX1_OUT_P[5:0] of <device IOCK_TILE @[sx_iock,sy_iock]>>
+                                                                : <wire CLK_SCKMUX0_OUT_P[5:0] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+
+          <pin GCLK_N of <device *iol @[sx,sy_iol]>> => (ty>25) ? <wire CLK_SCKMUX1_OUT_N[5:0] of <device IOCK_TILE @[sx_iock,sy_iock]>>
+                                                                : <wire CLK_SCKMUX0_OUT_N[5:0] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+
+          <pin RCLK of <device *iol @[sx,sy_iol]>>   => (ty>25) ? <wire CLK_SCKMUX1_OUT_P[9:6] of <device IOCK_TILE @[sx_iock,sy_iock]>>
+                                                                : <wire CLK_SCKMUX0_OUT_P[9:6] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+
+          <pin RCLK_N of <device *iol @[sx,sy_iol]>> => (ty>25) ? <wire CLK_SCKMUX1_OUT_N[9:6] of <device IOCK_TILE @[sx_iock,sy_iock]>>
+                                                                : <wire CLK_SCKMUX0_OUT_N[9:6] of <device IOCK_TILE @[sx_iock,sy_iock]>>
+
+        );
+
+    }
+
+}//end of function connect_IOCLK_input
+
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_iolclk_hp_input
+(
+    string type_lr,
+    int rx,
+    int num_tile_x,
+    string device_iol
+)
+{
+    int tx,ty,sx,sy;
+    int sx_iock,sy_iock;
+
+
+    if(type_lr == "L")
+    {
+      sx = 2*NUM_GRID_X + 3; 
+      sx_iock = NUM_GRID_X ;
+    }
+    else 
+    {
+      sx = (num_tile_x-3) * NUM_GRID_X + 3;
+      sx_iock = (num_tile_x-3) * NUM_GRID_X;
+    }
+
+    sy_iock = (rx*NUM_TILES_REGION+25) * NUM_GRID_Y;
+
+    unsigned int l_ty_iol[] = {[0:24,26:50]};
+    string iol = device_iol;
+    int ty_iol,sy_iol;
+
+    foreach ty(l_ty_iol)
+    {
+      ty_iol = rx*NUM_TILES_REGION + ty;
+      sy_iol = ty_iol * NUM_GRID_Y;
+
+
+      connect
+        (
+          <pin IOCLK of <device *iol @[sx,sy_iol]>>   => (ty>25) ? <wire CLK_IOP_U of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>
+                                                                 : <wire CLK_IOP_D of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+
+          <pin IOCLK_N of <device *iol @[sx,sy_iol]>> => (ty>25) ? <wire CLK_ION_U of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>
+                                                                 : <wire CLK_ION_D of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+
+          <pin GCLK of <device *iol @[sx,sy_iol]>>   => (ty>25) ? <wire CLK_SCKMUX1_OUT_P[5:0] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>
+                                                                : <wire CLK_SCKMUX0_OUT_P[5:0] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+
+          <pin GCLK_N of <device *iol @[sx,sy_iol]>> => (ty>25) ? <wire CLK_SCKMUX1_OUT_N[5:0] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>
+                                                                : <wire CLK_SCKMUX0_OUT_N[5:0] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+
+          <pin RCLK of <device *iol @[sx,sy_iol]>>   => (ty>25) ? <wire CLK_SCKMUX1_OUT_P[9:6] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>
+                                                                : <wire CLK_SCKMUX0_OUT_P[9:6] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+
+          <pin RCLK_N of <device *iol @[sx,sy_iol]>> => (ty>25) ? <wire CLK_SCKMUX1_OUT_N[9:6] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>
+                                                                : <wire CLK_SCKMUX0_OUT_N[9:6] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>
+
+        );
+
+    }
+
+}//end of function connect_IOCLK_hp_input
+
+
+/****************************************************************************************************
+*****************************************************************************************************/
+//function connect_hsst_clk_iockgate(unsigned int tx,ty, string wlsr, string pin_name)
+//{
+//    unsigned int sx, sy;
+//    
+//    sx = tx * NUM_GRID_X + 2;
+//    sy = ty * NUM_GRID_Y;
+//    
+//    unsigned int temp_ty;
+//    for(temp_ty = ty;temp_ty > MID_TILE_REGION;temp_ty = temp_ty - NUM_TILES_REGION)
+//    {
+//      sy = sy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+//    }
+//
+//    string device_wlsr = wlsr;
+//    string pin_clk = pin_name;
+//
+//    connect
+//      (
+//        <pin CLK_HRX[3] of <device *device_wlsr @ [sx,sy]>> => <wire *pin_clk of <device *device_wlsr @ [sx,sy]>>,
+//        <pin CLK_HRX[2] of <device *device_wlsr @ [sx,sy]>> => <wire *pin_clk of <device *device_wlsr @ [sx,sy]>>,
+//        <pin CLK_HRX[1] of <device *device_wlsr @ [sx,sy]>> => <wire *pin_clk of <device *device_wlsr @ [sx,sy]>>,
+//        <pin CLK_HRX[0] of <device *device_wlsr @ [sx,sy]>> => <wire *pin_clk of <device *device_wlsr @ [sx,sy]>>,
+//
+//        <pin CLK_HTX[3] of <device *device_wlsr @ [sx,sy]>> => <wire *pin_clk of <device *device_wlsr @ [sx,sy]>>,
+//        <pin CLK_HTX[2] of <device *device_wlsr @ [sx,sy]>> => <wire *pin_clk of <device *device_wlsr @ [sx,sy]>>,
+//        <pin CLK_HTX[1] of <device *device_wlsr @ [sx,sy]>> => <wire *pin_clk of <device *device_wlsr @ [sx,sy]>>,
+//        <pin CLK_HTX[0] of <device *device_wlsr @ [sx,sy]>> => <wire *pin_clk of <device *device_wlsr @ [sx,sy]>>
+//      );
+//
+//};//end of function connect_hsst_clk
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_pregmuxc_horizontal
+(
+    int rx,
+    int tx_ckeb2_l,
+    int tx_ckeb2_r,
+    int tx_uscm,
+    int ty_uscm,
+    string tile_uscm
+)
+{
+    int sx_ckeb2_l = tx_ckeb2_l * NUM_GRID_X;
+    int sx_ckeb2_r = tx_ckeb2_r * NUM_GRID_X;
+    int sx_uscm = tx_uscm * NUM_GRID_X + 3;
+    int sy = (rx*NUM_TILES_REGION+25)*NUM_GRID_Y;
+    int sy_uscm = ty_uscm * NUM_GRID_Y;
+    int rx_uscm = ty_uscm/NUM_TILES_REGION;
+    string uscm = tile_uscm;
+
+   //connect CLK_PREGMUX port of uscm_tile/pregmuxc_tile
+    if(rx>rx_uscm)
+    {
+        connect
+          (
+            <pin CLK_PREGMUXL_U of <device *uscm @[sx_uscm,sy_uscm]>> => <wire CLK_PREGM_OUT of <device CKEB2_TILE @[sx_ckeb2_l,sy]>>,
+            <pin CLK_PREGMUXR_U of <device *uscm @[sx_uscm,sy_uscm]>> => <wire CLK_PREGM_OUT of <device CKEB2_TILE @[sx_ckeb2_r,sy]>>,
+
+            <pin CLK_RCKBMUXL_U of <device *uscm @[sx_uscm,sy_uscm]>> => <wire CLK_REGION_OUT of <device CKEB2_TILE @[sx_ckeb2_l,sy]>>,
+            <pin CLK_RCKBMUXR_U of <device *uscm @[sx_uscm,sy_uscm]>> => <wire CLK_REGION_OUT of <device CKEB2_TILE @[sx_ckeb2_r,sy]>>
+
+          );
+    }
+    else
+    {
+        connect
+          (
+            <pin CLK_PREGMUXL_D of <device *uscm @[sx_uscm,sy_uscm]>> => <wire CLK_PREGM_OUT of <device CKEB2_TILE @[sx_ckeb2_l,sy]>>,
+            <pin CLK_PREGMUXR_D of <device *uscm @[sx_uscm,sy_uscm]>> => <wire CLK_PREGM_OUT of <device CKEB2_TILE @[sx_ckeb2_r,sy]>>,
+
+            <pin CLK_RCKBMUXL_D of <device *uscm @[sx_uscm,sy_uscm]>> => <wire CLK_REGION_OUT of <device CKEB2_TILE @[sx_ckeb2_l,sy]>>,
+            <pin CLK_RCKBMUXR_D of <device *uscm @[sx_uscm,sy_uscm]>> => <wire CLK_REGION_OUT of <device CKEB2_TILE @[sx_ckeb2_r,sy]>>
+
+          );
+    }
+}
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_pregmuxc_vertical
+(
+    int rx_pregmuxc,
+    int tx,
+    int rx_uscm,
+    int num_rx
+)
+{
+    int sx = tx * NUM_GRID_X + 3;
+    int sy_pregmuxc = rx_pregmuxc*NUM_TILES_REGION*NUM_GRID_Y;
+    int sy_uscm = rx_uscm*NUM_TILES_REGION*NUM_GRID_Y;
+    int sy_pregmuxc0 = (rx_pregmuxc>rx_uscm) ? (rx_pregmuxc-1)*NUM_TILES_REGION*NUM_GRID_Y : (rx_pregmuxc+1)*NUM_TILES_REGION*NUM_GRID_Y;
+    int sy_pregmuxc1 = (rx_pregmuxc>rx_uscm) ? (rx_pregmuxc+1)*NUM_TILES_REGION*NUM_GRID_Y : (rx_pregmuxc-1)*NUM_TILES_REGION*NUM_GRID_Y;
+
+   //connect CLK_PREGMUX port of uscm_tile/pregmuxc_tile
+    if(rx_pregmuxc==(num_rx-1)||(rx_pregmuxc==0))
+    {
+        connect
+          (
+            <pin CLK_PREGMUXC_D[31] of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>> => <wire TIEH0 of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>>,
+            <pin CLK_PREGMUXC_D[30] of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>> => <wire TIEH0 of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>>,
+            <pin CLK_PREGMUXC_D[29] of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>> => <wire TIEH0 of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>>,
+            <pin CLK_PREGMUXC_D[28] of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>> => <wire TIEH0 of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>>,
+            <pin CLK_PREGMUXC_D[27] of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>> => <wire TIEH0 of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>>,
+            <pin CLK_PREGMUXC_D[26] of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>> => <wire TIEH0 of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>>,
+            <pin CLK_PREGMUXC_D[25] of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>> => <wire TIEH0 of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>>,
+            <pin CLK_PREGMUXC_D[24] of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>> => <wire TIEH0 of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>>,
+            <pin CLK_PREGMUXC_D[23] of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>> => <wire TIEH0 of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>>,
+            <pin CLK_PREGMUXC_D[22] of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>> => <wire TIEH0 of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>>,
+            <pin CLK_PREGMUXC_D[21] of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>> => <wire TIEH0 of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>>,
+            <pin CLK_PREGMUXC_D[20] of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>> => <wire TIEH0 of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>>,
+            <pin CLK_PREGMUXC_D[19] of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>> => <wire TIEH0 of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>>,
+            <pin CLK_PREGMUXC_D[18] of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>> => <wire TIEH0 of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>>,
+            <pin CLK_PREGMUXC_D[17] of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>> => <wire TIEH0 of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>>,
+            <pin CLK_PREGMUXC_D[16] of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>> => <wire TIEH0 of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>>,
+            <pin CLK_PREGMUXC_D[15] of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>> => <wire TIEH0 of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>>,
+            <pin CLK_PREGMUXC_D[14] of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>> => <wire TIEH0 of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>>,
+            <pin CLK_PREGMUXC_D[13] of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>> => <wire TIEH0 of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>>,
+            <pin CLK_PREGMUXC_D[12] of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>> => <wire TIEH0 of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>>,
+            <pin CLK_PREGMUXC_D[11] of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>> => <wire TIEH0 of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>>,
+            <pin CLK_PREGMUXC_D[10] of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>> => <wire TIEH0 of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>>,
+            <pin CLK_PREGMUXC_D[9] of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>>  => <wire TIEH0 of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>>,
+            <pin CLK_PREGMUXC_D[8] of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>>  => <wire TIEH0 of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>>,
+            <pin CLK_PREGMUXC_D[7] of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>>  => <wire TIEH0 of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>>,
+            <pin CLK_PREGMUXC_D[6] of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>>  => <wire TIEH0 of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>>,
+            <pin CLK_PREGMUXC_D[5] of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>>  => <wire TIEH0 of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>>,
+            <pin CLK_PREGMUXC_D[4] of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>>  => <wire TIEH0 of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>>,
+            <pin CLK_PREGMUXC_D[3] of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>>  => <wire TIEH0 of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>>,
+            <pin CLK_PREGMUXC_D[2] of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>>  => <wire TIEH0 of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>>,
+            <pin CLK_PREGMUXC_D[1] of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>>  => <wire TIEH0 of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>>,
+            <pin CLK_PREGMUXC_D[0] of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>>  => <wire TIEH0 of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>>
+          );
+    }
+    else if(rx_pregmuxc==rx_uscm)
+    {
+        connect
+          (
+            <pin CLK_PREGMUXC_D of <device USCM_TILE @[sx,sy_uscm]>>      => <wire CLK_PREGMUXOUT of <device PREGMUXC_TILE @[sx,sy_pregmuxc1]>>
+          );
+    }
+    else if(rx_pregmuxc==(rx_uscm+1))
+    {
+        connect
+          (
+            <pin CLK_PREGMUXC_U of <device USCM_TILE @[sx,sy_uscm]>>      => <wire CLK_PREGMUXOUT of <device PREGMUXC_TILE @[sx,sy_pregmuxc1]>>
+          );
+    }
+    else
+    {
+        connect
+          (
+            <pin CLK_PREGMUXC_D of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>> => <wire CLK_PREGMUXOUT of <device PREGMUXC_TILE @[sx,sy_pregmuxc1]>>
+          );
+    }
+
+    if(rx_pregmuxc==(rx_uscm-1))
+    {
+        connect
+          (
+            <pin CLK_USCM of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>>    => <wire CLK_USCM_BUF_D of <device USCM_TILE @[sx,sy_uscm]>>
+          );
+    }
+    else if(rx_pregmuxc==(rx_uscm+2))
+    {
+        connect
+          (
+            <pin CLK_USCM of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>>    => <wire CLK_USCM_BUF_U of <device USCM_TILE @[sx,sy_uscm]>>
+          );
+    }
+    else if((rx_pregmuxc!=rx_uscm)&&(rx_pregmuxc!=(rx_uscm+1)))
+    {
+        connect
+          (
+            <pin CLK_USCM of <device PREGMUXC_TILE @[sx,sy_pregmuxc]>>    => <wire CLK_USCM_BUF of <device PREGMUXC_TILE @[sx,sy_pregmuxc0]>>
+          );
+    }
+
+}
+/****************************************************************************************************
+*****************************************************************************************************/
+//l_tx_ckeb2[]:list of ckeb2_tile on the left/right half
+//when l_tx_ckeb2 is list of ckeb2_tile on the left,it must be increase order, tx_iock is the iock_tile on the left
+//when l_tx_ckeb2 is list of ckeb2_tile on the right,it must be decrease order, tx_iock is the iock_tile on the right
+//l_tx_ckeb is the list of ckeb_tile on the same side of ckeb2_tile
+//when no iock_tile,tx_iock = 0
+function connect_ckeb_buf1
+(
+    int rx,
+    int l_tx_ckeb2[], 
+    int l_tx_ckeb[], 
+    int tx_uscm,  
+    int tx_iock,
+    int tx_hsst
+)
+{
+    int sx_iock = tx_iock * NUM_GRID_X;
+    int sx_hsst = tx_hsst * NUM_GRID_X + 3;
+    int sy = (rx*NUM_TILES_REGION+25)*NUM_GRID_Y;
+    int sy_iock = sy;
+    int sy_hsst = rx*NUM_TILES_REGION*NUM_GRID_Y;
+
+    int tx,tx_i,site_i,sx_ckeb2,sx_ckeb;
+    int tx_tmp;
+    int i = 0;
+    foreach tx( l_tx_ckeb2 )
+    {
+        sx_ckeb2 = tx * NUM_GRID_X;
+        if(i==0)
+        {
+          if(tx_iock==0)
+          {
+              connect
+                (
+                  <pin CLK_PREGM_IN[0] of <device CKEB2_TILE @[sx_ckeb2,sy]>>   =>  <wire RCLK2FABRIC_T[0] of <device HSSTLP_TILE @[sx_hsst,sy_hsst]>>,
+                  <pin CLK_PREGM_IN[1] of <device CKEB2_TILE @[sx_ckeb2,sy]>>   =>  <wire RCLK2FABRIC_T[1] of <device HSSTLP_TILE @[sx_hsst,sy_hsst]>>,
+                  <pin CLK_PREGM_IN[2] of <device CKEB2_TILE @[sx_ckeb2,sy]>>   =>  <wire RCLK2FABRIC_T[2] of <device HSSTLP_TILE @[sx_hsst,sy_hsst]>>,
+                  <pin CLK_PREGM_IN[3] of <device CKEB2_TILE @[sx_ckeb2,sy]>>   =>  <wire RCLK2FABRIC_T[3] of <device HSSTLP_TILE @[sx_hsst,sy_hsst]>>,
+                  <pin CLK_PREGM_IN[4] of <device CKEB2_TILE @[sx_ckeb2,sy]>>   =>  <wire TCLK2FABRIC_T[0] of <device HSSTLP_TILE @[sx_hsst,sy_hsst]>>,
+                  <pin CLK_PREGM_IN[5] of <device CKEB2_TILE @[sx_ckeb2,sy]>>   =>  <wire TCLK2FABRIC_T[1] of <device HSSTLP_TILE @[sx_hsst,sy_hsst]>>,
+                  <pin CLK_PREGM_IN[6] of <device CKEB2_TILE @[sx_ckeb2,sy]>>   =>  <wire TCLK2FABRIC_T[2] of <device HSSTLP_TILE @[sx_hsst,sy_hsst]>>,
+                  <pin CLK_PREGM_IN[7] of <device CKEB2_TILE @[sx_ckeb2,sy]>>   =>  <wire TCLK2FABRIC_T[3] of <device HSSTLP_TILE @[sx_hsst,sy_hsst]>>,
+                  <pin CLK_PREGM_IN[8] of <device CKEB2_TILE @[sx_ckeb2,sy]>>   =>  <wire REFCK2CORE_T_0 of <device HSSTLP_TILE @[sx_hsst,sy_hsst]>>,
+                  <pin CLK_PREGM_IN[9] of <device CKEB2_TILE @[sx_ckeb2,sy]>>   =>  <wire REFCK2CORE_T_1 of <device HSSTLP_TILE @[sx_hsst,sy_hsst]>>,
+                  <pin CLK_PREGM_IN[10] of <device CKEB2_TILE @[sx_ckeb2,sy]>>  =>  <wire TIEHI of <device CKEB2_TILE @[sx_ckeb2,sy]>>,
+                  <pin CLK_PREGM_IN[11] of <device CKEB2_TILE @[sx_ckeb2,sy]>>  =>  <wire TIEHI of <device CKEB2_TILE @[sx_ckeb2,sy]>>,
+                  <pin CLK_PREGM_IN[12] of <device CKEB2_TILE @[sx_ckeb2,sy]>>  =>  <wire TIEHI of <device CKEB2_TILE @[sx_ckeb2,sy]>>,
+                  <pin CLK_PREGM_IN[13] of <device CKEB2_TILE @[sx_ckeb2,sy]>>  =>  <wire TIEHI of <device CKEB2_TILE @[sx_ckeb2,sy]>>,
+ 
+                  <pin CLK_REGION_IN[0] of <device CKEB2_TILE @[sx_ckeb2,sy]>>  =>  <wire TIEHI of <device CKEB2_TILE @[sx_ckeb2,sy]>>,
+                  <pin CLK_REGION_IN[1] of <device CKEB2_TILE @[sx_ckeb2,sy]>>  =>  <wire TIEHI of <device CKEB2_TILE @[sx_ckeb2,sy]>>,
+                  <pin CLK_REGION_IN[2] of <device CKEB2_TILE @[sx_ckeb2,sy]>>  =>  <wire TIEHI of <device CKEB2_TILE @[sx_ckeb2,sy]>>,
+                  <pin CLK_REGION_IN[3] of <device CKEB2_TILE @[sx_ckeb2,sy]>>  =>  <wire TIEHI of <device CKEB2_TILE @[sx_ckeb2,sy]>>
+                );
+          }
+          else
+          {
+              connect
+                (
+                  <pin CLK_PREGM_IN of <device CKEB2_TILE @[sx_ckeb2,sy]>>  => <wire CLK_PREGMUX_OUT of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+                  <pin CLK_REGION_IN of <device CKEB2_TILE @[sx_ckeb2,sy]>> => <wire CLK_RCKB of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+
+                  <pin CLK_HCKB of <device IOCK_TILE @[sx_iock,sy_iock]>>   => <wire CLK_GLOBAL_OUT of <device CKEB2_TILE @[sx_ckeb2,sy]>>
+                );
+          }
+          foreach tx_tmp( l_tx_ckeb)
+          {
+             sx_ckeb = tx_tmp * NUM_GRID_X;
+             if(((tx_tmp<tx)&&(tx<tx_uscm))||((tx_tmp>tx)&&(tx>tx_uscm)))
+             {
+                connect
+                 (
+                   <pin CLK_REGION_IN[0] of <device CKEB_TILE @[sx_ckeb,sy]>>  => (tx_iock==0) ? <wire TIEHI of <device CKEB_TILE @[sx_ckeb,sy]>>
+                                                                                               : <wire CLK_RCKB[0] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+                   <pin CLK_REGION_IN[1] of <device CKEB_TILE @[sx_ckeb,sy]>>  => (tx_iock==0) ? <wire TIEHI of <device CKEB_TILE @[sx_ckeb,sy]>>
+                                                                                               : <wire CLK_RCKB[1] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+                   <pin CLK_REGION_IN[2] of <device CKEB_TILE @[sx_ckeb,sy]>>  => (tx_iock==0) ? <wire TIEHI of <device CKEB_TILE @[sx_ckeb,sy]>>
+                                                                                               : <wire CLK_RCKB[2] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+                   <pin CLK_REGION_IN[3] of <device CKEB_TILE @[sx_ckeb,sy]>>  => (tx_iock==0) ? <wire TIEHI of <device CKEB_TILE @[sx_ckeb,sy]>>
+                                                                                               : <wire CLK_RCKB[3] of <device IOCK_TILE @[sx_iock,sy_iock]>>
+                 );
+             }
+          }
+        }
+        else
+        {
+          connect
+            (
+              <pin CLK_PREGM_IN of <device CKEB2_TILE @[sx_ckeb2,sy]>>   => <wire CLK_PREGMUX_OUT of <device CKEB2_TILE @[site_i,sy]>>,
+              <pin CLK_REGION_IN of <device CKEB2_TILE @[sx_ckeb2,sy]>>  => <wire CLK_REGION_OUT of <device CKEB2_TILE @[site_i,sy]>>
+            );
+          foreach tx_tmp( l_tx_ckeb)
+          {
+             sx_ckeb = tx_tmp * NUM_GRID_X;
+             if(((tx_tmp>tx_i)&&(tx_tmp<tx))||((tx_tmp<tx_i)&&(tx_tmp>tx)))
+             {
+                connect
+                 (
+                   <pin CLK_REGION_IN of <device CKEB_TILE @[sx_ckeb,sy]>>  => <wire CLK_REGION_OUT of <device CKEB2_TILE @[site_i,sy]>>
+                 );
+             }
+          }
+        }
+        tx_i = tx;
+        site_i = tx * NUM_GRID_X;
+        i = i + 1;
+    }
+
+    foreach tx_tmp( l_tx_ckeb)
+    {
+       sx_ckeb = tx_tmp * NUM_GRID_X;
+       if(((tx_tmp>tx_i)&&(tx_i<tx_uscm))||((tx_tmp<tx_i)&&(tx_i>tx_uscm)))
+       {
+          connect
+           (
+              <pin CLK_REGION_IN of <device CKEB_TILE @[sx_ckeb,sy]>>  => <wire CLK_REGION_OUT of <device CKEB2_TILE @[site_i,sy]>>
+           );
+       }
+    }
+}
+
+
+/****************************************************************************************************
+*****************************************************************************************************/
+//l_tx_ckeb2[]:list of ckeb2_tile on the left/right half
+//when l_tx_ckeb2 is list of ckeb2_tile on the left,it must be increase order, tx_iock is the iock_tile on the left
+//when l_tx_ckeb2 is list of ckeb2_tile on the right,it must be decrease order, tx_iock is the iock_tile on the right
+//l_tx_ckeb is the list of ckeb_tile on the same side of ckeb2_tile
+//when no iock_tile,tx_iock = 0
+function connect_ckeb_buf1_hp
+(
+    int rx,
+    int l_tx_ckeb2[], 
+    int l_tx_ckeb[], 
+    int tx_uscm,  
+    int tx_iock,
+    int tx_hsst
+)
+{
+    int sx_iock = tx_iock * NUM_GRID_X;
+    int sx_hsst = tx_hsst * NUM_GRID_X + 3;
+    int sy = (rx*NUM_TILES_REGION+25)*NUM_GRID_Y;
+    int sy_iock = sy;
+    int sy_hsst = rx*NUM_TILES_REGION*NUM_GRID_Y;
+
+    int tx,tx_i,site_i,sx_ckeb2,sx_ckeb;
+    int tx_tmp;
+    int i = 0;
+    foreach tx( l_tx_ckeb2 )
+    {
+        sx_ckeb2 = tx * NUM_GRID_X;
+        if(i==0)
+        {
+          if(tx_iock==0)
+          {
+              connect
+                (
+                  <pin CLK_PREGM_IN[0] of <device CKEB2_TILE @[sx_ckeb2,sy]>>   =>  <wire RCLK2FABRIC_T[0] of <device HSSTHP_TILE @[sx_hsst,sy_hsst]>>,
+                  <pin CLK_PREGM_IN[1] of <device CKEB2_TILE @[sx_ckeb2,sy]>>   =>  <wire RCLK2FABRIC_T[1] of <device HSSTHP_TILE @[sx_hsst,sy_hsst]>>,
+                  <pin CLK_PREGM_IN[2] of <device CKEB2_TILE @[sx_ckeb2,sy]>>   =>  <wire RCLK2FABRIC_T[2] of <device HSSTHP_TILE @[sx_hsst,sy_hsst]>>,
+                  <pin CLK_PREGM_IN[3] of <device CKEB2_TILE @[sx_ckeb2,sy]>>   =>  <wire RCLK2FABRIC_T[3] of <device HSSTHP_TILE @[sx_hsst,sy_hsst]>>,
+                  <pin CLK_PREGM_IN[4] of <device CKEB2_TILE @[sx_ckeb2,sy]>>   =>  <wire TCLK2FABRIC_T[0] of <device HSSTHP_TILE @[sx_hsst,sy_hsst]>>,
+                  <pin CLK_PREGM_IN[5] of <device CKEB2_TILE @[sx_ckeb2,sy]>>   =>  <wire TCLK2FABRIC_T[1] of <device HSSTHP_TILE @[sx_hsst,sy_hsst]>>,
+                  <pin CLK_PREGM_IN[6] of <device CKEB2_TILE @[sx_ckeb2,sy]>>   =>  <wire TCLK2FABRIC_T[2] of <device HSSTHP_TILE @[sx_hsst,sy_hsst]>>,
+                  <pin CLK_PREGM_IN[7] of <device CKEB2_TILE @[sx_ckeb2,sy]>>   =>  <wire TCLK2FABRIC_T[3] of <device HSSTHP_TILE @[sx_hsst,sy_hsst]>>,
+                  <pin CLK_PREGM_IN[8] of <device CKEB2_TILE @[sx_ckeb2,sy]>>   =>  <wire REFCK2CORE_T_0 of <device HSSTHP_TILE @[sx_hsst,sy_hsst]>>,
+                  <pin CLK_PREGM_IN[9] of <device CKEB2_TILE @[sx_ckeb2,sy]>>   =>  <wire REFCK2CORE_T_1 of <device HSSTHP_TILE @[sx_hsst,sy_hsst]>>,
+                  <pin CLK_PREGM_IN[10] of <device CKEB2_TILE @[sx_ckeb2,sy]>>  =>  <wire TIEHI of <device CKEB2_TILE @[sx_ckeb2,sy]>>,
+                  <pin CLK_PREGM_IN[11] of <device CKEB2_TILE @[sx_ckeb2,sy]>>  =>  <wire TIEHI of <device CKEB2_TILE @[sx_ckeb2,sy]>>,
+                  <pin CLK_PREGM_IN[12] of <device CKEB2_TILE @[sx_ckeb2,sy]>>  =>  <wire TIEHI of <device CKEB2_TILE @[sx_ckeb2,sy]>>,
+                  <pin CLK_PREGM_IN[13] of <device CKEB2_TILE @[sx_ckeb2,sy]>>  =>  <wire TIEHI of <device CKEB2_TILE @[sx_ckeb2,sy]>>,
+ 
+                  <pin CLK_REGION_IN[0] of <device CKEB2_TILE @[sx_ckeb2,sy]>>  =>  <wire TIEHI of <device CKEB2_TILE @[sx_ckeb2,sy]>>,
+                  <pin CLK_REGION_IN[1] of <device CKEB2_TILE @[sx_ckeb2,sy]>>  =>  <wire TIEHI of <device CKEB2_TILE @[sx_ckeb2,sy]>>,
+                  <pin CLK_REGION_IN[2] of <device CKEB2_TILE @[sx_ckeb2,sy]>>  =>  <wire TIEHI of <device CKEB2_TILE @[sx_ckeb2,sy]>>,
+                  <pin CLK_REGION_IN[3] of <device CKEB2_TILE @[sx_ckeb2,sy]>>  =>  <wire TIEHI of <device CKEB2_TILE @[sx_ckeb2,sy]>>
+                );
+          }
+          else if(tx_iock==1)
+          {
+              connect
+                (
+                  <pin CLK_PREGM_IN of <device CKEB2_TILE @[sx_ckeb2,sy]>>  => <wire CLK_PREGMUX_OUT of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+                  <pin CLK_REGION_IN of <device CKEB2_TILE @[sx_ckeb2,sy]>> => <wire CLK_RCKB of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+
+                  <pin CLK_HCKB of <device IOCK_TILE @[sx_iock,sy_iock]>>   => <wire CLK_GLOBAL_OUT of <device CKEB2_TILE @[sx_ckeb2,sy]>>
+                );
+          }
+          else if(tx_iock==102)
+          {
+              connect
+                (
+                  <pin CLK_PREGM_IN of <device CKEB2_TILE @[sx_ckeb2,sy]>>  => <wire CLK_PREGMUX_OUT of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+                  <pin CLK_REGION_IN of <device CKEB2_TILE @[sx_ckeb2,sy]>> => <wire CLK_RCKB of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+
+                  <pin CLK_HCKB of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>   => <wire CLK_GLOBAL_OUT of <device CKEB2_TILE @[sx_ckeb2,sy]>>
+                );
+          }
+          foreach tx_tmp( l_tx_ckeb)
+          {
+             sx_ckeb = tx_tmp * NUM_GRID_X;
+             if((tx_tmp<tx)&&(tx<tx_uscm))
+             {
+                connect
+                 (
+                   <pin CLK_REGION_IN[0] of <device CKEB_TILE @[sx_ckeb,sy]>>  => (tx_iock==0) ? <wire TIEHI of <device CKEB_TILE @[sx_ckeb,sy]>>
+                                                                                               : <wire CLK_RCKB[0] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+                   <pin CLK_REGION_IN[1] of <device CKEB_TILE @[sx_ckeb,sy]>>  => (tx_iock==0) ? <wire TIEHI of <device CKEB_TILE @[sx_ckeb,sy]>>
+                                                                                               : <wire CLK_RCKB[1] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+                   <pin CLK_REGION_IN[2] of <device CKEB_TILE @[sx_ckeb,sy]>>  => (tx_iock==0) ? <wire TIEHI of <device CKEB_TILE @[sx_ckeb,sy]>>
+                                                                                               : <wire CLK_RCKB[2] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+                   <pin CLK_REGION_IN[3] of <device CKEB_TILE @[sx_ckeb,sy]>>  => (tx_iock==0) ? <wire TIEHI of <device CKEB_TILE @[sx_ckeb,sy]>>
+                                                                                               : <wire CLK_RCKB[3] of <device IOCK_TILE @[sx_iock,sy_iock]>>
+                 );
+             }
+
+             else if((tx_tmp>tx)&&(tx>tx_uscm))
+             {
+                connect
+                 (
+                   <pin CLK_REGION_IN[0] of <device CKEB_TILE @[sx_ckeb,sy]>>  => (tx_iock==0) ? <wire TIEHI of <device CKEB_TILE @[sx_ckeb,sy]>>
+                                                                                               : <wire CLK_RCKB[0] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+                   <pin CLK_REGION_IN[1] of <device CKEB_TILE @[sx_ckeb,sy]>>  => (tx_iock==0) ? <wire TIEHI of <device CKEB_TILE @[sx_ckeb,sy]>>
+                                                                                               : <wire CLK_RCKB[1] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+                   <pin CLK_REGION_IN[2] of <device CKEB_TILE @[sx_ckeb,sy]>>  => (tx_iock==0) ? <wire TIEHI of <device CKEB_TILE @[sx_ckeb,sy]>>
+                                                                                               : <wire CLK_RCKB[2] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+                   <pin CLK_REGION_IN[3] of <device CKEB_TILE @[sx_ckeb,sy]>>  => (tx_iock==0) ? <wire TIEHI of <device CKEB_TILE @[sx_ckeb,sy]>>
+                                                                                               : <wire CLK_RCKB[3] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>
+                 );
+             }
+
+
+          }
+        }
+        else
+        {
+          connect
+            (
+              <pin CLK_PREGM_IN of <device CKEB2_TILE @[sx_ckeb2,sy]>>   => <wire CLK_PREGMUX_OUT of <device CKEB2_TILE @[site_i,sy]>>,
+              <pin CLK_REGION_IN of <device CKEB2_TILE @[sx_ckeb2,sy]>>  => <wire CLK_REGION_OUT of <device CKEB2_TILE @[site_i,sy]>>
+            );
+          foreach tx_tmp( l_tx_ckeb)
+          {
+             sx_ckeb = tx_tmp * NUM_GRID_X;
+             if(((tx_tmp>tx_i)&&(tx_tmp<tx))||((tx_tmp<tx_i)&&(tx_tmp>tx)))
+             {
+                connect
+                 (
+                   <pin CLK_REGION_IN of <device CKEB_TILE @[sx_ckeb,sy]>>  => <wire CLK_REGION_OUT of <device CKEB2_TILE @[site_i,sy]>>
+                 );
+             }
+          }
+        }
+        tx_i = tx;
+        site_i = tx * NUM_GRID_X;
+        i = i + 1;
+    }
+
+    foreach tx_tmp( l_tx_ckeb)
+    {
+       sx_ckeb = tx_tmp * NUM_GRID_X;
+       if(((tx_tmp>tx_i)&&(tx_i<tx_uscm))||((tx_tmp<tx_i)&&(tx_i>tx_uscm)))
+       {
+          connect
+           (
+              <pin CLK_REGION_IN of <device CKEB_TILE @[sx_ckeb,sy]>>  => <wire CLK_REGION_OUT of <device CKEB2_TILE @[site_i,sy]>>
+           );
+       }
+    }
+}
+
+
+/****************************************************************************************************
+*****************************************************************************************************/
+//l_tx_ckeb2[]:list of ckeb2_tile on the left/right half
+//when l_tx_ckeb2 is list of ckeb2_tile on the left,it must be decrease order
+//when l_tx_ckeb2 is list of ckeb2_tile on the right,it must be increase order
+//l_tx_ckeb is the list of ckeb_tile on the same side of ckeb2_tile
+function connect_ckeb_buf2
+(
+    int rx,
+    int l_tx_ckeb2[], 
+    int l_tx_ckeb[],   
+    int tx_uscm,
+    int ty_uscm, 
+    string tile_uscm
+)
+{
+    int sx_uscm = tx_uscm * NUM_GRID_X + 3;
+    int sy = (rx*NUM_TILES_REGION+25)*NUM_GRID_Y;
+    int sy_uscm = ty_uscm * NUM_GRID_Y;
+    int rx_uscm = ty_uscm/NUM_TILES_REGION;
+    string uscm = tile_uscm;
+
+    int tx,tx_i,site_i,sx_ckeb2,sx_ckeb;
+    int tx_tmp;
+    int i = 0;
+    foreach tx( l_tx_ckeb2 )
+    {
+        sx_ckeb2 = tx * NUM_GRID_X;
+        if(i==0)
+        {
+            if(tx<tx_uscm)
+            {
+              connect
+                (
+                  <pin CLK_GLOBAL_IN of <device CKEB2_TILE @[sx_ckeb2,sy]>>  => (rx>rx_uscm) ? <wire CLK_HCKB1L of <device *uscm @[sx_uscm,sy_uscm]>>
+                                                                                             : <wire CLK_HCKB0L of <device *uscm @[sx_uscm,sy_uscm]>>
+                );
+            }
+            else
+            {
+              connect
+                (
+                  <pin CLK_GLOBAL_IN of <device CKEB2_TILE @[sx_ckeb2,sy]>>  => (rx>rx_uscm) ? <wire CLK_HCKB1R of <device *uscm @[sx_uscm,sy_uscm]>>
+                                                                                             : <wire CLK_HCKB0R of <device *uscm @[sx_uscm,sy_uscm]>>
+                );
+            }
+            foreach tx_tmp( l_tx_ckeb)
+            {
+              sx_ckeb = tx_tmp * NUM_GRID_X;
+              if((tx_tmp<tx_uscm)&&(tx_tmp>tx))
+              {
+                connect
+                  (
+                    <pin CLK_GLOBAL_IN of <device CKEB_TILE @[sx_ckeb,sy]>>  => (rx>rx_uscm) ? <wire CLK_HCKB1L of <device *uscm @[sx_uscm,sy_uscm]>>
+                                                                                             : <wire CLK_HCKB0L of <device *uscm @[sx_uscm,sy_uscm]>>
+                  );
+              }
+              else if((tx_tmp>tx_uscm)&&(tx_tmp<tx))
+              {
+                connect
+                  (
+                    <pin CLK_GLOBAL_IN of <device CKEB_TILE @[sx_ckeb,sy]>>  => (rx>rx_uscm) ? <wire CLK_HCKB1R of <device *uscm @[sx_uscm,sy_uscm]>>
+                                                                                             : <wire CLK_HCKB0R of <device *uscm @[sx_uscm,sy_uscm]>>
+                  );
+              }
+            }
+        }
+        else
+        {
+          connect
+            (
+              <pin CLK_GLOBAL_IN of <device CKEB2_TILE @[sx_ckeb2,sy]>>  => <wire CLK_GLOBAL_OUT of <device CKEB2_TILE @[site_i,sy]>>
+            );
+          foreach tx_tmp( l_tx_ckeb)
+          {
+             sx_ckeb = tx_tmp * NUM_GRID_X;
+             if(((tx_tmp>tx_i)&&(tx_tmp<tx))||((tx_tmp<tx_i)&&(tx_tmp>tx)))
+             {
+                connect
+                 (
+                   <pin CLK_GLOBAL_IN of <device CKEB_TILE @[sx_ckeb,sy]>>  => <wire CLK_GLOBAL_OUT of <device CKEB2_TILE @[site_i,sy]>>
+                 );
+             }
+          }
+        }
+        tx_i = tx;
+        site_i = tx * NUM_GRID_X;
+        i = i + 1;
+    }
+
+    foreach tx_tmp( l_tx_ckeb )
+    {
+       sx_ckeb = tx_tmp * NUM_GRID_X;
+       if((tx_tmp>tx_i)&&(tx_tmp>tx_uscm))
+       {
+          connect
+           (
+             <pin CLK_GLOBAL_IN of <device CKEB_TILE @[sx_ckeb,sy]>>  => <wire CLK_GLOBAL_OUT of <device CKEB2_TILE @[site_i,sy]>>
+           );
+       }
+       if((tx_tmp<tx_i)&&(tx_tmp<tx_uscm))
+       {
+          connect
+           (
+             <pin CLK_GLOBAL_IN of <device CKEB_TILE @[sx_ckeb,sy]>>  => <wire CLK_GLOBAL_OUT of <device CKEB2_TILE @[site_i,sy]>>
+           );
+       }
+    }
+}
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_srb_clk_input
+(
+    unsigned int rx,
+    unsigned int tx,
+    unsigned int tx_ckeb,
+    string device_ckeb,
+    string device_srb,
+    unsigned int loc_srb         //loc_srb = 0,bottom half region;loc_srb = 1, top half region
+)
+{
+    int sx,sx_ckeb,sy;
+    sx = tx * NUM_GRID_X;
+    sx_ckeb = tx_ckeb * NUM_GRID_X;
+
+    string ckeb = device_ckeb;
+    string srb = device_srb;
+    int sy_ckeb = (rx*NUM_TILES_REGION+25) * NUM_GRID_Y;      
+
+    int l_ty_srb[] = (loc_srb==1) ? {[26:50]} : {[0:24]};
+    int ty;
+    foreach ty( l_ty_srb )
+    {
+      sy = (rx*NUM_TILES_REGION+ty)*NUM_GRID_Y;
+      string pin_clk = (loc_srb==1) ? "CLK_CKEB1" : "CLK_CKEB0";
+      connect
+        (
+          <pin GCLK0 of <device *srb @ [sx,sy]>>    => <wire *pin_clk[0] of <device *ckeb @ [sx_ckeb,sy_ckeb]>>,
+          <pin GCLK1 of <device *srb @ [sx,sy]>>    => <wire *pin_clk[1] of <device *ckeb @ [sx_ckeb,sy_ckeb]>>,
+          <pin GCLK2 of <device *srb @ [sx,sy]>>    => <wire *pin_clk[2] of <device *ckeb @ [sx_ckeb,sy_ckeb]>>,
+          <pin GCLK3 of <device *srb @ [sx,sy]>>    => <wire *pin_clk[3] of <device *ckeb @ [sx_ckeb,sy_ckeb]>>,
+          <pin GCLK4 of <device *srb @ [sx,sy]>>    => <wire *pin_clk[4] of <device *ckeb @ [sx_ckeb,sy_ckeb]>>,
+          <pin GCLK5 of <device *srb @ [sx,sy]>>    => <wire *pin_clk[5] of <device *ckeb @ [sx_ckeb,sy_ckeb]>>,
+          <pin GCLK6 of <device *srb @ [sx,sy]>>    => <wire *pin_clk[6] of <device *ckeb @ [sx_ckeb,sy_ckeb]>>,
+          <pin GCLK7 of <device *srb @ [sx,sy]>>    => <wire *pin_clk[7] of <device *ckeb @ [sx_ckeb,sy_ckeb]>>,
+          <pin GCLK8 of <device *srb @ [sx,sy]>>    => <wire *pin_clk[8] of <device *ckeb @ [sx_ckeb,sy_ckeb]>>,
+          <pin GCLK9 of <device *srb @ [sx,sy]>>    => <wire *pin_clk[9] of <device *ckeb @ [sx_ckeb,sy_ckeb]>>,
+          <pin GCLK10 of <device *srb @ [sx,sy]>>   => <wire *pin_clk[10] of <device *ckeb @ [sx_ckeb,sy_ckeb]>>,
+          <pin GCLK11 of <device *srb @ [sx,sy]>>   => <wire *pin_clk[11] of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+        );  
+    } 
+ 
+}//end of function connect_SRB_CLK_input
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_iock_pclk_input
+(
+    unsigned int rx,
+    unsigned int tx_iock,
+    unsigned int tx_iol,
+    unsigned int tx_pll,
+    string device_iol
+)
+{
+
+    unsigned int sx_iock = tx_iock * NUM_GRID_X;
+    unsigned int sx_iol = tx_iol * NUM_GRID_X + 3;
+    unsigned int sy_iock = (rx*NUM_TILES_REGION+MID_TILE_REGION)*NUM_GRID_Y;
+
+    unsigned int sy_gsclk_d = sy_iock - 3*NUM_GRID_Y;
+    unsigned int sy_gsclk_u = sy_iock + 4*NUM_GRID_Y;
+    unsigned int sy_gmclk_d = sy_iock - NUM_GRID_Y;
+    unsigned int sy_gmclk_u = sy_iock + 2*NUM_GRID_Y;
+
+    unsigned int sx_pll = tx_pll * NUM_GRID_X;
+    unsigned int sy_ppll = (rx*NUM_TILES_REGION)*NUM_GRID_Y;  
+
+    string iol = device_iol;
+
+
+    connect
+     (
+       <pin GSCLK1[1] of <device IOCK_TILE @[sx_iock,sy_iock]>>   => <wire DI_TO_CLK of <device *iol @[sx_iol,sy_gsclk_u]>>,
+       <pin GSCLK1[0] of <device IOCK_TILE @[sx_iock,sy_iock]>>   => <wire DI_TO_CLKB of <device *iol @[sx_iol,sy_gsclk_u]>>,
+
+       <pin GSCLK0[1] of <device IOCK_TILE @[sx_iock,sy_iock]>>   => <wire DI_TO_CLK of <device *iol @[sx_iol,sy_gsclk_d]>>,
+       <pin GSCLK0[0] of <device IOCK_TILE @[sx_iock,sy_iock]>>   => <wire DI_TO_CLKB of <device *iol @[sx_iol,sy_gsclk_d]>>,
+
+       <pin GMCLK1[1] of <device IOCK_TILE @[sx_iock,sy_iock]>>   => <wire DI_TO_CLK of <device *iol @[sx_iol,sy_gmclk_u]>>,
+       <pin GMCLK1[0] of <device IOCK_TILE @[sx_iock,sy_iock]>>   => <wire DI_TO_CLKB of <device *iol @[sx_iol,sy_gmclk_u]>>,
+
+       <pin GMCLK0[1] of <device IOCK_TILE @[sx_iock,sy_iock]>>   => <wire DI_TO_CLK of <device *iol @[sx_iol,sy_gmclk_d]>>,
+       <pin GMCLK0[0] of <device IOCK_TILE @[sx_iock,sy_iock]>>   => <wire DI_TO_CLKB of <device *iol @[sx_iol,sy_gmclk_d]>>
+     );
+
+    connect
+     (
+       <pin CLK_REFMUX_P[3] of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>   => <wire GSCLK1_BUF[1] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+       <pin CLK_REFMUX_N[3] of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>   => <wire GSCLK1_BUF[0] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+
+       <pin CLK_REFMUX_P[2] of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>   => <wire GSCLK0_BUF[1] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+       <pin CLK_REFMUX_N[2] of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>   => <wire GSCLK0_BUF[0] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+
+       <pin CLK_REFMUX_P[1] of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>   => <wire GMCLK1_BUF[1] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+       <pin CLK_REFMUX_N[1] of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>   => <wire GMCLK1_BUF[0] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+
+       <pin CLK_REFMUX_P[0] of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>   => <wire GMCLK0_BUF[1] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+       <pin CLK_REFMUX_N[0] of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>   => <wire GMCLK0_BUF[0] of <device IOCK_TILE @[sx_iock,sy_iock]>>
+     );
+
+}//end of function connect_iock_pclk_input
+
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_iock_hp_pclk_input
+(
+    unsigned int rx,
+    unsigned int tx_iock,
+    unsigned int tx_iol,
+    unsigned int tx_pll,
+    string device_iol
+)
+{
+
+    unsigned int sx_iock = tx_iock * NUM_GRID_X;
+    unsigned int sx_iol = tx_iol * NUM_GRID_X + 3;
+    unsigned int sy_iock = (rx*NUM_TILES_REGION+MID_TILE_REGION)*NUM_GRID_Y;
+
+    unsigned int sy_gsclk_d = sy_iock - 3*NUM_GRID_Y;
+    unsigned int sy_gsclk_u = sy_iock + 4*NUM_GRID_Y;
+    unsigned int sy_gmclk_d = sy_iock - NUM_GRID_Y;
+    unsigned int sy_gmclk_u = sy_iock + 2*NUM_GRID_Y;
+
+    unsigned int sx_pll = tx_pll * NUM_GRID_X;
+    unsigned int sy_ppll = (rx*NUM_TILES_REGION)*NUM_GRID_Y;  
+
+    string iol = device_iol;
+
+
+    connect
+     (
+       <pin GSCLK1[1] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>   => <wire DI_TO_CLK of <device *iol @[sx_iol,sy_gsclk_u]>>,
+       <pin GSCLK1[0] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>   => <wire DI_TO_CLKB of <device *iol @[sx_iol,sy_gsclk_u]>>,
+
+       <pin GSCLK0[1] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>   => <wire DI_TO_CLK of <device *iol @[sx_iol,sy_gsclk_d]>>,
+       <pin GSCLK0[0] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>   => <wire DI_TO_CLKB of <device *iol @[sx_iol,sy_gsclk_d]>>,
+
+       <pin GMCLK1[1] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>   => <wire DI_TO_CLK of <device *iol @[sx_iol,sy_gmclk_u]>>,
+       <pin GMCLK1[0] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>   => <wire DI_TO_CLKB of <device *iol @[sx_iol,sy_gmclk_u]>>,
+
+       <pin GMCLK0[1] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>   => <wire DI_TO_CLK of <device *iol @[sx_iol,sy_gmclk_d]>>,
+       <pin GMCLK0[0] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>   => <wire DI_TO_CLKB of <device *iol @[sx_iol,sy_gmclk_d]>>
+     );
+
+    connect
+     (
+       <pin CLK_REFMUX_P[3] of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>   => <wire GSCLK1_BUF[1] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+       <pin CLK_REFMUX_N[3] of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>   => <wire GSCLK1_BUF[0] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+
+       <pin CLK_REFMUX_P[2] of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>   => <wire GSCLK0_BUF[1] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+       <pin CLK_REFMUX_N[2] of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>   => <wire GSCLK0_BUF[0] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+
+       <pin CLK_REFMUX_P[1] of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>   => <wire GMCLK1_BUF[1] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+       <pin CLK_REFMUX_N[1] of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>   => <wire GMCLK1_BUF[0] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+
+       <pin CLK_REFMUX_P[0] of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>   => <wire GMCLK0_BUF[1] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+       <pin CLK_REFMUX_N[0] of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>   => <wire GMCLK0_BUF[0] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>
+     );
+
+}//end of function connect_iock_pclk_input
+
+
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_iock_pll_clk
+(
+    unsigned int rx,
+    unsigned int tx_iock,
+    unsigned int tx_pll,
+    unsigned int rx_d,     //the most bottom region
+    unsigned int rx_u      //the most top region
+)
+{
+    unsigned int sx_iock = tx_iock * NUM_GRID_X;
+    unsigned int sy_iock = (rx*NUM_TILES_REGION+MID_TILE_REGION)*NUM_GRID_Y;
+    unsigned int sy_iock_d = ((rx-1)*NUM_TILES_REGION+MID_TILE_REGION)*NUM_GRID_Y;
+    unsigned int sy_iock_u = ((rx+1)*NUM_TILES_REGION+MID_TILE_REGION)*NUM_GRID_Y;
+
+
+    unsigned int sx_pll = tx_pll * NUM_GRID_X;
+    unsigned int sy_gpll = (rx*NUM_TILES_REGION+MID_TILE_REGION+1)*NUM_GRID_Y;     
+    unsigned int sy_gpll_d = ((rx-1)*NUM_TILES_REGION+MID_TILE_REGION+1)*NUM_GRID_Y;  
+    unsigned int sy_ppll = (rx*NUM_TILES_REGION)*NUM_GRID_Y;   
+    unsigned int sy_ppll_u = ((rx+1)*NUM_TILES_REGION)*NUM_GRID_Y; 
+
+//connect gpll and ppll output clk
+    connect
+      (
+        <pin CLK_GPLL_IN[0] of <device IOCK_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT0 of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_GPLL_IN[1] of <device IOCK_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT1 of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_GPLL_IN[2] of <device IOCK_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT2 of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_GPLL_IN[3] of <device IOCK_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT3 of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_GPLL_IN[4] of <device IOCK_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT4 of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_GPLL_IN[5] of <device IOCK_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT5 of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_GPLL_IN[6] of <device IOCK_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT6 of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_GPLL_IN[7] of <device IOCK_TILE @[sx_iock,sy_iock]>>  => <wire CLKFBOUT of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_GPLL_IN[8] of <device IOCK_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT0N of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_GPLL_IN[9] of <device IOCK_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT1N of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_GPLL_IN[10] of <device IOCK_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT2N of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_GPLL_IN[11] of <device IOCK_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT3N of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_GPLL_IN[12] of <device IOCK_TILE @[sx_iock,sy_iock]>>  => <wire CLKFBOUTN of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_GPLL_IN[13] of <device IOCK_TILE @[sx_iock,sy_iock]>>  => <wire TIEHI of <device  IOCK_TILE @[sx_iock,sy_iock]>>,
+
+        <pin CLK_PPLL_IN[0] of <device IOCK_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT0 of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_PPLL_IN[1] of <device IOCK_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT1 of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_PPLL_IN[2] of <device IOCK_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT2 of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_PPLL_IN[3] of <device IOCK_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT3 of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_PPLL_IN[4] of <device IOCK_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT4 of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_PPLL_IN[5] of <device IOCK_TILE @[sx_iock,sy_iock]>>  => <wire CLKFBOUTN of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_PPLL_IN[6] of <device IOCK_TILE @[sx_iock,sy_iock]>>  => <wire CLKFBOUT of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_PPLL_IN[7] of <device IOCK_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT0N of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+
+        <pin CLK_PLLMRMUX_P of <device IOCK_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT_MRMUX_P of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_PLLMRMUX_N of <device IOCK_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT_MRMUX_N of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+
+        <pin CLK_HQCNL_P[0] of <device IOCK_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT0 of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_HQCNL_P[1] of <device IOCK_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT1 of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_HQCNL_P[2] of <device IOCK_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT2 of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_HQCNL_P[3] of <device IOCK_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT3 of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_HQCNL_N[0] of <device IOCK_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT0N of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_HQCNL_N[1] of <device IOCK_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT1N of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_HQCNL_N[2] of <device IOCK_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT2N of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_HQCNL_N[3] of <device IOCK_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT3N of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>
+      );
+
+//connect gpll and ppll reg clk and fb clk input
+    connect
+      (
+        <pin CLK_PLL_IN0[9:6] of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>  => <wire CLK_U_P of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_PLL_IN1[9:6] of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>  => <wire CLK_U_P of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_FB[4:1] of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>       => <wire CLK_U_P of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_PLL_IN0[5] of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>    =>  <wire CLK_GPLL[2] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+        <pin CLK_PLL_IN1[5] of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>    =>  <wire CLK_GPLL[1] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+        <pin CLK_FB[0] of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>         =>  <wire CLK_GPLL[0] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+        <pin GCLK of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>              =>  <wire CLK_SCKMUX1_OUT_P[5:0] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+        <pin GCLK_N of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>            =>  <wire CLK_SCKMUX1_OUT_N[5:0] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+        <pin RCLK of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>              =>  <wire CLK_SCKMUX1_OUT_P[9:6] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+        <pin RCLK_N of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>            =>  <wire CLK_SCKMUX1_OUT_N[9:6] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+        <pin IOCLK of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>             =>  <wire CLK_IOP_U of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+        <pin IOCLK_N of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>           =>  <wire CLK_ION_U of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+
+        <pin CLK_FB[6] of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>         =>  <wire TIEHI of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_FB[7] of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>         =>  <wire TIEHI of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_PLL_IN0[11] of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>   =>  <wire TIEHI of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_PLL_IN0[4] of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>    =>  <wire TIEHI of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_PLL_IN0[3] of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>    =>  <wire TIEHI of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_PLL_IN0[2] of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>    =>  <wire TIEHI of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_PLL_IN0[1] of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>    =>  <wire TIEHI of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_PLL_IN0[0] of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>    =>  <wire TIEHI of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_PLL_IN1[11] of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>   =>  <wire TIEHI of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_PLL_IN1[4] of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>    =>  <wire TIEHI of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_PLL_IN1[3] of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>    =>  <wire TIEHI of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_PLL_IN1[2] of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>    =>  <wire TIEHI of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_PLL_IN1[1] of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>    =>  <wire TIEHI of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_PLL_IN1[0] of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>    =>  <wire TIEHI of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>,
+
+ //ppll output clk -> clktree input in ddrpyh of gpll_tile clk
+        <pin PHY_CLK_2X_P of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>      =>  <wire CLKOUTPHY of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+        <pin PHY_CLK_2X_N of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>      =>  <wire CLKOUTPHYN of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+        <pin PLL_SYSCLK_P of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>      =>  <wire SYSCLK_P of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+        <pin PLL_SYSCLK_N of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>      =>  <wire SYSCLK_N of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+
+//connect ppll input ref clk and fb clk
+        <pin CLK_FB[4:1] of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>       =>  <wire CLK_U_P of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_PLL_IN0[5] of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>    =>  <wire CLK_PPLL[2] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+        <pin CLK_PLL_IN1[5] of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>    =>  <wire CLK_PPLL[1] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+        <pin CLK_FB[0] of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>         =>  <wire CLK_PPLL[0] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+        <pin GCLK of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>              =>  <wire CLK_SCKMUX0_OUT_P[5:0] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+        <pin GCLK_N of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>            =>  <wire CLK_SCKMUX0_OUT_N[5:0] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+        <pin RCLK of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>              =>  <wire CLK_SCKMUX0_OUT_P[9:6] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+        <pin RCLK_N of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>            =>  <wire CLK_SCKMUX0_OUT_N[9:6] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+        <pin IOCLK of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>             =>  <wire CLK_IOP_D of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+        <pin IOCLK_N of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>           =>  <wire CLK_ION_D of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+
+        <pin CLK_FB[6] of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>         =>  <wire TIEHI of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_FB[7] of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>         =>  <wire TIEHI of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_PLL_IN0[7] of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>    =>  <wire TIEHI of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_PLL_IN0[4] of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>    =>  <wire TIEHI of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_PLL_IN0[3] of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>    =>  <wire TIEHI of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_PLL_IN0[2] of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>    =>  <wire TIEHI of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_PLL_IN0[1] of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>    =>  <wire TIEHI of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_PLL_IN0[0] of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>    =>  <wire TIEHI of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_PLL_IN1[7] of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>    =>  <wire TIEHI of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_PLL_IN1[4] of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>    =>  <wire TIEHI of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_PLL_IN1[3] of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>    =>  <wire TIEHI of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_PLL_IN1[2] of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>    =>  <wire TIEHI of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_PLL_IN1[1] of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>    =>  <wire TIEHI of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_PLL_IN1[0] of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>    =>  <wire TIEHI of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>
+
+      );
+
+//connect dqsl clk & cpd clk input
+    connect
+      (
+        <pin CNTR_CLK of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>    => <wire CLK_CPD_OUT[1] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+        <pin CNTR_CLK of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>    => <wire CLK_CPD_OUT[0] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+
+
+        <pin DQSI30 of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>    => <wire TIEHI of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>,
+        <pin DQSI31 of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>    => <wire TIEHI of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>,
+        <pin DQSIB30 of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>   => <wire TIEHI of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>,
+        <pin DQSIB31 of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>   => <wire TIEHI of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>,
+
+        <pin DQSI30 of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>    => <wire TIEHI of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+        <pin DQSI31 of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>    => <wire TIEHI of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+        <pin DQSIB30 of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>   => <wire TIEHI of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+        <pin DQSIB31 of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>   => <wire TIEHI of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+
+        <pin DQSI10 of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>    => <wire CLK_MRCKBOUT_U_P[0] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+        <pin DQSI11 of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>    => <wire CLK_MRCKBOUT_U_P[0] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+        <pin DQSIB10 of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>   => <wire CLK_MRCKBOUT_U_N[0] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+        <pin DQSIB11 of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>   => <wire CLK_MRCKBOUT_U_N[0] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+
+        <pin DQSI10 of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>    => <wire CLK_MRCKBOUT_D_P[0] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+        <pin DQSI11 of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>    => <wire CLK_MRCKBOUT_D_P[0] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+        <pin DQSIB10 of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>   => <wire CLK_MRCKBOUT_D_N[0] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+        <pin DQSIB11 of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>   => <wire CLK_MRCKBOUT_D_N[0] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+
+        <pin DQSI20 of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>    => <wire CLK_MRCKBOUT_U_P[1] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+        <pin DQSI21 of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>    => <wire CLK_MRCKBOUT_U_P[1] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+        <pin DQSIB20 of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>   => <wire CLK_MRCKBOUT_U_N[1] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+        <pin DQSIB21 of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>   => <wire CLK_MRCKBOUT_U_N[1] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+
+        <pin DQSI20 of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>    => <wire CLK_MRCKBOUT_D_P[1] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+        <pin DQSI21 of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>    => <wire CLK_MRCKBOUT_D_P[1] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+        <pin DQSIB20 of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>   => <wire CLK_MRCKBOUT_D_N[1] of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+        <pin DQSIB21 of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>   => <wire CLK_MRCKBOUT_D_N[1] of <device IOCK_TILE @[sx_iock,sy_iock]>>
+      );
+
+
+//connect post mrckbmux input clk, and dqslmux input clk
+    if(rx==rx_d)
+    {
+      connect
+        (
+          <pin CLK_D_P of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>  => <wire CLK_U_P of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+          <pin CLK_D_N of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>  => <wire CLK_U_N of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+
+          <pin CLK_MRCKB_D_P[1] of <device IOCK_TILE @[sx_iock,sy_iock]>> => <wire TIEHI of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+          <pin CLK_MRCKB_D_P[0] of <device IOCK_TILE @[sx_iock,sy_iock]>> => <wire TIEHI of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+          <pin CLK_MRCKB_D_N[1] of <device IOCK_TILE @[sx_iock,sy_iock]>> => <wire TIEHI of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+          <pin CLK_MRCKB_D_N[0] of <device IOCK_TILE @[sx_iock,sy_iock]>> => <wire TIEHI of <device IOCK_TILE @[sx_iock,sy_iock]>>
+        );
+    
+    }
+    else
+    {
+      connect
+        (
+          <pin CLK_D_P of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>  => <wire CLK_U_P of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+          <pin CLK_D_N of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>  => <wire CLK_U_N of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+          <pin CLK_D_P of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>  => <wire CLK_U_P of <device GPLL_330H_TILE @[sx_pll,sy_gpll_d]>>,
+          <pin CLK_D_N of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>  => <wire CLK_U_N of <device GPLL_330H_TILE @[sx_pll,sy_gpll_d]>>,
+
+          <pin CLK_MRCKB_D_P of <device IOCK_TILE @[sx_iock,sy_iock]>> => <wire CLK_MRCKB_BUFU_P of <device IOCK_TILE @[sx_iock,sy_iock_d]>>,
+          <pin CLK_MRCKB_D_N of <device IOCK_TILE @[sx_iock,sy_iock]>> => <wire CLK_MRCKB_BUFU_N of <device IOCK_TILE @[sx_iock,sy_iock_d]>>
+        );
+    }
+   
+
+    if(rx==rx_u)
+    {
+      connect
+        (
+          <pin CLK_MRCKB_U_P[1] of <device IOCK_TILE @[sx_iock,sy_iock]>> => <wire TIEHI of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+          <pin CLK_MRCKB_U_P[0] of <device IOCK_TILE @[sx_iock,sy_iock]>> => <wire TIEHI of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+          <pin CLK_MRCKB_U_N[1] of <device IOCK_TILE @[sx_iock,sy_iock]>> => <wire TIEHI of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+          <pin CLK_MRCKB_U_N[0] of <device IOCK_TILE @[sx_iock,sy_iock]>> => <wire TIEHI of <device IOCK_TILE @[sx_iock,sy_iock]>>
+        );
+    }
+    else
+    {
+      connect
+        (
+          <pin CLK_MRCKB_U_P of <device IOCK_TILE @[sx_iock,sy_iock]>>  => <wire CLK_MRCKB_BUFD_P of <device IOCK_TILE @[sx_iock,sy_iock_u]>>,
+          <pin CLK_MRCKB_U_N of <device IOCK_TILE @[sx_iock,sy_iock]>>  => <wire CLK_MRCKB_BUFD_N of <device IOCK_TILE @[sx_iock,sy_iock_u]>>
+        );
+    }
+
+//connect hsst clk input of iock tile
+    connect
+      (
+        <pin CLK_HSST[0] of <device IOCK_TILE @[sx_iock,sy_iock]>>  => <wire TIEHI of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+        <pin CLK_HSST[1] of <device IOCK_TILE @[sx_iock,sy_iock]>>  => <wire TIEHI of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+        <pin CLK_HSST[2] of <device IOCK_TILE @[sx_iock,sy_iock]>>  => <wire TIEHI of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+        <pin CLK_HSST[3] of <device IOCK_TILE @[sx_iock,sy_iock]>>  => <wire TIEHI of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+        <pin CLK_HSST[4] of <device IOCK_TILE @[sx_iock,sy_iock]>>  => <wire TIEHI of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+        <pin CLK_HSST[5] of <device IOCK_TILE @[sx_iock,sy_iock]>>  => <wire TIEHI of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+        <pin CLK_HSST[6] of <device IOCK_TILE @[sx_iock,sy_iock]>>  => <wire TIEHI of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+        <pin CLK_HSST[7] of <device IOCK_TILE @[sx_iock,sy_iock]>>  => <wire TIEHI of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+        <pin CLK_HSST[8] of <device IOCK_TILE @[sx_iock,sy_iock]>>  => <wire TIEHI of <device IOCK_TILE @[sx_iock,sy_iock]>>,
+        <pin CLK_HSST[9] of <device IOCK_TILE @[sx_iock,sy_iock]>>  => <wire TIEHI of <device IOCK_TILE @[sx_iock,sy_iock]>>
+      );
+
+//connect pllrefmux sel input
+    connect
+      (
+        <pin SEL_DIN of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>  => <wire SEL_U of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+        <pin SEL_UIN of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>  => <wire SEL_D of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>
+      );
+
+//connect pllroute sel input
+    connect
+      (
+        <pin EN_A_TIEH of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>  => <wire TIELO of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+        <pin EN_B_TIEH of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>  => <wire TIEHI of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+        <pin EN_A_TIEH of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>  => <wire TIEHI of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>,
+        <pin EN_B_TIEH of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>  => <wire TIELO of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>,
+
+        <pin SEL_DINAX[0] of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>> => <wire TIELO of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+        <pin SEL_DINAX[1] of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>> => <wire TIELO of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+        <pin SEL_DINAX[2] of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>> => <wire TIELO of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+        <pin SEL_DINAX[3] of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>> => <wire TIELO of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+        <pin SEL_DINBX[0] of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>> => <wire TIELO of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>,
+        <pin SEL_DINBX[1] of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>> => <wire TIELO of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>,
+        <pin SEL_DINBX[2] of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>> => <wire TIELO of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>,
+        <pin SEL_DINBX[3] of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>> => <wire TIELO of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>
+
+      );
+
+    if(rx==rx_d)
+    {
+      connect
+        (
+          <pin SEL_DINBX[0] of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>> => <wire TIEHI of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+          <pin SEL_DINBX[1] of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>> => <wire TIEHI of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+          <pin SEL_DINBX[2] of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>> => <wire TIEHI of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>,
+          <pin SEL_DINBX[3] of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>> => <wire TIEHI of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>
+        );
+    }
+    else
+    {
+      connect
+        (
+          <pin SEL_DINBX of <device PPLL_330H_TILE @[sx_pll,sy_ppll]>>   => <wire SEL_U of <device GPLL_330H_TILE @[sx_pll,sy_gpll_d]>>
+        );
+    }
+
+    if(rx==rx_u)
+    {
+      connect
+        (
+          <pin SEL_DINAX[0] of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>> => <wire TIEHI of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>,
+          <pin SEL_DINAX[1] of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>> => <wire TIEHI of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>,
+          <pin SEL_DINAX[2] of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>> => <wire TIEHI of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>,
+          <pin SEL_DINAX[3] of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>> => <wire TIEHI of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>
+        );
+    }
+    else
+    {
+      connect
+        (
+          <pin SEL_DINAX of <device GPLL_330H_TILE @[sx_pll,sy_gpll]>>   => <wire SEL_D of <device PPLL_330H_TILE @[sx_pll,sy_ppll_u]>>
+        );
+    }
+
+
+}//end of function connect_iock_pll_input
+
+
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_iock_pll_hp_clk
+(
+    unsigned int rx,
+    unsigned int tx_iock,
+    unsigned int tx_pll,
+    unsigned int rx_d,     //the most bottom region
+    unsigned int rx_u      //the most top region
+)
+{
+    unsigned int sx_iock = tx_iock * NUM_GRID_X;
+    unsigned int sy_iock = (rx*NUM_TILES_REGION+MID_TILE_REGION)*NUM_GRID_Y;
+    unsigned int sy_iock_d = ((rx-1)*NUM_TILES_REGION+MID_TILE_REGION)*NUM_GRID_Y;
+    unsigned int sy_iock_u = ((rx+1)*NUM_TILES_REGION+MID_TILE_REGION)*NUM_GRID_Y;
+
+
+    unsigned int sx_pll = tx_pll * NUM_GRID_X;
+    unsigned int sy_gpll = (rx*NUM_TILES_REGION+MID_TILE_REGION+1)*NUM_GRID_Y;     
+    unsigned int sy_gpll_d = ((rx-1)*NUM_TILES_REGION+MID_TILE_REGION+1)*NUM_GRID_Y;  
+    unsigned int sy_ppll = (rx*NUM_TILES_REGION)*NUM_GRID_Y;   
+    unsigned int sy_ppll_u = ((rx+1)*NUM_TILES_REGION)*NUM_GRID_Y; 
+
+//connect gpll and ppll output clk
+    connect
+      (
+        <pin CLK_GPLL_IN[0] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT0 of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_GPLL_IN[1] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT1 of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_GPLL_IN[2] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT2 of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_GPLL_IN[3] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT3 of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_GPLL_IN[4] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT4 of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_GPLL_IN[5] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT5 of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_GPLL_IN[6] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT6 of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_GPLL_IN[7] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>  => <wire CLKFBOUT of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_GPLL_IN[8] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT0N of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_GPLL_IN[9] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT1N of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_GPLL_IN[10] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT2N of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_GPLL_IN[11] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT3N of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_GPLL_IN[12] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>  => <wire CLKFBOUTN of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_GPLL_IN[13] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>  => <wire TIEHI of <device  IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+
+        <pin CLK_PPLL_IN[0] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT0 of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_PPLL_IN[1] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT1 of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_PPLL_IN[2] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT2 of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_PPLL_IN[3] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT3 of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_PPLL_IN[4] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT4 of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_PPLL_IN[5] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>  => <wire CLKFBOUTN of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_PPLL_IN[6] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>  => <wire CLKFBOUT of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_PPLL_IN[7] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT0N of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+
+        <pin CLK_PLLMRMUX_P of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT_MRMUX_P of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_PLLMRMUX_N of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT_MRMUX_N of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+
+        <pin CLK_HQCNL_P[0] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT0 of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_HQCNL_P[1] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT1 of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_HQCNL_P[2] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT2 of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_HQCNL_P[3] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT3 of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_HQCNL_N[0] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT0N of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_HQCNL_N[1] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT1N of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_HQCNL_N[2] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT2N of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_HQCNL_N[3] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>  => <wire CLKOUT3N of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>
+      );
+
+//connect gpll and ppll reg clk and fb clk input
+    connect
+      (
+        <pin CLK_PLL_IN0[9:6] of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>  => <wire CLK_U_P of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_PLL_IN1[9:6] of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>  => <wire CLK_U_P of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_FB[4:1] of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>       => <wire CLK_U_P of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_PLL_IN0[5] of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>    =>  <wire CLK_GPLL[2] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+        <pin CLK_PLL_IN1[5] of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>    =>  <wire CLK_GPLL[1] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+        <pin CLK_FB[0] of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>         =>  <wire CLK_GPLL[0] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+
+        <pin CLK_FB[6] of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>         =>  <wire TIEHI of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_FB[7] of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>         =>  <wire TIEHI of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_PLL_IN0[11] of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>   =>  <wire TIEHI of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_PLL_IN0[4] of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>    =>  <wire TIEHI of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_PLL_IN0[3] of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>    =>  <wire TIEHI of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_PLL_IN0[2] of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>    =>  <wire TIEHI of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_PLL_IN0[1] of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>    =>  <wire TIEHI of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_PLL_IN0[0] of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>    =>  <wire TIEHI of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_PLL_IN1[11] of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>   =>  <wire TIEHI of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_PLL_IN1[4] of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>    =>  <wire TIEHI of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_PLL_IN1[3] of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>    =>  <wire TIEHI of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_PLL_IN1[2] of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>    =>  <wire TIEHI of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_PLL_IN1[1] of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>    =>  <wire TIEHI of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>,
+        <pin CLK_PLL_IN1[0] of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>    =>  <wire TIEHI of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>,
+
+ //ppll output clk -> clktree input in ddrpyh of gpll_tile clk
+        <pin PHY_CLK_2X_P of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>      =>  <wire CLKOUTPHY of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+        <pin PHY_CLK_2X_N of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>      =>  <wire CLKOUTPHYN of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+        <pin PLL_SYSCLK_P of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>      =>  <wire SYSCLK_P of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+        <pin PLL_SYSCLK_N of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>      =>  <wire SYSCLK_N of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+
+//connect ppll input ref clk and fb clk
+        <pin CLK_FB[4:1] of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>       =>  <wire CLK_U_P of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_PLL_IN0[5] of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>    =>  <wire CLK_PPLL[2] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+        <pin CLK_PLL_IN1[5] of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>    =>  <wire CLK_PPLL[1] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+        <pin CLK_FB[0] of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>         =>  <wire CLK_PPLL[0] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+
+        <pin CLK_FB[6] of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>         =>  <wire TIEHI of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_FB[7] of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>         =>  <wire TIEHI of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_PLL_IN0[7] of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>    =>  <wire TIEHI of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_PLL_IN0[4] of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>    =>  <wire TIEHI of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_PLL_IN0[3] of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>    =>  <wire TIEHI of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_PLL_IN0[2] of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>    =>  <wire TIEHI of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_PLL_IN0[1] of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>    =>  <wire TIEHI of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_PLL_IN0[0] of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>    =>  <wire TIEHI of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_PLL_IN1[7] of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>    =>  <wire TIEHI of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_PLL_IN1[4] of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>    =>  <wire TIEHI of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_PLL_IN1[3] of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>    =>  <wire TIEHI of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_PLL_IN1[2] of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>    =>  <wire TIEHI of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_PLL_IN1[1] of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>    =>  <wire TIEHI of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+        <pin CLK_PLL_IN1[0] of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>    =>  <wire TIEHI of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>
+
+      );
+
+//connect dqsl clk & cpd clk input
+    connect
+      (
+        <pin CNTR_CLK of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>    => <wire CLK_CPD_OUT[1] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+        <pin CNTR_CLK of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>    => <wire CLK_CPD_OUT[0] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+
+
+        <pin DQSI30 of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>    => <wire TIEHI of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>,
+        <pin DQSI31 of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>    => <wire TIEHI of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>,
+        <pin DQSIB30 of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>   => <wire TIEHI of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>,
+        <pin DQSIB31 of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>   => <wire TIEHI of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>,
+
+        <pin DQSI30 of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>    => <wire TIEHI of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+        <pin DQSI31 of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>    => <wire TIEHI of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+        <pin DQSIB30 of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>   => <wire TIEHI of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+        <pin DQSIB31 of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>   => <wire TIEHI of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+
+        <pin DQSI10 of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>    => <wire CLK_MRCKBOUT_U_P[0] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+        <pin DQSI11 of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>    => <wire CLK_MRCKBOUT_U_P[0] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+        <pin DQSIB10 of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>   => <wire CLK_MRCKBOUT_U_N[0] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+        <pin DQSIB11 of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>   => <wire CLK_MRCKBOUT_U_N[0] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+
+        <pin DQSI10 of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>    => <wire CLK_MRCKBOUT_D_P[0] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+        <pin DQSI11 of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>    => <wire CLK_MRCKBOUT_D_P[0] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+        <pin DQSIB10 of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>   => <wire CLK_MRCKBOUT_D_N[0] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+        <pin DQSIB11 of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>   => <wire CLK_MRCKBOUT_D_N[0] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+
+        <pin DQSI20 of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>    => <wire CLK_MRCKBOUT_U_P[1] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+        <pin DQSI21 of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>    => <wire CLK_MRCKBOUT_U_P[1] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+        <pin DQSIB20 of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>   => <wire CLK_MRCKBOUT_U_N[1] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+        <pin DQSIB21 of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>   => <wire CLK_MRCKBOUT_U_N[1] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+
+        <pin DQSI20 of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>    => <wire CLK_MRCKBOUT_D_P[1] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+        <pin DQSI21 of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>    => <wire CLK_MRCKBOUT_D_P[1] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+        <pin DQSIB20 of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>   => <wire CLK_MRCKBOUT_D_N[1] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+        <pin DQSIB21 of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>   => <wire CLK_MRCKBOUT_D_N[1] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>
+      );
+
+
+//connect post mrckbmux input clk, and dqslmux input clk
+    if(rx==rx_d)
+    {
+      connect
+        (
+          <pin CLK_D_P of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>  => <wire CLK_U_P of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+          <pin CLK_D_N of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>  => <wire CLK_U_N of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+
+          <pin CLK_MRCKB_D_P[1] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>> => <wire TIEHI of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+          <pin CLK_MRCKB_D_P[0] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>> => <wire TIEHI of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+          <pin CLK_MRCKB_D_N[1] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>> => <wire TIEHI of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+          <pin CLK_MRCKB_D_N[0] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>> => <wire TIEHI of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>
+        );
+    
+    }
+    else
+    {
+      connect
+        (
+          <pin CLK_D_P of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>  => <wire CLK_U_P of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+          <pin CLK_D_N of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>  => <wire CLK_U_N of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+          <pin CLK_D_P of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>  => <wire CLK_U_P of <device GPLL_HP_TILE @[sx_pll,sy_gpll_d]>>,
+          <pin CLK_D_N of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>  => <wire CLK_U_N of <device GPLL_HP_TILE @[sx_pll,sy_gpll_d]>>,
+
+          <pin CLK_MRCKB_D_P of <device IOCK_HP_TILE @[sx_iock,sy_iock]>> => <wire CLK_MRCKB_BUFU_P of <device IOCK_HP_TILE @[sx_iock,sy_iock_d]>>,
+          <pin CLK_MRCKB_D_N of <device IOCK_HP_TILE @[sx_iock,sy_iock]>> => <wire CLK_MRCKB_BUFU_N of <device IOCK_HP_TILE @[sx_iock,sy_iock_d]>>
+        );
+    }
+   
+
+    if(rx==rx_u)
+    {
+      connect
+        (
+          <pin CLK_MRCKB_U_P[1] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>> => <wire TIEHI of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+          <pin CLK_MRCKB_U_P[0] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>> => <wire TIEHI of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+          <pin CLK_MRCKB_U_N[1] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>> => <wire TIEHI of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+          <pin CLK_MRCKB_U_N[0] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>> => <wire TIEHI of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>
+        );
+    }
+    else
+    {
+      connect
+        (
+          <pin CLK_MRCKB_U_P of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>  => <wire CLK_MRCKB_BUFD_P of <device IOCK_HP_TILE @[sx_iock,sy_iock_u]>>,
+          <pin CLK_MRCKB_U_N of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>  => <wire CLK_MRCKB_BUFD_N of <device IOCK_HP_TILE @[sx_iock,sy_iock_u]>>
+        );
+    }
+
+//connect hsst clk input of iock tile
+    connect
+      (
+        <pin CLK_HSST[0] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>  => <wire TIEHI of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+        <pin CLK_HSST[1] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>  => <wire TIEHI of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+        <pin CLK_HSST[2] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>  => <wire TIEHI of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+        <pin CLK_HSST[3] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>  => <wire TIEHI of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+        <pin CLK_HSST[4] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>  => <wire TIEHI of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+        <pin CLK_HSST[5] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>  => <wire TIEHI of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+        <pin CLK_HSST[6] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>  => <wire TIEHI of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+        <pin CLK_HSST[7] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>  => <wire TIEHI of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+        <pin CLK_HSST[8] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>  => <wire TIEHI of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>,
+        <pin CLK_HSST[9] of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>  => <wire TIEHI of <device IOCK_HP_TILE @[sx_iock,sy_iock]>>
+      );
+
+//connect pllrefmux sel input
+    connect
+      (
+        <pin SEL_DIN of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>  => <wire SEL_U of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+        <pin SEL_UIN of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>  => <wire SEL_D of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>
+      );
+
+//connect pllroute sel input
+    connect
+      (
+        <pin EN_A_TIEH of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>  => <wire TIELO of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+        <pin EN_B_TIEH of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>  => <wire TIEHI of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+        <pin EN_A_TIEH of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>  => <wire TIEHI of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>,
+        <pin EN_B_TIEH of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>  => <wire TIELO of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>,
+
+        <pin SEL_DINAX[0] of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>> => <wire TIELO of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+        <pin SEL_DINAX[1] of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>> => <wire TIELO of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+        <pin SEL_DINAX[2] of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>> => <wire TIELO of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+        <pin SEL_DINAX[3] of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>> => <wire TIELO of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+        <pin SEL_DINBX[0] of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>> => <wire TIELO of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>,
+        <pin SEL_DINBX[1] of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>> => <wire TIELO of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>,
+        <pin SEL_DINBX[2] of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>> => <wire TIELO of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>,
+        <pin SEL_DINBX[3] of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>> => <wire TIELO of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>
+
+      );
+
+    if(rx==rx_d)
+    {
+      connect
+        (
+          <pin SEL_DINBX[0] of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>> => <wire TIEHI of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+          <pin SEL_DINBX[1] of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>> => <wire TIEHI of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+          <pin SEL_DINBX[2] of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>> => <wire TIEHI of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>,
+          <pin SEL_DINBX[3] of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>> => <wire TIEHI of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>
+        );
+    }
+    else
+    {
+      connect
+        (
+          <pin SEL_DINBX of <device PPLL_HP_TILE @[sx_pll,sy_ppll]>>   => <wire SEL_U of <device GPLL_HP_TILE @[sx_pll,sy_gpll_d]>>
+        );
+    }
+
+    if(rx==rx_u)
+    {
+      connect
+        (
+          <pin SEL_DINAX[0] of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>> => <wire TIEHI of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>,
+          <pin SEL_DINAX[1] of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>> => <wire TIEHI of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>,
+          <pin SEL_DINAX[2] of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>> => <wire TIEHI of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>,
+          <pin SEL_DINAX[3] of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>> => <wire TIEHI of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>
+        );
+    }
+    else
+    {
+      connect
+        (
+          <pin SEL_DINAX of <device GPLL_HP_TILE @[sx_pll,sy_gpll]>>   => <wire SEL_D of <device PPLL_HP_TILE @[sx_pll,sy_ppll_u]>>
+        );
+    }
+
+
+}//end of function connect_iock_pll_input
+/****************************************************************************************************
+*****************************************************************************************************/
+
+
+
+
+}//end of package pg2l_funcs_connect_clk

@@ -1,0 +1,84 @@
+*******************************************************************
+
+  Operator    [gopOGSER8B]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+gate
+operator gopOGSER8B // pragma PAP_ARC_DISABLE_MPNR
+{
+    parameter
+    (
+        string SERCLK_SRC     = "IOCLK",   //"IOCLK" "SAMPLE_CLK" "PROBE_CLK"   
+        string DO_SEL         = "DO",   // "DO", "DO_COMP"
+        string TO_SEL         = "TO",   // "TO", "TO_COMP"
+
+        bit    LRS_EN         = 1'b0,
+        bit    GRS_EN         = 1'b0,
+        bit    CLK_INV        = 1'b0,
+        bit    LRS_INV        = 1'b0
+    );
+    port
+    (
+        input   D[1:0],
+
+        input   SERCLK /* pragma PAP_ARC_GOP_CTRL_PIN = IOCLK*/,
+        input   SYSCLK /* pragma PAP_ARC_GOP_CTRL_PIN = "GCLK|RCLK"*/,
+        input   RESET /* pragma PAP_ARC_GOP_CTRL_PIN = RST*/,
+        output  ODDR_COUT[16:0],
+        input   ODDR_CIN[16:0],
+        output  DO,
+        output  TO,
+
+        input   DO_IN,
+        input   TO_IN
+    );
+};
+
+implementation impl of gopOGSER8B
+{
+    // ODDR config
+
+    if((SERCLK_SRC != "SAMPLE_CLK") && (SERCLK_SRC != "PROBE_CLK") && (SERCLK_SRC != "IOCLK"))
+    {
+        error("Error config SERCLK_SRC = %s in gopIGSER8A", SERCLK_SRC);
+    }
+    
+    device devOGSER8IOLB gate_ogser8iolb
+        parameter map
+        (
+            DES_SER_CLK  =>   SERCLK_SRC,
+            DO_SEL       =>   DO_SEL,
+            TO_SEL       =>   TO_SEL,
+            ODDR_LRS_EN  =>   LRS_EN,
+
+            GRS_EN       =>   GRS_EN,
+            CLK_O_INV    =>   CLK_INV,
+            LRS_INV      =>   LRS_INV
+        )
+
+        port map 
+        (
+            TX_DATA      =>   D,
+
+            IOCLK        =>   (SERCLK_SRC == "IOCLK") ? SERCLK : 1'bx,
+            SAMPLE_CLK   =>   (SERCLK_SRC == "SAMPLE_CLK") ? SERCLK : 1'bx,
+            PROBE_CLK    =>   (SERCLK_SRC == "PROBE_CLK") ? SERCLK : 1'bx,
+            
+            SYSCLK       =>   SYSCLK,
+            LRS          =>   RESET,
+
+            ODDR_COUT    =>   ODDR_COUT,
+            ODDR_CIN     =>   ODDR_CIN,
+            DO           =>   DO,
+            TO           =>   TO,
+
+            DO_IN        =>  DO_IN, 
+            TO_IN        =>  TO_IN
+        );
+};
+
+

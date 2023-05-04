@@ -1,0 +1,587 @@
+use pgl_defs;
+use pgl_WLSR1_TIEHI_inc, pgl_IOCK_TIEHI_inc,pgl_BLSR_TIEHI_inc, pgl_TIEHI_IN_inc,pgl_TIEHI_SRB_inc;
+
+package pgl_funcs_connect_logic_100h
+{
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_iockgatedll_input
+(
+    unsigned int tx,
+    unsigned int ty,
+    unsigned int num_region,
+    string dev_iock,
+    unsigned int flag_lr,
+    unsigned int flag_connect,
+    unsigned int tx_wlsr1,
+    unsigned int flag_chip
+)
+{
+    unsigned int sx,sy,sx_wlsr1;
+
+    string iock = dev_iock ;
+
+    sx = tx * NUM_GRID_X + 2;
+    sy = ty * NUM_GRID_Y;
+    sx_wlsr1 = tx_wlsr1 * NUM_GRID_X ;
+
+    int rx = ty/NUM_TILES_REGION ;
+
+    STRUCT inc_spec_IOCK_TIEHI incVar;
+    string pin_SRB;
+    string pin_logic_device;
+    string attribute_IO;
+
+    foreach incVar(inc_IOCK_TIEHI_spec)
+    {
+        pin_SRB = incVar.port_name_SRB;
+        pin_logic_device = incVar.port_name_device;
+        attribute_IO = incVar.attribute_IO;
+       
+        if(attribute_IO =="I")
+        { 
+            connect(<pin *pin_logic_device of <device *iock @[sx,sy]>> => <wire *pin_SRB of <device *iock @[sx,sy]>>);
+        }
+    }
+
+    if(flag_connect==2)
+    {
+        connect(<pin CAL_DONE_IN of <device *iock @[sx,sy]>> => <wire CAL_DONE_OUT of <device *iock @[sx,sy-NUM_TILES_REGION*NUM_GRID_Y]>>);        
+    }
+    else if(flag_connect==0)
+    {
+        connect(<pin CAL_DONE_IN of <device *iock @[sx,sy]>> => <wire DLL_TIHI of <device *iock @[sx,sy]>>);
+    }
+    else
+    {
+    }
+
+    if(flag_lr==1)
+    {
+        connect(<pin GLOGEN_FB_IN of <device *iock @[sx,sy]>> => <wire DLL_TIHI of <device *iock @[sx,sy]>>);
+    }
+    else
+    {
+        if(rx==num_region-1&&flag_chip==0)
+        {
+            connect(<pin GLOGEN_FB_IN of <device *iock @[sx,sy]>> => <wire BUS_GSEB_OUT[4] of <device WLSR_TILE @[sx-6,sy+NUM_GRID_Y]>>);
+        }
+        else if(rx==num_region-1)
+        {
+            connect(<pin GLOGEN_FB_IN of <device *iock @[sx,sy]>> => <wire CLKG_OUT of <device WLSR1_100H_TILE @[sx_wlsr1,sy+NUM_GRID_Y]>>);
+        }
+        else
+        {
+            connect(<pin GLOGEN_FB_IN of <device *iock @[sx,sy]>> => <wire GLOGEN_FB_OUT of <device *iock @[sx,sy+NUM_TILES_REGION*NUM_GRID_Y]>>);
+        }
+    }
+
+}//end of function connect_iockgatedll_input
+
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_BLSR_input_loop
+(
+    unsigned int region_index,
+    unsigned int tx_blsr,
+    unsigned int tx_blsr_l,
+    unsigned int tx_ccs,
+    unsigned int ty_ccs,
+    string dev_blsr1,
+    string dev_blsr2,
+    string dev_blsr_d,
+    unsigned int flag_lr, // 1 : l 
+    unsigned int flag_ud, // 1 : u
+    unsigned int flag_user // 1 : yes
+)
+{
+    int sx = tx_blsr * NUM_GRID_X;
+    int sy = region_index * NUM_GRID_BLSR_Y + NUM_GRID_Y;
+
+    int sx_ccs = tx_ccs * NUM_GRID_X ;
+    int sy_ccs = ty_ccs * NUM_GRID_Y ;
+
+    int sx_blsr_l = tx_blsr_l * NUM_GRID_X ;
+
+    string blsr1 = dev_blsr1 ;
+    string blsr2 = dev_blsr2;
+    string blsr_d = dev_blsr_d;
+
+    if(flag_ud==0)
+    {
+        connect
+        (
+            <pin DATA_IN of <device *blsr2 @ [sx,sy]>>       => (flag_lr==0) ? <wire DATA_O of <device CCS_TILE @ [sx_ccs,sy_ccs]>> :
+                                                                               <wire DATA_OL of <device CCS_TILE @ [sx_ccs,sy_ccs]>> ,
+            <pin CLK_IN of <device *blsr2 @ [sx,sy]>>        => (flag_lr==0) ? <wire BLSRCLK_O of <device CCS_TILE @ [sx_ccs,sy_ccs]>> :
+                                                                               <wire  BLSRCLK_OL of <device CCS_TILE @ [sx_ccs,sy_ccs]>> ,
+            <pin ERASE_EN of <device *blsr2 @ [sx,sy]>>      => (flag_lr==0) ? <wire ERASE_EN_O of <device CCS_TILE @ [sx_ccs,sy_ccs]>> :
+                                                                               <wire ERASE_EN_OL of <device CCS_TILE @ [sx_ccs,sy_ccs]>> ,
+            <pin POR_ERASE_N of <device *blsr2 @ [sx,sy]>>   => (flag_lr==0) ? <wire POR_N_O of <device CCS_TILE @ [sx_ccs,sy_ccs]>> :
+                                                                               <wire POR_N_OL of <device CCS_TILE @ [sx_ccs,sy_ccs]>> ,
+            <pin PRECHG of <device *blsr2 @ [sx,sy]>>        => (flag_lr==0) ? <wire PRECHG_O of <device CCS_TILE @ [sx_ccs,sy_ccs]>> :
+                                                                               <wire PRECHG_OL of <device CCS_TILE @ [sx_ccs,sy_ccs]>> ,
+            <pin PROG_CAP of <device *blsr2 @ [sx,sy]>>      => (flag_lr==0) ? <wire PROG_CAP_O of <device CCS_TILE @ [sx_ccs,sy_ccs]>> :
+                                                                               <wire PROG_CAP_OL of <device CCS_TILE @ [sx_ccs,sy_ccs]>> ,
+            <pin PROG_ON of <device *blsr2 @ [sx,sy]>>       => (flag_lr==0) ? <wire PROG_ON_O of <device CCS_TILE @ [sx_ccs,sy_ccs]>> :
+                                                                               <wire PROG_ON_OL of <device CCS_TILE @ [sx_ccs,sy_ccs]>> ,
+            <pin READ of <device *blsr2 @ [sx,sy]>>          => (flag_lr==0) ? <wire READ_O of <device CCS_TILE @ [sx_ccs,sy_ccs]>> :
+                                                                               <wire READ_OL of <device CCS_TILE @ [sx_ccs,sy_ccs]>> ,
+            <pin RDBK_CAP of <device *blsr2 @ [sx,sy]>>      => (flag_lr==0) ? <wire RDBK_CAP_O of <device CCS_TILE @ [sx_ccs,sy_ccs]>> :
+                                                                               <wire RDBK_CAP_OL of <device CCS_TILE @ [sx_ccs,sy_ccs]>> , 
+            <pin WL_ON_I of <device *blsr2 @ [sx,sy]>>       => (flag_lr==0) ? <wire WL_ON_O of <device CCS_TILE @ [sx_ccs,sy_ccs]>> :
+                                                                               <wire WL_ON_OL of <device CCS_TILE @ [sx_ccs,sy_ccs]>> ,
+            <pin PD_IN of <device *blsr2 @ [sx,sy]>>         => (flag_lr==0) ? <wire PD_OUT of <device CCS_TILE @ [sx_ccs,sy_ccs]>> :
+                                                                               <wire PD_OUT_OL of <device CCS_TILE @ [sx_ccs,sy_ccs]>> ,
+            <pin PUB_IN of <device *blsr2 @ [sx,sy]>>        => (flag_lr==0) ? <wire PUB_OUT of <device CCS_TILE @ [sx_ccs,sy_ccs]>> :
+                                                                               <wire PUB_OUT_OL of <device CCS_TILE @ [sx_ccs,sy_ccs]>> ,
+            <pin WLSR_SEL_I of <device *blsr2 @ [sx,sy]>>    => (flag_lr==0) ? <wire WLSHFT_SEL_O of <device CCS_TILE @ [sx_ccs,sy_ccs]>> :
+                                                                               <wire WLSHFT_SEL_OL of <device CCS_TILE @ [sx_ccs,sy_ccs]>> ,
+            <pin RSTN of <device *blsr2 @ [sx,sy]>>          => (flag_lr==0) ? <wire RST_BLSR_O of <device CCS_TILE @ [sx_ccs,sy_ccs]>> :
+                                                                               <wire RST_BLSR_OL of <device CCS_TILE @ [sx_ccs,sy_ccs]>> ,
+            <pin BLSR_SEL of <device *blsr2 @ [sx,sy]>>      => (flag_lr==0) ? <wire BLSHFT_SEL_O of <device CCS_TILE @ [sx_ccs,sy_ccs]>> :
+                                                                               <wire BLSHFT_SEL_OL of <device CCS_TILE @ [sx_ccs,sy_ccs]>> ,
+            <pin REGION_RW_EN of <device *blsr2 @ [sx,sy]>>  => (flag_lr==0) ? <wire REGION_RW_EN_O of <device CCS_TILE @ [sx_ccs,sy_ccs]>> :
+                                                                               <wire REGION_RW_EN_OL of <device CCS_TILE @ [sx_ccs,sy_ccs]>> ,
+            <pin COL_IN_I of <device *blsr2 @ [sx,sy]>>      => (flag_lr==0) ? <wire COL_IN_O of <device CCS_TILE @ [sx_ccs,sy_ccs]>> :
+                                                                               <wire COL_IN_OL of <device CCS_TILE @ [sx_ccs,sy_ccs]>> ,
+            <pin TYPE_I of <device *blsr2 @ [sx,sy]>>        => (flag_lr==0) ? <wire TYPE_O of <device CCS_TILE @ [sx_ccs,sy_ccs]>> :
+                                                                               <wire TYPE_OL of <device CCS_TILE @ [sx_ccs,sy_ccs]>> ,
+            <pin FRAME_ADDR_I of <device *blsr2 @ [sx,sy]>>  => (flag_lr==0) ? <wire FRAME_ADDR_O of <device CCS_TILE @ [sx_ccs,sy_ccs]>> :
+                                                                               <wire FRAME_ADDR_OL of <device CCS_TILE @ [sx_ccs,sy_ccs]>> ,
+            <pin MCLKB_I of <device *blsr2 @ [sx,sy]>>       => (flag_lr==0) ? <wire MCLKB_O of <device CCS_TILE @ [sx_ccs,sy_ccs]>> :
+                                                                               <wire MCLKB_OL of <device CCS_TILE @ [sx_ccs,sy_ccs]>> ,
+            <pin MCE_I of <device *blsr2 @ [sx,sy]>>         => (flag_lr==0) ? <wire MCE_O of <device CCS_TILE @ [sx_ccs,sy_ccs]>> :  <wire MCE_OL of <device CCS_TILE @ [sx_ccs,sy_ccs]>> ,
+            <pin MWR_I of <device *blsr2 @ [sx,sy]>>         => (flag_lr==0) ? <wire MWR_O of <device CCS_TILE @ [sx_ccs,sy_ccs]>> :  <wire MWR_OL of <device CCS_TILE @ [sx_ccs,sy_ccs]>> ,
+            <pin CLK_REL_IN of <device *blsr2 @ [sx,sy]>>    => (flag_lr==0) ? <wire RELCK_BUF1 of <device CCS_TILE @ [sx_ccs,sy_ccs]>>    :   <wire RELCK_BUF2 of <device CCS_TILE @ [sx_ccs,sy_ccs]>>,
+            <pin GLOGEN_IN of <device *blsr2 @ [sx,sy]>>     => (flag_lr==0) ? <wire GLOGEN_BUF1 of <device CCS_TILE @ [sx_ccs,sy_ccs]>>   :   <wire GLOGEN_BUF2 of <device CCS_TILE @ [sx_ccs,sy_ccs]>>,
+            <pin GRS_N_IN of <device *blsr2 @ [sx,sy]>>      => (flag_lr==0) ? <wire GRS_N_BUF1 of <device CCS_TILE @ [sx_ccs,sy_ccs]>>    :   <wire GRS_N_BUF2 of <device CCS_TILE @ [sx_ccs,sy_ccs]>>,
+            <pin GWEN_IN of <device *blsr2 @ [sx,sy]>>       => (flag_lr==0) ? <wire GWEN_BUF1 of <device CCS_TILE @ [sx_ccs,sy_ccs]>>     :   <wire GWEN_BUF2 of <device CCS_TILE @ [sx_ccs,sy_ccs]>>,
+            <pin PUP_REL_N_IN of <device *blsr2 @ [sx,sy]>>  => (flag_lr==0) ? <wire PUP_SEL_N_BUF1 of <device CCS_TILE @ [sx_ccs,sy_ccs]>> :   <wire PUP_SEL_N_BUF2 of <device CCS_TILE @ [sx_ccs,sy_ccs]>>,
+            <pin POR_N_IN of <device *blsr2 @ [sx,sy]>>      => (flag_lr==0) ? <wire POR_N_1 of <device CCS_TILE @ [sx_ccs,sy_ccs]>>: <wire POR_N_3 of <device CCS_TILE @ [sx_ccs,sy_ccs]>>,
+            <pin MASK_I of <device *blsr2 @ [sx,sy]>>  => (flag_lr==0) ? <wire MASK_O of <device CCS_TILE @ [sx_ccs,sy_ccs]>> :   <wire MASK_OL of <device CCS_TILE @ [sx_ccs,sy_ccs]>>
+        );
+    }
+    else
+    {
+        connect
+        (
+            <pin DATA_IN of <device *blsr1 @ [sx,sy]>>       => <wire DATA_TO_NEXT of <device *blsr_d @ [sx,sy-NUM_GRID_BLSR_Y]>>,
+            <pin CLK_IN of <device *blsr1 @ [sx,sy]>>        => <wire CLKOUT_M of <device *blsr_d @ [sx,sy-NUM_GRID_BLSR_Y]>>,
+            <pin ERASE_EN of <device *blsr1 @ [sx,sy]>>      => <wire ERASE_EN_O of <device *blsr_d @ [sx,sy-NUM_GRID_BLSR_Y]>>,
+            <pin POR_ERASE_N of <device *blsr1 @ [sx,sy]>>   => <wire POR_ERASE_N_O of <device *blsr_d @ [sx,sy-NUM_GRID_BLSR_Y]>>,
+            <pin PRECHG of <device *blsr1 @ [sx,sy]>>        => <wire PRECHG_O of <device *blsr_d @ [sx,sy-NUM_GRID_BLSR_Y]>>,
+            <pin PROG_CAP of <device *blsr1 @ [sx,sy]>>      => <wire PROG_CAP_O of <device *blsr_d @ [sx,sy-NUM_GRID_BLSR_Y]>>,
+            <pin PROG_ON of <device *blsr1 @ [sx,sy]>>       => <wire PROG_ON_O of <device *blsr_d @ [sx,sy-NUM_GRID_BLSR_Y]>>,
+            <pin READ of <device *blsr1 @ [sx,sy]>>          => <wire READ_O of <device *blsr_d @ [sx,sy-NUM_GRID_BLSR_Y]>>,
+            <pin RDBK_CAP of <device *blsr1 @ [sx,sy]>>      => <wire RDBK_CAP_O of <device *blsr_d @ [sx,sy-NUM_GRID_BLSR_Y]>>,
+            <pin WL_ON_I of <device *blsr1 @ [sx,sy]>>       => <wire WL_ON_O of <device *blsr_d @ [sx,sy-NUM_GRID_BLSR_Y]>>,
+            <pin PD_IN of <device *blsr1 @ [sx,sy]>>         => <wire PD_OUT of <device *blsr_d @ [sx,sy-NUM_GRID_BLSR_Y]>>,
+            <pin PUB_IN of <device *blsr1 @ [sx,sy]>>        => <wire PUB_OUT of <device *blsr_d @ [sx,sy-NUM_GRID_BLSR_Y]>>,
+            <pin WLSR_SEL_I of <device *blsr1 @ [sx,sy]>>    => <wire WLSR_SEL_O of <device *blsr_d @ [sx,sy-NUM_GRID_BLSR_Y]>>,
+            <pin RSTN of <device *blsr1 @ [sx,sy]>>          => <wire RSTN_O of <device *blsr_d @ [sx,sy-NUM_GRID_BLSR_Y]>>,
+            <pin BLSR_SEL of <device *blsr1 @ [sx,sy]>>      => <wire BLSR_SEL_O of <device *blsr_d @ [sx,sy-NUM_GRID_BLSR_Y]>>,
+            <pin REGION_RW_EN of <device *blsr1 @ [sx,sy]>>  => <wire REGION_RW_EN_O of <device *blsr_d @ [sx,sy-NUM_GRID_BLSR_Y]>>,
+            <pin COL_IN_I of <device *blsr1 @ [sx,sy]>>      => <wire COL_IN_O of <device *blsr_d @ [sx,sy-NUM_GRID_BLSR_Y]>>,
+            <pin TYPE_I of <device *blsr1 @ [sx,sy]>>        => <wire TYPE_O of <device *blsr_d @ [sx,sy-NUM_GRID_BLSR_Y]>>,
+            <pin FRAME_ADDR_I of <device *blsr1 @ [sx,sy]>>  => <wire FRAME_ADDR_O of <device *blsr_d @ [sx,sy-NUM_GRID_BLSR_Y]>>,
+
+            <pin MCLKB_I of <device *blsr1 @ [sx,sy]>>       => <wire MCLKB_O of <device *blsr_d @ [sx,sy-NUM_GRID_BLSR_Y]>>,
+            <pin MCE_I of <device *blsr1 @ [sx,sy]>>         => <wire MCE_O of <device *blsr_d @ [sx,sy-NUM_GRID_BLSR_Y]>>,
+            <pin MWR_I of <device *blsr1 @ [sx,sy]>>         => <wire MWR_O of <device *blsr_d @ [sx,sy-NUM_GRID_BLSR_Y]>>,
+
+            <pin CLK_REL_IN of <device *blsr1 @ [sx,sy]>>      => <wire CLK_REL_OUT_M of <device *blsr_d @ [sx,sy-NUM_GRID_BLSR_Y]>>,
+            <pin GLOGEN_IN of <device *blsr1 @ [sx,sy]>>       => <wire GLOGEN_OUT of <device *blsr_d @ [sx,sy-NUM_GRID_BLSR_Y]>>,
+            <pin GRS_N_IN of <device *blsr1 @ [sx,sy]>>        => <wire GRS_N_OUT_M of <device *blsr_d @ [sx,sy-NUM_GRID_BLSR_Y]>>,
+            <pin GWEN_IN of <device *blsr1 @ [sx,sy]>>         => <wire GWEN_OUT_M of <device *blsr_d @ [sx,sy-NUM_GRID_BLSR_Y]>>,
+            <pin POR_N_IN of <device *blsr1 @ [sx,sy]>>        => <wire POR_N_OUT_M of <device *blsr_d @ [sx,sy-NUM_GRID_BLSR_Y]>>,
+            <pin PUP_REL_N_IN of <device *blsr1 @ [sx,sy]>>    => <wire PUP_REL_N_OUT_M of <device *blsr_d @ [sx,sy-NUM_GRID_BLSR_Y]>>,
+            <pin MASK_I of <device *blsr1 @ [sx,sy]>>          => <wire MASK_O of <device *blsr_d @ [sx,sy-NUM_GRID_BLSR_Y]>>
+        );
+    }
+
+    if(flag_ud==1)
+    {
+        connect
+        (
+            <pin DSOUT_PRE1[31] of <device *blsr1 @ [sx,sy]>>          => <wire TIEL1 of <device *blsr1 @ [sx,sy]>>,
+            <pin DSOUT_PRE1[30] of <device *blsr1 @ [sx,sy]>>          => <wire TIEL1 of <device *blsr1 @ [sx,sy]>>,
+            <pin DSOUT_PRE1[29] of <device *blsr1 @ [sx,sy]>>          => <wire TIEL1 of <device *blsr1 @ [sx,sy]>>,
+            <pin DSOUT_PRE1[28] of <device *blsr1 @ [sx,sy]>>          => <wire TIEL1 of <device *blsr1 @ [sx,sy]>>,
+            <pin DSOUT_PRE1[27] of <device *blsr1 @ [sx,sy]>>          => <wire TIEL1 of <device *blsr1 @ [sx,sy]>>,
+            <pin DSOUT_PRE1[26] of <device *blsr1 @ [sx,sy]>>          => <wire TIEL1 of <device *blsr1 @ [sx,sy]>>,
+            <pin DSOUT_PRE1[25] of <device *blsr1 @ [sx,sy]>>          => <wire TIEL1 of <device *blsr1 @ [sx,sy]>>,
+            <pin DSOUT_PRE1[24] of <device *blsr1 @ [sx,sy]>>          => <wire TIEL1 of <device *blsr1 @ [sx,sy]>>,
+            <pin DSOUT_PRE1[23] of <device *blsr1 @ [sx,sy]>>          => <wire TIEL1 of <device *blsr1 @ [sx,sy]>>,
+            <pin DSOUT_PRE1[22] of <device *blsr1 @ [sx,sy]>>          => <wire TIEL1 of <device *blsr1 @ [sx,sy]>>,
+            <pin DSOUT_PRE1[21] of <device *blsr1 @ [sx,sy]>>          => <wire TIEL1 of <device *blsr1 @ [sx,sy]>>,
+            <pin DSOUT_PRE1[20] of <device *blsr1 @ [sx,sy]>>          => <wire TIEL1 of <device *blsr1 @ [sx,sy]>>,
+            <pin DSOUT_PRE1[19] of <device *blsr1 @ [sx,sy]>>          => <wire TIEL1 of <device *blsr1 @ [sx,sy]>>,
+            <pin DSOUT_PRE1[18] of <device *blsr1 @ [sx,sy]>>          => <wire TIEL1 of <device *blsr1 @ [sx,sy]>>,
+            <pin DSOUT_PRE1[17] of <device *blsr1 @ [sx,sy]>>          => <wire TIEL1 of <device *blsr1 @ [sx,sy]>>,
+            <pin DSOUT_PRE1[16] of <device *blsr1 @ [sx,sy]>>          => <wire TIEL1 of <device *blsr1 @ [sx,sy]>>,
+            <pin DSOUT_PRE1[15] of <device *blsr1 @ [sx,sy]>>          => <wire TIEL1 of <device *blsr1 @ [sx,sy]>>,
+            <pin DSOUT_PRE1[14] of <device *blsr1 @ [sx,sy]>>          => <wire TIEL1 of <device *blsr1 @ [sx,sy]>>,
+            <pin DSOUT_PRE1[13] of <device *blsr1 @ [sx,sy]>>          => <wire TIEL1 of <device *blsr1 @ [sx,sy]>>,
+            <pin DSOUT_PRE1[12] of <device *blsr1 @ [sx,sy]>>          => <wire TIEL1 of <device *blsr1 @ [sx,sy]>>,
+            <pin DSOUT_PRE1[11] of <device *blsr1 @ [sx,sy]>>          => <wire TIEL1 of <device *blsr1 @ [sx,sy]>>,
+            <pin DSOUT_PRE1[10] of <device *blsr1 @ [sx,sy]>>          => <wire TIEL1 of <device *blsr1 @ [sx,sy]>>,
+            <pin DSOUT_PRE1[9] of <device *blsr1 @ [sx,sy]>>           => <wire TIEL1 of <device *blsr1 @ [sx,sy]>>,
+            <pin DSOUT_PRE1[8] of <device *blsr1 @ [sx,sy]>>           => <wire TIEL1 of <device *blsr1 @ [sx,sy]>>,
+            <pin DSOUT_PRE1[7] of <device *blsr1 @ [sx,sy]>>           => <wire TIEL1 of <device *blsr1 @ [sx,sy]>>,
+            <pin DSOUT_PRE1[6] of <device *blsr1 @ [sx,sy]>>           => <wire TIEL1 of <device *blsr1 @ [sx,sy]>>,
+            <pin DSOUT_PRE1[5] of <device *blsr1 @ [sx,sy]>>           => <wire TIEL1 of <device *blsr1 @ [sx,sy]>>,
+            <pin DSOUT_PRE1[4] of <device *blsr1 @ [sx,sy]>>           => <wire TIEL1 of <device *blsr1 @ [sx,sy]>>,
+            <pin DSOUT_PRE1[3] of <device *blsr1 @ [sx,sy]>>           => <wire TIEL1 of <device *blsr1 @ [sx,sy]>>,
+            <pin DSOUT_PRE1[2] of <device *blsr1 @ [sx,sy]>>           => <wire TIEL1 of <device *blsr1 @ [sx,sy]>>,
+            <pin DSOUT_PRE1[1] of <device *blsr1 @ [sx,sy]>>           => <wire TIEL1 of <device *blsr1 @ [sx,sy]>>,
+            <pin DSOUT_PRE1[0] of <device *blsr1 @ [sx,sy]>>           => <wire TIEL1 of <device *blsr1 @ [sx,sy]>>,
+            <pin COL_INC_PREV1_I of <device *blsr1 @ [sx,sy]>>         => <wire TIEL2 of <device *blsr1 @ [sx,sy]>>,
+            <pin NONDRM_REG_INC_PREV1_I of <device *blsr1 @ [sx,sy]>>  => <wire TIEL2 of <device *blsr1 @ [sx,sy]>>,
+            <pin NONDRM_END_I of <device *blsr1 @ [sx,sy]>>             => <wire NONDRM_END_LOCAL of <device *blsr1 @ [sx,sy]>>
+        );
+    }
+    else
+    {
+        connect
+        (
+            <pin DSOUT_PRE1 of <device *blsr2 @ [sx,sy]>>              => <wire DSROUTTO_CONFIG of <device *blsr1 @ [sx,sy+NUM_GRID_BLSR_Y]>>,
+            <pin COL_INC_PREV1_I of <device *blsr2 @ [sx,sy]>>         => <wire COL_INC_O of <device *blsr1 @ [sx,sy+NUM_GRID_BLSR_Y]>>,
+            <pin NONDRM_REG_INC_PREV1_I of <device *blsr2 @ [sx,sy]>>  => <wire NONDRM_REG_INC_O of <device *blsr1 @ [sx,sy+NUM_GRID_BLSR_Y]>>,
+            <pin NONDRM_END_I of <device *blsr2 @ [sx,sy]>>           => <wire NONDRM_END_LOCAL of <device *blsr2 @ [sx,sy]>>
+        );
+    }
+
+    if(flag_ud==0&&flag_lr==0)
+    {
+        connect
+        (
+            <pin DSOUT_PRE2 of <device *blsr2 @ [sx,sy]>>              => <wire DSROUTTO_CONFIG of <device *blsr1 @ [sx_blsr_l,sy]>>,
+            <pin COL_INC_PREV2_I of <device *blsr2 @ [sx,sy]>>         => <wire COL_INC_O of <device *blsr1 @ [sx_blsr_l,sy]>>,
+            <pin NONDRM_REG_INC_PREV2_I of <device *blsr2 @ [sx,sy]>>  => <wire NONDRM_REG_INC_O of <device *blsr1 @ [sx_blsr_l,sy]>>
+        );
+    }
+    else
+    {
+        connect
+        (
+            <pin COL_INC_PREV2_I of <device *blsr2 @ [sx,sy]>>         => <wire TIEL2 of <device *blsr2 @ [sx,sy]>>,
+            <pin NONDRM_REG_INC_PREV2_I of <device *blsr2 @ [sx,sy]>>  => <wire TIEL2 of <device *blsr2 @ [sx,sy]>>
+        );
+    }
+
+}//end of function connect_BLSR_input_loop
+
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_blsr_tiehi_input_100h
+(
+    unsigned int tx,
+    unsigned int rx,
+    unsigned int rx_con,
+    string dev_blsr,
+    unsigned int flag_lr
+)
+{
+    string blsr = dev_blsr ;
+
+    int sx =  tx * NUM_GRID_X ;
+    int sy = rx * NUM_GRID_BLSR_Y + NUM_GRID_Y ;
+
+    STRUCT inc_spec_BLSR_TIEHI incVar;
+    string pin_SRB;
+    string pin_logic_device;
+    string attribute_IO;
+
+    foreach incVar(inc_BLSR_TIEHI_spec)
+    {
+        pin_SRB = incVar.port_name_SRB;
+        pin_logic_device = incVar.port_name_device;
+        attribute_IO = incVar.attribute_IO;
+       
+        if(attribute_IO =="I")
+        { 
+         
+           connect(<pin *pin_logic_device of <device *blsr @[sx,sy]>> => <wire *pin_SRB of <device *blsr @[sx,sy]>>);
+        }
+    }
+    
+//    if(!(flag_lr==0&&rx==rx_con))
+//    {
+//           connect(<pin CLK_USER_IN of <device *blsr @[sx,sy]>> => <wire TIEL2 of <device *blsr @[sx,sy]>>);        
+//    }
+
+}//end of function connect_blsr_tiehi_input
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_analog_output
+(
+    unsigned int tx,
+    unsigned int rx,
+    unsigned int tx_ana,
+    unsigned int ty_ana,
+    string dev_analog, 
+    string dev_wlsr, 
+    string sig_ngb, 
+    unsigned int flag_iock, 
+    unsigned int flag_ccs
+)
+{
+    string analog = dev_analog ;
+    string wlsr = dev_wlsr ;
+    string ngb = sig_ngb ;
+
+    int sx = (flag_iock == 1) ? tx * NUM_GRID_X + 2 : tx * NUM_GRID_X ;
+    int ty = (flag_iock == 1) ? (MID_TILE_REGION - 1) + rx * NUM_TILES_REGION : MID_TILE_REGION + rx * NUM_TILES_REGION ;
+    int sy = ty * NUM_GRID_Y ;
+
+    int sx_ana = (flag_ccs == 0) ? tx_ana * NUM_GRID_X +2 : tx_ana * NUM_GRID_X;
+    int sy_ana = ty_ana * NUM_GRID_Y ;
+
+    connect(<pin VCTRL of <device *wlsr @[sx,sy]>>     => <wire *ngb of <device *analog @[sx_ana,sy_ana]>>);
+
+}//end of function connect_analog_output
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_analog_input
+(
+    unsigned int tx,
+    unsigned int ty,
+    unsigned int tx_pll,
+    unsigned int ty_pll,
+    unsigned int tx_ccs,
+    unsigned int ty_ccs,
+    unsigned int tx_iob2,
+    unsigned int ty_iob2,
+    string dev_analog, 
+    string dev_ccs,
+    string dev_iob2,
+    string sig_pll_ldo_i,
+    unsigned int flag_pll,    
+    unsigned int flag_once    //1, run once
+)
+{
+    string analog = dev_analog ;
+    string ccs = dev_ccs ;
+    string iob2 = dev_iob2 ;
+    string pll_ldo_i = sig_pll_ldo_i ;
+
+    int sx = tx * NUM_GRID_X + 2;
+    int sy = ty * NUM_GRID_Y ;
+    int sx_ccs = tx_ccs * NUM_GRID_X ;
+    int sy_ccs = ty_ccs * NUM_GRID_Y ;
+
+    int sx_iob2 = tx_iob2 * NUM_GRID_X ;
+    int sy_iob2 = ty_iob2 * NUM_GRID_Y ;
+
+    int sx_pll = tx_pll * NUM_GRID_X + 2;
+    int sy_pll = ty_pll * NUM_GRID_Y;
+
+    &wire ntRef_ntREXT = <wire ntREXT>;
+
+    if(flag_pll==1)
+    {
+        connect(<pin *pll_ldo_i of <device *analog @ [sx,sy]>>     => <wire VCP of <device PLL_100H_TILE @ [sx_pll,sy_pll]>>);
+    }
+    if(flag_pll==0)
+    {
+        connect(<pin *pll_ldo_i of <device *analog @ [sx,sy]>>     => <wire TIEHI of <device *analog @ [sx,sy]>>);    
+    }
+
+    if(flag_once==1)
+    {
+        connect
+        (
+            <pin ADC_VREF_TEST of<device *analog @[sx,sy]>> =>  <wire TIEHI of <device *analog @ [sx,sy]>>,
+            <pin CMFB_VREF_I of<device *analog @[sx,sy]>> =>  <wire TIEHI of <device *analog @ [sx,sy]>>,
+            <pin DDR_VREF_I of<device *analog @[sx,sy]>> =>  <wire TIEHI of <device *analog @ [sx,sy]>>,
+            <pin CLK_ADC of<device *analog @[sx,sy]>> =>  <wire TIEHI of <device *analog @ [sx,sy]>>,
+            <pin REXT_PAD of<device *analog @[sx,sy]>> =>  ntRef_ntREXT,
+            <pin CLK_BLSHFT   of<device *analog @[sx,sy]>> =>  <wire CLK_BLSHFT of <device *ccs @ [sx_ccs,sy_ccs]>>,
+            <pin CLK_MSPI     of<device *analog @[sx,sy]>> =>  <wire CLK_MSPI of <device *ccs @ [sx_ccs,sy_ccs]>>,
+            <pin CLK_USER_OSC of<device *analog @[sx,sy]>> =>  <wire CLK_USER_OSC of <device *ccs @ [sx_ccs,sy_ccs]>>,
+            <pin MFG_POR_OFF of<device *analog @[sx,sy]>> =>  <wire MFG_POR_OFF of <device *ccs @ [sx_ccs,sy_ccs]>>,
+            <pin VDDT_N of<device *analog @[sx,sy]>> =>  <wire VDDT_N of <device *ccs @ [sx_ccs,sy_ccs]>>,
+//            <pin LDO_RD_TEST of<device *analog @[sx,sy]>> =>  <wire LDO_RD_TEST of <device *ccs @ [sx_ccs,sy_ccs]>>,
+            <pin LDO_RU_TEST of<device *analog @[sx,sy]>> =>  <wire LDO_RU_TEST of <device *ccs @ [sx_ccs,sy_ccs]>>,
+            <pin ATP of<device *iob2 @[sx_iob2,sy_iob2]>> =>  <wire ATP_O of <device *analog @ [sx,sy]>>,
+            <pin ATP_DUMMY of<device *iob2 @[sx_iob2,sy_iob2]>> =>  <wire ATP_DUMMY_O of <device *analog @ [sx,sy]>>
+        );
+    }
+
+}//end of function connect_analog_input
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_ccs_input
+(
+    unsigned int tx,
+    unsigned int ty,
+    unsigned int tx_blsr,
+    unsigned int ty_blsr1,
+    unsigned int ty_blsr2,
+    unsigned int tx_idcode,
+    unsigned int ty_idcode,
+    unsigned int tx_iob2,
+    unsigned int ty_iob2,
+    unsigned int tx_pll,
+    unsigned int ty_pll0,
+    unsigned int tx_ana,
+    unsigned int ty_ana,
+    string dev_blsr1,
+    string dev_blsr2,
+    string dev_iob2,
+    string dev_idcode,
+    string dev_analog
+)
+{
+    string iob2 = dev_iob2 ;
+    string blsr1 = dev_blsr1 ;
+    string blsr2 = dev_blsr2 ;
+    string idcode = dev_idcode ;
+    string analog = dev_analog ;
+
+    int sx_iob2 = tx_iob2 * NUM_GRID_X ;
+    int sy_iob2 = ty_iob2 * NUM_GRID_Y ;
+
+    int sx_ana = tx_ana * NUM_GRID_X +2;
+    int sy_ana = ty_ana * NUM_GRID_Y ;
+
+    int sx = tx * NUM_GRID_X;
+    int sy = ty * NUM_GRID_Y;
+
+    int sx_blsr = tx_blsr * NUM_GRID_X;
+    int sy_blsr1 = ty_blsr1 * NUM_GRID_BLSR_Y + NUM_GRID_Y ;
+    int sy_blsr2 = ty_blsr2 * NUM_GRID_BLSR_Y + NUM_GRID_Y ;
+
+    connect
+    (
+        <pin COL_INC_I of <device CCS_TILE @[sx,sy]>>        => <wire COL_INC_O of <device *blsr2 @ [sx_blsr,sy_blsr2]>>,
+        <pin NONDRM_REG_INC_I of <device CCS_TILE @[sx,sy]>> => <wire NONDRM_REG_INC_O of <device *blsr2 @ [sx_blsr,sy_blsr2]>>,
+        <pin NONDRM_END_I of <device CCS_TILE @[sx,sy]>>     => <wire NONDRM_END_O of <device *blsr2 @ [sx_blsr,sy_blsr2]>>,
+        <pin DATABACK_I of <device CCS_TILE @[sx,sy]>>       => <wire DSROUTTO_CONFIG of <device *blsr2 @ [sx_blsr,sy_blsr2]>>,
+        <pin DCI_MATCH of <device CCS_TILE @[sx,sy]>>        => <wire DCI_INIT of <device *blsr2 @[sx_blsr,sy_blsr2]>>
+    );
+
+    connect
+    (
+          <pin IPOLY_OSC of <device CCS_TILE@[sx,sy]>> => <wire IPOLY10U[5] of <device *analog @[sx_ana,sy_ana]>>,
+          <pin IPOLY_LDORU of <device CCS_TILE@[sx,sy]>> => <wire IPOLY10U[1] of <device *analog @[sx_ana,sy_ana]>>,
+//          <pin IPOLY_LDORD of <device CCS_TILE@[sx,sy]>> => <wire IPOLY10U[0] of <device *analog @[sx_ana,sy_ana]>>,
+          <pin ICONST_OSC of <device CCS_TILE@[sx,sy]>> => <wire ICONST10U[8] of <device *analog @[sx_ana,sy_ana]>>,
+          <pin ICONST_LDORU of <device CCS_TILE@[sx,sy]>> => <wire ICONST10U[12] of <device *analog @[sx_ana,sy_ana]>>,
+//          <pin ICONST_LDORD of <device CCS_TILE@[sx,sy]>> => <wire ICONST10U[11] of <device *analog @[sx_ana,sy_ana]>>,
+          <pin POR_N of <device CCS_TILE@[sx,sy]>> => <wire POR_N of <device *analog @[sx_ana,sy_ana]>>,
+          <pin POR_OSC_N of <device CCS_TILE@[sx,sy]>> => <wire POR_OSC_N of <device *analog @[sx_ana,sy_ana]>>,
+          <pin GOUTEN_DIO of <device CCS_TILE@[sx,sy]>> => <wire BUS_BSCAN_OUT[13] of <device CCS_TILE @[sx,sy]>>
+//          <pin POR33 of <device CCS_TILE@[sx,sy]>> => <wire POR_N of <device *analog @[sx_ana,sy_ana]>>
+    );
+
+    int sx_pll = tx_pll * NUM_GRID_X + 2;
+    int sy_pll0 = ty_pll0 * NUM_GRID_Y ;
+
+    connect
+    (
+        <pin PLL_LOCK of <device CCS_TILE @ [sx,sy]>>         => <wire LOCK of <device PLL_100H_TILE @ [sx_pll,sy_pll0]>>,
+        <pin GLOGEN_FB of <device CCS_TILE @ [sx,sy]>>  => <wire GLOGEN_FB_OUT of <device IOCKGATEDLL_100H_TILE @ [sx+2,MID_TILE_REGION*NUM_GRID_Y-NUM_GRID_Y]>>
+    );
+
+    int sx_idcode = tx_idcode * NUM_GRID_X + 2;
+    int sy_idcode = ty_idcode * NUM_GRID_Y;
+
+    connect
+    (
+        <pin IDCODE_H12 of <device CCS_TILE @[sx,sy]>>  => <wire IDCODE_H12 of <device *idcode @ [sx_idcode,sy_idcode]>>,
+        <pin IDCODE_L18 of <device CCS_TILE @[sx,sy]>>  => <wire IDCODE_L18 of <device *idcode @ [sx_idcode,sy_idcode]>>,
+        <pin DRM_REGION_NUM of <device CCS_TILE @[sx,sy]>>  => <wire DRM_REGION_NUM of <device *idcode @ [sx_idcode,sy_idcode]>>,
+        <pin DRM_COLUMN_NUM of <device CCS_TILE @[sx,sy]>>  => <wire DRM_COLUMN_NUM of <device *idcode @ [sx_idcode,sy_idcode]>>
+    );
+
+    &wire ntRef_ntTCK = <wire ntTCK>;
+    &wire ntRef_ntTDI = <wire ntTDI>;
+    &wire ntRef_ntTMS = <wire ntTMS>;
+    &wire ntRef_ntTDO = <wire ntTDO>;
+    &wire ntRef_ntSTAND_BY = <wire ntSTAND_BY>;
+
+    connect
+    (
+        <pin TCK of <device CCS_TILE @[sx,sy]>>             => ntRef_ntTCK,
+        <pin TDI of <device CCS_TILE @[sx,sy]>>             => ntRef_ntTDI,
+        <pin TMS of <device CCS_TILE @[sx,sy]>>             => ntRef_ntTMS,
+        <pin STAND_BY of <device CCS_TILE @[sx,sy]>>        => ntRef_ntSTAND_BY,
+        <pin TDO of <device CCS_TILE @[sx,sy]>>             => ntRef_ntTDO
+    );
+}//end of function connect_CCS_input
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_bias_pll_100h
+(
+    unsigned int tx,
+    unsigned int ty_d, 
+    unsigned int ty_u, 
+    unsigned int tx_ana, 
+    unsigned int ty_ana, 
+    string dev_analog,
+    unsigned int flag_100h
+)
+{
+    int sx = tx * NUM_GRID_X + 2;
+
+    int sx_ana = tx_ana * NUM_GRID_X+2;
+    int sy_ana = ty_ana * NUM_GRID_Y;
+
+    int sy_pll0 = ty_d * NUM_GRID_Y + 0 * NUM_TILES_REGION * NUM_GRID_Y ;
+    int sy_pll1 = ty_u * NUM_GRID_Y + 0 * NUM_TILES_REGION * NUM_GRID_Y ;
+    int sy_pll2 = sy_pll0 + 1 * NUM_TILES_REGION * NUM_GRID_Y ;
+    int sy_pll3 = sy_pll1 + 1 * NUM_TILES_REGION * NUM_GRID_Y ;
+    int sy_pll4 = sy_pll0 + 2 * NUM_TILES_REGION * NUM_GRID_Y ;
+    int sy_pll5 = sy_pll1 + 2 * NUM_TILES_REGION * NUM_GRID_Y ;
+    int sy_pll6 = sy_pll0 + 3 * NUM_TILES_REGION * NUM_GRID_Y ;
+    int sy_pll7 = sy_pll1 + 3 * NUM_TILES_REGION * NUM_GRID_Y ;
+    int sy_pll8 = sy_pll0 + 4 * NUM_TILES_REGION * NUM_GRID_Y ;
+
+    string analog = dev_analog ;
+
+    if(flag_100h==1)
+    {
+        connect
+        (
+            <pin IPOLY10U of <device PLL_100H_TILE @[sx,sy_pll8]>> => <wire IPOLY10U[15] of <device *analog @[sx_ana,sy_ana]>>,
+            <pin IPOLY10U of <device PLL_100H_TILE @[sx,sy_pll7]>> => <wire IPOLY10U[14] of <device *analog @[sx_ana,sy_ana]>>,
+            <pin IPOLY10U of <device PLL_100H_TILE @[sx,sy_pll6]>> => <wire IPOLY10U[13] of <device *analog @[sx_ana,sy_ana]>>,
+            <pin IPOLY10U of <device PLL_100H_TILE @[sx,sy_pll5]>> => <wire IPOLY10U[12] of <device *analog @[sx_ana,sy_ana]>>,
+
+            <pin IPOLY20U of <device PLL_100H_TILE @[sx,sy_pll8]>> => <wire IPOLY20U[17:16] of <device *analog @[sx_ana,sy_ana]>>,
+            <pin IPOLY20U of <device PLL_100H_TILE @[sx,sy_pll7]>> => <wire IPOLY20U[15:14] of <device *analog @[sx_ana,sy_ana]>>,
+            <pin IPOLY20U of <device PLL_100H_TILE @[sx,sy_pll6]>> => <wire IPOLY20U[13:12] of <device *analog @[sx_ana,sy_ana]>>,
+            <pin IPOLY20U of <device PLL_100H_TILE @[sx,sy_pll5]>> => <wire IPOLY20U[11:10] of <device *analog @[sx_ana,sy_ana]>>
+        );
+    }
+
+    connect
+    (
+        <pin IPOLY10U of <device PLL_100H_TILE @[sx,sy_pll4]>> => <wire IPOLY10U[11] of <device *analog @[sx_ana,sy_ana]>>,
+        <pin IPOLY10U of <device PLL_100H_TILE @[sx,sy_pll3]>> => <wire IPOLY10U[10] of <device *analog @[sx_ana,sy_ana]>>,
+        <pin IPOLY10U of <device PLL_100H_TILE @[sx,sy_pll2]>> => <wire IPOLY10U[9] of <device *analog @[sx_ana,sy_ana]>>,
+        <pin IPOLY10U of <device PLL_100H_TILE @[sx,sy_pll1]>> => <wire IPOLY10U[8] of <device *analog @[sx_ana,sy_ana]>>,
+
+        <pin IPOLY20U of <device PLL_100H_TILE @[sx,sy_pll4]>> => <wire IPOLY20U[9:8] of <device *analog @[sx_ana,sy_ana]>>,
+        <pin IPOLY20U of <device PLL_100H_TILE @[sx,sy_pll3]>> => <wire IPOLY20U[7:6] of <device *analog @[sx_ana,sy_ana]>>,
+        <pin IPOLY20U of <device PLL_100H_TILE @[sx,sy_pll2]>> => <wire IPOLY20U[5:4] of <device *analog @[sx_ana,sy_ana]>>,
+        <pin IPOLY20U of <device PLL_100H_TILE @[sx,sy_pll1]>> => <wire IPOLY20U[3:2] of <device *analog @[sx_ana,sy_ana]>>
+
+    );
+
+    if(flag_100h==0)
+    {
+        connect
+        (
+            <pin IPOLY10U of <device PLL_100H_TILE @[sx,sy_pll0]>> => <wire IPOLY10U[7] of <device *analog @[sx_ana,sy_ana]>>,
+
+            <pin IPOLY20U of <device PLL_100H_TILE @[sx,sy_pll0]>> => <wire IPOLY20U[1:0] of <device *analog @[sx_ana,sy_ana]>>
+        );
+    }
+}
+
+
+} //end of package pgl_funcs_connect_logic
+

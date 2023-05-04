@@ -1,0 +1,401 @@
+evSRL6.val
+ * @brief .
+ * @author zpfeng(file creator)
+ * @date 2019/07/18
+ * @copyright (c) Copyright 2013~2019 - PANGO MICROSYSTEMS, INC.
+ * ALL RIGHTS RESERVED.
+ *
+ * THE SOURCE CODE CONTAINED HEREIN IS PROPRIETARY TO PANGO MICROSYSTEMS, INC.
+ * IT SHALL NOT BE REPRODUCED OR DISCLOSED IN WHOLE OR IN PART OR USED BY PARTIES
+ * WITHOUT WRITTEN AUTHORIZATION FROM THE OWNER.
+ */
+
+
+gate
+device devSRL6 : device CLMA
+{
+
+    parameter
+    (
+        config string CP_FF0_RS = "SET",
+        config string CP_FFAPP0_RS = "SET",
+        config bit CP_FF0_INIT = 1'b1,
+        config bit CP_FFAPP0_INIT = 1'b1,
+        config string CP_Q0MUX_SEL := "MX",
+        config string CP_FFAPP0MUX_SEL := "SRQ",
+        config string CP_CR0POSTMUX_SEL := "QPX",
+        config string CP_FF1_RS = "SET",
+        config string CP_FFAPP1_RS = "SET",
+        config bit CP_FF1_INIT = 1'b1,
+        config bit CP_FFAPP1_INIT = 1'b1,
+        config string CP_Q1MUX_SEL := "SRQ",
+        config string CP_FFAPP1MUX_SEL := "SRQ",
+        config string CP_CR1POSTMUX_SEL := "QPX",
+        config string CP_FF2_RS = "SET",
+        config string CP_FFAPP2_RS = "SET",
+        config bit CP_FF2_INIT = 1'b1,
+        config bit CP_FFAPP2_INIT = 1'b1,
+        config string CP_Q2MUX_SEL := "SRQ",
+        config string CP_FFAPP2MUX_SEL := "SRQ",
+        config string CP_CR2POSTMUX_SEL := "QPX",
+        config string CP_RS_MODE = "SYNC",
+        config string CP_LRS_POL = "FALSE",
+        config string CP_LRS_EN = "FALSE",
+        config string CP_LCE_POL = "FALSE",
+        config string CP_LCE_EN = "FALSE",
+        config string CP_CLK_POL = "FALSE",
+        config string CP_RSMUX_SEL = "LOCAL",
+        config string CP_CEMUX_SEL = "LOCAL",
+        config string CP_GRS_EN = "TRUE",
+        config string CP_LATCH_EN = "FALSE"
+    );
+    port
+    (
+        input M0,
+        output Q0,
+        output CR0,
+        output Q1,
+        output CR1,
+        output Q2,
+        output CR2,
+        input RS,
+        input CE,
+        input CLK,
+        input RSCI,
+        output RSCO,
+        input CECI,
+        output CECO,
+        input SRCI
+    );
+}; // end of device devSRL6
+
+
+structure netlist of devSRL6
+{
+
+    wire        ntM0       ;
+    wire        ntQ0       ;
+    wire        ntQD0      ;
+    wire        ntQD0_APP  ;
+    wire        ntQP0      ;
+    wire        ntCR0      ;
+    wire        ntQ1       ;
+    wire        ntQD1      ;
+    wire        ntQD1_APP  ;
+    wire        ntQP1      ;
+    wire        ntCR1      ;
+    wire        ntQ2       ;
+    wire        ntQD2      ;
+    wire        ntQD2_APP  ;
+    wire        ntQP2      ;
+    wire        ntCR2      ;
+    wire        ntRS       ;
+    wire        ntCE       ;
+    wire        ntCLK      ;
+    wire        ntRSCI     ;
+    wire        ntCECI     ;
+    wire        ntSRCI     ;
+    wire        ntCECO     ;
+    wire        ntRSCO     ;
+    wire        ntCLKR     ;
+    wire        ntCE_P     ;
+    wire        ntRS_P     ;
+    
+    ntM0        <= M0      ;
+    CR0         <= ntCR0   ;
+    Q0          <= ntQ0    ;
+    CR1         <= ntCR1   ;
+    Q1          <= ntQ1    ;
+    CR2         <= ntCR2   ;
+    Q2          <= ntQ2    ;
+    ntRS        <= RS      ;
+    ntCE        <= CE      ;
+    ntCLK       <= CLK     ;
+    ntRSCI      <= RSCI    ;
+    RSCO        <= ntRSCO  ;
+    ntCECI      <= CECI    ;
+    CECO        <= ntCECO  ;
+    ntSRCI      <= SRCI    ;
+    
+    device CLK_POLMUX CLKPOLMUX
+    parameter map
+    (
+        CP_CLK_POL   =>   CP_CLK_POL
+    )
+    port map
+    (
+        Y            =>   ntCLKR,
+        DIN1         =>   ntCLK,
+        DIN0         =>   ntCLK
+    );
+    
+    device LCE_POLMUX LCEPOLMUX
+    parameter map
+    (
+        CP_LCE_EN    =>    CP_LCE_EN,
+        CP_LCE_POL   =>    CP_LCE_POL
+    )
+    port map
+    (
+        Y           =>     ntCE_P,
+        DIN2        =>     1'b1,
+        DIN1        =>     ntCE,
+        DIN0        =>     ntCE
+    );
+    
+    device LRS_POLMUX LRSPOLMUX
+    parameter map
+    (
+        CP_LRS_EN    =>    CP_LRS_EN,
+        CP_LRS_POL   =>    CP_LRS_POL
+    )
+    port map
+    (
+        Y            =>    ntRS_P,
+        DIN2         =>    1'b0,
+        DIN1         =>    ntRS,
+        DIN0         =>    ntRS
+    );
+    
+    device  MUX2_P  CEMUX
+    parameter map
+    (
+        SEL      =>     CP_CEMUX_SEL
+    )
+    port map
+    (
+        DOUT     =>     ntCECO,
+        DI0      =>     ntCECI,
+        DI1      =>     ntCE_P
+    );
+    
+    device  MUX2_P  RSMUX
+    parameter map
+    (
+        SEL      =>     CP_RSMUX_SEL
+    )
+    port map
+    (
+        DOUT     =>     ntRSCO,
+        DI0      =>     ntRSCI,
+        DI1      =>     ntRS_P
+    );
+    
+    device FFAPPMUX FFAPP2MUX
+    parameter map
+    (
+        CP_FFAPPMUX_SEL     =>    CP_FFAPP2MUX_SEL
+    )
+    port map
+    (
+        SRQ                 =>    ntQ2,
+        Q                   =>    ntQD2_APP
+    );
+    
+    device APPFF FFAPP2
+    parameter map
+    (
+        CP_RS_MODE           =>    CP_RS_MODE,
+        CP_GRS_EN            =>    CP_GRS_EN,
+        CP_FFAPP_RS          =>    CP_FFAPP2_RS,
+        CP_FFAPP_INIT        =>    CP_FFAPP2_INIT
+    )
+    port map
+    (
+        Q                    =>    ntQP2,
+        D                    =>    ntQD2_APP,
+        CE                   =>    ntCECO,
+        CLK                  =>    ntCLKR,
+        RS                   =>    ntRSCO
+    );
+    
+    device CRPOSTMUX CR2POSTMUX
+    parameter map
+    (
+        CP_CRPOSTMUX_SEL     =>    CP_CR2POSTMUX_SEL
+    )
+    port map
+    (
+        QPX                  =>    ntQP2,
+        Q                    =>    ntCR2
+    );
+
+    device QMUX  Q2MUX
+    parameter map
+    (
+        CP_QMUX_SEL     =>    CP_Q2MUX_SEL
+    )
+    port map
+    (
+        Q        =>     ntQD2,
+        SRQ      =>     ntCR1
+    );
+    
+    device MAINFF FF2
+    parameter map
+    (
+        CP_RS_MODE           =>    CP_RS_MODE,
+        CP_GRS_EN            =>    CP_GRS_EN,
+        CP_FF_RS             =>    CP_FF2_RS,
+        CP_FF_INIT           =>    CP_FF2_INIT,
+        CP_LATCH_EN          =>    CP_LATCH_EN
+    )
+    port map
+    (
+        Q                    =>    ntQ2,
+        D                    =>    ntQD2,
+        CE                   =>    ntCECO,
+        CLK                  =>    ntCLKR,
+        RS                   =>    ntRSCO
+    );
+    
+    device FFAPPMUX FFAPP1MUX
+    parameter map
+    (
+        CP_FFAPPMUX_SEL     =>    CP_FFAPP1MUX_SEL
+    )
+    port map
+    (
+        SRQ                 =>    ntQ1,
+        Q                   =>    ntQD1_APP
+    );
+    
+    device APPFF FFAPP1
+    parameter map
+    (
+        CP_RS_MODE           =>    CP_RS_MODE,
+        CP_GRS_EN            =>    CP_GRS_EN,
+        CP_FFAPP_RS          =>    CP_FFAPP1_RS,
+        CP_FFAPP_INIT        =>    CP_FFAPP1_INIT
+    )
+    port map
+    (
+        Q                    =>    ntQP1,
+        D                    =>    ntQD1_APP,
+        CE                   =>    ntCECO,
+        CLK                  =>    ntCLKR,
+        RS                   =>    ntRSCO
+    );
+    
+    device CRPOSTMUX CR1POSTMUX
+    parameter map
+    (
+        CP_CRPOSTMUX_SEL     =>    CP_CR1POSTMUX_SEL
+    )
+    port map
+    (
+        QPX                  =>    ntQP1,
+        Q                    =>    ntCR1
+    );
+    
+    device QMUX  Q1MUX
+    parameter map
+    (
+        CP_QMUX_SEL     =>    CP_Q1MUX_SEL
+    )
+    port map
+    (
+        Q       =>      ntQD1,
+        SRQ     =>      ntCR0
+    );
+    
+    device MAINFF FF1
+    parameter map
+    (
+        CP_RS_MODE           =>    CP_RS_MODE,
+        CP_GRS_EN            =>    CP_GRS_EN,
+        CP_FF_RS             =>    CP_FF1_RS,
+        CP_FF_INIT           =>    CP_FF1_INIT,
+        CP_LATCH_EN          =>    CP_LATCH_EN
+    )
+    port map
+    (
+        Q                    =>    ntQ1,
+        D                    =>    ntQD1,
+        CE                   =>    ntCECO,
+        CLK                  =>    ntCLKR,
+        RS                   =>    ntRSCO
+    );
+    
+    device FFAPPMUX FFAPP0MUX
+    parameter map
+    (
+        CP_FFAPPMUX_SEL     =>    CP_FFAPP0MUX_SEL
+    )
+    port map
+    (
+        SRQ                 =>    ntQ0,
+        Q                   =>    ntQD0_APP
+    );
+    
+    device APPFF FFAPP0
+    parameter map
+    (
+        CP_RS_MODE           =>    CP_RS_MODE,
+        CP_GRS_EN            =>    CP_GRS_EN,
+        CP_FFAPP_RS          =>    CP_FFAPP0_RS,
+        CP_FFAPP_INIT        =>    CP_FFAPP0_INIT
+    )
+    port map
+    (
+        Q                    =>    ntQP0,
+        D                    =>    ntQD0_APP,
+        CE                   =>    ntCECO,
+        CLK                  =>    ntCLKR,
+        RS                   =>    ntRSCO
+    );
+    
+    device CRPOSTMUX CR0POSTMUX
+    parameter map
+    (
+        CP_CRPOSTMUX_SEL     =>    CP_CR0POSTMUX_SEL
+    )
+    port map
+    (
+        QPX                  =>    ntQP0,
+        Q                    =>    ntCR0
+    );
+    
+    device QMUX  Q0MUX
+    parameter map
+    (
+        CP_QMUX_SEL  =>   CP_Q0MUX_SEL
+    )
+    port map
+    (
+        Q        =>     ntQD0,
+        SRQ      =>     ntSRCI,
+        MX       =>     ntM0
+    );
+    
+    device MAINFF FF0
+    parameter map
+    (
+        CP_RS_MODE           =>    CP_RS_MODE,
+        CP_GRS_EN            =>    CP_GRS_EN,
+        CP_FF_RS             =>    CP_FF0_RS,
+        CP_FF_INIT           =>    CP_FF0_INIT,
+        CP_LATCH_EN          =>    CP_LATCH_EN
+    )
+    port map
+    (
+        Q                    =>    ntQ0,
+        D                    =>    ntQD0,
+        CE                   =>    ntCECO,
+        CLK                  =>    ntCLKR,
+        RS                   =>    ntRSCO
+    );
+}; // end of structure netlist of devSRL6
+
+
+
+
+
+
+
+
+
+
+
+
+

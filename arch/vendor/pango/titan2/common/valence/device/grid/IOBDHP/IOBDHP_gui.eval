@@ -1,0 +1,197 @@
+*****************************************************************
+
+    Device    [IOBDHP]
+
+    Author    [wxcao]
+
+    Abstract  []
+
+    Abstract  []
+
+    Revision History:
+
+********************************************************************************/
+symbol logsym of IOBDHP // pragma PAP_ARC_COLOR="64:64:128"
+{
+    generate ( 24 # 24 );
+    shape
+    [ 0, 0 ]  ->  [ , 24 ]
+                            <
+                                MIPI_SW_DYN                             @[ ,4],
+                                DIFFI_IN                                @[ ,8],
+                                S11_USR_DO_P                            @[ ,12],
+                                S11_USR_DO_N                            @[ ,16],
+                                S11_ENINR_DYN                           @[ ,20]
+                            >
+              ->  [ 24, ]
+              ->  [ ,0 ]
+                            <
+                                DIN_MIPI_LP                             @[ ,4],
+                                DIN                                     @[ ,8],
+                                DIFFO_OUT                               @[ ,16]
+                            >
+              ->  [ 0, ];
+};// symbol logsym of IOBDHP
+
+/*******************************************************************************
+
+  Device    [IOBDHP]
+
+  Author    [liqiang]
+
+  Abstract  [The schematic for IOBDHP]
+
+  Revision History:
+
+********************************************************************************/
+schematic schm of IOBDHP
+{
+    // The bounding box
+    unsigned int BOX_X = 150;
+    unsigned int BOX_Y = 100;
+
+    generate (BOX_X # BOX_Y);
+
+    //
+    // Layout all symbols.
+    //
+    unsigned int SHIFT_X = BOX_X / 3;
+    unsigned int SHIFT_Y = BOX_Y / 2;
+
+    unsigned int IOBHP_IBUFD_X = SHIFT_X * 2 - 8 ;
+    unsigned int IOBHP_IBUFD_Y = SHIFT_Y - 15 ;
+    unsigned int IOBHP_OBUFD_X = SHIFT_X - 16 ;
+    unsigned int IOBHP_OBUFD_Y = SHIFT_Y + 8 ;
+
+    device IOBHP_IBUFD (symbol logsym) IOBHP_IBUFD
+        @[IOBHP_IBUFD_X, IOBHP_IBUFD_Y];
+
+    device IOBHP_OBUFD (symbol logsym) IOBHP_OBUFD
+        @[IOBHP_OBUFD_X, IOBHP_OBUFD_Y];
+
+
+    map (
+       <instance IOBHP_IBUFD>   => <instance IOBHP_IBUFD   of device IOBDHP (structure netlist)>,
+       <instance IOBHP_OBUFD>   => <instance IOBHP_OBUFD   of device IOBDHP (structure netlist)>
+       );
+
+    //
+    // Layout all ports.
+    //
+    // Since ports drive or are driven by pins of symbol instance, derive the port
+    // location from those pins
+    //
+
+    unsigned int PORT_LEFT = 10;
+    unsigned int PORT_BUTTOM = 10;
+    unsigned int PORT_TOP = BOX_Y - 10;
+    unsigned int PORT_RIGHT = BOX_X - 10;
+
+    // PG2T
+
+    port S11_USR_DO_P   @[PORT_LEFT, <pin DO_P  of <instance IOBHP_OBUFD>>#-];
+    port S11_USR_DO_N   @[PORT_LEFT, <pin DO_N  of <instance IOBHP_OBUFD>>#-];
+    port S11_ENINR_DYN  @[PORT_LEFT, <pin IN_DYN_EN     of <instance IOBHP_IBUFD>>#-];
+
+    port DIN           @[PORT_RIGHT, <pin OUT           of <instance IOBHP_IBUFD>>#-];
+    port DIN_MIPI_LP   @[PORT_RIGHT, <pin DIN_MIPI_LP   of <instance IOBHP_IBUFD>>#-];
+
+    unsigned int PAD_X = (<pin OUT  of <instance IOBHP_OBUFD>>#| + <pin IN  of <instance IOBHP_IBUFD>>#| - 3) / 2;
+    port PAD           @[PAD_X,    PORT_TOP]; // pragma PAP_UI_ORIENTATION="NORTH"
+
+    port MIPI_SW_DYN   @[PORT_LEFT, <pin MIPI_SW_DYN    of <instance IOBHP_IBUFD>>#-];
+    port DIFFI_IN      @[PORT_LEFT, <pin DIFFI_IN       of <instance IOBHP_IBUFD>>#-];
+
+    port DIFFO_OUT      @[<pin DIFFO_OUT   of <instance IOBHP_OBUFD>>#| + 8, PORT_TOP]; // pragma PAP_UI_ORIENTATION="NORTH"
+
+    //
+    // Layout all lines
+    //
+    line  lnMIPI_SW_DYN
+        <port MIPI_SW_DYN> ->
+        <pin MIPI_SW_DYN of <instance IOBHP_IBUFD>>;
+
+    line lnDIFFI_IN
+        <port DIFFI_IN> ->
+        <pin DIFFI_IN of <instance IOBHP_IBUFD>>;
+
+    line lnS11_USR_DO_P
+        <port S11_USR_DO_P> ->
+        <pin DO_P  of <instance IOBHP_OBUFD>>;
+
+    line lnS11_USR_DO_N
+        <port S11_USR_DO_N> ->
+        <pin DO_N  of <instance IOBHP_OBUFD>>;
+
+    line lnS11_ENINR_DYN
+        <port S11_ENINR_DYN> ->
+        <pin IN_DYN_EN of <instance IOBHP_IBUFD>>;
+
+    line lnDIN
+        <pin OUT of <instance IOBHP_IBUFD>> ->
+        <port DIN>;
+
+   line lnDIFFO_OUT
+      <pin DIFFO_OUT of <instance IOBHP_OBUFD>> ->
+      [<pin DIFFO_OUT of <instance IOBHP_OBUFD>>#| + 8, ] ->
+      <port DIFFO_OUT> ;
+
+   line lnPAD
+       <pin OUT  of <instance IOBHP_OBUFD>> ->
+       [<port PAD>#|, ] ->
+       [<port PAD>#|, <pin OUT  of <instance IOBHP_OBUFD>>#- + 15] ->
+       <port PAD>,
+
+       [<port PAD>#|, <pin OUT of <instance IOBHP_OBUFD>>#- + 15] ->
+       [<pin IN of <instance IOBHP_OBUFD>>#| - 3, <pin OUT of <instance IOBHP_OBUFD>>#- + 15] ->
+       [<pin IN of <instance IOBHP_OBUFD>>#| - 3, <pin IN of <instance IOBHP_OBUFD>>#-] ->
+       <pin IN of <instance IOBHP_OBUFD>>,
+
+       [<port PAD>#|, <pin OUT of <instance IOBHP_OBUFD>>#-] ->
+       <pin IN of <instance IOBHP_IBUFD>>;
+
+  line lnDIN_MIPI_LP
+      <pin DIN_MIPI_LP of <instance IOBHP_IBUFD>> ->
+      <port DIN_MIPI_LP>;
+
+
+    map  (
+           <line lnS11_ENINR_DYN>  => <wire ntS11_ENINR_DYN of device IOBDHP (structure netlist)>,
+           <line lnS11_USR_DO_P>   => <wire ntS11_USR_DO_P  of device IOBDHP (structure netlist)>,
+           <line lnS11_USR_DO_N>   => <wire ntS11_USR_DO_N  of device IOBDHP (structure netlist)>,
+           <line lnDIFFI_IN >      => <wire ntDIFFI_IN      of device IOBDHP (structure netlist)>,
+           <line lnDIFFO_OUT >     => <wire ntDIFFO_OUT     of device IOBDHP (structure netlist)>,
+           <line lnDIN>            => <wire ntDIN           of device IOBDHP (structure netlist)>,
+           <line lnDIN_MIPI_LP>    => <wire ntDIN_MIPI_LP   of device IOBDHP (structure netlist)>,
+           <line lnPAD>            => <wire ntPAD           of device IOBDHP (structure netlist)>,
+           <line lnMIPI_SW_DYN>    => <wire ntMIPI_SW_DYN   of device IOBDHP (structure netlist)>
+         );
+
+}; // end of schematic schm of IOBDHP
+
+/*******************************************************************************
+
+  Device    [IOBDHP]
+
+  Author    []
+
+  Abstract  [The floorplan schematic for IOBD]
+
+  Revision History:
+
+********************************************************************************/
+floorplan
+schematic floorplan_view of IOBDHP // pragma PAP_ARC_SHOW_BOUNDING_BOX PAP_ARC_COLOR="160:164:160"
+{
+    generate ( 20*8 # 20*8 );
+
+    device IBUFD (symbol fpsym)  IBUFD
+        @[8*8, 4*8];
+    device OBUFD (symbol fpsym) OBUFD
+        @[8*8,12*8];
+
+    map (
+         <instance IBUFD>     => <instance IBUFD    of device IOBD (structure fp_struct)> ,
+         <instance OBUFD>     => <instance OBUFD    of device IOBD (structure fp_struct)>
+         );
+};

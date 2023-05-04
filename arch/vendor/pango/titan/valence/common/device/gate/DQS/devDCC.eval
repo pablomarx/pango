@@ -1,0 +1,113 @@
+*****************************************************************
+
+  Device    [devDCC]
+
+  Author    []
+
+  Abstract  [DQS_DCC]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devDCC : device DQS
+{
+    parameter
+    (
+        config string APP_MODE               := "DCC",          // "DDC" ; "DCC" 
+        config string GRS_EN                 = "TRUE",          // "TRUE" "FALSE"
+        config string CLK_GATE_EN           := "FALSE",         // "TRUE" "FALSE"
+        config bit    LRS_POL                = 1'b0,            // 1'b0: noinv; 1'b1: inv
+        config string READ_EN               := "FALSE",         // "TRUE"  "FALSE"
+        config string DQS_MODE               = "FULL_RATE",     // "FULL_RATE" "HALF_RATE" "QUAD_RATE"  
+        config string CDR_EN                := "TRUE",          // "TRUE"  "FALSE"
+        config string WL_CTRL_EN            := "FALSE",         // "TRUE"  "FALSE"
+        config bit    CLK_DELAY_STEP[8:0]   := 9'b0_0000_0000,  // 
+        config string CLK_EN                 = "TRUE",          // "TRUE"  "FALSE"
+        config string CLKDIV_FACTOR          = "2",             // "2", "3.5", "4", "5" 
+        config string DQS_DEL_EN            := "FALSE",         // "TRUE"  "FASLE" 
+        config string RDEL_CTRL_EN          := "FALSE",         // "TRUE"  "FASLE" 
+        config bit    DQS_DELAY_STEP[8:0]   := 9'b0_0000_0000,  // "DEFAULT"
+        config string DQS_DLL_IN_EN         := "TRUE",          // "TRUE"  "FALSE"  
+        config bit    MARGIN                := 1'b0,            
+        config string FIFO_EN               := "FALSE",         // "TRUE"  "FALSE"  
+        config string FIFO_MODE             := "MDDR",          // "MDDR" : DDR MEM; "GDDR" : GENERIC DDR
+        config bit    FIF0_ADDR_INIT[2:0]   := 3'b000,               
+        config bit    FIFOMODE_SEL          := 1'b0,            
+        //config string DLLCODESEL            := "CODE0",       // "CODE0" "CODE1" "CODE2" "CODE3", TB only used "CODE0"(DLL0) "CODE1"(DLL1)
+        config string DQSI_SEL               = "DQSI0"          // "DQSI0" "DQSI1" 
+    );
+    
+    port
+    ( 
+        input  DQSI[1:0],
+        input  DCC_CLK_CTRL[2:0],
+        input  SAMPLE_CLK_SLIP,
+        input  IOCLK_SEL[3:0],
+        input  WL_STEP[7:0],
+        input  CLK1_STEP[7:0],
+        input  CLKGATE,
+        input  WL_CTRL[2:0],
+        output WL_OV,
+        input  DQS_GATE_CTRL[3:0],
+        input  READ_CLK_CTRL[2:0],
+        output DQS_GATE_TRAINING_STATUS,
+        output READ_VALID,
+        input  RDEL_CTRL[2:0],
+        output RDEL_OV,
+        input   RST,
+        input   SYSCLK,
+        input   DLL_CODE[7:0],              
+        input   IOCLK[1:0],
+        output  SAMPLE_CLK,
+        output  PROBE_CLK,
+        output  SAMPLE_CLK_DIV,
+        output  WCLK,
+        output  WCLK_DEL,
+        output  DQSI_DEL,
+        output  IFIFO_RADDR[2:0],
+        output  IFIFO_WADDR[2:0]
+    );
+}; // end of device devDCC
+
+
+/*******************************************************************************
+
+  Device    [devDCC]
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devDCC
+{
+
+}; // end of structure netlist of devDCC
+
+timing tnl of devDCC
+{
+    operator V_DCC DCC
+        parameter map
+        (
+            GRS_EN               =>  GRS_EN,
+            SAMPLE_CLKDIV_FACTOR =>  CLKDIV_FACTOR
+        )
+        port map
+        (
+            CLKOUT_CTRL      => DCC_CLK_CTRL,
+            CLKIN0           => IOCLK[0],
+            CLKIN1           => IOCLK[1],
+            RST              => RST,
+            CLK0_SEL         => IOCLK_SEL[1:0],
+            CLK1_SEL         => IOCLK_SEL[3:2],
+            DELAY_STEP0      => WL_STEP,
+            DELAY_STEP1      => CLK1_STEP,
+            SAMPLE_CLKOUT    => SAMPLE_CLK,
+            PROBE_CLKOUT     => PROBE_CLK,
+            SAMPLE_CLKDIVOUT => SAMPLE_CLK_DIV
+        );
+
+};

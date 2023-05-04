@@ -1,0 +1,717 @@
+use pgl_defs;
+use pgl_IOB_TILES_input_inc;
+//use pgl_HMEMC_IOL_inc, pgl_HMEMC_DQSL_inc,pgl_HMEMC_DLL_inc;
+
+package pgl_funcs_connect_io_bank
+{
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_iol_BANK
+(
+    unsigned int rx,
+    unsigned int tx,
+    unsigned int ty_dqs,
+    unsigned int l_ty_dqs_group[],
+    unsigned int ty_iol_comp0,
+    unsigned int ty_iol_comp1,
+    unsigned int ty_iol_pll0_out,
+    unsigned int ty_iol_pll1_out,
+    unsigned int s_hmemc,
+    unsigned int n_hmemc,
+    unsigned int flag
+)
+{
+    unsigned int sx = tx*NUM_GRID_X+2;
+    unsigned int sy_dqs = rx * NUM_TILES_REGION * NUM_GRID_Y + ty_dqs * NUM_GRID_Y;
+    string device_dqsl = (((ty_dqs+rx*NUM_TILES_REGION)>=s_hmemc)&&((ty_dqs+rx*NUM_TILES_REGION)<=n_hmemc)&&((flag==1)||(tx!=1))) ? "HMEMCDQSL_TILE" : "DQSL_TILE";
+
+    unsigned int ty_dll = rx * NUM_TILES_REGION + MID_TILE_REGION;
+    unsigned int sy_dll = (ty_dll-1) * NUM_GRID_Y;
+    string device_dll = ((ty_dll>s_hmemc)&&(ty_dll<n_hmemc)&&((flag==1)||(tx!=1))) ? "HMEMCIOCKGATEDLL_TILE" : "IOCKGATEDLL_TILE";
+
+    int ty,sy_iol;
+    string device_iol;
+
+    foreach ty(l_ty_dqs_group)
+    {
+      device_iol = (((ty+rx*NUM_TILES_REGION)>=s_hmemc)&&((ty+rx*NUM_TILES_REGION)<=n_hmemc)&&((flag==1)||(tx!=1))) ? "HMEMCIOL_TILE" : "IOL_TILE";
+      sy_iol = rx * NUM_TILES_REGION * NUM_GRID_Y + ty * NUM_GRID_Y;
+      connect
+        (
+          <pin DQSI_DEL of <device *device_iol @[sx,sy_iol]>>    => <wire CLK_DQSI_DEL of <device *device_dqsl @[sx,sy_dqs]>>,
+          <pin CLK_R of <device *device_iol @[sx,sy_iol]>>       => <wire CLK_R of <device *device_dqsl @[sx,sy_dqs]>>,
+          <pin WCLK of <device *device_iol @[sx,sy_iol]>>        => <wire CLK_W of <device *device_dqsl @[sx,sy_dqs]>>,
+          <pin WCLK_DEL of <device *device_iol @[sx,sy_iol]>>    => <wire CLK_W_DEL of <device *device_dqsl @[sx,sy_dqs]>>,
+          <pin IFIFO_WADDR of <device *device_iol @[sx,sy_iol]>> => <wire IFIFO_WADDR of <device *device_dqsl @[sx,sy_dqs]>>,
+          <pin IFIFO_RADDR of <device *device_iol @[sx,sy_iol]>> => <wire IFIFO_RADDR of <device *device_dqsl @[sx,sy_dqs]>>,
+//          <pin IOCLK of <device *device_iol @[sx,sy_iol]>>       => (ty>ty_dqs) ? <wire CLK_IOL_T_OUT of <device *device_dqsl @[sx,sy_dqs]>> 
+//                                                                                : <wire CLK_IOL_B_OUT of <device *device_dqsl @[sx,sy_dqs]>>,
+
+          <pin OUT_EXT_A of <device *device_iol @[sx,sy_iol]>>   => ((ty==ty_iol_comp0)||(ty==ty_iol_comp1)) ? <wire GATE_TO_LOOP of <device *device_dqsl @[sx,sy_dqs]>> :
+                                                                            ((tx==1)&&(ty==ty_iol_pll0_out)) ? <wire CLK_PLL_EXT_OUT of <device *device_dll @[sx,sy_dll]>> :
+                                                                            ((tx!=1)&&(ty==ty_iol_pll1_out)) ? <wire CLK_PLL_EXT_OUT of <device *device_dll @[sx,sy_dll]>> 
+                                                                                                             : <wire TIELO of <device *device_iol @[sx,sy_iol]>>,
+          <pin OUT_EXT_B of <device *device_iol @[sx,sy_iol]>>   => <wire TIELO of <device *device_iol @[sx,sy_iol]>>
+        );
+    }
+ 
+}
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_dqs_BANK
+(
+    unsigned int rx,
+    unsigned int tx,
+    unsigned int num_rx,
+    unsigned int s_hmemc,
+    unsigned int n_hmemc,
+    unsigned int flag
+)
+{
+   
+    unsigned int sx = tx*NUM_GRID_X+2; 
+    unsigned int sx_iob = (tx==1) ? sx-6 : sx+2;
+    unsigned int sy_iob = rx * NUM_TILES_REGION * NUM_GRID_Y;
+    unsigned int sy_iob_u = (rx+1) * NUM_TILES_REGION * NUM_GRID_Y;
+
+    unsigned int ty_dll = rx * NUM_TILES_REGION + MID_TILE_REGION;
+    unsigned int sy_dll = ty_dll * NUM_GRID_Y;
+    string device_dll = ((ty_dll>=s_hmemc)&&(ty_dll<n_hmemc)&&((flag==1)||(tx!=1))) ? "HMEMCIOCKGATEDLL_TILE" : "IOCKGATEDLL_TILE";
+    unsigned int l_ty_dqs[] = {6,13,24};
+
+    unsigned int ty_dqs;
+    string device_dqsl,device_source;
+    
+    foreach ty_dqs( l_ty_dqs )
+    {
+       int ty = ty_dqs + rx * NUM_TILES_REGION;
+       int sy = ty * NUM_GRID_Y;
+
+       device_dqsl = ((ty>s_hmemc)&&(ty<n_hmemc)&&((flag==1)||(tx!=1))) ? "HMEMCDQSL_TILE" : "DQSL_TILE";
+       connect
+        (
+          <pin DLL_CODE0 of <device *device_dqsl @[sx,sy]>> => (ty_dqs==6) ? <wire DLL_CODE0_BUF of <device *device_dqsl @[sx,sy+7*NUM_GRID_Y]>>
+                                                                           : <wire CTRL_CODE of <device *device_dll @[sx,sy_dll]>>,
+
+          <pin CLK_IOL of <device *device_dqsl @[sx,sy]>>   => (ty_dqs==13) ? <wire CLK_IOL_T_OUT of <device *device_dqsl @[sx,sy-7*NUM_GRID_Y]>> :
+                                                                              <wire CLK_IOL_B_OUT of <device *device_dqsl @[sx,sy]>>,
+
+          <pin CLK_IOL_BUF[1] of <device *device_dqsl @[sx,sy]>> => (ty>ty_dll) ? <wire CLK_IOCK_T[1] of <device *device_dll @[sx,sy_dll]>> :
+                                                                    (ty_dqs==6) ? <wire CLK_IOCK_B[1] of <device *device_dll @[sx,sy_dll]>> 
+                                                                                : <wire DQS_TILO of <device *device_dqsl @[sx,sy]>>,
+          <pin CLK_IOL_BUF[0] of <device *device_dqsl @[sx,sy]>> => (ty>ty_dll) ? <wire CLK_IOCK_T[0] of <device *device_dll @[sx,sy_dll]>> :
+                                                                    (ty_dqs==6) ? <wire CLK_IOCK_B[0] of <device *device_dll @[sx,sy_dll]>> 
+                                                                                : <wire DQS_TILO of <device *device_dqsl @[sx,sy]>>,
+
+          <pin CLK_DQSI of <device *device_dqsl @[sx,sy]>>       => (ty_dqs==6) ? <wire DQS_O[2] of <device IOB_TILE @[sx_iob,sy_iob]>> :
+                                                                    (ty_dqs==13) ? <wire DQS_O[1] of <device IOB_TILE @[sx_iob,sy_iob]>> :
+                                                                                   <wire DQS_O[0] of <device IOB_TILE @[sx_iob,sy_iob]>>,
+
+
+          <pin GATE_FROM_LOOP of <device *device_dqsl @[sx,sy]>>  => (ty_dqs==6) ? <wire GATE_FROM_LOOP[1] of <device IOB_TILE @[sx_iob,sy_iob]>> :
+                                                                    (ty_dqs==13) ? <wire DQS_TILO of <device *device_dqsl @[sx,sy]>> :
+                                                                                   <wire GATE_FROM_LOOP[0] of <device IOB_TILE @[sx_iob,sy_iob]>>
+
+        );
+    }
+
+    foreach ty_dqs( l_ty_dqs )
+    {
+      int ty = ty_dqs + rx * NUM_TILES_REGION;
+      int sy = ty * NUM_GRID_Y;
+
+      device_dqsl = ((ty>s_hmemc)&&(ty<n_hmemc)&&((flag==1)||(tx!=1))) ? "HMEMCDQSL_TILE" : "DQSL_TILE";
+
+      int ty_source = (ty_dqs==6) ? ty+7 : ((ty_dqs==13) ? ty+11 : ty+13);
+      device_source = ((ty_source>s_hmemc)&&(ty_source<n_hmemc)&&((flag==1)||(tx!=1))) ? "HMEMCDQSL_TILE" : "DQSL_TILE";
+      int sy_source = ty_source * NUM_GRID_Y;
+
+      if(rx==num_rx-1)
+      {
+        connect
+          (
+             <pin DLL_CODE1[7] of <device *device_dqsl @[sx,sy]>> => <wire DQS_TILO of <device *device_dqsl @[sx,sy]>>,
+             <pin DLL_CODE1[6] of <device *device_dqsl @[sx,sy]>> => <wire DQS_TILO of <device *device_dqsl @[sx,sy]>>,
+             <pin DLL_CODE1[5] of <device *device_dqsl @[sx,sy]>> => <wire DQS_TILO of <device *device_dqsl @[sx,sy]>>,
+             <pin DLL_CODE1[4] of <device *device_dqsl @[sx,sy]>> => <wire DQS_TILO of <device *device_dqsl @[sx,sy]>>,
+             <pin DLL_CODE1[3] of <device *device_dqsl @[sx,sy]>> => <wire DQS_TILO of <device *device_dqsl @[sx,sy]>>,
+             <pin DLL_CODE1[2] of <device *device_dqsl @[sx,sy]>> => <wire DQS_TILO of <device *device_dqsl @[sx,sy]>>,
+             <pin DLL_CODE1[1] of <device *device_dqsl @[sx,sy]>> => <wire DQS_TILO of <device *device_dqsl @[sx,sy]>>,
+             <pin DLL_CODE1[0] of <device *device_dqsl @[sx,sy]>> => <wire DQS_TILO of <device *device_dqsl @[sx,sy]>>
+          );
+      }
+      else
+      {
+         connect
+          (
+             <pin DLL_CODE1 of <device *device_dqsl @[sx,sy]>> => (ty_dqs==24) ? <wire DLL_CODE0_BUF of <device *device_source @[sx,sy_source]>>
+                                                                               : <wire DLL_CODE1_BUF of <device *device_source @[sx,sy_source]>>
+          );
+      }
+    }
+
+    foreach ty_dqs( l_ty_dqs )
+    {
+      int ty = ty_dqs + rx * NUM_TILES_REGION;
+      int sy = ty * NUM_GRID_Y;
+
+      device_dqsl = ((ty>s_hmemc)&&(ty<n_hmemc)&&((flag==1)||(tx!=1))) ? "HMEMCDQSL_TILE" : "DQSL_TILE";
+
+      int ty_source = (ty_dqs==6) ? ty-13 : ((ty_dqs==13) ? ty-7 : ty-11);
+      device_source = ((ty_source>s_hmemc)&&(ty_source<n_hmemc)&&((flag==1)||(tx!=1))) ? "HMEMCDQSL_TILE" : "DQSL_TILE";
+      int sy_source = ty_source * NUM_GRID_Y;
+
+      if(rx==0)
+      {
+        connect
+          (
+             <pin DLL_CODE2[7] of <device *device_dqsl @[sx,sy]>> => <wire DQS_TILO of <device *device_dqsl @[sx,sy]>>,
+             <pin DLL_CODE2[6] of <device *device_dqsl @[sx,sy]>> => <wire DQS_TILO of <device *device_dqsl @[sx,sy]>>,
+             <pin DLL_CODE2[5] of <device *device_dqsl @[sx,sy]>> => <wire DQS_TILO of <device *device_dqsl @[sx,sy]>>,
+             <pin DLL_CODE2[4] of <device *device_dqsl @[sx,sy]>> => <wire DQS_TILO of <device *device_dqsl @[sx,sy]>>,
+             <pin DLL_CODE2[3] of <device *device_dqsl @[sx,sy]>> => <wire DQS_TILO of <device *device_dqsl @[sx,sy]>>,
+             <pin DLL_CODE2[2] of <device *device_dqsl @[sx,sy]>> => <wire DQS_TILO of <device *device_dqsl @[sx,sy]>>,
+             <pin DLL_CODE2[1] of <device *device_dqsl @[sx,sy]>> => <wire DQS_TILO of <device *device_dqsl @[sx,sy]>>,
+             <pin DLL_CODE2[0] of <device *device_dqsl @[sx,sy]>> => <wire DQS_TILO of <device *device_dqsl @[sx,sy]>>
+          );
+      }
+      else
+      {
+         connect
+          (
+             <pin DLL_CODE2 of <device *device_dqsl @[sx,sy]>> => (ty_dqs==6) ? <wire DLL_CODE0_BUF of <device *device_source @[sx,sy_source]>>
+                                                                              : <wire DLL_CODE2_BUF of <device *device_source @[sx,sy_source]>>
+          );
+
+      }
+    }
+
+      int ty_dqs_u =  24 + rx * NUM_TILES_REGION;
+      int ty_dqs_d =  13 + rx * NUM_TILES_REGION;
+
+      int sy_dqs_u = ty_dqs_u * NUM_GRID_Y;
+      int sy_dqs_d = ty_dqs_d * NUM_GRID_Y;
+
+
+      string device_dqsl_u = ((ty_dqs_u>s_hmemc)&&(ty_dqs_u<n_hmemc)&&((flag==1)||(tx!=1))) ? "HMEMCDQSL_TILE" : "DQSL_TILE";
+      string device_dqsl_d = ((ty_dqs_d>s_hmemc)&&(ty_dqs_d<n_hmemc)&&((flag==1)||(tx!=1))) ? "HMEMCDQSL_TILE" : "DQSL_TILE";
+ 
+
+      connect
+        (
+          <pin DLL_STEP0 of <device *device_dll @[sx,sy_dll-NUM_GRID_Y]>> => <wire CTRL_CODE of <device *device_dll @[sx,sy_dll-NUM_GRID_Y]>>,
+          <pin DLL_STEP1 of <device *device_dll @[sx,sy_dll-NUM_GRID_Y]>> => (rx!=(num_rx-1)) ? <wire DLL_CODE1_BUF of <device *device_dqsl_u @[sx,sy_dqs_u]>>
+                                                                                              : <wire DLL_CODE2_BUF of <device *device_dqsl_d @[sx,sy_dqs_d]>>,
+          <pin DLL_STEP2 of <device *device_dll @[sx,sy_dll-NUM_GRID_Y]>> => (rx==0) ? <wire DLL_CODE1_BUF of <device *device_dqsl_u @[sx,sy_dqs_u]>>
+                                                                                     : <wire DLL_CODE2_BUF of <device *device_dqsl_d @[sx,sy_dqs_d]>>
+        );
+    
+}//end of function connect_dqs_BANK
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_IOB_SCANCHAIN_BANK
+(  
+  unsigned int rx,
+  string type_lr,
+  unsigned int x_ccs,
+  unsigned int y_ccs,
+  unsigned int x_esd,
+  unsigned int num_tile_x,
+  unsigned int num_region,
+  string device_esd,
+  unsigned int flag
+)
+{
+  int sx_ccs = x_ccs * NUM_GRID_X + 2;
+  int sy_ccs = y_ccs * NUM_GRID_Y;
+  int ty;
+  for(ty = y_ccs;ty > MID_TILE_REGION;ty=ty-NUM_TILES_REGION)
+  {
+    sy_ccs = sy_ccs + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+  }
+  
+  int tx,tx_dll;
+  if(type_lr == "L")
+  {
+    tx = 0;
+    tx_dll = 1;
+  }
+  else
+  {
+    tx = num_tile_x-1;
+    tx_dll = num_tile_x - 2;
+  }
+
+  int sx = tx * NUM_GRID_X;
+  int sx_dll = tx_dll * NUM_GRID_X + 2;
+  int sy_dll = rx * ((NUM_TILES_REGION-1)*NUM_GRID_Y + NUM_GRID_IOCKGATE_Y) + (MID_TILE_REGION-1) * NUM_GRID_Y;
+  int sy_dll_u = (rx+1) * ((NUM_TILES_REGION-1)*NUM_GRID_Y + NUM_GRID_IOCKGATE_Y) + (MID_TILE_REGION-1) * NUM_GRID_Y;
+  int sy_dll_d = (rx-1) * ((NUM_TILES_REGION-1)*NUM_GRID_Y + NUM_GRID_IOCKGATE_Y) + (MID_TILE_REGION-1) * NUM_GRID_Y;
+
+  int sx_esd = x_esd * NUM_GRID_X;
+  int sy_esd = num_region * ((NUM_TILES_REGION-1)*NUM_GRID_Y + NUM_GRID_WLSR_Y);
+  string esd = device_esd;
+
+  int sy_iob = rx * ((NUM_TILES_REGION-1)*NUM_GRID_Y + NUM_GRID_WLSR_Y);
+  int sy_iob_d = (rx-1) * ((NUM_TILES_REGION-1)*NUM_GRID_Y + NUM_GRID_WLSR_Y);
+  int sy_iob_u = (rx+1) * ((NUM_TILES_REGION-1)*NUM_GRID_Y + NUM_GRID_WLSR_Y);
+
+  int ty_tmp,sy;
+
+  string device_dll = ((rx==0)&&((flag==1)||(type_lr=="R"))&&(flag!=2)) ? "HMEMCIOCKGATEDLL_TILE" : "IOCKGATEDLL_TILE"; 
+  string device_dll_u = "IOCKGATEDLL_TILE";
+  string device_dll_d = (((rx-1)==0)&&((flag==1)||(type_lr=="R"))&&(flag!=2)) ? "HMEMCIOCKGATEDLL_TILE" : "IOCKGATEDLL_TILE"; 
+
+  if(type_lr=="L")
+  {
+    connect
+      (
+        <pin SI[0] of <device IOB_TILE @ [sx,sy_iob]>>  => <wire SO[1] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[1] of <device IOB_TILE @ [sx,sy_iob]>>  => <wire SO[2] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[2] of <device IOB_TILE @ [sx,sy_iob]>>  => <wire SO[3] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[3] of <device IOB_TILE @ [sx,sy_iob]>>  => <wire SO[4] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[4] of <device IOB_TILE @ [sx,sy_iob]>>  => <wire SO[5] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[5] of <device IOB_TILE @ [sx,sy_iob]>>  => <wire SO[6] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[6] of <device IOB_TILE @ [sx,sy_iob]>>  => <wire SO[7] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[7] of <device IOB_TILE @ [sx,sy_iob]>>  => <wire SO[8] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[8] of <device IOB_TILE @ [sx,sy_iob]>>  => <wire SO[9] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[9] of <device IOB_TILE @ [sx,sy_iob]>>  => <wire SO[10] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[10] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[11] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[11] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[12] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[12] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[13] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[13] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[14] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[14] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[15] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[15] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[16] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[16] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[17] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[17] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[18] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[18] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[19] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[19] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[20] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[20] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[21] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[21] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[22] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[22] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[23] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[23] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[24] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[24] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[25] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[25] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[26] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[26] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[27] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[27] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[28] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[28] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[29] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[29] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[30] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[30] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[31] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[31] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[32] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[32] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[33] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[33] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[34] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[34] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[35] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[35] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[36] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[36] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[37] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[37] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[38] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[38] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[39] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[39] of <device IOB_TILE @ [sx,sy_iob]>> => (rx==0) ? <wire TDI_OUT_B of <device *esd @ [sx_esd,sy_esd]>> :
+                                                                      <wire SO[0] of <device IOB_TILE@[sx,sy_iob_d]>>,
+
+          <pin CLOCK_DR_T of <device IOB_TILE @ [sx,sy_iob]>>  => (rx==(num_region-1)) ? <wire CLOCK_DR_OUT_T of <device *esd @ [sx_esd,sy_esd]>> :
+                                                                                      <wire CLOCK_DR_OUT of <device *device_dll_u @ [sx_dll,sy_dll_u]>>,
+
+          <pin CLOCK_DR_B of <device IOB_TILE @ [sx,sy_iob]>>  => <wire CLOCK_DR_OUT of <device *device_dll @ [sx_dll,sy_dll]>>,
+
+          <pin S11_PAD_STATE[0] of <device IOB_TILE @ [sx,sy_iob]>> => (rx==(num_region-1)) ? <wire S11_PAD_STATE_O of <device IOB_TILE @ [sx,sy_iob]>> :
+                                                                                              <wire S11_PAD_STATE_OUT of <device *device_dll_u @ [sx_dll,sy_dll_u]>>,
+          <pin S11_PAD_STATE[1] of <device IOB_TILE @ [sx,sy_iob]>> => (rx==(num_region-1)) ? <wire S11_PAD_STATE_O of <device IOB_TILE @ [sx,sy_iob]>> :
+                                                                                              <wire S11_PAD_STATE_OUT of <device *device_dll_u @ [sx_dll,sy_dll_u]>>,
+          <pin S11_PAD_STATE[2] of <device IOB_TILE @ [sx,sy_iob]>> =>  <wire S11_PAD_STATE_OUT of <device *device_dll @ [sx_dll,sy_dll]>>,
+          <pin S11_PAD_STATE[3] of <device IOB_TILE @ [sx,sy_iob]>> =>  <wire S11_PAD_STATE_OUT of <device *device_dll @ [sx_dll,sy_dll]>>,
+
+          <pin S11_PAD_STATE_IN of <device IOB_TILE @ [sx,sy_iob]>> => (rx==(num_region-1)) ? <wire S11_TIHI_D[3] of <device IOB_TILE @ [sx,sy_iob]>> :
+                                                                                              <wire S11_PAD_STATE_OUT of <device *device_dll_u @ [sx_dll,sy_dll_u]>>
+         
+      );
+  }
+  else
+  {
+    connect
+      (
+        <pin SI[0] of <device IOB_TILE @ [sx,sy_iob]>>  => (rx==(num_region-1)) ? <wire TDI_OUT_T of <device *esd @ [sx_esd,sy_esd]>> :
+                                                                                  <wire SO[39] of <device IOB_TILE @ [sx,sy_iob_u]>>,
+        <pin SI[1] of <device IOB_TILE @ [sx,sy_iob]>>  => <wire SO[0] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[2] of <device IOB_TILE @ [sx,sy_iob]>>  => <wire SO[1] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[3] of <device IOB_TILE @ [sx,sy_iob]>>  => <wire SO[2] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[4] of <device IOB_TILE @ [sx,sy_iob]>>  => <wire SO[3] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[5] of <device IOB_TILE @ [sx,sy_iob]>>  => <wire SO[4] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[6] of <device IOB_TILE @ [sx,sy_iob]>>  => <wire SO[5] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[7] of <device IOB_TILE @ [sx,sy_iob]>>  => <wire SO[6] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[8] of <device IOB_TILE @ [sx,sy_iob]>>  => <wire SO[7] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[9] of <device IOB_TILE @ [sx,sy_iob]>>  => <wire SO[8] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[10] of <device IOB_TILE @ [sx,sy_iob]>>  => <wire SO[9] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[11] of <device IOB_TILE @ [sx,sy_iob]>>  => <wire SO[10] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[12] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[11] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[13] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[12] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[14] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[13] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[15] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[14] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[16] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[15] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[17] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[16] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[18] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[17] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[19] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[18] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[20] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[19] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[21] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[20] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[22] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[21] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[23] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[22] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[24] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[23] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[25] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[24] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[26] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[25] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[27] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[26] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[28] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[27] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[29] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[28] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[30] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[29] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[31] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[30] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[32] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[31] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[33] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[32] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[34] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[33] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[35] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[34] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[36] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[35] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[37] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[36] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[38] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[37] of <device IOB_TILE @ [sx,sy_iob]>>,
+        <pin SI[39] of <device IOB_TILE @ [sx,sy_iob]>> => <wire SO[38] of <device IOB_TILE @ [sx,sy_iob]>>,
+
+          <pin CLOCK_DR_B of <device IOB_TILE @ [sx,sy_iob]>>  => (rx==0) ? <wire CLOCK_DR_OUT_B of <device *esd @ [sx_esd,sy_esd]>> :
+                                                                           <wire CLOCK_DR_OUT of <device *device_dll_d @ [sx_dll,sy_dll_d]>>,
+
+          <pin CLOCK_DR_T of <device IOB_TILE @ [sx,sy_iob]>>  => <wire CLOCK_DR_OUT of <device *device_dll @ [sx_dll,sy_dll]>>,
+
+          <pin S11_PAD_STATE[0] of <device IOB_TILE @ [sx,sy_iob]>>  => <wire S11_PAD_STATE_OUT of <device *device_dll @ [sx_dll,sy_dll]>>,
+          <pin S11_PAD_STATE[1] of <device IOB_TILE @ [sx,sy_iob]>>  => <wire S11_PAD_STATE_OUT of <device *device_dll @ [sx_dll,sy_dll]>>,
+          <pin S11_PAD_STATE[2] of <device IOB_TILE @ [sx,sy_iob]>>  => (rx==0) ? <wire S11_PAD_STATE_OUT  of <device *esd @ [sx_esd,sy_esd]>> :
+                                                                                  <wire S11_PAD_STATE_OUT of <device *device_dll_d @ [sx_dll,sy_dll_d]>>,
+          <pin S11_PAD_STATE[3] of <device IOB_TILE @ [sx,sy_iob]>>  => (rx==0) ? <wire S11_PAD_STATE_OUT  of <device *esd @ [sx_esd,sy_esd]>> :
+                                                                                  <wire S11_PAD_STATE_OUT of <device *device_dll_d @ [sx_dll,sy_dll_d]>>,
+         <pin S11_PAD_STATE_IN of <device IOB_TILE @ [sx,sy_iob]>>  => <wire S11_PAD_STATE_OUT of <device *device_dll @ [sx_dll,sy_dll]>>
+
+      );
+  }
+  
+}//end of function connect_IOB_SCANCHAIN_BANK
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_pad_bank
+(
+    string attribute_LR,
+    int bank,
+    int num_tx,
+    int num_rx
+)
+{
+    string strVar;
+    sprintf(strVar,"nt%s%d_PAD0",attribute_LR,bank);
+    &wire ntRef_ntPAD0 = <wire *strVar>;
+
+    sprintf(strVar,"nt%s%d_PAD1",attribute_LR,bank);
+    &wire ntRef_ntPAD1 = <wire *strVar>;
+ 
+    sprintf(strVar,"nt%s%d_PAD2",attribute_LR,bank);
+    &wire ntRef_ntPAD2 = <wire *strVar>;
+
+    sprintf(strVar,"nt%s%d_PAD3",attribute_LR,bank);
+    &wire ntRef_ntPAD3 = <wire *strVar>;
+
+    sprintf(strVar,"nt%s%d_PAD4",attribute_LR,bank);
+    &wire ntRef_ntPAD4 = <wire *strVar>;
+
+    sprintf(strVar,"nt%s%d_PAD5",attribute_LR,bank);
+    &wire ntRef_ntPAD5 = <wire *strVar>;
+
+    sprintf(strVar,"nt%s%d_PAD6",attribute_LR,bank);
+    &wire ntRef_ntPAD6 = <wire *strVar>;
+
+    sprintf(strVar,"nt%s%d_PAD7",attribute_LR,bank);
+    &wire ntRef_ntPAD7 = <wire *strVar>;
+
+    sprintf(strVar,"nt%s%d_PAD8",attribute_LR,bank);
+    &wire ntRef_ntPAD8 = <wire *strVar>;
+
+    sprintf(strVar,"nt%s%d_PAD9",attribute_LR,bank);
+    &wire ntRef_ntPAD9 = <wire *strVar>;
+
+    sprintf(strVar,"nt%s%d_PAD10",attribute_LR,bank);
+    &wire ntRef_ntPAD10 = <wire *strVar>;
+
+    sprintf(strVar,"nt%s%d_PAD11",attribute_LR,bank);
+    &wire ntRef_ntPAD11 = <wire *strVar>;
+ 
+    sprintf(strVar,"nt%s%d_PAD12",attribute_LR,bank);
+    &wire ntRef_ntPAD12 = <wire *strVar>;
+
+    sprintf(strVar,"nt%s%d_PAD13",attribute_LR,bank);
+    &wire ntRef_ntPAD13 = <wire *strVar>;
+
+    sprintf(strVar,"nt%s%d_PAD14",attribute_LR,bank);
+    &wire ntRef_ntPAD14 = <wire *strVar>;
+
+    sprintf(strVar,"nt%s%d_PAD15",attribute_LR,bank);
+    &wire ntRef_ntPAD15 = <wire *strVar>;
+
+    sprintf(strVar,"nt%s%d_PAD16",attribute_LR,bank);
+    &wire ntRef_ntPAD16 = <wire *strVar>;
+
+    sprintf(strVar,"nt%s%d_PAD17",attribute_LR,bank);
+    &wire ntRef_ntPAD17 = <wire *strVar>;
+
+    sprintf(strVar,"nt%s%d_PAD18",attribute_LR,bank);
+    &wire ntRef_ntPAD18 = <wire *strVar>;
+
+    sprintf(strVar,"nt%s%d_PAD19",attribute_LR,bank);
+    &wire ntRef_ntPAD19 = <wire *strVar>;
+
+    sprintf(strVar,"nt%s%d_PAD20",attribute_LR,bank);
+    &wire ntRef_ntPAD20 = <wire *strVar>;
+
+    sprintf(strVar,"nt%s%d_PAD21",attribute_LR,bank);
+    &wire ntRef_ntPAD21 = <wire *strVar>;
+ 
+    sprintf(strVar,"nt%s%d_PAD22",attribute_LR,bank);
+    &wire ntRef_ntPAD22 = <wire *strVar>;
+
+    sprintf(strVar,"nt%s%d_PAD23",attribute_LR,bank);
+    &wire ntRef_ntPAD23 = <wire *strVar>;
+
+    sprintf(strVar,"nt%s%d_PAD24",attribute_LR,bank);
+    &wire ntRef_ntPAD24 = <wire *strVar>;
+
+    sprintf(strVar,"nt%s%d_PAD25",attribute_LR,bank);
+    &wire ntRef_ntPAD25 = <wire *strVar>;
+
+    sprintf(strVar,"nt%s%d_PAD26",attribute_LR,bank);
+    &wire ntRef_ntPAD26 = <wire *strVar>;
+
+    sprintf(strVar,"nt%s%d_PAD27",attribute_LR,bank);
+    &wire ntRef_ntPAD27 = <wire *strVar>;
+
+    sprintf(strVar,"nt%s%d_PAD28",attribute_LR,bank);
+    &wire ntRef_ntPAD28 = <wire *strVar>;
+
+    sprintf(strVar,"nt%s%d_PAD29",attribute_LR,bank);
+    &wire ntRef_ntPAD29 = <wire *strVar>;
+
+    sprintf(strVar,"nt%s%d_PAD30",attribute_LR,bank);
+    &wire ntRef_ntPAD30 = <wire *strVar>;
+
+    sprintf(strVar,"nt%s%d_PAD31",attribute_LR,bank);
+    &wire ntRef_ntPAD31 = <wire *strVar>;
+ 
+    sprintf(strVar,"nt%s%d_PAD32",attribute_LR,bank);
+    &wire ntRef_ntPAD32 = <wire *strVar>;
+
+    sprintf(strVar,"nt%s%d_PAD33",attribute_LR,bank);
+    &wire ntRef_ntPAD33 = <wire *strVar>;
+
+    sprintf(strVar,"nt%s%d_PAD34",attribute_LR,bank);
+    &wire ntRef_ntPAD34 = <wire *strVar>;
+
+    sprintf(strVar,"nt%s%d_PAD35",attribute_LR,bank);
+    &wire ntRef_ntPAD35 = <wire *strVar>;
+
+    sprintf(strVar,"nt%s%d_PAD36",attribute_LR,bank);
+    &wire ntRef_ntPAD36 = <wire *strVar>;
+
+    sprintf(strVar,"nt%s%d_PAD37",attribute_LR,bank);
+    &wire ntRef_ntPAD37 = <wire *strVar>;
+
+    sprintf(strVar,"nt%s%d_PAD38",attribute_LR,bank);
+    &wire ntRef_ntPAD38 = <wire *strVar>;
+
+    sprintf(strVar,"nt%s%d_PAD39",attribute_LR,bank);
+    &wire ntRef_ntPAD39 = <wire *strVar>;
+
+    int tx,ty;
+    tx = (attribute_LR=="L") ? 0 : num_tx-1;
+    int sx = tx * NUM_GRID_X;
+
+    int sy_inc,sy;
+    sy = (num_rx-bank-1) * ((NUM_TILES_REGION-1)*NUM_GRID_Y + NUM_GRID_WLSR_Y);
+
+    connect
+      (
+        <pin PAD[0] of <device IOB_TILE @[sx,sy]>>  => ntRef_ntPAD0,
+        <pin PAD[1] of <device IOB_TILE @[sx,sy]>>  => ntRef_ntPAD1,
+        <pin PAD[2] of <device IOB_TILE @[sx,sy]>>  => ntRef_ntPAD2,
+        <pin PAD[3] of <device IOB_TILE @[sx,sy]>>  => ntRef_ntPAD3,
+        <pin PAD[4] of <device IOB_TILE @[sx,sy]>>  => ntRef_ntPAD4,
+        <pin PAD[5] of <device IOB_TILE @[sx,sy]>>  => ntRef_ntPAD5,
+        <pin PAD[6] of <device IOB_TILE @[sx,sy]>>  => ntRef_ntPAD6,
+        <pin PAD[7] of <device IOB_TILE @[sx,sy]>>  => ntRef_ntPAD7,
+        <pin PAD[8] of <device IOB_TILE @[sx,sy]>>  => ntRef_ntPAD8,
+        <pin PAD[9] of <device IOB_TILE @[sx,sy]>>  => ntRef_ntPAD9,
+        <pin PAD[10] of <device IOB_TILE @[sx,sy]>> => ntRef_ntPAD10,
+        <pin PAD[11] of <device IOB_TILE @[sx,sy]>> => ntRef_ntPAD11,
+        <pin PAD[12] of <device IOB_TILE @[sx,sy]>> => ntRef_ntPAD12,
+        <pin PAD[13] of <device IOB_TILE @[sx,sy]>> => ntRef_ntPAD13,
+        <pin PAD[14] of <device IOB_TILE @[sx,sy]>> => ntRef_ntPAD14,
+        <pin PAD[15] of <device IOB_TILE @[sx,sy]>> => ntRef_ntPAD15,
+        <pin PAD[16] of <device IOB_TILE @[sx,sy]>> => ntRef_ntPAD16,
+        <pin PAD[17] of <device IOB_TILE @[sx,sy]>> => ntRef_ntPAD17,
+        <pin PAD[18] of <device IOB_TILE @[sx,sy]>> => ntRef_ntPAD18,
+        <pin PAD[19] of <device IOB_TILE @[sx,sy]>> => ntRef_ntPAD19,
+        <pin PAD[20] of <device IOB_TILE @[sx,sy]>> => ntRef_ntPAD20,
+        <pin PAD[21] of <device IOB_TILE @[sx,sy]>> => ntRef_ntPAD21,
+        <pin PAD[22] of <device IOB_TILE @[sx,sy]>> => ntRef_ntPAD22,
+        <pin PAD[23] of <device IOB_TILE @[sx,sy]>> => ntRef_ntPAD23,
+        <pin PAD[24] of <device IOB_TILE @[sx,sy]>> => ntRef_ntPAD24,
+        <pin PAD[25] of <device IOB_TILE @[sx,sy]>> => ntRef_ntPAD25,
+        <pin PAD[26] of <device IOB_TILE @[sx,sy]>> => ntRef_ntPAD26,
+        <pin PAD[27] of <device IOB_TILE @[sx,sy]>> => ntRef_ntPAD27,
+        <pin PAD[28] of <device IOB_TILE @[sx,sy]>> => ntRef_ntPAD28,
+        <pin PAD[29] of <device IOB_TILE @[sx,sy]>> => ntRef_ntPAD29,
+        <pin PAD[30] of <device IOB_TILE @[sx,sy]>> => ntRef_ntPAD30,
+        <pin PAD[31] of <device IOB_TILE @[sx,sy]>> => ntRef_ntPAD31,
+        <pin PAD[32] of <device IOB_TILE @[sx,sy]>> => ntRef_ntPAD32,
+        <pin PAD[33] of <device IOB_TILE @[sx,sy]>> => ntRef_ntPAD33,
+        <pin PAD[34] of <device IOB_TILE @[sx,sy]>> => ntRef_ntPAD34,
+        <pin PAD[35] of <device IOB_TILE @[sx,sy]>> => ntRef_ntPAD35,
+        <pin PAD[36] of <device IOB_TILE @[sx,sy]>> => ntRef_ntPAD36,
+        <pin PAD[37] of <device IOB_TILE @[sx,sy]>> => ntRef_ntPAD37,
+        <pin PAD[38] of <device IOB_TILE @[sx,sy]>> => ntRef_ntPAD38,
+        <pin PAD[39] of <device IOB_TILE @[sx,sy]>> => ntRef_ntPAD39
+      );
+
+
+}//end of package pgl_funcs_connect_io_bank
+/****************************************************************************************************
+*****************************************************************************************************/
+//function connect_hmemc_tiles
+//(
+//    string type_lr,
+//    unsigned int tx_hmemc0,
+//    unsigned int tx_hmemc1,
+//    unsigned int ty_hmemc,
+//    unsigned int num_tile_x
+//)
+//{
+//    int tmp_ty;
+//    int sx_hmemc = (type_lr=="l")? (tx_hmemc0+1)*NUM_GRID_X+2 : (tx_hmemc1+1)*NUM_GRID_X+2;
+//    int sy_hmemc = ty_hmemc * NUM_GRID_Y;
+//   
+//
+//    STRUCT inc_spec_HMEMC_IOL incVar;
+//    int tx_iol,ty_iol;
+//    string port_iol,port_hmemc;
+//    string device_hmemc;
+//
+//    int sx_iol = (type_lr=="l") ? NUM_GRID_X+2 : (num_tile_x-2)*NUM_GRID_X+2;
+//    int sy_iol;
+//   
+//    foreach incVar(inc_HMEMC_IOL_spec)
+//    {
+//      ty_iol = incVar.ty_iol;
+//      sy_iol = ty_iol * NUM_GRID_Y;
+//
+//      for(tmp_ty = ty_iol; tmp_ty > MID_TILE_REGION; tmp_ty = tmp_ty - NUM_TILES_REGION)
+//      {
+//        sy_iol = sy_iol + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+//      }
+//
+//      port_iol = incVar.port_iol;
+//      port_hmemc = incVar.port_hmemc;
+//      
+//      if(incVar.device_hmemc == "HMEMC_TILE")
+//      { 
+//        if(incVar.io_iol == "O")
+//        {
+//          connect
+//            (
+//              <pin *port_hmemc of <device HMEMC_TILE @[sx_hmemc,sy_hmemc]>>  => <wire *port_iol of <device HMEMCIOL_TILE @[sx_iol,sy_iol]>>
+//            );
+//        }
+//        else
+//        {
+//          connect
+//            (
+//              <pin *port_iol of <device HMEMCIOL_TILE @[sx_iol,sy_iol]>>    => <wire *port_hmemc of <device HMEMC_TILE @[sx_hmemc,sy_hmemc]>>
+//            );
+//        }
+//      }
+//    }
+//
+//    STRUCT inc_spec_HMEMC_DQSL incVar1;
+//    int ty_dqsl;
+//    string port_dqsl;
+//
+//    int sx_dqsl,sy_dqsl;
+//    sx_dqsl = (type_lr=="l") ? NUM_GRID_X+2 : (num_tile_x-2)*NUM_GRID_X+2;
+//
+//    foreach incVar1(inc_HMEMC_DQSL_spec)
+//    {
+//      ty_dqsl = incVar1.ty_dqsl;
+//      sy_dqsl = ty_dqsl * NUM_GRID_Y;
+//
+//      for(tmp_ty = ty_dqsl; tmp_ty > MID_TILE_REGION; tmp_ty = tmp_ty - NUM_TILES_REGION)
+//      {
+//        sy_dqsl = sy_dqsl + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+//      }
+//
+//      port_dqsl = incVar1.port_dqsl;
+//      port_hmemc = incVar1.port_hmemc;
+//      
+//      if(incVar1.device_hmemc == "HMEMC_TILE")
+//      { 
+//        if(incVar1.io_dqsl == "O")
+//        {
+//          connect
+//            (
+//              <pin *port_hmemc of <device HMEMC_TILE @[sx_hmemc,sy_hmemc]>>  => <wire *port_dqsl of <device HMEMCDQSL_TILE @[sx_dqsl,sy_dqsl]>>
+//            );
+//        }
+//        else
+//        {
+//          connect
+//            (
+//              <pin *port_dqsl of <device HMEMCDQSL_TILE @[sx_dqsl,sy_dqsl]>>  => <wire *port_hmemc of <device HMEMC_TILE @[sx_hmemc,sy_hmemc]>>
+//            );
+//        }
+//      }
+//    }
+//
+//    STRUCT inc_spec_HMEMC_DLL incVar2;
+//    int ty_dll;
+//    string port_dll;
+//
+//    int sx_dll,sy_dll;
+//    sx_dll = (type_lr=="l") ? NUM_GRID_X+2 : (num_tile_x-2)*NUM_GRID_X+2;
+//
+//    foreach incVar2(inc_HMEMC_DLL_spec)
+//    {
+//      ty_dll = incVar2.ty_dll;
+//      sy_dll = ty_dll * NUM_GRID_Y;
+//
+//      for(tmp_ty = ty_dll; tmp_ty > MID_TILE_REGION; tmp_ty = tmp_ty - NUM_TILES_REGION)
+//      {
+//        sy_dll = sy_dll + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+//      }
+//
+//      port_dll = incVar2.port_dll;
+//      port_hmemc = incVar2.port_hmemc;
+//      
+//      if(incVar2.device_hmemc == "HMEMC_TILE")
+//      { 
+//        if(incVar2.io_dll == "O")
+//        {
+//          connect
+//            (
+//              <pin *port_hmemc of <device HMEMC_TILE @[sx_hmemc,sy_hmemc]>>  => <wire *port_dll of <device HMEMCIOCKGATEDLL_TILE @[sx_dll,sy_dll]>>
+//            );
+//        }
+//        else
+//        {
+//          connect
+//            (
+//              <pin *port_dll of <device HMEMCIOCKGATEDLL_TILE @[sx_dll,sy_dll]>>  => <wire *port_hmemc of <device HMEMC_TILE @[sx_hmemc,sy_hmemc]>>
+//            );
+//        }
+//      }
+//    }
+//
+//
+//}//end of function connect_hmemc_iol
+/****************************************************************************************************
+*****************************************************************************************************/
+
+
+}//end of package
+
+

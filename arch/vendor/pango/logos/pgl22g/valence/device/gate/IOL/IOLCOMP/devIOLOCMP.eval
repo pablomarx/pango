@@ -1,0 +1,78 @@
+*****************************************************************
+
+  Device    [devIOLOCMP]
+
+  Author    [yqtan]
+
+  Abstract  [device base on IOL, used as inout path through to IOB ]
+
+  Revision History:
+
+********************************************************************************/
+
+gate
+device devIOLOCMP : device IOL
+{
+    parameter
+    (
+        config string CP_PDIFF                := "ENABLE" //"DISABLE", "ENABLE"
+    );
+    port
+    (
+        input   DO_IN,
+        output  TO,
+        output  DO
+    );
+
+}// end of device devIOLOCMP
+
+/*******************************************************************************
+
+  Device    [devIOLOCMP]
+
+  Author    []
+
+  Abstract  [The structure netlist of devIOLOCMP is described in the similar fashion
+             as in HDL. In unit instantiation statement, the formal pin may be
+             connected to net which is declared explicitly.
+
+             In Valence, the connection can also be made from formal pin to other
+             pin or port, in which case Valence compiler shall create the net to
+             fulfil the connection. The built-in naming convention is kicked in
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devIOLOCMP
+{
+    // Wires connecting to output ports
+
+    wire  ntDO_IN;
+    wire  ntDO;
+    wire ntDO_IN_REVERSE;
+    ntDO_IN   <= DO_IN;
+    DO        <= ntDO;
+
+    device MUX21_EN DO_PDIFF_MUX
+       parameter map
+       (
+           CP_SEL  => CP_PDIFF
+       )
+       port map
+       (
+           X0   => ntDO_IN_REVERSE,
+           Y    => ntDO
+       );
+
+    device REVERSE_MUX DO_IN_REVERSE
+        port map
+        (
+            IN  => ntDO_IN,
+            OUT => ntDO_IN_REVERSE
+        );
+}; // end of structure netlist of devIOLOCMP
+

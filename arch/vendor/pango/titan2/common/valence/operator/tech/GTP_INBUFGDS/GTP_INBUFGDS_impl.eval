@@ -1,0 +1,64 @@
+*****************************************************************
+
+  Operator   [GTP_INBUFGDS]
+
+  Author      []
+
+  Abstract    []
+
+  Copyright 2014 (c). SHENZHEN PANGO MICROSYSTEMS CO.,LTD.
+  All Right Reserved.
+
+  Revision History:
+     06/18/14 - Initial version.
+
+********************************************************************************/
+fabric
+implementation impl of GTP_INBUFGDS @ (2,0 # 2,1)
+{
+    wire ntD, ntDIFFIN;
+    wire ntDO,ntDO_N;
+
+   operator gopIBUFDSAM
+       parameter map
+       (
+           IOSTANDARD          => IOSTANDARD == "DEFAULT" ? "MINI-LVDS" : IOSTANDARD,
+           DIFF_IN_TERM_MODE   => TERM_DIFF
+       )      
+       port map
+       (
+           I        => I,
+           DIFFI_IN => ntDIFFIN,
+           DO       => ntDO,
+           DO_NDRV  => ntDO_N,
+           O        => ntD
+       )@[1,0];
+   
+   operator gopIBUFDSBS
+       parameter map
+       (
+           IOSTANDARD          => IOSTANDARD == "DEFAULT" ? "MINI-LVDS" : IOSTANDARD
+           //DIFF_IN_TERM_MODE   => TERM_DIFF
+       )      
+       port map
+       (
+           I_B       => IB,
+           DIFFI_OUT => ntDIFFIN
+       )@[1,1];
+
+    operator gopIOL
+        parameter map
+        (
+            BUF_MODE   => "IBUF",
+            CP_D_SEL5  => 2'b01,
+            CP_TRI_EN  => "TRUE"
+        )
+        port map
+        (
+            DI          => ntD,
+            DO_P        => ntDO,
+            DO_N        => ntDO_N,
+            DI_TO_CLK   => O
+        )@[0,0];
+
+};

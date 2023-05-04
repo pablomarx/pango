@@ -1,0 +1,74 @@
+*****************************************************************
+
+  Device    [devAAX]
+
+  Author    [liujiao]
+
+  Abstract  [THE DEVICE CAN BE USED FOR CARRY CHAIN HEAD. THE PORT CIN OF devA/Q
+             CAN BE CONTROLLED BY USER. THIS DEVICE MODULE FOR THE PURPOSE.]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devAAX : device devA
+{
+    parameter
+    (
+        config bit CP_INITA[31:0]    = 32'h0000_0000,        
+        config string CP_MODEA       = "CYX"               // "LUT5" "ROM" "WMUX" "ARITH" "CY01" "CYX"
+    );
+    
+    port
+    (
+              input  A0, A1, A2, A3, A4,
+        logic output FGA_COUT
+    );
+}; // end of device devAAX
+
+
+/*******************************************************************************
+
+  Device    [devAAX]
+
+  Author    [liujiao]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devAAX
+{
+    // Internal wires
+    wire ntA0, ntA1, ntA2, ntA3, ntA4, ntAD;
+    wire ntCYA;
+       
+    ntA0      <= A0;
+    ntA1      <= A1;   
+    ntA2      <= A2;   
+    ntA3      <= A3;
+    ntA4      <= A4;
+    FGA_COUT  <= ntCYA;
+    
+    //
+    // Instances. FGA section
+    //
+
+    device FY FYA 
+        parameter map
+        (
+            CP_INIT => CP_INITA,
+            CP_MODE => CP_MODEA
+        )
+        port map 
+        (
+            A0  => ntA0,
+            A1  => ntA1,
+            A2  => ntA2,
+            A3  => ntA3,
+            A4  => ntA4,            
+            COUT => ntCYA 
+        );
+}; // end of structure netlist of devAAX
+

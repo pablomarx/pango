@@ -1,0 +1,107 @@
+use pgl_defs,pgl12g_defs,pgl_funcs_place,pgl_funcs_connect_logic;
+
+structure arch_nl connect_SRB of devPGL12G
+{
+    unsigned int N_SRB = NUM_TILE_Y - 1;
+    unsigned int S_SRB = 0;
+    unsigned int W_SRB = 1;
+    unsigned int E_SRB = 31;
+    unsigned int S_SRB_CCS = 45;
+    unsigned int W_SRB_CCS = 6;
+    unsigned int E_SRB_CCS = 15;
+    unsigned int blsr_x = BLSR_TILE_X;
+    unsigned int tx_hmemc = 31;
+    unsigned int n_hmemc = 0;
+    
+   
+    connect_SRB_inputs( N_SRB, S_SRB, W_SRB, E_SRB, S_SRB_CCS, W_SRB_CCS, E_SRB_CCS,
+                        blsr_x, 1, tx_hmemc, n_hmemc, L_SRB_TILES_X, L_SRB_TILES_Y);
+
+};//end of structure arch_nl connect_SRB of devPGL12G
+/***************************************************************************************
+****************************************************************************************/
+library work;
+use pgl_defs,pgl12g_defs,pgl_funcs_connect_logic;
+
+structure arch_nl connect_CLM_TILES of devPGL12G
+{
+    unsigned int x_pll = PLL_TILE_X;
+    unsigned int l_y_pll_u[] = {PLL_TILE3_Y,PLL_TILE2_Y,PLL_TILE1_Y,PLL_TILE0_Y};
+    unsigned int l_y_pll_d[] = {PLL_TILE0_Y,PLL_TILE1_Y,PLL_TILE2_Y,PLL_TILE3_Y};
+    unsigned int x_uscm = USCM_TILE_X;
+    unsigned int l_y_uscm_u[] = {USCM_TILE1_Y,USCM_TILE0_Y};
+    unsigned int l_y_uscm_d[] = {USCM_TILE0_Y,USCM_TILE1_Y};
+    unsigned int max_y = NUM_TILE_Y;
+    unsigned int x_ccs = CCS_TILE_X;
+    unsigned int y_ccs = CCS_TILE_Y;
+    unsigned int tx_hmemc = NUM_TILE_Y - 1;
+    unsigned int n_hmemc = 0;
+
+    unsigned int tx,ty; 
+
+
+    foreach tx ( L_CLMS_TILES_X )
+    {
+        foreach ty ( L_CLM_TILES_Y )
+        {
+           if(!(((tx>=CCS_TILE_X) && (tx<=CCS_TILE_X+NUM_GRID_CCS_X/NUM_GRID_X) && (ty>=CCS_TILE_Y))))
+           {
+             if((tx==PLL_TILE_X) && (((ty >= PLL_TILE0_Y) && (ty <= PLL_TILE0_Y + NUM_GRID_PLL_Y/NUM_GRID_Y-1)) || ((ty >= PLL_TILE1_Y) && (ty<=PLL_TILE1_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1)) || ((ty>=PLL_TILE2_Y) && (ty<=PLL_TILE2_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1)) || ((ty >= PLL_TILE3_Y) && (ty<=PLL_TILE3_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1)))) 
+             {      
+             }  
+             else if((tx==USCM_TILE_X) && (((ty >= USCM_TILE0_Y) && (ty<=USCM_TILE0_Y + NUM_GRID_USCM_Y/NUM_GRID_Y - 1)) || ((ty >= USCM_TILE1_Y) && (ty <= USCM_TILE1_Y + NUM_GRID_USCM_Y/NUM_GRID_Y-1))))
+             {
+             }
+             else
+             {
+               connect_CLM_input_d(tx, ty, 0, x_pll, l_y_pll_d, x_uscm, l_y_uscm_d, max_y, x_ccs, y_ccs);
+               connect_CLM_input_u(tx, ty, 0, x_pll, l_y_pll_u, x_uscm, l_y_uscm_u, 0, tx_hmemc, n_hmemc);
+             }
+           }      
+        }
+    }
+
+    foreach tx ( L_CLMA_TILES_X )
+    {
+        foreach ty ( L_CLM_TILES_Y )
+        {
+           if(!(((tx>=CCS_TILE_X) && (tx<=CCS_TILE_X+NUM_GRID_CCS_X/NUM_GRID_X) && (ty>=CCS_TILE_Y))))
+           {
+             if((tx==PLL_TILE_X) && (((ty >= PLL_TILE0_Y) && (ty <= PLL_TILE0_Y + NUM_GRID_PLL_Y/NUM_GRID_Y-1)) || ((ty >= PLL_TILE1_Y) && (ty<=PLL_TILE1_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1)) || ((ty>=PLL_TILE2_Y) && (ty<=PLL_TILE2_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1)) || ((ty >= PLL_TILE3_Y) && (ty<=PLL_TILE3_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1)))) 
+             {      
+             }  
+             else if((tx==USCM_TILE_X) && (((ty >= USCM_TILE0_Y) && (ty<=USCM_TILE0_Y + NUM_GRID_USCM_Y/NUM_GRID_Y - 1)) || ((ty >= USCM_TILE1_Y) && (ty <= USCM_TILE1_Y + NUM_GRID_USCM_Y/NUM_GRID_Y-1))))
+             {
+             }
+             else
+             {
+               connect_CLM_input_d(tx, ty, 1, x_pll, l_y_pll_d, x_uscm, l_y_uscm_d, max_y, x_ccs, y_ccs);
+               connect_CLM_input_u(tx, ty, 1, x_pll, l_y_pll_u, x_uscm, l_y_uscm_u, 0, tx_hmemc, n_hmemc);
+             }
+           }      
+        }
+    }
+};
+/***************************************************************************************
+****************************************************************************************/
+library work;
+use pgl_defs,pgl12g_defs,pgl_funcs_connect_logic;
+
+structure arch_nl connect_APM_TILE of devPGL12G
+{
+    unsigned int tx,ty;
+    
+    foreach tx ( L_APM_TILES_X )
+    {
+        foreach ty ( L_APM_TILES_Y )
+        {
+            connect_APM_input( tx, ty, NUM_REGION);
+        }
+    } 
+    
+};  // end of structure arch_nl connect_APM_TILE of devPGL12G
+
+/***************************************************************************************
+****************************************************************************************/
+
+

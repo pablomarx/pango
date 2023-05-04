@@ -1,0 +1,340 @@
+*******************************************************************
+
+  Device    [devL6CDQ_S]
+
+  Author    [guoxi]
+
+  Abstract  [LUT-6 by L6CDMUX WITH FF]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devL6CDQ_S : device CLMS
+{
+
+    parameter
+    (
+        config string  CP_GRS_EN  = "FALSE",
+        config bit     CP_INITD[31:0] = 32'hffff_ffff,
+        config bit     CP_INITC[31:0] = 32'hffff_ffff,
+        config string  CP_MODED       = "LUT5",         //"LUT5" "ROM" "WMUX" "RAM" "ARITH" "PRIENC" "MUX4" "XOR" "COMP" "RAM"
+        config string  CP_MODEC       = "LUT5",         //"LUT5" "ROM" "WMUX" "RAM" "ARITH" "PRIENC" "MUX4" "XOR" "COMP" "RAM"
+        config string  CP_Y3MUX_SEL   := "FX",           //"FX":F3 "CYX":CYD "MF":L8
+        config string  CP_Y2MUX_SEL   := "MF",           //"FX":F2 "CYX":CYC "MF":QP1
+        config string  CP_MASK      := "FALSE", 
+        config string  CP_QCDMUX_SEL  := "Y6",           //"Y6":Y6CD "PY":CDP "SRQ":Q2
+        config string  CP_RS_MODE     = "ASYNC",        //"SYNC" "ASYNC" - CLMS Global
+        config string  CP_FFCD_RS     = "SET",          //"RESET" "SET"
+        config string  CP_CEMUX_SEL   = "LOCAL",        //"LOCAL":CE; "CHAIN":CEIN
+        config string  CP_RSMUX_SEL   = "LOCAL",        //"LOCAL":RS; "CHAIN":RSIN
+        config string  CP_LRS_EN  = "FALSE",            //"Disable"; "Enable"
+        config string  CP_LRS_POL = "FALSE",            //"RS"; "Invert RS" - CLMS Global
+        config string  CP_LCE_EN  = "FALSE",            // "Disable"; "Enable"
+        config string  CP_LCE_POL = "FALSE",            // "CE";  "Invert CE" - CLMS Global
+        config string  CP_CLK_POL = "FALSE"             //"CLK"; "Invert CLK" - CLMS Global
+    );
+    port
+    (                
+        // These are the ports of FGD.
+        input    D0,
+        input    D1,
+        input    D2,
+        input    D3,
+        input    D4,
+        input    DD,
+        output   Y3, 
+               
+        // These are the ports of FGC.
+        input    C0,
+        input    C1,
+        input    C2,
+        input    C3,
+        input    C4,
+        input    CD,
+        output   Y2,        
+        
+        // These are the ports shared with FGC and FGD.
+        output   Y6CD,
+        
+        // These are the ports of RAM.
+        // Here are the ports of RAM write adress( WA[3:0] ), and shared with ROM. 
+        input    M1,
+        
+        // Here are the ports of CLMS for controlling.
+        input    RS,
+        input    CE,
+        input    CLK,
+        
+        // These are the Ports for Global Controlling, such as Global Reset.
+        input    RSCI,
+        input    CECI,
+        output   RSCO,
+        output   CECO
+    );
+
+}// end of device devL6CDQ_S
+
+/*******************************************************************************
+
+  Device    [devL6CDQ_S]
+
+  Author    [guoxi]
+
+  Abstract  [The structure netlist of devL6CDQ_S is described in the similar fashion 
+             as in HDL. In unit instantiation statement, the formal pin may be 
+             connected to net which is declared explicitly. 
+             
+             In Valence, the connection can also be made from formal pin to other 
+             pin or port, in which case Valence compiler shall create the net to 
+             fulfil the connection. The built-in naming convention is kicked in 
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devL6CDQ_S
+{
+    // Wires for input ports
+    wire ntD0;
+    wire ntD1;
+    wire ntD2;
+    wire ntD3;
+    wire ntD4;
+    wire ntDD;
+    
+    wire ntC0;
+    wire ntC1;
+    wire ntC2;
+    wire ntC3;
+    wire ntC4;
+    wire ntCD;
+    wire ntM1;
+    
+    wire ntRS;
+    wire ntCE;
+    wire ntCLK;  
+    wire ntRSCI;
+    wire ntCECI;
+
+    // Wires connecting to output ports
+    wire ntY3;
+    wire ntY2;
+    wire ntY6CD;    
+    wire ntCECO;
+    wire ntRSCO;
+
+    // Internal wires
+    wire ntL5C;
+    wire ntL5D;
+    wire ntDP1;
+    wire ntQP1; 
+     
+    wire ntCLKCO;
+    wire ntRS_P;
+    wire ntCE_P;
+
+    //
+    // Connection to ports
+    //
+    ntD0      <= D0;
+    ntD1      <= D1;
+    ntD2      <= D2;
+    ntD3      <= D3;
+    ntD4      <= D4; 
+    ntDD      <= DD;
+ 
+    ntC0      <= C0;
+    ntC1      <= C1;
+    ntC2      <= C2;
+    ntC3      <= C3;
+    ntC4      <= C4;
+    ntCD      <= CD;
+     
+    ntM1      <= M1;
+
+    ntRS      <= RS;
+    ntCE      <= CE;
+    ntCLK     <= CLK;
+    
+    ntRSCI    <= RSCI;
+    ntCECI    <= CECI; 
+
+    Y3        <= ntY3;
+    Y2        <= ntY2;
+    Y6CD      <= ntY6CD;
+
+    RSCO      <= ntRSCO;
+    CECO      <= ntCECO;
+   
+    //
+    // Instances. FGD section
+    //
+
+    device FYSC FYD
+        parameter map
+        (
+            CP_INIT   => CP_INITD,
+            CP_MODE   => CP_MODED,
+            CP_MASK   => CP_MASK 
+        )
+        port map
+        (
+            A0   => ntD0,
+            A1   => ntD1,
+            A2   => ntD2,
+            A3   => ntD3,
+            A4   => ntD4,
+            AD   => ntDD,
+            L5   => ntL5D
+        );
+
+    device YMUX  Y3MUX
+        parameter map
+        (
+            CP_OUT_SEL => CP_Y3MUX_SEL
+        )
+        port map
+        (
+            Y    => ntY3,
+            FX   => ntL5D
+        );
+    
+    //
+    // Instances. FGC section
+    //
+
+    device FYS FYC
+        parameter map
+        (
+            CP_INIT   => CP_INITC,
+            CP_MODE   => CP_MODEC,
+            CP_MASK   => CP_MASK 
+        )
+        port map
+        (
+            A0   => ntC0,
+            A1   => ntC1,
+            A2   => ntC2,
+            A3   => ntC3,
+            A4   => ntC4,
+            AD   => ntCD,
+            L5   => ntL5C
+        );
+        
+    device YMUX  Y2MUX
+        parameter map
+        (
+            CP_OUT_SEL => CP_Y2MUX_SEL
+        )
+        port map
+        (
+            Y    => ntY2,
+            MF   => ntQP1
+        );
+    
+    //
+    // Instances. Common to FGC and FGD sections
+    //
+    
+    device MUX2 L6CDMUX
+        port map
+        (
+            DI0  => ntL5C,
+            DI1  => ntL5D,
+            DOUT => ntY6CD,
+            SEL  => ntM1
+        );
+
+    device APPQMUX  QCDMUX
+        parameter map
+        (
+            CP_OUT_SEL => CP_QCDMUX_SEL
+        )
+        port map
+        (
+            Q   => ntDP1,
+            Y6  => ntY6CD
+        );
+    
+    device FF FFCD
+        parameter map
+        (
+            CP_GRS_EN  => CP_GRS_EN,
+            CP_RS_MODE => CP_RS_MODE,
+            CP_FF_RS   => CP_FFCD_RS
+        )
+        port map
+        (
+            Q   => ntQP1,
+            D   => ntDP1,
+            CE  => ntCECO,
+            CLK => ntCLKCO,
+            RS  => ntRSCO
+        ); 
+
+    device MUX2_P  CEMUX
+        parameter map
+        (
+            SEL => CP_CEMUX_SEL
+        )
+        port map
+        (
+            DOUT  => ntCECO,
+            DI1   => ntCECI,
+            DI0   => ntCE_P
+        );
+    
+    device MUX2_P  RSMUX
+        parameter map
+        (
+            SEL => CP_RSMUX_SEL
+        )
+        port map
+        (
+            DOUT  => ntRSCO,
+            DI1   => ntRSCI,
+            DI0   => ntRS_P
+        );
+
+    device CLK_POLMUX  CLKPOLMUX
+        parameter map
+        (
+            CP_CLK_POL => CP_CLK_POL
+        )
+        port map
+        (
+            Y  => ntCLKCO,
+            IN => ntCLK
+        );
+        
+    device LCE_POLMUX  LCEPOLMUX
+        parameter map
+        (
+            CP_LCE_EN  => CP_LCE_EN,
+            CP_LCE_POL => CP_LCE_POL
+        )
+        port map
+        (
+            Y  => ntCE_P,
+            IN => ntCE
+        );
+        
+    device LRS_POLMUX  LRSPOLMUX
+        parameter map
+        (
+            CP_LRS_EN  => CP_LRS_EN,
+            CP_LRS_POL => CP_LRS_POL
+        )
+        port map
+        (
+            Y  => ntRS_P,
+            IN => ntRS
+        );
+
+}; // end of structure netlist of devL6CDQ_S
+
+

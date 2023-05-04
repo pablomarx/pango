@@ -1,0 +1,275 @@
+*******************************************************************
+
+  Device    [devL6AB]
+
+  Author    [clwang]
+
+  Abstract  [LUT-6 by LABMUX]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devL6AB : device CLMA
+{
+
+    parameter
+    (
+        config bit INITA[31:0]     = 32'h0000_0000,
+        config bit INITB[31:0]     = 32'h0000_0000,        
+        config string FGA_MODE     = "LUT5",               // "LUT5" "ROM" "WMUX" "ARITH"
+        config string FGB_MODE     = "LUT5",               // "LUT5" "ROM" "WMUX" "ARITH"
+        config string Y1MUX_SEL    := "FG"  ,               // "L7"   "FG" "CY"
+        config string Y0MUX_SEL    := "FG"               // "FFAB" "FG" "CY" 
+    );
+    port
+    (
+        // These are the config ports.        
+        // These are the ports of FGB.
+        input    B0, B1, B2, B3, B4, BD,      
+        output   Y1, 
+        
+        // These are the ports of FGA.
+        input    A0, A1, A2, A3, A4, AD,
+        output   Y0, 
+
+        // These are the ports shared with FGA and FGB.
+        output   Y6AB,
+
+        // These are the ports of RAM.
+        // Here are the ports of RAM write adress( WA[3:0] ), and shared with ROM. 
+        input    M0
+    );
+
+}// end of device devL6AB
+
+/*******************************************************************************
+
+  Device    [devL6AB]
+
+  Author    [clwang]
+
+  Abstract  [The structure netlist of devL6AB is described in the similar fashion 
+             as in HDL. In unit instantiation statement, the formal pin may be 
+             connected to net which is declared explicitly. 
+             
+             In Valence, the connection can also be made from formal pin to other 
+             pin or port, in which case Valence compiler shall create the net to 
+             fulfil the connection. The built-in naming convention is kicked in 
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devL6AB
+{
+    // Wires for input ports
+    wire ntB0,ntB1,ntB2,ntB3,ntB4,ntBD; 
+    wire ntA0,ntA1,ntA2,ntA3,ntA4,ntAD; 
+    wire ntM0;
+
+    // Wires connecting to output ports
+    wire ntY1MUX;
+    wire ntY0MUX;
+    wire ntL6ABMUX;    
+
+    // Internal wires
+    wire ntFGB_Z;
+    wire ntFGA_Z;
+    //
+    // Connection to ports
+    //
+    ntB0      <= B0;
+    ntB1      <= B1; 
+    ntB2      <= B2;
+    ntB3      <= B3;
+    ntB4      <= B4;
+    ntBD      <= BD;
+ 
+    ntA0      <= A0;
+    ntA1      <= A1;
+    ntA2      <= A2;
+    ntA3      <= A3;
+    ntA4      <= A4;
+    ntAD      <= AD;
+
+    ntM0      <= M0;
+
+    Y1        <= ntY1MUX;
+    Y0        <= ntY0MUX;
+    Y6AB      <= ntL6ABMUX; 
+    //
+    // Instances. FGB section
+    //
+
+    device FGA FGB 
+        parameter map
+        (
+            INIT        => INITB,
+            MODE        => FGB_MODE
+        )
+        port map 
+        (
+            A0  => ntB0,A1  => ntB1,A2  => ntB2,A3  => ntB3,A4  => ntB4,A5  => ntBD,
+            Z    => ntFGB_Z 
+        );
+    device Y1MUX Y1MUX
+        parameter map
+        (
+            CFG  => Y1MUX_SEL
+        )       
+        port map
+        (
+            FG  => ntFGB_Z,
+            Z   => ntY1MUX
+        );
+    //
+    // Instances. FGA section
+    //
+
+    device FGA FGA 
+        parameter map
+        (
+            INIT        => INITA,
+            MODE        => FGA_MODE
+        )
+        port map 
+        (
+            A0  => ntA0,A1  => ntA1,A2  => ntA2,A3  => ntA3,A4  => ntA4,A5  => ntAD,
+            Z    => ntFGA_Z 
+        );   
+
+    device Y0MUX Y0MUX
+        parameter map
+        (
+            CFG  => Y0MUX_SEL
+        ) 
+        port map
+        (
+            FG => ntFGA_Z,
+            Z     => ntY0MUX
+        );    
+    //
+    // Instances. Common to FGA and FGB sections
+    //
+    
+    device L6ABMUX L6ABMUX
+        port map
+        (
+            I1  => ntFGB_Z, I0 => ntFGA_Z,
+            SEL => ntM0,
+            Z   => ntL6ABMUX
+        );
+}; // end of structure netlist of devL6AB
+
+
+timing tnl of devL6AB         
+{   
+
+    if(INITA == 32'hFFFF_FFFF &&
+       INITB == 32'h0000_0000)
+    {
+       operator V_BUF V_L6ABMUX
+       parameter map
+       (
+           SECTION  => "AB"
+       )
+        port map
+        ( 
+            I => M0,
+            Z => Y6AB
+        );
+    }
+    else 
+    {
+        if(FGA_MODE == "WMUX" )
+        {
+             operator V_LUT5M V_FGA 
+                parameter map            
+                (                        
+                    SECTION  => "A",
+                    INIT     => INITA
+                )                        
+                port map                
+                (
+                    I0  => A0,
+                    ID  => AD,
+                    I1  => A1,
+                    I2  => A2,
+                    I3  => A3,
+                    I4  => A4,
+                    Z   => Y0
+                );
+        }
+        else
+        {
+           operator V_LUT5 V_FGA
+               parameter map
+               (
+                   INIT  => INITA,
+                   SECTION  => "A" 
+                )
+                port map
+                (
+                    I0 => A0,
+                    I1 => A1,
+                    I2 => A2,
+                    I3 => A3,
+                    I4 => A4,
+                     Y => Y0
+                );
+        }
+        if(FGB_MODE == "WMUX" )
+        {
+             operator V_LUT5M V_FGB
+                parameter map
+                (
+                    SECTION  => "B",
+                    INIT     => INITB
+                )
+                port map
+                (
+                    I0  => B0,
+                    ID  => BD,
+                    I1  => B1,
+                    I2  => B2,
+                    I3  => B3,
+                    I4  => B4,
+                    Z   => Y1
+                );
+        }
+        else
+        {
+           operator V_LUT5 V_FGB
+               parameter map
+               (
+                   INIT  => INITB,
+                   SECTION  => "B" 
+                )
+                port map
+                (
+                    I0 => B0,
+                    I1 => B1,
+                    I2 => B2,
+                    I3 => B3,
+                    I4 => B4,
+                    Y  => Y1 
+                ); 
+       }
+       operator V_MUX2LUT6 V_L6ABMUX
+           parameter map
+           (
+               SECTION  => "AB"
+           )
+           port map
+           (
+               I0 => Y0,
+               I1 => Y1,
+               S => M0,
+               Z  => Y6AB
+           );
+   }
+}

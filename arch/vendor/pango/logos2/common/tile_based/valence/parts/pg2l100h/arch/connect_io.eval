@@ -1,0 +1,178 @@
+*************************************************************************
+****************************************************************************************/
+library work;
+use pg2l_defs,pg2l100h_defs;
+use pg2l_funcs_connect_io_bank;
+
+structure arch_nl connect_iob_tiles of PG2L100H
+{
+    unsigned int tx,rx;
+    unsigned int l_tx[];
+    
+    foreach rx( {[0:3]} )
+    {
+      l_tx = ((rx==1)||(rx==2)) ? L_IOB_TILES_X_R1 : L_IOB_TILES_X_R0;
+      foreach tx( l_tx )
+      {
+        connect_io_data(tx, rx, "IOBHR_TILE", "IOLHR_TILE");
+      }
+    }
+
+    
+    string l_banks[] = {"L3", "L4", "L5", "L6", "R4", "R5"};
+    string lr;
+    int bank;
+    int l_bank[];
+    int bank_top = 3;
+    int rx_min_r = 1;
+
+    foreach lr( {"L","R"} )
+    {
+      l_bank = (lr=="L") ? {[3:6]} : {[4:5]};
+      foreach bank( l_bank )
+      {
+        connect_pad_bank( lr, bank, NUM_TILE_X, NUM_REGION, bank_top, "IOBHR_TILE");
+      }
+    }
+
+    int tx_ccs = CCS_TILE_X;
+    int ty_ccs = CCS_TILE_Y;
+    int tx_hsst = HSST_TILE_X;
+    int ty_hsst_u = HSST_TILE1_Y;
+    int ty_hsst_d = HSST_TILE0_Y;
+ 
+    foreach lr( {"L","R"} )
+    {
+      l_bank = (lr=="L") ? {[3:6]} : {[4:5]};
+
+      foreach bank( l_bank )
+      {
+        connect_iob_scanchain( lr, bank, tx_ccs, ty_ccs, tx_hsst, ty_hsst_u, ty_hsst_d, ESD_TILE_X, ESD_TILE_Y,  
+                               bank_top, rx_min_r, NUM_TILE_X, NUM_REGION, "IOBHR_TILE", "HSSTLP_TILE", "ESD_100HR_TILE");
+      }
+    }
+
+    int bank_pad_state = 5;
+    foreach lr( {"L","R"} )
+    {
+      l_bank = (lr=="L") ? {[3:6]} : {[4:5]};
+
+      foreach bank( l_bank )
+      {
+        connect_io_state( lr, bank, bank_pad_state, ESD_TILE_X, ESD_TILE_Y,  
+                          NUM_TILE_X, NUM_REGION, bank_top, rx_min_r, "IOBHR_TILE", "ESD_100HR_TILE");
+      }
+    }
+
+};
+/***************************************************************************************
+****************************************************************************************/
+library work;
+use pg2l_defs,pg2l100h_defs,pg2l_funcs_place,pg2l_funcs_connect_io_bank;
+
+structure arch_nl connect_iol_dqs of PG2L100H
+{
+    int L_REGIONS[] = {[0:3]};
+    int rx;
+    int l_tx[];
+    int tx,tx_pll;
+    int loc_iol;
+
+    foreach rx( L_REGIONS )
+    {
+      l_tx = ((rx==1)||(rx==2)) ? L_IOL_TILES_X : {2};
+      foreach tx( l_tx )
+      {
+        tx_pll = (tx<USCM_TILE_X) ? tx-1 : tx+1;
+        foreach loc_iol({0,1})
+        {
+          connect_iol_dqs_input(rx, tx, tx_pll, loc_iol, "IOLHR_TILE");
+        }
+      }
+    }
+
+};//end of arch_nl connect_iol_dqs of PG2L100H
+/***************************************************************************************
+****************************************************************************************/
+library work;
+use pg2l_defs,pg2l100h_defs,pg2l_funcs_place,pg2l_funcs_connect_io_bank;
+structure arch_nl connect_iol_cascade of PG2L100H
+{
+    unsigned int tx,rx,loc_iol;
+    unsigned int l_tx[];
+
+    foreach rx ( {[0:3]} )
+    {
+      foreach loc_iol({0,1})
+      {
+        l_tx = ((rx==2)||(rx==1)) ? L_IOL_TILES_X : {2};
+        foreach tx(l_tx)
+        {
+          connect_iol_cascade(tx, rx, loc_iol, "IOLHR_TILE");
+        }
+      }
+    }
+};// end of structure arch_nl connect_iol_cascade of PG2L100H
+
+/***************************************************************************************
+****************************************************************************************/
+//library work;
+//use pg2l_defs,pg2l100h_defs;
+//use pg2l_funcs_connect_io_bank;
+//
+//structure arch_nl connect_IOL_TILES of PG2L100H
+//{
+//    unsigned int L_REGIONS[] = {0,1,2};
+//    unsigned int s_hmemc = 0;
+//    unsigned int n_hmemc = 46;
+//    unsigned int ty_dqs0 = 24;
+//    unsigned int ty_dqs1 = 13;
+//    unsigned int ty_dqs2 = 6;
+//    unsigned int ty_iol_comp0 = 1;
+//    unsigned int ty_iol_comp1 = 29;
+//    unsigned int ty_iol_iol_pll0_out = 19;
+//    unsigned int ty_iol_iol_pll1_out = 11;
+//
+//    unsigned int l_ty_dqs0[] = {[21:22,25:29]};
+//    unsigned int l_ty_dqs1[] = {[10:12,18:20]};
+//    unsigned int l_ty_dqs2[] = {[1:5,8:9]};
+//
+//    unsigned int rx,tx;
+//    string type_lr;
+//
+//    foreach rx(L_REGIONS)
+//    {
+//        foreach tx(L_IOL_TILES_X)
+//        {
+//          connect_iol_BANK(rx, tx, ty_dqs0, l_ty_dqs0, ty_iol_comp0, ty_iol_comp1, ty_iol_iol_pll0_out, ty_iol_iol_pll1_out, S_HMEMC_TILE, N_HMEMC_TILE, 1);
+//          connect_iol_BANK(rx, tx, ty_dqs1, l_ty_dqs1, ty_iol_comp0, ty_iol_comp1, ty_iol_iol_pll0_out, ty_iol_iol_pll1_out, S_HMEMC_TILE, N_HMEMC_TILE, 1);
+//          connect_iol_BANK(rx, tx, ty_dqs2, l_ty_dqs2, ty_iol_comp0, ty_iol_comp1, ty_iol_iol_pll0_out, ty_iol_iol_pll1_out, S_HMEMC_TILE, N_HMEMC_TILE, 1);
+//
+//          connect_dqs_BANK(rx, tx, NUM_REGION, S_HMEMC_TILE, N_HMEMC_TILE, 1);
+//        }
+//    }
+//    
+//};
+//
+///***************************************************************************************
+//****************************************************************************************/
+//library work;
+//use pg2l_defs,pg2l100h_defs,pg2l_funcs_place,pg2l_funcs_connect_logic;
+//use pg2l_funcs_connect_io_bank,pg2l_funcs_connect_clk;
+//
+//structure arch_nl connect_HMEMC_TILES of PG2L100H
+//{
+//    unsigned int tx_hmemc1 = 33;
+//    unsigned int tx_hmemc0 = 2;
+//    unsigned int ty_hmemc = 0;
+//
+//    connect_hmemc_tiles( "l", tx_hmemc0, tx_hmemc1, ty_hmemc, NUM_TILE_X);
+//    connect_hmemc_tiles( "r", tx_hmemc0, tx_hmemc1, ty_hmemc, NUM_TILE_X);
+//
+//
+//};
+
+
+
+
+

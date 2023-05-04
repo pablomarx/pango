@@ -1,0 +1,164 @@
+*******************************************************************
+
+  Operator    [gopADC]
+
+  Author      [liujiao]
+
+  Revision History:
+
+ ********************************************************************************/
+gate
+operator gopADC
+{
+    parameter
+    (
+        bit CREG_00H[15:0] = 16'b0000000000000000,
+        bit CREG_01H[15:0] = 16'b0000000000000000,
+        bit CREG_02H[15:0] = 16'b0000000000000000,
+        bit CREG_31H[13:0] = 14'b00000000000000,
+        bit CREG_03H[15:0] = 16'b0000000000000000,
+        bit CREG_04H[15:0] = 16'b0000000000000000,
+        bit CREG_0AH[15:0] = 16'b0000000000000000,
+        bit CREG_05H[15:0] = 16'b0000000000000000,
+        bit CREG_06H[15:0] = 16'b0000000000000000,
+        bit CREG_0CH[15:0] = 16'b0000000000000000,
+        bit CREG_07H[15:0] = 16'b0000000000000000,
+        bit CREG_08H[15:0] = 16'b0000000000000000,
+        bit CREG_0EH[15:0] = 16'b0000000000000000,
+        bit CREG_20H[11:0] = 12'b000000000000,
+        bit CREG_21H[11:0] = 12'b000000000000,
+        bit CREG_22H[11:0] = 12'b000000000000,
+        bit CREG_23H[11:0] = 12'b000000000000,
+        bit CREG_24H[11:0] = 12'b000000000000,
+        bit CREG_25H[11:0] = 12'b000000000000,
+        bit CREG_26H[11:0] = 12'b000000000000,
+        bit CREG_27H[11:0] = 12'b000000000000,
+        bit CREG_28H[11:0] = 12'b000000000000,
+        bit CREG_29H[11:0] = 12'b000000000000,
+        bit CREG_2AH[11:0] = 12'b000000000000,
+        bit CREG_2BH[11:0] = 12'b000000000000
+
+    );
+
+    port
+    (
+        input VA[1:0] ,         
+        input VAUX[31:0] ,        
+        input DCLK /*pragma PAP_ARC_GOP_CTRL_PIN="GCLK|RCLK|COLCLK"*/,
+        input DADDR[7:0] /*pragma PAP_ARC_GOP_CTRL_PIN="4=CE"*/,
+        input DEN ,        
+        input SECEN ,      
+        input DWE ,        
+        input DI[15:0] /*pragma PAP_ARC_GOP_CTRL_PIN="5=CE"*/,
+        input CONVST /*pragma PAP_ARC_GOP_CTRL_PIN="CE"*/,
+        input RST_N /*pragma PAP_ARC_GOP_CTRL_PIN="RST"*/,
+        input LOADSC_N ,
+        output DO[15:0] ,         
+        output DRDY ,  
+        output OVER_TEMP ,
+        output LOGIC_DONE_A ,
+        output LOGIC_DONE_B ,
+        output ADC_CLK_OUT ,
+        output DMODIFIED ,  
+        output ALARM[4:0]       
+    );
+};
+
+/**Implementation Body*******************************************************************
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl of gopADC
+{
+    device ADC adc_inst
+        parameter map
+        (
+            CP_CREG_00H     =>   CREG_00H  , 
+            CP_CREG_01H     =>   CREG_01H  , 
+            CP_CREG_02H     =>   CREG_02H  , 
+            CP_CREG_31H     =>   CREG_31H  , 
+            CP_SEQ_03H      =>   CREG_03H  , 
+            CP_SEQ_04H      =>   CREG_04H  ,             
+            CP_SEQ_0AH      =>   CREG_0AH  , 
+            CP_SEQ_05H      =>   CREG_05H  , 
+            CP_SEQ_06H      =>   CREG_06H  , 
+            CP_SEQ_0CH      =>   CREG_0CH  , 
+            CP_SEQ_07H      =>   CREG_07H  , 
+            CP_SEQ_08H      =>   CREG_08H  , 
+            CP_SEQ_0EH      =>   CREG_0EH  , 
+            CP_ALM_20H      =>   CREG_20H  , 
+            CP_ALM_21H      =>   CREG_21H  , 
+            CP_ALM_22H      =>   CREG_22H  , 
+            CP_ALM_23H      =>   CREG_23H  , 
+            CP_ALM_24H      =>   CREG_24H  , 
+            CP_ALM_25H      =>   CREG_25H  , 
+            CP_ALM_26H      =>   CREG_26H  , 
+            CP_ALM_27H      =>   CREG_27H  , 
+            CP_ALM_28H      =>   CREG_28H  , 
+            CP_ALM_29H      =>   CREG_29H  , 
+            CP_ALM_2AH      =>   CREG_2AH  , 
+            CP_ALM_2BH      =>   CREG_2BH   
+        )
+        port map
+        (
+            VAADC_P         =>  VA[1]          ,
+            VAADC_N         =>  VA[0]          ,
+            VAAP[15]        =>  VAUX[31]       ,
+            VAAN[15]        =>  VAUX[30]       ,
+            VAAP[14]        =>  VAUX[29]       ,
+            VAAN[14]        =>  VAUX[28]       ,
+            VAAP[13]        =>  VAUX[27]       ,
+            VAAN[13]        =>  VAUX[26]       ,
+            VAAP[12]        =>  VAUX[25]       ,
+            VAAN[12]        =>  VAUX[24]       ,
+            VAAP[11]        =>  VAUX[23]       ,
+            VAAN[11]        =>  VAUX[22]       ,
+            VAAP[10]        =>  VAUX[21]       ,
+            VAAN[10]        =>  VAUX[20]       ,
+            VAAP[9]         =>  VAUX[19]       ,
+            VAAN[9]         =>  VAUX[18]       ,
+            VAAP[8]         =>  VAUX[17]       ,
+            VAAN[8]         =>  VAUX[16]       ,
+            VAAP[7]         =>  VAUX[15]       ,
+            VAAN[7]         =>  VAUX[14]       ,
+            VAAP[6]         =>  VAUX[13]       ,
+            VAAN[6]         =>  VAUX[12]       ,
+            VAAP[5]         =>  VAUX[11]       ,
+            VAAN[5]         =>  VAUX[10]       ,
+            VAAP[4]         =>  VAUX[9]        ,
+            VAAN[4]         =>  VAUX[8]        ,
+            VAAP[3]         =>  VAUX[7]        ,
+            VAAN[3]         =>  VAUX[6]        ,
+            VAAP[2]         =>  VAUX[5]        ,
+            VAAN[2]         =>  VAUX[4]        ,
+            VAAP[1]         =>  VAUX[3]        ,
+            VAAN[1]         =>  VAUX[2]        ,
+            VAAP[0]         =>  VAUX[1]        ,
+            VAAN[0]         =>  VAUX[0]        ,
+            PCLK            =>  DCLK           ,
+            PADDR           =>  DADDR          ,
+            PSEL            =>  DEN            ,
+            PENABLE         =>  SECEN          ,
+            PWRITE          =>  DWE            ,
+            PWDATA          =>  DI             ,
+            PRDATA          =>  DO             ,
+            PREADY          =>  DRDY           ,
+            EVENT_DRV       =>  CONVST         ,
+            RST_N           =>  RST_N          ,
+            LOAD_SC_N       =>  LOADSC_N      ,
+            OVER_TEMP       =>  OVER_TEMP      ,
+            LOGIC_DONE_A    =>  LOGIC_DONE_A   ,
+            LOGIC_DONE_B    =>  LOGIC_DONE_B   ,
+            ADC_CLK_OUT     =>  ADC_CLK_OUT    ,
+            PMODIFIED       =>  DMODIFIED      ,
+            ALARM           =>  ALARM       
+        );
+
+}; // end of implementation impl of gopADC
+
+

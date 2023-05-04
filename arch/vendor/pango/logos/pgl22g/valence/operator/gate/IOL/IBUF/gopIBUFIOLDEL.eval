@@ -1,0 +1,59 @@
+*******************************************************************
+
+  Operator    [gopIBUFIOLDEL]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+gate
+operator gopIBUFIOLDEL
+{
+    parameter
+    (
+        string DELAY_SEL       = "DEFAULT",
+        bit    IODLY_CTRL_EN   = 1'b0,
+        bit    IODLY_STEP[3:0] = 4'b0000,
+        string MIPI_MODE       = "FALSE"
+    );
+    port
+    (
+        input   IN,
+        output  T,
+        output  OUT,
+        output  INCK,
+        input   IODLY_CTRL[2:0],
+        output  IODLY_OV,
+        
+        input   MI,
+        output  MO
+    );
+};
+
+implementation impl of gopIBUFIOLDEL
+{
+    device devIBUFIOLDEL gate_ibufioldel
+        parameter map
+        (
+            //DELAY_SEL       => DELAY_SEL,
+            //IODLY_CTRL_EN   => IODLY_CTRL_EN,
+            CP_IODLY_STEP      => IODLY_STEP,
+            CP_MIPI_EN         => MIPI_MODE == "TRUE" ? "ENABLE" : "DISABLE"
+        )
+        port map 
+        (
+            RX_DATA_DD   =>  OUT,
+
+            IODLY_CTRL   =>  IODLY_CTRL,
+            IODLY_OV     =>  IODLY_OV,
+            TO           =>  T,
+            INCK         =>  INCK,   
+            DI           =>  IN,
+            
+            MIPI_SW_DYN_O =>  MO,
+            MIPI_SW_DYN_I =>  MI
+        );
+};
+
+

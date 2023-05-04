@@ -1,0 +1,118 @@
+*****************************************************************
+
+  Device    [IOL_FF]
+
+  Author    [guoxi]
+
+  Abstract  [The Prim Device Of IOL_FF]
+
+  Revision History:
+
+********************************************************************************/
+prim
+device IOL_FF
+{
+    parameter
+    (
+        config string CP_GRS_DIS = "FALSE",
+        config string CP_SET    = "SET",    //1'b1 => set;   1'b0 => reset
+        config string CP_SYNC   = "ASYNC",  //1'b1 => sync;  1'b0 => async
+        config string CP_LATCH  = "FF"  //1'b1 => latch; 1'b0 => flip flop
+    );
+    port 
+    (
+        input D,
+        input CLK,    //rising edge, edge setting was done at top level
+        input CE,     //active high, polarity setting was done at top level
+        input LRS,    //active high, polarity setting was done at top level
+        output Q
+    );
+
+}; // end of device IOL_FF
+
+/**Device***********************************************************************
+
+  Device    [IOL_FF]
+
+  Abstract  [This specified how to propagate the input signal to the outputs based on
+             configuration]
+
+  Revision History:
+
+********************************************************************************/
+propagation pop of IOL_FF
+{
+    propagate ( D   |-> Q );
+    propagate ( LRS |-> Q );
+    propagate ( CE  |-> Q );
+    propagate ( CLK |-> Q );
+
+}; // end of propagation for IOL_FF
+/**Device***********************************************************************
+  Device    [IOL_FF]
+  Author    [kongbiao]
+  Abstract  [This specified the timing model under specific configuration]
+  Revision History:
+********************************************************************************/
+timing iff_tnl of IOL_FF
+{   
+    if (CP_LATCH == "FF" && CP_SYNC == "SYNC")   //FF SYNC
+    {
+        operator V_FFSYN  V_FFSYN
+            parameter map 
+            (
+                GRS_EN    => (CP_GRS_DIS == "FALSE") ? "TRUE" : "FALSE",
+                SET_RESET => CP_SET,
+                LRS_EN    => "TRUE"
+            )
+            port map 
+            (
+                Q => Q,
+                D => D, 
+                SR => LRS,
+                CK => CLK,
+                CE => CE
+            );
+    } 
+    else if (CP_LATCH == "FF" && CP_SYNC == "ASYNC")   //FF ASYNC
+    {
+        operator V_FFASYN  V_FFASYN
+            parameter map 
+            (
+                GRS_EN    => (CP_GRS_DIS == "FALSE") ? "TRUE" : "FALSE",
+                SET_RESET => CP_SET,
+                LRS_EN    => "TRUE"
+            )
+            port map 
+            (
+                Q => Q,
+                D => D, 
+                SR => LRS,
+                CK => CLK,
+                CE => CE
+            );
+    }
+    else if (CP_LATCH  == "LATCH")   //LATCH ASYNC
+    {
+        operator V_LAASYN V_LAASYN
+            parameter map 
+            (
+                GRS_EN    => (CP_GRS_DIS == "FALSE") ? "TRUE" : "FALSE",
+                SET_RESET => CP_SET,
+                LRS_EN    => "TRUE"
+            )
+            port map 
+            (
+                Q => Q,
+                D => D, 
+                SR => LRS,
+                CK => CLK,
+                CE => CE
+            );
+    }
+    else
+    {
+        error("Illegal configuration to generate timing model");
+    }
+}
+

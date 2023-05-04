@@ -1,0 +1,66 @@
+*******************************************************************
+
+  Operator    [gopIOBUFIOLDEL]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+gate
+operator gopIOBUFIOLDEL
+{
+    parameter
+    (
+        string DELAY_MODE      = "NODELAY",   //"NODELAY", "INDELAY", "OUTDELAY",
+        string DELAY_SEL       = "DEFAULT",
+        bit    IODLY_CTRL_EN   = 1'b0,
+        bit    IODLY_STEP[6:0] = 7'b000_0000
+    );
+    port
+    (
+        input   IN,
+        input   TS,
+        output  OUT,
+
+        input   IODLY_CTRL[2:0],
+        output  IODLY_OV,
+
+        // from to IOB
+        output  T,
+        input   I,
+        output  O,
+
+        output  DO_OUT,
+        output  TO_OUT
+    );
+};
+
+implementation impl of gopIOBUFIOLDEL
+{
+    device devIOBUFIOLDEL gate_iobufioldel
+        parameter map
+        (
+            DELAY_MODE      => DELAY_MODE,
+            DELAY_SEL       => DELAY_SEL,
+            IODLY_CTRL_EN   => IODLY_CTRL_EN,
+            IODLY_STEP      => IODLY_STEP
+        )
+        port map 
+        (
+           TX_DATA[5]   =>  IN, 
+           TS_CTRL[0]   =>  TS,                
+           RX_DATA_DD   =>  OUT,
+  
+           IODLY_CTRL   =>  IODLY_CTRL,
+           IODLY_OV     =>  IODLY_OV,
+                     
+           TO           =>  T,
+           DIN          =>  I,
+           DO           =>  O,
+
+           DO_OUT       =>  DO_OUT,
+           TO_OUT       =>  TO_OUT
+        );
+};
+

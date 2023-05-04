@@ -1,0 +1,55 @@
+*****************************************************************
+
+  Operator   [GTP_IOBUF]
+
+  Author      []
+
+  Abstract    []
+
+  Copyright 2014 (c). SHENZHEN PANGO MICROSYSTEMS CO.,LTD.
+  All Right Reserved.
+
+  Revision History:
+     06/18/14 - Initial version.
+
+********************************************************************************/
+fabric
+implementation impl of GTP_IOBUF @ (2,0 # 1,0)
+{
+    wire ntI, ntO, ntT;
+
+    operator gopIOBUF
+        parameter map
+        (
+            IOSTANDARD      => IOSTANDARD == "DEFAULT" ? "LVCMOS33" : IOSTANDARD,
+            SLEW_MODE       => (SLEW_RATE == "SLOW") ? "S" : "F",
+            DRV_CURR_VAL    => DRIVE_STRENGTH,
+            DDR_TERM_MODE   => TERM_DDR
+        )     
+        port map
+        (
+            I        => ntO,
+            T        => ntT,
+            O        => ntI,
+            IO       => IO
+        )@[1,0];
+   
+    operator gopIOL
+        parameter map
+        (
+            BUF_MODE   => "IOBUF",
+            CP_D_SEL5  => 2'b01,
+            CP_TRI_EN  => "TRUE"
+        )
+        port map
+        (
+            TX_DATA[0]    =>  I,
+            TS_CTRL[0]    =>  T,
+            DI_TO_CLK     =>  O,
+
+            DO_N     =>  ntT,
+            DI       =>  ntI,
+            DO_P     =>  ntO
+        )@[0,0];
+            
+};

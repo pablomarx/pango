@@ -1,0 +1,81 @@
+*******************************************************************
+
+  Operator    [gopIMDES8B]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+gate
+operator gopIMDES8B // pragma PAP_ARC_DISABLE_MPNR
+{
+    parameter
+    (
+        string DESCLK_SRC         = "IOCLK",    //"IOCLK", "SAMPLE_CLK" "PROBE_CLK"
+
+        bit    GRS_EN             = 1'b0,
+        bit    LRS_EN             = 1'b1,
+        
+        bit    CLK_INV            = 1'b0,
+        //bit    CE_INV             = 1'b0,
+        bit    LRS_INV            = 1'b0
+    );
+    port
+    (
+        input   ICLK,
+        input   DESCLK /* pragma PAP_ARC_GOP_CTRL_PIN = IOCLK*/,
+        input   SYSCLK /* pragma PAP_ARC_GOP_CTRL_PIN = "GCLK|RCLK"*/,
+        
+        input   RESET /* pragma PAP_ARC_GOP_CTRL_PIN = RST*/,
+        input   SLIP,
+        output  TO,
+
+        output  Q[1:0],
+        output   IDDR_COUT[6:0],
+        input   IDDR_CIN[6:0]
+    );
+};
+
+implementation impl of gopIMDES8B
+{
+    // IDDR config
+
+    if((DESCLK_SRC != "SAMPLE_CLK") && (DESCLK_SRC != "PROBE_CLK") && (DESCLK_SRC != "IOCLK"))
+    {
+        error("Error config IDDR_DESCLK = %s in gopIMDES8B", DESCLK_SRC);
+    }
+
+    device devIMDES8IOLB gate_imdes8iolb
+        parameter map
+        (
+            GRS_EN       =>   GRS_EN,
+
+            IDDR_LRS_EN  =>   LRS_EN,
+            DES_SER_CLK  =>   DESCLK_SRC,
+                             
+            CLK_I_INV    =>   CLK_INV,
+            LRS_INV      =>   LRS_INV
+        )
+
+        port map 
+        (
+            RX_DATA      =>   Q,
+            IOCLK        =>   (DESCLK_SRC == "IOCLK") ? DESCLK : 1'bx,
+          
+            SAMPLE_CLK   =>   (DESCLK_SRC == "SAMPLE_CLK") ? DESCLK : 1'bx,
+            PROBE_CLK    =>   (DESCLK_SRC == "PROBE_CLK") ? DESCLK : 1'bx,
+
+            DQSI_DEL     =>   ICLK,
+
+            SYSCLK       =>   SYSCLK,
+            LRS          =>   RESET,
+            SLIP         =>   SLIP,
+            TO           =>   TO,
+            
+            IDDR_COUT     =>   IDDR_COUT,
+            IDDR_CIN     =>   IDDR_CIN
+        );
+};
+
+

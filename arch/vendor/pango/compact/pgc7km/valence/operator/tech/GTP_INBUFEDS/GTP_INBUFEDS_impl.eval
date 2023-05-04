@@ -1,0 +1,62 @@
+*****************************************************************
+
+  Operator   [GTP_INBUFEDS]
+
+  Author      []
+
+  Abstract    []
+
+  Copyright 2014 (c). SHENZHEN PANGO MICROSYSTEMS CO.,LTD.
+  All Right Reserved.
+
+  Revision History:
+     06/18/14 - Initial version.
+
+********************************************************************************/
+fabric
+implementation impl_a of GTP_INBUFEDS @ (4,0 # 2,0)
+{
+    string iostandard_mid = "LVDS33";
+    if (IOSTANDARD != "LVDS" && IOSTANDARD != "DEFAULT")
+    {
+        iostandard_mid = IOSTANDARD;
+    }
+    
+    wire ntD, ntDIFFIN;
+    wire ntINBUF_DYN_DIS_N_O;
+    operator gopIBUFDSAM
+        parameter map
+        (
+            IOSTANDARD          => iostandard_mid,
+            DIFF_IN_TERM_MODE   => TERM_DIFF,
+            CP_LP_EN            => "ON"
+        )      
+        port map
+        (
+            I        => I,
+            DIFFI_IN => ntDIFFIN,
+            INBUF_DYN_DIS_N  => ntINBUF_DYN_DIS_N_O,
+            O        => ntD
+        )@[1,0];
+    
+    operator gopIBUFDSBS
+        parameter map
+        (
+            IOSTANDARD          => iostandard_mid,
+            DIFF_IN_TERM_MODE   => TERM_DIFF
+        )      
+        port map
+        (
+            I_B       => IB,
+            DIFFI_OUT => ntDIFFIN
+        )@[1,1];
+
+    operator gopIBUFIOL
+        port map
+        (
+            INBUF_DYN_DIS_N_I => EN,
+            INBUF_DYN_DIS_N_O => ntINBUF_DYN_DIS_N_O,
+            IN    => ntD,
+            OUT   => O
+        )@[0,0];
+};

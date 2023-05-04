@@ -1,0 +1,119 @@
+*****************************************************************
+
+  Device    [devALC_S]
+
+  Author    [guoxi]
+
+  Abstract  [THE DEVICE CAN BE USED FOR ADDITION.]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devALC_S : device devA_S
+{
+    parameter
+    (
+            config bit     CP_INITA[31:0]  = 32'hffff_ffff,
+            config string  CP_MODEA     = "LUT5",         //"LUT5" "ROM" "WMUX" "RAM" "ARITH" "PRIENC" "MUX4" "XOR" "COMP" "RAM"
+            config string  CP_Y0MUX_SEL = "FX",           //"FX":F0 "CYX":CYA "MF":QP0
+            config string  CP_MASK    := "FALSE"     
+    );
+    
+    port
+    (     
+        input  A4,
+        input  A3,     
+        input  A2,  
+        input  A1,  
+        input  A0,  
+        input  AD,
+        input  CIN,
+        output Y0,
+        
+        logic  output   FGA_COUT
+    );
+}; // end of device devALC_S
+
+
+/*******************************************************************************
+
+  Device    [devALC_S]
+
+  Author    [guoxi]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devALC_S
+{
+    // Wires for input ports
+    wire ntA0;
+    wire ntA1;
+    wire ntA2;
+    wire ntA3;
+    wire ntA4;
+    wire ntAD; 
+    wire ntCIN;
+
+    // Wires connecting to output ports
+    wire ntY0;
+
+    // Internal wires
+    wire ntL5A;
+    wire ntCYA;
+
+    //
+    // Connection to ports
+    //
+ 
+    ntA0      <= A0;
+    ntA1      <= A1;
+    ntA2      <= A2;
+    ntA3      <= A3;
+    ntA4      <= A4;
+    ntAD      <= AD;
+    ntCIN     <= CIN;
+
+    Y0        <= ntY0; 
+    FGA_COUT  <= ntCYA;
+    
+    //
+    // Instances. FGA section
+    //
+
+    device LUT5S FYA
+        parameter map
+        (
+            CP_INIT   => CP_INITA,
+            CP_MODE   => CP_MODEA,
+            CP_MASK   => CP_MASK               
+         )
+         port map
+        (
+            A0   => ntA0,
+            A1   => ntA1,
+            A2   => ntA2,
+            A3   => ntA3,
+            A4   => ntA4,
+            AD   => ntAD,
+            CIN  => ntCIN,
+            COUT => ntCYA,
+            L5   => ntL5A 
+        );
+
+    device YMUX  Y0MUX
+        parameter map
+        (
+            CP_OUT_SEL => CP_Y0MUX_SEL
+        )
+        port map
+        (
+            Y    => ntY0,
+            FX   => ntL5A,
+            CYX  => ntCYA   
+        );
+}; // end of structure netlist of devALC_S
+

@@ -1,0 +1,74 @@
+*****************************************************************
+
+  Device    [DELAY_L]
+
+  Author    [hzhang]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+prim
+device DELAY_L
+{
+    parameter
+    (
+        config bit    IODLY_STEP[6:0] = 7'b000_0000  // IOL input delay chain value control. Each delay step is ~50ps.   
+                                                     // Delay value is linear increased with the binary code increase.
+                                                     // 00000: minimum input delay
+                                                     // 10000: mid point input delay
+                                                     // 11111: maximum input delay
+    );
+    port
+    (
+       input  DIN,
+
+       output DOUT,
+
+       input  IODLY_CTRL[2:0],
+       output IODLY_OV
+    );
+
+}; // end of device DELAY_L
+
+
+propagation prop of DELAY_L
+{
+   propagate ( DIN |-> DOUT );
+   propagate ( DIN |-> IODLY_OV );
+
+   propagate ( IODLY_CTRL[0] |-> DOUT );
+   propagate ( IODLY_CTRL[1] |-> DOUT );
+   propagate ( IODLY_CTRL[2] |-> DOUT );
+};
+
+/**Device***********************************************************************
+
+  Device    [DELAY]
+  
+  Author    [xsniu]
+
+  Abstract  [This specified the timing model under specific configuration]
+
+  Revision History:
+
+********************************************************************************/
+timing delay_tnl of DELAY_L
+{
+    operator V_IODELAY delay
+       parameter map 
+       (
+           DELAY_STEP  => IODLY_STEP,
+           DELAY_DEPTH => 7
+       )
+       port map
+       (
+           DI        => DIN,
+           DO        => DOUT,
+           DIRECTION => IODLY_CTRL[0],
+           MOVE      => IODLY_CTRL[1],
+           LOAD_N    => IODLY_CTRL[2],
+           DELAY_OB  => IODLY_OV
+       );
+}

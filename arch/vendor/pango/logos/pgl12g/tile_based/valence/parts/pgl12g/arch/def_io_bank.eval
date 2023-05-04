@@ -1,0 +1,102 @@
+use pgl_defs,pgl12g_defs;
+
+/*******************************************************************************
+
+       4 IO banks are defined, 2 on each edge. The banks are named 
+
+             BANKL0                      BANKRO
+
+             BANKL1                      BANKR1
+
+
+********************************************************************************/       
+structure arch_nl define_io_bank of devPGL12G
+{
+  const unsigned int l_iobd_y[] = {1,3,5,7,9,11,13,17,19,21,23,25,27,29};
+  const unsigned int l_iobs_y[] = {2,4,6,10,12,14,16,18,20,24,26,28};
+  const unsigned int l_dqsiobr_y[] = {30};
+  const unsigned int l_dqsiobs_y[] = {0,8};
+  const unsigned int l_dqsiobs1_y[] = {22};
+  const unsigned int l_dll_y[] = {15};
+
+  &wire ntRef_ntVDDIOL0 = <wire ntVDDIOL0>;  
+  &wire ntRef_ntVDDIOL1 = <wire ntVDDIOL1>;
+  &wire ntRef_ntVDDIOR0 = <wire ntVDDIOR0>;
+  &wire ntRef_ntVDDIOR1 = <wire ntVDDIOR1>;
+  &wire ntRef_ntVSSIOL0 = <wire ntVSSIOL0>;
+  &wire ntRef_ntVSSIOL1 = <wire ntVSSIOL1>;
+  &wire ntRef_ntVSSIOR0 = <wire ntVSSIOR0>;
+  &wire ntRef_ntVSSIOR1 = <wire ntVSSIOR1>;
+
+  int ty,sx_iob,sx_iol,sy;
+
+  int bank_index;
+  int flag;
+
+
+  sx_iob = 0;
+  sx_iol = 6;
+  //==================================//
+  //            BANKL0                //
+  //==================================//
+  device group BANKL0 /*pragma PAP_ARC_GROUP_TYPE="IO_BANK"*/;// pragma PAP_ARC_COLOR="191:0:0"
+  bank_index = 0;
+  sy = (NUM_REGION-1-bank_index) * NUM_TILES_REGION * NUM_GRID_Y; 
+
+  connect
+    (
+      <pin VDDIO of <device IOB_WO_ODIFF_TILE @ [sx_iob,sy]>> => ntRef_ntVDDIOL0,
+      <pin VSSIO of <device IOB_WO_ODIFF_TILE @ [sx_iob,sy]>> => ntRef_ntVSSIOL0
+    );
+  BANKL0 += { <device IOB_WO_ODIFF_TILE @ [sx_iob,sy]> };
+
+
+  //==================================//
+  //            BANKL1                //
+  //==================================//
+  device group BANKL1 /*pragma PAP_ARC_GROUP_TYPE="IO_BANK"*/;// pragma PAP_ARC_COLOR="191:191:0"
+ 
+  bank_index = 1;
+  sy = (NUM_REGION-1-bank_index) * NUM_TILES_REGION * NUM_GRID_Y; 
+
+  connect
+    (
+      <pin VDDIO of <device IOB_WO_ODIFF_TILE @ [sx_iob,sy]>> => ntRef_ntVDDIOL1,
+      <pin VSSIO of <device IOB_WO_ODIFF_TILE @ [sx_iob,sy]>> => ntRef_ntVSSIOL1
+    );
+  BANKL1 +={ <device IOB_WO_ODIFF_TILE @ [sx_iob,sy]>};
+
+  sx_iob = (NUM_TILE_X-1)*NUM_GRID_X;
+  sx_iol = sx_iob-2;
+  //==================================//
+  //            BANKR0                //
+  //==================================//
+  device group BANKR0 /*pragma PAP_ARC_GROUP_TYPE="IO_BANK"*/;  // pragma PAP_ARC_COLOR="0:0:191"
+ 
+  bank_index = 0;
+  sy = (NUM_REGION-1-bank_index) * NUM_TILES_REGION * NUM_GRID_Y;
+  connect
+    (
+      <pin VDDIO of <device IOB_TILE @ [sx_iob,sy]>> => ntRef_ntVDDIOR0,
+      <pin VSSIO of <device IOB_TILE @ [sx_iob,sy]>> => ntRef_ntVSSIOR0
+    );
+  BANKR0 +={ <device IOB_TILE @ [sx_iob,sy]> };
+
+
+  //==================================//
+  //            BANKR1                //
+  //==================================//
+  device group BANKR1 /*pragma PAP_ARC_GROUP_TYPE="IO_BANK"*/;  // pragma PAP_ARC_COLOR="0:191:191"
+ 
+  bank_index = 1;
+  sy = (NUM_REGION-1-bank_index) * NUM_TILES_REGION * NUM_GRID_Y;
+
+  connect
+    (
+      <pin VDDIO of <device IOB_TILE @ [sx_iob,sy]>> => ntRef_ntVDDIOR1,
+      <pin VSSIO of <device IOB_TILE @ [sx_iob,sy]>> => ntRef_ntVSSIOR1
+    );
+  BANKR1 +={ <device IOB_TILE @ [sx_iob,sy]> };
+ 
+
+}//end of structure arch_nl define_io_bank of devPGL12G

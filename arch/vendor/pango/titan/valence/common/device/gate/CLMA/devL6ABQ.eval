@@ -1,0 +1,498 @@
+*******************************************************************
+
+  Device    [devL6ABQ]
+
+  Author    [clwang]
+
+  Abstract  [LUT6 by LABMUX WITH FF]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devL6ABQ : device CLMA
+{
+
+    parameter
+    (
+        config bit INITA[31:0]     = 32'h0000_0000,
+        config bit INITB[31:0]     = 32'h0000_0000,
+        config string FGA_MODE     = "LUT5",              // "LUT5" "ROM" "WMUX" "ARITH"
+        config string FGB_MODE     = "LUT5",              // "LUT5" "ROM" "WMUX" "ARITH"
+        config string GRS_EN       = "FALSE",             // "TRUE" "FALSE"
+        config string LRS_EN       = "TRUE",              // "TRUE" "FALSE"
+        config string Y1MUX_SEL   := "FG",                // "L7"   "FG" "CY"
+        config string QABMUX_SEL  := "L6",                // "L6" "FF0" "ABP"
+        config string Y0MUX_SEL   := "FFAB",              // "FFAB" "FG" "CY"
+        config string CEMUX_SEL    = "CE",                // "CE" "CEIN"
+        config string RSMUX_SEL    = "RS",                // "RS" "RSIN"
+        config bit    CLK_POS      = 1'b0,                // 1'b0: "CLK"; 1'b1: "CLK_B"
+        config bit    CE_POS       = 1'b0,                // 1'b0: "CE";  1'b1: "CE_B"
+        config bit    RS_POS       = 1'b0,                // 1'b0: "RS"   1'b1:  "RS_B"
+        config string SYNC_MODE    = "SYNC",              // "SYNC" "ASYNC"
+        config string FFAB_SET     = "RESET"              // "RESET" "SET"
+    );
+    port
+    (
+        // These are the ports of FGB.
+        input    B0, B1, B2, B3, B4, BD,
+        output   Y1,
+
+        // These are the ports of FGA.
+        input    A0, A1, A2, A3, A4, AD,
+        output   Y0,
+
+        // These are the ports shared with FGA and FGB.
+        output   Y6AB,
+
+        // These are the ports of RAM.
+        // Here are the ports of RAM write adress( WA[3:0] ), and shared with ROM.
+        input    M0,
+
+        // Here are the ports of CLMS for controlling.
+        input    RS, CE, CLK,
+
+        // These are the Ports for Global Controlling, such as Global Reset.
+        input    RSIN, CEIN,
+        output   RSOUT, CEOUT
+    );
+
+}// end of device devL6ABQ
+
+/*******************************************************************************
+
+  Device    [devL6ABQ]
+
+  Author    [clwang]
+
+  Abstract  [The structure netlist of devL6ABQ is described in the similar fashion
+             as in HDL. In unit instantiation statement, the formal pin may be
+             connected to net which is declared explicitly.
+
+             In Valence, the connection can also be made from formal pin to other
+             pin or port, in which case Valence compiler shall create the net to
+             fulfil the connection. The built-in naming convention is kicked in
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devL6ABQ
+{
+    // Wires for input ports
+    wire ntB0,ntB1,ntB2,ntB3,ntB4,ntBD;
+    wire ntA0,ntA1,ntA2,ntA3,ntA4,ntAD;
+    wire ntM0;
+    wire ntRS, ntCE, ntCLK;
+    wire ntRSIN;
+    wire ntCEIN;
+
+    // Wires connecting to output ports
+    wire ntY1MUX;
+    wire ntY0MUX;
+    wire ntL6ABMUX;
+
+    wire ntRSMUX;
+    wire ntCEMUX;
+
+    // Internal wires
+    wire ntFGB_Z;
+    wire ntFGA_Z;
+
+    wire ntRSPOLMUX, ntCEPOLMUX, ntCLKPOLMUX;
+    wire ntFFAB_Q, ntQABMUX;
+
+    //
+    // Connection to ports
+    //
+    ntB0      <= B0;
+    ntB1      <= B1;
+    ntB2      <= B2;
+    ntB3      <= B3;
+    ntB4      <= B4;
+    ntBD      <= BD;
+
+    ntA0      <= A0;
+    ntA1      <= A1;
+    ntA2      <= A2;
+    ntA3      <= A3;
+    ntA4      <= A4;
+    ntAD      <= AD;
+
+    ntM0      <= M0;
+
+    ntRS      <= RS;
+    ntCE      <= CE;
+    ntCLK     <= CLK;
+
+    ntRSIN    <= RSIN;
+    ntCEIN    <= CEIN;
+
+    Y1        <= ntY1MUX;
+    Y0        <= ntY0MUX;
+
+    Y6AB      <= ntL6ABMUX;
+
+    RSOUT     <= ntRSMUX;
+    CEOUT     <= ntCEMUX;
+
+    //
+    // Instances. FGB section
+    //
+
+    device FGA FGB
+        parameter map
+        (
+            INIT        => INITB,
+            MODE        => FGB_MODE
+        )
+        port map
+        (
+            A0  => ntB0,A1  => ntB1,A2  => ntB2,A3  => ntB3,A4  => ntB4,A5  => ntBD,
+            Z    => ntFGB_Z
+        );
+    device Y1MUX Y1MUX
+        parameter map
+        (
+            CFG  => Y1MUX_SEL
+        )
+        port map
+        (
+            FG  => ntFGB_Z,
+            Z   => ntY1MUX
+        );
+
+    //
+    // Instances. FGA section
+    //
+
+    device FGA FGA
+        parameter map
+        (
+            INIT        => INITA,
+            MODE        => FGA_MODE
+        )
+        port map
+        (
+            A0  => ntA0,A1  => ntA1,A2  => ntA2,A3  => ntA3,A4  => ntA4,A5  => ntAD,
+            Z    => ntFGA_Z
+        );
+
+    device Y0MUX Y0MUX
+        parameter map
+        (
+            CFG  => Y0MUX_SEL
+        )
+        port map
+        (
+            FFAB => ntFFAB_Q,
+            Z    => ntY0MUX
+        );
+    //
+    // Instances. Common to FGA and FGB sections
+    //
+
+    device L6ABMUX L6ABMUX
+        port map
+        (
+            I1  => ntFGB_Z, I0 => ntFGA_Z,
+            SEL => ntM0,
+            Z   => ntL6ABMUX
+        );
+
+    device QABMUX QABMUX
+        parameter map
+        (
+            CFG  => QABMUX_SEL
+        )
+        port map
+        (
+            L6  => ntL6ABMUX,
+            Z   => ntQABMUX
+        );
+
+    device FF FFAB
+        parameter map
+        (
+            GRS_EN => GRS_EN,
+            LRS_EN => LRS_EN,
+            SET   => FFAB_SET,
+            SYNC  => SYNC_MODE
+        )
+        port map
+        (
+            D  => ntQABMUX,
+            RS => ntRSMUX, CE => ntCEMUX, CK => ntCLKPOLMUX,
+            Q  => ntFFAB_Q
+        );
+
+    device RSMUX RSMUX
+        parameter map
+        (
+            CFG  => RSMUX_SEL
+        )
+        port map
+        (
+            RS  => ntRSPOLMUX, RSIN => ntRSIN,
+            Y   => ntRSMUX
+        );
+
+    device CEMUX CEMUX
+        parameter map
+        (
+            CFG  => CEMUX_SEL
+        )
+        port map
+        (
+            CE  => ntCEPOLMUX, CEIN => ntCEIN,
+            Y   => ntCEMUX
+        );
+
+
+    device RSPOLMUX RSPOLMUX
+        parameter map
+        (
+            CFG  => RS_POS
+        )
+        port map
+        (
+            RS  => ntRS, RS_B => ntRS,
+            Y   => ntRSPOLMUX
+        );
+
+    device CEPOLMUX CEPOLMUX
+        parameter map
+        (
+            CFG  => CE_POS
+        )
+        port map
+        (
+            CE  => ntCE, CE_B => ntCE,
+            Y   => ntCEPOLMUX
+        );
+
+    device CLKPOLMUX CLKPOLMUX
+        parameter map
+        (
+            CFG  => CLK_POS
+        )
+        port map
+        (
+            CLK => ntCLK, CLK_B => ntCLK,
+            Y   => ntCLKPOLMUX
+        );
+
+}; // end of structure netlist of devL6ABQ
+
+
+timing tnl of devL6ABQ
+{
+    // the delay CEIN->CEOUT RSIN->RSOUT describe in the cell timing file.
+    wire lut_o;
+    wire ntCLK;
+    wire ntRS;
+    wire ntCE;
+    wire ntI0;
+
+    Y6AB <= lut_o;
+
+    operator V_BUF V_CEMUX
+        parameter map
+        (
+            SECTION => (CEMUX_SEL == "CE")? "CE_APP" : "CEIN_APP"
+        )
+        port map
+        (
+            I => (CEMUX_SEL == "CE") ? ((CE_POS == 1'b1) ? ntCE : CE) : CEIN,
+            Z => CEOUT
+        );
+
+    operator V_BUF V_RSMUX
+        parameter map
+        (
+            SECTION => (RSMUX_SEL == "RS") ? "RS_APP" : "RSIN_APP"
+        )
+        port map
+        (
+             I => (RSMUX_SEL == "RS") ? ((RS_POS == 1'b1) ? ntRS : RS ) : RSIN,
+             Z => RSOUT
+        );
+
+
+  if(FGA_MODE == "WMUX" )
+  {
+       operator V_LUT5M V_FGA
+          parameter map
+          (
+              SECTION  => "A",
+              INIT     => INITA
+          )
+          port map
+          (
+              I0  => A0,
+              ID  => AD,
+              I1  => A1,
+              I2  => A2,
+              I3  => A3,
+              I4  => A4,
+              Z   => ntI0
+          );
+  }
+  else
+  {
+    operator V_LUT5 V_FGA
+        parameter map
+        (
+            INIT  => INITA,
+            SECTION  => "A"
+         )
+         port map
+         (
+             I0 => A0,
+             I1 => A1,
+             I2 => A2,
+             I3 => A3,
+             I4 => A4,
+              Y => ntI0
+         );
+    }
+
+  if(FGB_MODE == "WMUX" )
+  {
+       operator V_LUT5M V_FGB
+          parameter map
+          (
+              SECTION  => "B",
+              INIT     => INITB
+          )
+          port map
+          (
+              I0  => B0,
+              ID  => BD,
+              I1  => B1,
+              I2  => B2,
+              I3  => B3,
+              I4  => B4,
+              Z   => Y1
+          );
+  }
+  else
+  {
+    operator V_LUT5 V_FGB
+        parameter map
+        (
+            INIT  => INITB,
+            SECTION  => "B"
+         )
+         port map
+         (
+             I0 => B0,
+             I1 => B1,
+             I2 => B2,
+             I3 => B3,
+             I4 => B4,
+               Y => Y1
+          );
+    }
+    operator V_MUX2LUT6 V_L6ABMUX
+        parameter map
+        (
+            SECTION  => "AB"
+        )
+        port map
+        (
+            I0 => ntI0,
+            I1 => Y1,
+            S => M0,
+            Z  => lut_o
+        );
+
+    if (CLK_POS == 1'b1)
+    {
+        operator V_INV V_CLKPOLMUX
+            parameter map
+            (
+                SECTION => "CLK_INV_DUMY"
+            )
+            port map
+            (
+                I => CLK,
+                Z => ntCLK
+            );
+    }
+
+    if (CE_POS == 1'b1)
+    {
+        operator V_INV V_CEPOLMUX
+            parameter map
+            (
+                SECTION => "CE_INV_DUMY"
+            )
+            port map
+            (
+                I => CE,
+                Z => ntCE
+            );
+    }
+
+    if (RS_POS == 1'b1)
+    {
+        operator V_INV V_RSPOLMUX
+            parameter map
+            (
+                SECTION => "RS_INV_DUMY"
+            )
+            port map
+            (
+                I => RS,
+                Z => ntRS
+            );
+    }
+
+    if ( SYNC_MODE == "SYNC" )
+    {
+        operator V_FFSYN FFAB_FF
+            parameter map
+            (
+                GRS_EN    => GRS_EN,
+                LRS_EN    => LRS_EN,
+                SET_RESET => FFAB_SET,
+                SECTION  => "AB"
+            )
+            port map
+            (
+                Q  => Y0,
+                D  => lut_o,
+                SR => (LRS_EN == "TRUE") ?(( RSMUX_SEL == "RS") ? (RS_POS == 1'b1 ? ntRS : RS) : RSIN) : 1'b0,
+                CK => (CLK_POS == 1'b1) ? ntCLK : CLK,
+                CE => ( CEMUX_SEL == "CE") ? ((CE_POS == 1'b1) ? ntCE : CE) : CEIN
+            );
+
+    } else if ( SYNC_MODE == "ASYNC" ) {
+
+        operator V_FFASYN FFAB_FF
+            parameter map
+            (
+                GRS_EN    => GRS_EN,
+                LRS_EN    => LRS_EN,
+                SET_RESET => FFAB_SET,
+                SECTION  => "AB"
+            )
+            port map
+            (
+                Q  => Y0,
+                D  => lut_o,
+                SR => (LRS_EN == "TRUE") ?(( RSMUX_SEL == "RS") ? (RS_POS == 1'b1 ? ntRS : RS) : RSIN) : 1'b0,
+                CK => (CLK_POS == 1'b1) ? ntCLK : CLK,
+                CE => ( CEMUX_SEL == "CE") ? ((CE_POS == 1'b1) ? ntCE : CE) : CEIN
+            );
+
+    }
+
+}
+
+
+

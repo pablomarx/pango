@@ -1,0 +1,155 @@
+*****************************************************************
+
+  Device    [devCL_S]
+
+  Author    []
+
+  Abstract  [THE DEVICE CAN BE USED FOR LUT.]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devCL_S : device devC_S
+{
+    parameter
+    (
+        config bit INITC[31:0]     = 32'h0000_0000,        
+        config string FGC_MODE     = "LUT5",               // "LUT5" "ROM" "WMUX" "ARITH"
+        config string LATCH_SETC   = "RESET",             // USED it when place it in IOL
+        // Used these parameter for CLM     
+        config string LATCH_CE_EN_C  = "USED",               // "UNUSED" "USED"
+        config string LATCH_LRS_EN_C = "USED",              // "UNUSED" "USED"
+                
+        config string RAM_LUT_SEL  := "LUT",               // "RAM"  "LUT" 
+        config string Y2MUX_SEL    := "FG"                 // "FFCD" "FG" "CY" 
+    );
+    
+    port
+    ( 
+        input    C0, C1, C2, C3, C4, CD,
+        output   Y2
+    );
+}; // end of device devCL_S
+
+
+/*******************************************************************************
+
+  Device    [devCL_S]
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devCL_S
+{
+    // Wires for input ports
+    wire ntC0, ntC1, ntC2, ntC3, ntC4, ntCD; 
+
+    // Wires connecting to output ports
+    wire ntY2MUX;
+    // Internal wires
+    wire ntFGC_Z;
+    //
+    // Connection to ports
+    //
+ 
+    ntC0      <= C0;
+    ntC1      <= C1;
+    ntC2      <= C2;
+    ntC3      <= C3;
+    ntC4      <= C4;
+    ntCD      <= CD;
+    Y2        <= ntY2MUX;
+    //
+    // Instances. FGA section
+    //
+
+    device FGS FGC 
+        parameter map
+        (
+            INIT        => INITC,
+            MODE        => FGC_MODE,
+            RAM_LUT_SEL => RAM_LUT_SEL
+        )
+        port map 
+        (
+            A0   => ntC0, A1  => ntC1, A2  => ntC2, A3  => ntC3, A4  => ntC4,       
+            WD   => ntCD,             
+            Z    => ntFGC_Z 
+        );
+
+    device Y2MUX Y2MUX
+        parameter map
+        (
+            CFG  => Y2MUX_SEL
+        )       
+        port map
+        (
+            FG  => ntFGC_Z, 
+            Z   => ntY2MUX
+        );
+}; // end of structure netlist of devCL_S
+
+timing tnl of devCL_S           
+{
+    if(FGC_MODE == "LATCH")
+    {
+        operator V_LAASYN V_FGC
+            parameter map 
+           (
+               SET_RESET => LATCH_SETC,
+               GRS_EN    => "FALSE",
+               LRS_EN    => (LATCH_LRS_EN_C == "USED") ? "TRUE" : "FALSE",
+               SECTION  => "C"
+           )
+            port map 
+            (
+                Q  => Y2,
+                D  => C4,
+                SR => (LATCH_LRS_EN_C == "USED") ? C2 : 1'b0,
+                CK => C1,
+                CE => (LATCH_CE_EN_C == "USED") ? C3 : 1'b1
+            );
+    }
+    else if (FGC_MODE == "WMUX")
+    {
+       operator V_LUT5M V_FGC   
+           parameter map 
+           (
+               INIT => INITC,
+               SECTION  => "C"
+           )
+           port map
+           (
+               I0   => C0,
+               I1   => C1,
+               I2   => C2,
+               I3   => C3,
+               I4   => C4,
+               ID   => CD,
+               Z    => Y2
+           );
+   }
+    else
+    {
+       operator V_LUT5 V_FGC      
+           parameter map            
+           (                    
+               INIT => INITC,
+               SECTION  => "C"    
+           )                    
+           port map                 
+           (                    
+               I0  => C0,        
+               I1  => C1,        
+               I2  => C2,        
+               I3  => C3,        
+               I4  => C4,      
+               Y   => Y2         
+           );                   
+    }                       
+}                          

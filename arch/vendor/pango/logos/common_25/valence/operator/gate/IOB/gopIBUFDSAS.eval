@@ -1,0 +1,58 @@
+*******************************************************************
+
+  Operator    [gopIBUFDSAS]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+gate
+operator gopIBUFDSAS
+{
+    parameter
+    (
+        string TERMINATED         = "PULLUP",    /* "UNUSED" , "PULLUP" , "PULLDOWN" , "KEEPER" */
+        string HOT_SOCKET         = "ON",        // ON: 1'b0; OFF: 1'b1
+        string POWER_MODE         = "ON",        // ON: 1'b0; OFF: 1'b1 ON--> POWER GUARD
+        string VCCIO              = "3.3",       // "3.3" "2.5" "1.8" "1.5" "1.2"
+
+        string HYS_DRIVE_MODE     = "NOHYS" ,    // "NOHYS","SMHYS_I","SMHYS_II","LGHYS","OD","UD" 
+        string VREF_MODE          = "IN"    ,    // "IN": VREF_IN; "OUT": VREF_OUT
+        string VREF_PIN_LOC       = "NA"    ,    // "NA" "VREF1" "VREF2" "VREF3",
+                                                 // This Parameter is used for PCE and report.
+        string VREF_IN_MODE       = "OFF",    // "OFF" "0.45" "0.50" "0.55"
+        string DDR_TERM_MODE      = "OFF",     // "TERM": "ON" "OFF"     
+        string VREF_OUT_MODE      = "VREF1",  // "VREF1" "VREF2" "VREF3" "EXT_DRV"         
+        string DIFF_IN_TERM_MODE  = "OFF",
+        string IOSTANDARD         = "LVCMOS33" 
+    );
+    port
+    (
+        input  I_B,
+        input  T,
+        output DIFFI_OUT
+    );
+};
+
+implementation impl_D of gopIBUFDSAS
+{
+    device devIBUFDSASD gate_ibufdsasd
+        parameter map
+        (
+            CP_PORT_STATUS       =>  TERMINATED,
+            CP_HOT_SOCKET        =>  HOT_SOCKET,
+            CP_VCCIO             =>  VCCIO,
+            CP_IOB_MODE          =>  "IBUFHR_DS",
+            CP_W_VOLT_R_IN       =>  HYS_DRIVE_MODE,
+            CP_DDRIN_TERM        =>  DDR_TERM_MODE,
+            CP_DIFFIN_TERM       =>  DIFF_IN_TERM_MODE,
+            CP_IO_STANDARD       =>  IOSTANDARD == "DEFAULT" ? "LVCMOS33" : IOSTANDARD 
+        )
+        port map 
+        (
+            TS          => T,
+            PAD         => I_B,
+            DIFFO_OUT   => DIFFI_OUT
+        );
+};

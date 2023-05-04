@@ -1,0 +1,61 @@
+*****************************************************************
+
+  Device    [CEMUX]
+
+  Author    [clwang]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+prim
+device CEMUX
+{
+    parameter
+    (
+        config string CFG  = "CE" // "CE" "CEIN"
+    );
+    port 
+    ( 
+        input  CE, CEIN,
+        output Y
+    );
+
+}; // end of device CEMUX
+
+
+propagation prop_ce of CEMUX
+{
+
+    if (CFG == "CE")
+    {
+        propagate ( CE --> Y );
+    }
+    else
+    {
+        propagate ( CEIN --> Y );
+    }
+};
+
+/**Device***********************************************************************
+
+  Device    [CEMUX]
+  
+  Author    []
+
+  Abstract  [This specified the timing model under specific configuration]
+
+  Revision History:
+
+********************************************************************************/
+timing  cemux_tnl of CEMUX
+{
+   operator V_BUF V_BUF
+       port map
+       (
+           I => (CFG == "CE")  ? CE  :
+                (CFG == "CEIN") ? CEIN : 1'bx,
+           Z => Y
+       );
+};

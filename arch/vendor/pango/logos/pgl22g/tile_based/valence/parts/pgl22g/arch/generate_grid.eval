@@ -1,0 +1,876 @@
+use pgl_defs,pgl22g_defs;
+
+
+/******************************************************************************
+
+
+  Author    []
+  
+  plg22g contain logic column(27),apm column(1),drm column(2),iol column(2),iob column(2), hard memory(1) and a BLSR column
+                 Hard memory control column occupies 12 grids. For all other columns,every column occupies 4 grids
+                 So MAX_X = 152
+          contain 90 logic tiles,and 3 WLSR tiles,every logic tile occupies 4 grids, WLSR tile occupies 8 grids
+                 So MAX_Y = 384
+ 
+********************************************************************************/
+
+architecture
+device devPGL22G
+{
+    property
+    (
+      enum DEVICE_PACKAGES PKG = "BG256",
+      enum DEVICE_SPEEDGRADE SPEED = "-6"
+    );
+
+    port 
+    (
+       inout VDD11,
+       inout VSS,
+       inout VSSA,
+       inout VSSA_PLL0,
+       inout VSSA_PLL1,
+       inout VSSA_PLL2,
+       inout VSSA_PLL3,
+       inout VSSA_PLL4,
+       inout VSSA_PLL5,
+       inout VDD33,
+       inout VDD33A,
+       inout VDD33A_PLL,
+       inout VDDIOCFG,
+       inout VSSIOCFG,
+       inout VDDEFUSE,
+       inout VDDIOL1,
+       inout VDDIOL2,
+       inout VDDIOR0,
+       inout VDDIOR1,
+       inout VDDIOR2,
+       inout VDDIOL0,
+       inout VSSIOL1,
+       inout VSSIOL2,
+       inout VSSIOL0,
+       inout VSSIOR0,
+       inout VSSIOR1,
+       inout VSSIOR2,
+       inout CFG_DONE,
+       input RST_N,
+       input TCK,
+       input TMS,
+       input TDI,
+       output TDO,
+       output CFG_I_FCLK,
+
+       input VA0,
+       input VA1,
+       input REXT,
+       input VREF_EXT,
+       inout I_D0,
+       inout I_D1,
+       inout I_D2,
+       inout I_D3,
+       output I_FCS_N,
+       inout L0_PAD0,
+       inout L0_PAD1,
+       inout L0_PAD2,
+       inout L0_PAD3,
+       inout L0_PAD4,
+       inout L0_PAD5,
+       inout L0_PAD6,
+       inout L0_PAD7,
+       inout L0_PAD8,
+       inout L0_PAD9,
+       inout L0_PAD10,
+       inout L0_PAD11,
+       inout L0_PAD12,
+       inout L0_PAD13,
+       inout L0_PAD14,
+       inout L0_PAD15,
+       inout L0_PAD16,
+       inout L0_PAD17,
+       inout L0_PAD18,
+       inout L0_PAD19,
+       inout L0_PAD20,
+       inout L0_PAD21,
+       inout L0_PAD22,
+       inout L0_PAD23,
+       inout L0_PAD24,
+       inout L0_PAD25,
+       inout L0_PAD26,
+       inout L0_PAD27,
+       inout L0_PAD28,
+       inout L0_PAD29,
+       inout L0_PAD30,
+       inout L0_PAD31,
+       inout L0_PAD32,
+       inout L0_PAD33,
+       inout L0_PAD34,
+       inout L0_PAD35,
+       inout L0_PAD36,
+       inout L0_PAD37,
+       inout L0_PAD38,
+       inout L0_PAD39,
+       inout L1_PAD0,
+       inout L1_PAD1,
+       inout L1_PAD2,
+       inout L1_PAD3,
+       inout L1_PAD4,
+       inout L1_PAD5,
+       inout L1_PAD6,
+       inout L1_PAD7,
+       inout L1_PAD8,
+       inout L1_PAD9,
+       inout L1_PAD10,
+       inout L1_PAD11,
+       inout L1_PAD12,
+       inout L1_PAD13,
+       inout L1_PAD14,
+       inout L1_PAD15,
+       inout L1_PAD16,
+       inout L1_PAD17,
+       inout L1_PAD18,
+       inout L1_PAD19,
+       inout L1_PAD20,
+       inout L1_PAD21,
+       inout L1_PAD22,
+       inout L1_PAD23,
+       inout L1_PAD24,
+       inout L1_PAD25,
+       inout L1_PAD26,
+       inout L1_PAD27,
+       inout L1_PAD28,
+       inout L1_PAD29,
+       inout L1_PAD30,
+       inout L1_PAD31,
+       inout L1_PAD32,
+       inout L1_PAD33,
+       inout L1_PAD34,
+       inout L1_PAD35,
+       inout L1_PAD36,
+       inout L1_PAD37,
+       inout L1_PAD38,
+       inout L1_PAD39,
+       inout L2_PAD0,
+       inout L2_PAD1,
+       inout L2_PAD2,
+       inout L2_PAD3,
+       inout L2_PAD4,
+       inout L2_PAD5,
+       inout L2_PAD6,
+       inout L2_PAD7,
+       inout L2_PAD8,
+       inout L2_PAD9,
+       inout L2_PAD10,
+       inout L2_PAD11,
+       inout L2_PAD12,
+       inout L2_PAD13,
+       inout L2_PAD14,
+       inout L2_PAD15,
+       inout L2_PAD16,
+       inout L2_PAD17,
+       inout L2_PAD18,
+       inout L2_PAD19,
+       inout L2_PAD20,
+       inout L2_PAD21,
+       inout L2_PAD22,
+       inout L2_PAD23,
+       inout L2_PAD24,
+       inout L2_PAD25,
+       inout L2_PAD26,
+       inout L2_PAD27,
+       inout L2_PAD28,
+       inout L2_PAD29,
+       inout L2_PAD30,
+       inout L2_PAD31,
+       inout L2_PAD32,
+       inout L2_PAD33,
+       inout L2_PAD34,
+       inout L2_PAD35,
+       inout L2_PAD36,
+       inout L2_PAD37,
+       inout L2_PAD38,
+       inout L2_PAD39,
+       inout R0_PAD0,
+       inout R0_PAD1,
+       inout R0_PAD2,
+       inout R0_PAD3,
+       inout R0_PAD4,
+       inout R0_PAD5,
+       inout R0_PAD6,
+       inout R0_PAD7,
+       inout R0_PAD8,
+       inout R0_PAD9,
+       inout R0_PAD10,
+       inout R0_PAD11,
+       inout R0_PAD12,
+       inout R0_PAD13,
+       inout R0_PAD14,
+       inout R0_PAD15,
+       inout R0_PAD16,
+       inout R0_PAD17,
+       inout R0_PAD18,
+       inout R0_PAD19,
+       inout R0_PAD20,
+       inout R0_PAD21,
+       inout R0_PAD22,
+       inout R0_PAD23,
+       inout R0_PAD24,
+       inout R0_PAD25,
+       inout R0_PAD26,
+       inout R0_PAD27,
+       inout R0_PAD28,
+       inout R0_PAD29,
+       inout R0_PAD30,
+       inout R0_PAD31,
+       inout R0_PAD32,
+       inout R0_PAD33,
+       inout R0_PAD34,
+       inout R0_PAD35,
+       inout R0_PAD36,
+       inout R0_PAD37,
+       inout R0_PAD38,
+       inout R0_PAD39,
+       inout R1_PAD0,
+       inout R1_PAD1,
+       inout R1_PAD2,
+       inout R1_PAD3,
+       inout R1_PAD4,
+       inout R1_PAD5,
+       inout R1_PAD6,
+       inout R1_PAD7,
+       inout R1_PAD8,
+       inout R1_PAD9,
+       inout R1_PAD10,
+       inout R1_PAD11,
+       inout R1_PAD12,
+       inout R1_PAD13,
+       inout R1_PAD14,
+       inout R1_PAD15,
+       inout R1_PAD16,
+       inout R1_PAD17,
+       inout R1_PAD18,
+       inout R1_PAD19,
+       inout R1_PAD20,
+       inout R1_PAD21,
+       inout R1_PAD22,
+       inout R1_PAD23,
+       inout R1_PAD24,
+       inout R1_PAD25,
+       inout R1_PAD26,
+       inout R1_PAD27,
+       inout R1_PAD28,
+       inout R1_PAD29,
+       inout R1_PAD30,
+       inout R1_PAD31,
+       inout R1_PAD32,
+       inout R1_PAD33,
+       inout R1_PAD34,
+       inout R1_PAD35,
+       inout R1_PAD36,
+       inout R1_PAD37,
+       inout R1_PAD38,
+       inout R1_PAD39,
+       inout R2_PAD0,
+       inout R2_PAD1,
+       inout R2_PAD2,
+       inout R2_PAD3,
+       inout R2_PAD4,
+       inout R2_PAD5,
+       inout R2_PAD6,
+       inout R2_PAD7,
+       inout R2_PAD8,
+       inout R2_PAD9,
+       inout R2_PAD10,
+       inout R2_PAD11,
+       inout R2_PAD12,
+       inout R2_PAD13,
+       inout R2_PAD14,
+       inout R2_PAD15,
+       inout R2_PAD16,
+       inout R2_PAD17,
+       inout R2_PAD18,
+       inout R2_PAD19,
+       inout R2_PAD20,
+       inout R2_PAD21,
+       inout R2_PAD22,
+       inout R2_PAD23,
+       inout R2_PAD24,
+       inout R2_PAD25,
+       inout R2_PAD26,
+       inout R2_PAD27,
+       inout R2_PAD28,
+       inout R2_PAD29,
+       inout R2_PAD30,
+       inout R2_PAD31,
+       inout R2_PAD32,
+       inout R2_PAD33,
+       inout R2_PAD34,
+       inout R2_PAD35,
+       inout R2_PAD36,
+       inout R2_PAD37,
+       inout R2_PAD38,
+       inout R2_PAD39
+     ) 
+
+}; // end of architecture device PGL22G
+
+library work;
+use pgl_defs,pgl22g_defs;
+
+structure arch_nl generate_grid of devPGL22G
+{
+    unsigned int X,Y;
+    X = NUM_GRID_X * 39;
+    Y = NUM_GRID_Y * 94;
+   
+    generate ( X # Y ) of site stARCH
+        {
+            // DEBUG
+            // printf("***");
+            // printf("*** Generating architectural grid (%d by %d).", MAX_X, MAX_Y);
+            // printf("***");
+        };
+
+    wire ntVDD11, ntVSS, ntVSSA, ntVSSA_PLL0, ntVSSA_PLL1, ntVSSA_PLL2, ntVSSA_PLL3, ntVSSA_PLL4, ntVSSA_PLL5;
+    wire ntVDD33, ntVDD33A, ntVDD33A_PLL; 
+    wire ntVDDIOCFG, ntVSSIOCFG, ntVDDEFUSE;
+    wire ntVDDIOL1, ntVDDIOL2, ntVDDIOR0, ntVDDIOR1, ntVDDIOR2, ntVDDIOL0;
+    wire ntVSSIOL1, ntVSSIOL2, ntVSSIOL0, ntVSSIOR0, ntVSSIOR1, ntVSSIOR2;
+    wire ntMODE_2, ntMODE_1, ntMODE_0, ntINIT_FLAG_N, ntCFG_DONE, ntRST_N, ntCFG_CLK;
+    wire ntTCK, ntTMS, ntTDI, ntTDO;
+    wire ntCFG_I_FCLK,ntI_FCS_N;
+    wire ntI_D0,ntI_D1,ntI_D2,ntI_D3;
+    wire ntVA0;
+    wire ntVA1;
+    wire ntREXT;
+    wire ntVREF_EXT;
+    wire ntL0_PAD0;
+    wire ntL0_PAD1;
+    wire ntL0_PAD2;
+    wire ntL0_PAD3;
+    wire ntL0_PAD4;
+    wire ntL0_PAD5;
+    wire ntL0_PAD6;
+    wire ntL0_PAD7;
+    wire ntL0_PAD8;
+    wire ntL0_PAD9;
+    wire ntL0_PAD10;
+    wire ntL0_PAD11;
+    wire ntL0_PAD12;
+    wire ntL0_PAD13;
+    wire ntL0_PAD14;
+    wire ntL0_PAD15;
+    wire ntL0_PAD16;
+    wire ntL0_PAD17;
+    wire ntL0_PAD18;
+    wire ntL0_PAD19;
+    wire ntL0_PAD20;
+    wire ntL0_PAD21;
+    wire ntL0_PAD22;
+    wire ntL0_PAD23;
+    wire ntL0_PAD24;
+    wire ntL0_PAD25;
+    wire ntL0_PAD26;
+    wire ntL0_PAD27;
+    wire ntL0_PAD28;
+    wire ntL0_PAD29;
+    wire ntL0_PAD30;
+    wire ntL0_PAD31;
+    wire ntL0_PAD32;
+    wire ntL0_PAD33;
+    wire ntL0_PAD34;
+    wire ntL0_PAD35;
+    wire ntL0_PAD36;
+    wire ntL0_PAD37;
+    wire ntL0_PAD38;
+    wire ntL0_PAD39;
+    wire ntL1_PAD0;
+    wire ntL1_PAD1;
+    wire ntL1_PAD2;
+    wire ntL1_PAD3;
+    wire ntL1_PAD4;
+    wire ntL1_PAD5;
+    wire ntL1_PAD6;
+    wire ntL1_PAD7;
+    wire ntL1_PAD8;
+    wire ntL1_PAD9;
+    wire ntL1_PAD10;
+    wire ntL1_PAD11;
+    wire ntL1_PAD12;
+    wire ntL1_PAD13;
+    wire ntL1_PAD14;
+    wire ntL1_PAD15;
+    wire ntL1_PAD16;
+    wire ntL1_PAD17;
+    wire ntL1_PAD18;
+    wire ntL1_PAD19;
+    wire ntL1_PAD20;
+    wire ntL1_PAD21;
+    wire ntL1_PAD22;
+    wire ntL1_PAD23;
+    wire ntL1_PAD24;
+    wire ntL1_PAD25;
+    wire ntL1_PAD26;
+    wire ntL1_PAD27;
+    wire ntL1_PAD28;
+    wire ntL1_PAD29;
+    wire ntL1_PAD30;
+    wire ntL1_PAD31;
+    wire ntL1_PAD32;
+    wire ntL1_PAD33;
+    wire ntL1_PAD34;
+    wire ntL1_PAD35;
+    wire ntL1_PAD36;
+    wire ntL1_PAD37;
+    wire ntL1_PAD38;
+    wire ntL1_PAD39;
+    wire ntL2_PAD0;
+    wire ntL2_PAD1;
+    wire ntL2_PAD2;
+    wire ntL2_PAD3;
+    wire ntL2_PAD4;
+    wire ntL2_PAD5;
+    wire ntL2_PAD6;
+    wire ntL2_PAD7;
+    wire ntL2_PAD8;
+    wire ntL2_PAD9;
+    wire ntL2_PAD10;
+    wire ntL2_PAD11;
+    wire ntL2_PAD12;
+    wire ntL2_PAD13;
+    wire ntL2_PAD14;
+    wire ntL2_PAD15;
+    wire ntL2_PAD16;
+    wire ntL2_PAD17;
+    wire ntL2_PAD18;
+    wire ntL2_PAD19;
+    wire ntL2_PAD20;
+    wire ntL2_PAD21;
+    wire ntL2_PAD22;
+    wire ntL2_PAD23;
+    wire ntL2_PAD24;
+    wire ntL2_PAD25;
+    wire ntL2_PAD26;
+    wire ntL2_PAD27;
+    wire ntL2_PAD28;
+    wire ntL2_PAD29;
+    wire ntL2_PAD30;
+    wire ntL2_PAD31;
+    wire ntL2_PAD32;
+    wire ntL2_PAD33;
+    wire ntL2_PAD34;
+    wire ntL2_PAD35;
+    wire ntL2_PAD36;
+    wire ntL2_PAD37;
+    wire ntL2_PAD38;
+    wire ntL2_PAD39;
+    wire ntR0_PAD0;
+    wire ntR0_PAD1;
+    wire ntR0_PAD2;
+    wire ntR0_PAD3;
+    wire ntR0_PAD4;
+    wire ntR0_PAD5;
+    wire ntR0_PAD6;
+    wire ntR0_PAD7;
+    wire ntR0_PAD8;
+    wire ntR0_PAD9;
+    wire ntR0_PAD10;
+    wire ntR0_PAD11;
+    wire ntR0_PAD12;
+    wire ntR0_PAD13;
+    wire ntR0_PAD14;
+    wire ntR0_PAD15;
+    wire ntR0_PAD16;
+    wire ntR0_PAD17;
+    wire ntR0_PAD18;
+    wire ntR0_PAD19;
+    wire ntR0_PAD20;
+    wire ntR0_PAD21;
+    wire ntR0_PAD22;
+    wire ntR0_PAD23;
+    wire ntR0_PAD24;
+    wire ntR0_PAD25;
+    wire ntR0_PAD26;
+    wire ntR0_PAD27;
+    wire ntR0_PAD28;
+    wire ntR0_PAD29;
+    wire ntR0_PAD30;
+    wire ntR0_PAD31;
+    wire ntR0_PAD32;
+    wire ntR0_PAD33;
+    wire ntR0_PAD34;
+    wire ntR0_PAD35;
+    wire ntR0_PAD36;
+    wire ntR0_PAD37;
+    wire ntR0_PAD38;
+    wire ntR0_PAD39;
+    wire ntR1_PAD0;
+    wire ntR1_PAD1;
+    wire ntR1_PAD2;
+    wire ntR1_PAD3;
+    wire ntR1_PAD4;
+    wire ntR1_PAD5;
+    wire ntR1_PAD6;
+    wire ntR1_PAD7;
+    wire ntR1_PAD8;
+    wire ntR1_PAD9;
+    wire ntR1_PAD10;
+    wire ntR1_PAD11;
+    wire ntR1_PAD12;
+    wire ntR1_PAD13;
+    wire ntR1_PAD14;
+    wire ntR1_PAD15;
+    wire ntR1_PAD16;
+    wire ntR1_PAD17;
+    wire ntR1_PAD18;
+    wire ntR1_PAD19;
+    wire ntR1_PAD20;
+    wire ntR1_PAD21;
+    wire ntR1_PAD22;
+    wire ntR1_PAD23;
+    wire ntR1_PAD24;
+    wire ntR1_PAD25;
+    wire ntR1_PAD26;
+    wire ntR1_PAD27;
+    wire ntR1_PAD28;
+    wire ntR1_PAD29;
+    wire ntR1_PAD30;
+    wire ntR1_PAD31;
+    wire ntR1_PAD32;
+    wire ntR1_PAD33;
+    wire ntR1_PAD34;
+    wire ntR1_PAD35;
+    wire ntR1_PAD36;
+    wire ntR1_PAD37;
+    wire ntR1_PAD38;
+    wire ntR1_PAD39;
+    wire ntR2_PAD0;
+    wire ntR2_PAD1;
+    wire ntR2_PAD2;
+    wire ntR2_PAD3;
+    wire ntR2_PAD4;
+    wire ntR2_PAD5;
+    wire ntR2_PAD6;
+    wire ntR2_PAD7;
+    wire ntR2_PAD8;
+    wire ntR2_PAD9;
+    wire ntR2_PAD10;
+    wire ntR2_PAD11;
+    wire ntR2_PAD12;
+    wire ntR2_PAD13;
+    wire ntR2_PAD14;
+    wire ntR2_PAD15;
+    wire ntR2_PAD16;
+    wire ntR2_PAD17;
+    wire ntR2_PAD18;
+    wire ntR2_PAD19;
+    wire ntR2_PAD20;
+    wire ntR2_PAD21;
+    wire ntR2_PAD22;
+    wire ntR2_PAD23;
+    wire ntR2_PAD24;
+    wire ntR2_PAD25;
+    wire ntR2_PAD26;
+    wire ntR2_PAD27;
+    wire ntR2_PAD28;
+    wire ntR2_PAD29;
+    wire ntR2_PAD30;
+    wire ntR2_PAD31;
+    wire ntR2_PAD32;
+    wire ntR2_PAD33;
+    wire ntR2_PAD34;
+    wire ntR2_PAD35;
+    wire ntR2_PAD36;
+    wire ntR2_PAD37;
+    wire ntR2_PAD38;
+    wire ntR2_PAD39;
+
+    
+    ntVDD11          <= VDD11;
+    ntVSS            <= VSS;
+    ntVSSA           <= VSSA;
+    ntVSSA_PLL0      <= VSSA_PLL0;
+    ntVSSA_PLL1      <= VSSA_PLL1;
+    ntVSSA_PLL2      <= VSSA_PLL2;
+    ntVSSA_PLL3      <= VSSA_PLL3;
+    ntVSSA_PLL4      <= VSSA_PLL4;
+    ntVSSA_PLL5      <= VSSA_PLL5;
+    ntVDD33          <= VDD33;
+    ntVDD33A         <= VDD33A;
+    ntVDD33A_PLL     <= VDD33A_PLL;
+    ntVDDIOCFG       <= VDDIOCFG;
+    ntVSSIOCFG       <= VSSIOCFG;
+    ntVDDEFUSE       <= VDDEFUSE;
+    ntVDDIOL1        <= VDDIOL1;
+    ntVDDIOL2        <= VDDIOL2;
+    ntVDDIOR0        <= VDDIOR0;
+    ntVDDIOR1        <= VDDIOR1;
+    ntVDDIOR2        <= VDDIOR2;
+    ntVDDIOL0        <= VDDIOL0;
+    ntVSSIOL1        <= VSSIOL1;
+    ntVSSIOL2        <= VSSIOL2;
+    ntVSSIOL0        <= VSSIOL0;
+    ntVSSIOR0        <= VSSIOR0;
+    ntVSSIOR1        <= VSSIOR1;
+    ntVSSIOR2        <= VSSIOR2;
+    ntI_FCS_N        <= I_FCS_N;
+    ntCFG_DONE       <= CFG_DONE;
+    ntRST_N          <= RST_N;
+    ntTCK            <= TCK;
+    ntTMS            <= TMS;
+    ntTDI            <= TDI;
+    ntTDO            <= TDO;
+    ntCFG_I_FCLK     <= CFG_I_FCLK;
+    ntVA0            <= VA0;
+    ntVA1            <= VA1;
+    ntI_D0           <= I_D0;
+    ntI_D1           <= I_D1;
+    ntI_D2           <= I_D2;
+    ntI_D3           <= I_D3;
+    ntREXT           <= REXT;
+    ntVREF_EXT       <= VREF_EXT;
+    ntL0_PAD0          <= L0_PAD0;
+    ntL0_PAD1          <= L0_PAD1;
+    ntL0_PAD2          <= L0_PAD2;
+    ntL0_PAD3          <= L0_PAD3;
+    ntL0_PAD4          <= L0_PAD4;
+    ntL0_PAD5          <= L0_PAD5;
+    ntL0_PAD6          <= L0_PAD6;
+    ntL0_PAD7          <= L0_PAD7;
+    ntL0_PAD8          <= L0_PAD8;
+    ntL0_PAD9          <= L0_PAD9;
+    ntL0_PAD10          <= L0_PAD10;
+    ntL0_PAD11          <= L0_PAD11;
+    ntL0_PAD12          <= L0_PAD12;
+    ntL0_PAD13          <= L0_PAD13;
+    ntL0_PAD14          <= L0_PAD14;
+    ntL0_PAD15          <= L0_PAD15;
+    ntL0_PAD16          <= L0_PAD16;
+    ntL0_PAD17          <= L0_PAD17;
+    ntL0_PAD18          <= L0_PAD18;
+    ntL0_PAD19          <= L0_PAD19;
+    ntL0_PAD20          <= L0_PAD20;
+    ntL0_PAD21          <= L0_PAD21;
+    ntL0_PAD22          <= L0_PAD22;
+    ntL0_PAD23          <= L0_PAD23;
+    ntL0_PAD24          <= L0_PAD24;
+    ntL0_PAD25          <= L0_PAD25;
+    ntL0_PAD26          <= L0_PAD26;
+    ntL0_PAD27          <= L0_PAD27;
+    ntL0_PAD28          <= L0_PAD28;
+    ntL0_PAD29          <= L0_PAD29;
+    ntL0_PAD30          <= L0_PAD30;
+    ntL0_PAD31          <= L0_PAD31;
+    ntL0_PAD32          <= L0_PAD32;
+    ntL0_PAD33          <= L0_PAD33;
+    ntL0_PAD34          <= L0_PAD34;
+    ntL0_PAD35          <= L0_PAD35;
+    ntL0_PAD36          <= L0_PAD36;
+    ntL0_PAD37          <= L0_PAD37;
+    ntL0_PAD38          <= L0_PAD38;
+    ntL0_PAD39          <= L0_PAD39;
+    ntL1_PAD0          <= L1_PAD0;
+    ntL1_PAD1          <= L1_PAD1;
+    ntL1_PAD2          <= L1_PAD2;
+    ntL1_PAD3          <= L1_PAD3;
+    ntL1_PAD4          <= L1_PAD4;
+    ntL1_PAD5          <= L1_PAD5;
+    ntL1_PAD6          <= L1_PAD6;
+    ntL1_PAD7          <= L1_PAD7;
+    ntL1_PAD8          <= L1_PAD8;
+    ntL1_PAD9          <= L1_PAD9;
+    ntL1_PAD10          <= L1_PAD10;
+    ntL1_PAD11          <= L1_PAD11;
+    ntL1_PAD12          <= L1_PAD12;
+    ntL1_PAD13          <= L1_PAD13;
+    ntL1_PAD14          <= L1_PAD14;
+    ntL1_PAD15          <= L1_PAD15;
+    ntL1_PAD16          <= L1_PAD16;
+    ntL1_PAD17          <= L1_PAD17;
+    ntL1_PAD18          <= L1_PAD18;
+    ntL1_PAD19          <= L1_PAD19;
+    ntL1_PAD20          <= L1_PAD20;
+    ntL1_PAD21          <= L1_PAD21;
+    ntL1_PAD22          <= L1_PAD22;
+    ntL1_PAD23          <= L1_PAD23;
+    ntL1_PAD24          <= L1_PAD24;
+    ntL1_PAD25          <= L1_PAD25;
+    ntL1_PAD26          <= L1_PAD26;
+    ntL1_PAD27          <= L1_PAD27;
+    ntL1_PAD28          <= L1_PAD28;
+    ntL1_PAD29          <= L1_PAD29;
+    ntL1_PAD30          <= L1_PAD30;
+    ntL1_PAD31          <= L1_PAD31;
+    ntL1_PAD32          <= L1_PAD32;
+    ntL1_PAD33          <= L1_PAD33;
+    ntL1_PAD34          <= L1_PAD34;
+    ntL1_PAD35          <= L1_PAD35;
+    ntL1_PAD36          <= L1_PAD36;
+    ntL1_PAD37          <= L1_PAD37;
+    ntL1_PAD38          <= L1_PAD38;
+    ntL1_PAD39          <= L1_PAD39;
+    ntL2_PAD0          <= L2_PAD0;
+    ntL2_PAD1          <= L2_PAD1;
+    ntL2_PAD2          <= L2_PAD2;
+    ntL2_PAD3          <= L2_PAD3;
+    ntL2_PAD4          <= L2_PAD4;
+    ntL2_PAD5          <= L2_PAD5;
+    ntL2_PAD6          <= L2_PAD6;
+    ntL2_PAD7          <= L2_PAD7;
+    ntL2_PAD8          <= L2_PAD8;
+    ntL2_PAD9          <= L2_PAD9;
+    ntL2_PAD10          <= L2_PAD10;
+    ntL2_PAD11          <= L2_PAD11;
+    ntL2_PAD12          <= L2_PAD12;
+    ntL2_PAD13          <= L2_PAD13;
+    ntL2_PAD14          <= L2_PAD14;
+    ntL2_PAD15          <= L2_PAD15;
+    ntL2_PAD16          <= L2_PAD16;
+    ntL2_PAD17          <= L2_PAD17;
+    ntL2_PAD18          <= L2_PAD18;
+    ntL2_PAD19          <= L2_PAD19;
+    ntL2_PAD20          <= L2_PAD20;
+    ntL2_PAD21          <= L2_PAD21;
+    ntL2_PAD22          <= L2_PAD22;
+    ntL2_PAD23          <= L2_PAD23;
+    ntL2_PAD24          <= L2_PAD24;
+    ntL2_PAD25          <= L2_PAD25;
+    ntL2_PAD26          <= L2_PAD26;
+    ntL2_PAD27          <= L2_PAD27;
+    ntL2_PAD28          <= L2_PAD28;
+    ntL2_PAD29          <= L2_PAD29;
+    ntL2_PAD30          <= L2_PAD30;
+    ntL2_PAD31          <= L2_PAD31;
+    ntL2_PAD32          <= L2_PAD32;
+    ntL2_PAD33          <= L2_PAD33;
+    ntL2_PAD34          <= L2_PAD34;
+    ntL2_PAD35          <= L2_PAD35;
+    ntL2_PAD36          <= L2_PAD36;
+    ntL2_PAD37          <= L2_PAD37;
+    ntL2_PAD38          <= L2_PAD38;
+    ntL2_PAD39          <= L2_PAD39;
+    ntR0_PAD0          <= R0_PAD0;
+    ntR0_PAD1          <= R0_PAD1;
+    ntR0_PAD2          <= R0_PAD2;
+    ntR0_PAD3          <= R0_PAD3;
+    ntR0_PAD4          <= R0_PAD4;
+    ntR0_PAD5          <= R0_PAD5;
+    ntR0_PAD6          <= R0_PAD6;
+    ntR0_PAD7          <= R0_PAD7;
+    ntR0_PAD8          <= R0_PAD8;
+    ntR0_PAD9          <= R0_PAD9;
+    ntR0_PAD10          <= R0_PAD10;
+    ntR0_PAD11          <= R0_PAD11;
+    ntR0_PAD12          <= R0_PAD12;
+    ntR0_PAD13          <= R0_PAD13;
+    ntR0_PAD14          <= R0_PAD14;
+    ntR0_PAD15          <= R0_PAD15;
+    ntR0_PAD16          <= R0_PAD16;
+    ntR0_PAD17          <= R0_PAD17;
+    ntR0_PAD18          <= R0_PAD18;
+    ntR0_PAD19          <= R0_PAD19;
+    ntR0_PAD20          <= R0_PAD20;
+    ntR0_PAD21          <= R0_PAD21;
+    ntR0_PAD22          <= R0_PAD22;
+    ntR0_PAD23          <= R0_PAD23;
+    ntR0_PAD24          <= R0_PAD24;
+    ntR0_PAD25          <= R0_PAD25;
+    ntR0_PAD26          <= R0_PAD26;
+    ntR0_PAD27          <= R0_PAD27;
+    ntR0_PAD28          <= R0_PAD28;
+    ntR0_PAD29          <= R0_PAD29;
+    ntR0_PAD30          <= R0_PAD30;
+    ntR0_PAD31          <= R0_PAD31;
+    ntR0_PAD32          <= R0_PAD32;
+    ntR0_PAD33          <= R0_PAD33;
+    ntR0_PAD34          <= R0_PAD34;
+    ntR0_PAD35          <= R0_PAD35;
+    ntR0_PAD36          <= R0_PAD36;
+    ntR0_PAD37          <= R0_PAD37;
+    ntR0_PAD38          <= R0_PAD38;
+    ntR0_PAD39          <= R0_PAD39;
+    ntR1_PAD0          <= R1_PAD0;
+    ntR1_PAD1          <= R1_PAD1;
+    ntR1_PAD2          <= R1_PAD2;
+    ntR1_PAD3          <= R1_PAD3;
+    ntR1_PAD4          <= R1_PAD4;
+    ntR1_PAD5          <= R1_PAD5;
+    ntR1_PAD6          <= R1_PAD6;
+    ntR1_PAD7          <= R1_PAD7;
+    ntR1_PAD8          <= R1_PAD8;
+    ntR1_PAD9          <= R1_PAD9;
+    ntR1_PAD10          <= R1_PAD10;
+    ntR1_PAD11          <= R1_PAD11;
+    ntR1_PAD12          <= R1_PAD12;
+    ntR1_PAD13          <= R1_PAD13;
+    ntR1_PAD14          <= R1_PAD14;
+    ntR1_PAD15          <= R1_PAD15;
+    ntR1_PAD16          <= R1_PAD16;
+    ntR1_PAD17          <= R1_PAD17;
+    ntR1_PAD18          <= R1_PAD18;
+    ntR1_PAD19          <= R1_PAD19;
+    ntR1_PAD20          <= R1_PAD20;
+    ntR1_PAD21          <= R1_PAD21;
+    ntR1_PAD22          <= R1_PAD22;
+    ntR1_PAD23          <= R1_PAD23;
+    ntR1_PAD24          <= R1_PAD24;
+    ntR1_PAD25          <= R1_PAD25;
+    ntR1_PAD26          <= R1_PAD26;
+    ntR1_PAD27          <= R1_PAD27;
+    ntR1_PAD28          <= R1_PAD28;
+    ntR1_PAD29          <= R1_PAD29;
+    ntR1_PAD30          <= R1_PAD30;
+    ntR1_PAD31          <= R1_PAD31;
+    ntR1_PAD32          <= R1_PAD32;
+    ntR1_PAD33          <= R1_PAD33;
+    ntR1_PAD34          <= R1_PAD34;
+    ntR1_PAD35          <= R1_PAD35;
+    ntR1_PAD36          <= R1_PAD36;
+    ntR1_PAD37          <= R1_PAD37;
+    ntR1_PAD38          <= R1_PAD38;
+    ntR1_PAD39          <= R1_PAD39;
+    ntR2_PAD0          <= R2_PAD0;
+    ntR2_PAD1          <= R2_PAD1;
+    ntR2_PAD2          <= R2_PAD2;
+    ntR2_PAD3          <= R2_PAD3;
+    ntR2_PAD4          <= R2_PAD4;
+    ntR2_PAD5          <= R2_PAD5;
+    ntR2_PAD6          <= R2_PAD6;
+    ntR2_PAD7          <= R2_PAD7;
+    ntR2_PAD8          <= R2_PAD8;
+    ntR2_PAD9          <= R2_PAD9;
+    ntR2_PAD10          <= R2_PAD10;
+    ntR2_PAD11          <= R2_PAD11;
+    ntR2_PAD12          <= R2_PAD12;
+    ntR2_PAD13          <= R2_PAD13;
+    ntR2_PAD14          <= R2_PAD14;
+    ntR2_PAD15          <= R2_PAD15;
+    ntR2_PAD16          <= R2_PAD16;
+    ntR2_PAD17          <= R2_PAD17;
+    ntR2_PAD18          <= R2_PAD18;
+    ntR2_PAD19          <= R2_PAD19;
+    ntR2_PAD20          <= R2_PAD20;
+    ntR2_PAD21          <= R2_PAD21;
+    ntR2_PAD22          <= R2_PAD22;
+    ntR2_PAD23          <= R2_PAD23;
+    ntR2_PAD24          <= R2_PAD24;
+    ntR2_PAD25          <= R2_PAD25;
+    ntR2_PAD26          <= R2_PAD26;
+    ntR2_PAD27          <= R2_PAD27;
+    ntR2_PAD28          <= R2_PAD28;
+    ntR2_PAD29          <= R2_PAD29;
+    ntR2_PAD30          <= R2_PAD30;
+    ntR2_PAD31          <= R2_PAD31;
+    ntR2_PAD32          <= R2_PAD32;
+    ntR2_PAD33          <= R2_PAD33;
+    ntR2_PAD34          <= R2_PAD34;
+    ntR2_PAD35          <= R2_PAD35;
+    ntR2_PAD36          <= R2_PAD36;
+    ntR2_PAD37          <= R2_PAD37;
+    ntR2_PAD38          <= R2_PAD38;
+    ntR2_PAD39          <= R2_PAD39;
+
+};
+/**********************************************************************************
+***********************************************************************************/
+
+

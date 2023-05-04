@@ -1,0 +1,712 @@
+*****************************************************************
+********************************************************************************/
+library work;
+use pgl_defs, pgl22g_defs;
+
+structure arch_nl connect_power_network of devPGL22G
+{
+    // Tile index variable
+
+    &wire ntRef_ntVDD11 = <wire ntVDD11 of architecture>;
+    &wire ntRef_ntVSS = <wire ntVSS of architecture>;
+    &wire ntRef_ntVDDM = wire VDDM;
+    &wire ntRef_ntVDD33 = <wire ntVDD33 of architecture>;
+    &wire ntRef_ntVDD33A = <wire ntVDD33A of architecture>;
+    &wire ntRef_ntVDD33A_PLL = <wire ntVDD33A_PLL of architecture>;
+    &wire ntRef_ntVSSA = <wire ntVSSA of architecture>;
+    &wire ntRef_ntVSSA_PLL0 = <wire ntVSSA_PLL0 of architecture>;
+    &wire ntRef_ntVSSA_PLL1 = <wire ntVSSA_PLL1 of architecture>;
+    &wire ntRef_ntVSSA_PLL2 = <wire ntVSSA_PLL2 of architecture>;
+    &wire ntRef_ntVSSA_PLL3 = <wire ntVSSA_PLL3 of architecture>;
+    &wire ntRef_ntVSSA_PLL4 = <wire ntVSSA_PLL4 of architecture>;
+    &wire ntRef_ntVSSA_PLL5 = <wire ntVSSA_PLL5 of architecture>;
+
+    &wire ntRef_ntVDDIOCFG = <wire ntVDDIOCFG of architecture>;
+    &wire ntRef_ntVSSIOCFG = <wire ntVSSIOCFG of architecture>;
+    &wire ntRef_ntVDDEFUSE = <wire ntVDDEFUSE of architecture>;
+
+    &wire ntRef_ntVDDIOL0 = <wire ntVDDIOL0 of architecture>;
+    &wire ntRef_ntVDDIOL1 = <wire ntVDDIOL1 of architecture>;
+    &wire ntRef_ntVDDIOL2 = <wire ntVDDIOL2 of architecture>;
+    &wire ntRef_ntVDDIOR0 = <wire ntVDDIOR0 of architecture>;
+    &wire ntRef_ntVDDIOR1 = <wire ntVDDIOR1 of architecture>;
+    &wire ntRef_ntVDDIOR2 = <wire ntVDDIOR2 of architecture>;
+
+    &wire ntRef_ntVSSIOL0 = <wire ntVSSIOL0 of architecture>;
+    &wire ntRef_ntVSSIOL1 = <wire ntVSSIOL1 of architecture>;
+    &wire ntRef_ntVSSIOL2 = <wire ntVSSIOL2 of architecture>;
+    &wire ntRef_ntVSSIOR0 = <wire ntVSSIOR0 of architecture>;
+    &wire ntRef_ntVSSIOR1 = <wire ntVSSIOR1 of architecture>;
+    &wire ntRef_ntVSSIOR2 = <wire ntVSSIOR2 of architecture>;
+
+    unsigned int tx, ty;
+    unsigned int sx,sy;
+    unsigned int tmp_ty;
+
+    unsigned int tx_hmemc0 = 5;
+    unsigned int tx_hmemc1 = 33;
+    
+    foreach tx ( L_SRB_TILES_X )
+    {
+        foreach ty ( L_SRB_TILES_Y )
+        {
+          unsigned int sx,sy;
+          sx = tx * NUM_GRID_X;
+          sy = ty * NUM_GRID_Y;
+
+          unsigned int tmp_ty;
+          for(tmp_ty = ty;tmp_ty > MID_TILE_REGION;tmp_ty = tmp_ty - NUM_TILES_REGION)
+          {
+            sy = sy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+          }
+          if(!((tx>CCS_TILE_X) && (tx<=(CCS_TILE_X+NUM_GRID_CCS_X/NUM_GRID_X)) && (ty>=CCS_TILE_Y)))
+          {
+            if(!(((tx<tx_hmemc0)||(tx>tx_hmemc1))&&(ty<N_HMEMC_TILE)))
+            {
+              connect
+                (
+                   <pin VDD11 of <device SRB_TILE @ [sx,sy]>> => ntRef_ntVDD11,
+                   <pin VSS of <device SRB_TILE @ [sx,sy]>>   => ntRef_ntVSS,
+                   <pin VDDM of <device SRB_TILE @ [sx,sy]>>  => ntRef_ntVDDM
+              );
+            }
+          }
+        } 
+    }
+
+    foreach tx ( L_CLMA_TILES_X )
+    {
+        foreach ty ( L_CLM_TILES_Y )
+        {
+          sx = tx * NUM_GRID_X + 2;
+          sy = ty * NUM_GRID_Y;
+
+          unsigned int tmp_ty;
+          for(tmp_ty = ty;tmp_ty > MID_TILE_REGION;tmp_ty = tmp_ty - NUM_TILES_REGION)
+          {
+            sy = sy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+          }
+          if(!((tx>=CCS_TILE_X) && (tx<=(CCS_TILE_X+NUM_GRID_CCS_X/NUM_GRID_X)) && (ty>=CCS_TILE_Y)))
+          {
+            if((tx==PLL_TILE_X)&&(((ty>=PLL_TILE0_Y)&&(ty<=PLL_TILE0_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1))||((ty >= PLL_TILE1_Y) && (ty<=PLL_TILE1_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1))||((ty>=PLL_TILE2_Y) && (ty<=PLL_TILE2_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1))||((ty>=PLL_TILE3_Y) && (ty<=PLL_TILE3_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1))||((ty>=PLL_TILE4_Y)&&(ty<=PLL_TILE4_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1))||((ty>=PLL_TILE5_Y) && (ty<=PLL_TILE5_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1)))) 
+            {      
+            }  
+            else if((tx == USCM_TILE_X) && (((ty >= USCM_TILE0_Y) && (ty <= USCM_TILE0_Y + NUM_GRID_USCM_Y/NUM_GRID_Y - 1)) || ((ty >= USCM_TILE1_Y) && (ty <= USCM_TILE1_Y + NUM_GRID_USCM_Y/NUM_GRID_Y - 1))))
+            {
+            }
+            else if(((tx<=tx_hmemc0)||(tx>=tx_hmemc1))&&(ty<N_HMEMC_TILE))
+            {
+            }
+            else if(!((tx==RLYBUFS_TILE_X)&&(ty==RLYBUFS_TILE_Y)))
+            {
+              connect
+                (
+                   <pin VDD11 of <device CLMA_TILE @ [sx,sy]>> => ntRef_ntVDD11,
+                   <pin VSS of <device CLMA_TILE @ [sx,sy]>>   => ntRef_ntVSS,
+                   <pin VDDM of <device CLMA_TILE @ [sx,sy]>>  => ntRef_ntVDDM
+                );
+            }
+          }
+        } 
+    }
+
+    foreach tx ( L_CLMS_TILES_X )
+    {
+        foreach ty ( L_CLM_TILES_Y )
+        {
+          sx = tx * NUM_GRID_X + 2;
+          sy = ty * NUM_GRID_Y;
+
+          unsigned int tmp_ty;
+          for(tmp_ty = ty;tmp_ty > MID_TILE_REGION;tmp_ty = tmp_ty - NUM_TILES_REGION)
+          {
+            sy = sy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+          }
+          if(!((tx>=CCS_TILE_X) && (tx<=(CCS_TILE_X+NUM_GRID_CCS_X/NUM_GRID_X)) && (ty>=CCS_TILE_Y)))
+          {
+            if((tx==PLL_TILE_X) && (((ty >= PLL_TILE0_Y) && (ty<=PLL_TILE0_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1)) || ((ty >= PLL_TILE1_Y) && (ty<=PLL_TILE1_Y+NUM_GRID_PLL_Y/NUM_GRID_Y - 1)) || ((ty>=PLL_TILE2_Y) && (ty<=PLL_TILE2_Y + NUM_GRID_PLL_Y/NUM_GRID_Y-1))||((ty>=PLL_TILE3_Y) && (ty<=PLL_TILE3_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1))||((ty>=PLL_TILE4_Y)&&(ty<=PLL_TILE4_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1))||((ty>=PLL_TILE5_Y)&&(ty<=PLL_TILE5_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1)))) 
+            {      
+            }  
+            else if((tx == USCM_TILE_X) && (((ty >= USCM_TILE0_Y) && (ty <= USCM_TILE0_Y + NUM_GRID_USCM_Y/NUM_GRID_Y - 1)) || ((ty >= USCM_TILE1_Y) && (ty <= USCM_TILE1_Y + NUM_GRID_USCM_Y/NUM_GRID_Y - 1))))
+            {
+            }
+            else if(((tx<=tx_hmemc0)||(tx>=tx_hmemc1))&&(ty<N_HMEMC_TILE))
+            {
+            }
+
+            else if(!((tx==RLYBUFS_TILE_X)&&(ty==RLYBUFS_TILE_Y)))
+            {
+              connect
+                (
+                   <pin VDD11 of <device CLMS_TILE @ [sx,sy]>> => ntRef_ntVDD11,
+                   <pin VSS of <device CLMS_TILE @ [sx,sy]>>   => ntRef_ntVSS,
+                   <pin VDDM of <device CLMS_TILE @ [sx,sy]>>  => ntRef_ntVDDM
+                );
+            }
+          }
+        } 
+    }
+
+    int sx_ccs = CCS_TILE_X * NUM_GRID_X + 2;
+    int sy_ccs = CCS_TILE_Y * NUM_GRID_Y;
+
+    for(tmp_ty = ty;tmp_ty > MID_TILE_REGION;tmp_ty = tmp_ty - NUM_TILES_REGION)
+    {
+      sy_ccs = sy_ccs + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+    }
+    connect
+      (
+        <pin VDD11 of <device CCS_TILE @ [sx_ccs,sy_ccs]>>   => ntRef_ntVDD11,
+        <pin VSS of <device CCS_TILE @ [sx_ccs,sy_ccs]>>     => ntRef_ntVSS,
+        <pin VDDM of <device CCS_TILE @ [sx_ccs,sy_ccs]>>    => ntRef_ntVDDM,
+        <pin VDD33 of <device CCS_TILE @ [sx_ccs,sy_ccs]>>   => ntRef_ntVDD33,
+        <pin VDD33A of <device CCS_TILE @ [sx_ccs,sy_ccs]>>  => ntRef_ntVDD33A,
+        <pin VSSA of <device CCS_TILE @ [sx_ccs,sy_ccs]>>    => ntRef_ntVSSA,
+        <pin VDDIOCFG of <device CCS_TILE @ [sx_ccs,sy_ccs]>> => ntRef_ntVDDIOCFG,
+        <pin VSSIOCFG of <device CCS_TILE @ [sx_ccs,sy_ccs]>> => ntRef_ntVSSIOCFG,
+        <pin VDDEFUSE of <device CCS_TILE @ [sx_ccs,sy_ccs]>> => ntRef_ntVDDEFUSE
+      );
+
+    foreach tx ( L_DRM_TILES_X )
+    {
+        foreach ty ( L_DRM_TILES_Y )
+        {
+          sx = tx * NUM_GRID_X + 2;
+          sy = ty * NUM_GRID_Y;
+
+          for(tmp_ty = ty;tmp_ty > MID_TILE_REGION;tmp_ty = tmp_ty - NUM_TILES_REGION)
+          {
+            sy = sy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+          }
+
+          if(!((tx>=CCS_TILE_X) && (tx<=CCS_TILE_X+NUM_GRID_CCS_X/NUM_GRID_X) && (ty>=CCS_TILE_Y)))
+          {
+            connect
+              (
+                <pin VDD11 of <device DRM_TILE @ [sx,sy]>>  => ntRef_ntVDD11,
+                <pin VSS of <device DRM_TILE @ [sx,sy]>>    => ntRef_ntVSS,
+                <pin VDDM of <device DRM_TILE @ [sx,sy]>>   => ntRef_ntVDDM
+              );
+          }
+        }
+    } 
+
+    foreach tx ( L_APM_TILES_X )
+    {
+        foreach ty ( L_APM_TILES_Y )
+        {
+          sx = tx * NUM_GRID_X + 2;
+          sy = ty * NUM_GRID_Y;
+
+
+          connect
+            (
+              <pin VDD11 of <device APM_TILE @ [sx,sy]>>  => ntRef_ntVDD11,
+              <pin VSS of <device APM_TILE @ [sx,sy]>>    => ntRef_ntVSS,
+              <pin VDDM of <device APM_TILE @ [sx,sy]>>   => ntRef_ntVDDM
+            );
+        }
+    } 
+
+    unsigned int L_PLL_TILES_X[] = {PLL_TILE_X};
+    unsigned int L_PLL_TILES_Y[] = {PLL_TILE0_Y,PLL_TILE1_Y,PLL_TILE2_Y,PLL_TILE3_Y,PLL_TILE4_Y,PLL_TILE5_Y};
+
+    foreach tx ( L_PLL_TILES_X )
+    {
+        foreach ty ( L_PLL_TILES_Y )
+        {
+          sx = tx * NUM_GRID_X + 2;
+          sy = ty * NUM_GRID_Y;
+
+          for(tmp_ty = ty;tmp_ty > MID_TILE_REGION;tmp_ty = tmp_ty - NUM_TILES_REGION)
+          {
+            sy = sy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+          }
+          connect
+            (
+              <pin VDD11 of <device PLL_TILE @ [sx,sy]>>   => ntRef_ntVDD11,
+              <pin VSS of <device PLL_TILE @ [sx,sy]>>     => ntRef_ntVSS,
+              <pin VDDM of <device PLL_TILE @ [sx,sy]>>    => ntRef_ntVDDM,
+              <pin VDD33A of <device PLL_TILE @ [sx,sy]>>  => ntRef_ntVDD33A_PLL,
+              <pin VSSA of <device PLL_TILE @ [sx,sy]>>    => (ty==PLL_TILE0_Y) ? ntRef_ntVSSA_PLL0 :
+                                                              (ty==PLL_TILE1_Y) ? ntRef_ntVSSA_PLL1 :
+                                                              (ty==PLL_TILE2_Y) ? ntRef_ntVSSA_PLL2 :
+                                                              (ty==PLL_TILE3_Y) ? ntRef_ntVSSA_PLL3 :
+                                                              (ty==PLL_TILE4_Y) ? ntRef_ntVSSA_PLL4 : ntRef_ntVSSA_PLL5
+            );
+        }     
+    }
+
+    unsigned int L_USCM_TILES_X[] = {USCM_LOC_X};
+    unsigned int L_USCM_TILES_Y[] = {USCM0_LOC_Y, USCM1_LOC_Y};
+    
+    foreach tx ( L_USCM_TILES_X )
+    {
+        foreach ty ( L_USCM_TILES_Y )
+        {
+          sx = tx * NUM_GRID_X + 2;
+          sy = ty * NUM_GRID_Y;
+
+          for(tmp_ty = ty;tmp_ty > MID_TILE_REGION;tmp_ty = tmp_ty - NUM_TILES_REGION)
+          {
+            sy = sy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+          }
+          connect
+            (
+              <pin VDD11 of <device USCM_TILE @ [sx,sy]>>  => ntRef_ntVDD11,
+              <pin VSS of <device USCM_TILE @ [sx,sy]>>    => ntRef_ntVSS,
+              <pin VDDM of <device USCM_TILE @ [sx,sy]>>   => ntRef_ntVDDM
+            );
+        }      
+    } 
+
+    foreach tx ( L_IOL_TILES_X )
+    {
+        foreach ty ( L_IOL_TILES_Y )
+        {
+          sx = tx * NUM_GRID_X + 2;
+          sy = ty * NUM_GRID_Y;
+
+          for(tmp_ty = ty;tmp_ty > MID_TILE_REGION;tmp_ty = tmp_ty - NUM_TILES_REGION)
+          {
+            sy = sy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+          }
+          connect
+            (
+              <pin VDD11 of <device IOL_TILE @ [sx,sy]>>  => ntRef_ntVDD11,
+              <pin VSS of <device IOL_TILE @ [sx,sy]>>    => ntRef_ntVSS,
+              <pin VDDM of <device IOL_TILE @ [sx,sy]>>   => ntRef_ntVDDM
+            );
+        }  
+        foreach ty ( L_IOCKGATEDLL_TILES_Y )
+        {
+          sx = tx * NUM_GRID_X + 2;
+          sy = ty * NUM_GRID_Y;
+
+          for(tmp_ty = ty;tmp_ty > MID_TILE_REGION;tmp_ty = tmp_ty - NUM_TILES_REGION)
+          {
+            sy = sy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+          }
+          connect
+            (
+              <pin VDD11 of <device IOCKGATEDLL_TILE @ [sx,sy]>>  => ntRef_ntVDD11,
+              <pin VSS of <device IOCKGATEDLL_TILE @ [sx,sy]>>    => ntRef_ntVSS,
+              <pin VDD33 of <device IOCKGATEDLL_TILE @ [sx,sy]>>  => ntRef_ntVDD33,
+              <pin VDDM of <device IOCKGATEDLL_TILE @ [sx,sy]>>   => ntRef_ntVDDM
+            );
+        }   
+        foreach ty ( L_HMEMCIOCKGATEDLL_TILES_Y )
+        {
+          sx = tx * NUM_GRID_X + 2;
+          sy = ty * NUM_GRID_Y;
+
+          for(tmp_ty = ty;tmp_ty > MID_TILE_REGION;tmp_ty = tmp_ty - NUM_TILES_REGION)
+          {
+            sy = sy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+          }
+          connect
+            (
+              <pin VDD11 of <device HMEMCIOCKGATEDLL_TILE @ [sx,sy]>>  => ntRef_ntVDD11,
+              <pin VSS of <device HMEMCIOCKGATEDLL_TILE @ [sx,sy]>>    => ntRef_ntVSS,
+              <pin VDD33 of <device HMEMCIOCKGATEDLL_TILE @ [sx,sy]>>  => ntRef_ntVDD33,
+              <pin VDDM of <device HMEMCIOCKGATEDLL_TILE @ [sx,sy]>>   => ntRef_ntVDDM
+            );
+        }   
+        foreach ty ( L_DQSL_TILES_Y )
+        {
+          sx = tx * NUM_GRID_X + 2;
+          sy = ty * NUM_GRID_Y;
+
+          for(tmp_ty = ty;tmp_ty > MID_TILE_REGION;tmp_ty = tmp_ty - NUM_TILES_REGION)
+          {
+            sy = sy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+          }
+          connect
+            (
+              <pin VDD11 of <device DQSL_TILE @ [sx,sy]>>  => ntRef_ntVDD11,
+              <pin VSS of <device DQSL_TILE @ [sx,sy]>>    => ntRef_ntVSS,
+              <pin VDDM of <device DQSL_TILE @ [sx,sy]>>   => ntRef_ntVDDM
+            );
+        }   
+        foreach ty ( L_HMEMCDQSL_TILES_Y )
+        {
+          sx = tx * NUM_GRID_X + 2;
+          sy = ty * NUM_GRID_Y;
+
+          for(tmp_ty = ty;tmp_ty > MID_TILE_REGION;tmp_ty = tmp_ty - NUM_TILES_REGION)
+          {
+            sy = sy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+          }
+          connect
+            (
+              <pin VDD11 of <device HMEMCDQSL_TILE @ [sx,sy]>>  => ntRef_ntVDD11,
+              <pin VSS of <device HMEMCDQSL_TILE @ [sx,sy]>>    => ntRef_ntVSS,
+              <pin VDDM of <device HMEMCDQSL_TILE @ [sx,sy]>>   => ntRef_ntVDDM
+            );
+        }     
+        foreach ty ( L_RLYBUFS5_TILES_Y )
+        {
+          sx = tx * NUM_GRID_X + 2;
+          sy = ty * NUM_GRID_Y;
+
+          for(tmp_ty = ty;tmp_ty > MID_TILE_REGION;tmp_ty = tmp_ty - NUM_TILES_REGION)
+          {
+            sy = sy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+          }
+          connect
+            (
+              <pin VDD11 of <device RLYBUFS5_TILE @ [sx,sy]>>  => ntRef_ntVDD11,
+              <pin VSS of <device RLYBUFS5_TILE @ [sx,sy]>>    => ntRef_ntVSS,
+              <pin VDDM of <device RLYBUFS5_TILE @ [sx,sy]>>   => ntRef_ntVDDM
+            );
+        }    
+        foreach ty ( L_CRAMSL2_TILES_Y )
+        {
+          sx = tx * NUM_GRID_X + 2;
+          sy = ty * NUM_GRID_Y;
+
+          for(tmp_ty = ty;tmp_ty > MID_TILE_REGION;tmp_ty = tmp_ty - NUM_TILES_REGION)
+          {
+            sy = sy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+          }
+          connect
+            (
+              <pin VDDM of <device CRAMSL2_TILE @ [sx,sy]>>   => ntRef_ntVDDM,
+              <pin VSS of <device CRAMSL2_TILE @ [sx,sy]>>    => ntRef_ntVSS
+            );
+        } 
+    } 
+
+    foreach tx ( L_IOL_TILES_X )
+    {
+        foreach ty ( L_HMEMCIOL_TILES_Y )
+        {
+          sx = tx * NUM_GRID_X + 2;
+          sy = ty * NUM_GRID_Y;
+
+          for(tmp_ty = ty;tmp_ty > MID_TILE_REGION;tmp_ty = tmp_ty - NUM_TILES_REGION)
+          {
+            sy = sy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+          }
+          connect
+            (
+              <pin VDD11 of <device HMEMCIOL_TILE @ [sx,sy]>>  => ntRef_ntVDD11,
+              <pin VSS of <device HMEMCIOL_TILE @ [sx,sy]>>    => ntRef_ntVSS,
+              <pin VDDM of <device HMEMCIOL_TILE @ [sx,sy]>>   => ntRef_ntVDDM
+            );
+        }  
+    } 
+
+    foreach tx ( L_IOB_TILES_X )
+    {
+        foreach ty ( L_IOB_TILES_Y )
+        {
+          sx = tx * NUM_GRID_X;
+          sy = ty * NUM_GRID_Y;
+
+          for(tmp_ty = ty;tmp_ty > MID_TILE_REGION;tmp_ty = tmp_ty - NUM_TILES_REGION)
+          {
+            sy = sy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+          }
+          connect
+            (
+              <pin VDD11 of <device IOB_TILE @ [sx,sy]>>  => ntRef_ntVDD11,
+              <pin VSS of <device IOB_TILE @ [sx,sy]>>    => ntRef_ntVSS,
+              <pin VDDM of <device IOB_TILE @ [sx,sy]>>   => ntRef_ntVDDM,
+              <pin VDD33 of <device IOB_TILE @ [sx,sy]>>  => ntRef_ntVDD33
+            );
+        }     
+    }
+
+/*
+    foreach tx ( L_IOB_TILES_X )
+    {
+        foreach ty ( L_IOBR_TILES_Y )
+        {
+          sx = tx * NUM_GRID_X;
+          sy = ty * NUM_GRID_Y;
+
+          for(tmp_ty = ty;tmp_ty > MID_TILE_REGION;tmp_ty = tmp_ty - NUM_TILES_REGION)
+          {
+            sy = sy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+          }
+          connect
+            (
+              <pin VDD11 of <device IOBR_TILE @ [sx,sy]>>  => ntRef_ntVDD11,
+              <pin VSS of <device IOBR_TILE @ [sx,sy]>>    => ntRef_ntVSS,
+              <pin VDDM of <device IOBR_TILE @ [sx,sy]>>   => ntRef_ntVDDM,
+              <pin VDD33 of <device IOBR_TILE @ [sx,sy]>>  => ntRef_ntVDD33
+            );
+        }     
+        foreach ty ( L_IOBD1_TILES_Y )
+        {
+          sx = tx * NUM_GRID_X;
+          sy = ty * NUM_GRID_Y;
+
+          for(tmp_ty = ty;tmp_ty > MID_TILE_REGION;tmp_ty = tmp_ty - NUM_TILES_REGION)
+          {
+            sy = sy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+          }
+          connect
+            (
+              <pin VDD11 of <device IOBD1_TILE @ [sx,sy]>>  => ntRef_ntVDD11,
+              <pin VSS of <device IOBD1_TILE @ [sx,sy]>>    => ntRef_ntVSS,
+              <pin VDDM of <device IOBD1_TILE @ [sx,sy]>>   => ntRef_ntVDDM,
+              <pin VDD33 of <device IOBD1_TILE @ [sx,sy]>>  => ntRef_ntVDD33
+            );
+        }
+        foreach ty ( L_RESCAL_TILES_Y )
+        {
+          sx = tx * NUM_GRID_X;
+          sy = ty * NUM_GRID_Y;
+
+          for(tmp_ty = ty;tmp_ty > MID_TILE_REGION;tmp_ty = tmp_ty - NUM_TILES_REGION)
+          {
+            sy = sy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+          }
+          connect
+            (
+              <pin VDD11 of <device RESCAL_TILE @ [sx,sy]>>  => ntRef_ntVDD11,
+              <pin VSS of <device RESCAL_TILE @ [sx,sy]>>    => ntRef_ntVSS,
+              <pin VDDM of <device RESCAL_TILE @ [sx,sy]>>   => ntRef_ntVDDM,
+              <pin VDD33 of <device RESCAL_TILE @ [sx,sy]>>  => ntRef_ntVDD33
+            );
+        }
+        foreach ty ( L_IOBD_TILES_Y )
+        {
+          sx = tx * NUM_GRID_X;
+          sy = ty * NUM_GRID_Y;
+
+          for(tmp_ty = ty;tmp_ty > MID_TILE_REGION;tmp_ty = tmp_ty - NUM_TILES_REGION)
+          {
+            sy = sy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+          }
+          connect
+            (
+              <pin VDD11 of <device IOBD_TILE @ [sx,sy]>>  => ntRef_ntVDD11,
+              <pin VSS of <device IOBD_TILE @ [sx,sy]>>    => ntRef_ntVSS,
+              <pin VDDM of <device IOBD_TILE @ [sx,sy]>>   => ntRef_ntVDDM,
+              <pin VDD33 of <device IOBD_TILE @ [sx,sy]>>  => ntRef_ntVDD33
+            );
+        }
+    } 
+*/
+    foreach tx ( L_BLSR_TILES_X )
+    {
+        foreach ty ( L_BLSR_TILES_Y )
+        {
+          sx = tx * NUM_GRID_X;
+          sy = ty * NUM_GRID_BLSR_Y;
+          connect
+            (
+              <pin VDD11 of <device BLSR_TILE @ [sx,sy]>>  => ntRef_ntVDD11,
+              <pin VSS of <device BLSR_TILE @ [sx,sy]>>    => ntRef_ntVSS,
+              <pin VDDM of <device BLSR_TILE @ [sx,sy]>>   => ntRef_ntVDDM
+            );
+        }  
+    } 
+
+    string device_wlsr;
+    foreach ty ( L_WLSR_TILES_Y )
+    {
+        foreach tx ( L_WLSR_TILES_X )
+        {
+          sx = tx * NUM_GRID_X;
+          sy = ty * NUM_GRID_Y;
+
+          for(tmp_ty = ty;tmp_ty > MID_TILE_REGION;tmp_ty = tmp_ty - NUM_TILES_REGION)
+          {
+            sy = sy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+          }
+          
+          if(!((ty>S_HMEMC_TILE)&&(ty<N_HMEMC_TILE)&&((tx<tx_hmemc0)||(tx>tx_hmemc1))))
+          {
+            device_wlsr = ((ty>S_HMEMC_TILE)&&(ty<N_HMEMC_TILE)&&((tx==tx_hmemc0)||(tx==tx_hmemc1))) ? "WLSRA_TILE" : "WLSR_TILE";
+            connect
+              (
+                <pin VDD11 of <device *device_wlsr @ [sx,sy]>>  => ntRef_ntVDD11,
+                <pin VSS of <device *device_wlsr @ [sx,sy]>>    => ntRef_ntVSS,
+                <pin VDD33 of <device *device_wlsr @ [sx,sy]>>  => ntRef_ntVDD33,
+                <pin VDDM of <device *device_wlsr @ [sx,sy]>>   => ntRef_ntVDDM           
+              );
+          }
+        }  
+
+        foreach tx ( L_WLSR1_TILES_X )
+        {
+          sx = tx * NUM_GRID_X;
+          sy = ty * NUM_GRID_Y;
+
+          for(tmp_ty = ty;tmp_ty > MID_TILE_REGION;tmp_ty = tmp_ty - NUM_TILES_REGION)
+          {
+            sy = sy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+          }
+
+          connect
+            (
+              <pin VDD11 of <device WLSR1_TILE @ [sx,sy]>>  => ntRef_ntVDD11,
+              <pin VSS of <device WLSR1_TILE @ [sx,sy]>>    => ntRef_ntVSS,
+              <pin VDD33 of <device WLSR1_TILE @ [sx,sy]>>  => ntRef_ntVDD33,
+              <pin VDDM of <device WLSR1_TILE @ [sx,sy]>>   => ntRef_ntVDDM           
+            );
+        } 
+
+        foreach tx ( L_WLSR2_TILES_X )
+        {
+          sx = tx * NUM_GRID_X;
+          sy = ty * NUM_GRID_Y;
+
+          for(tmp_ty = ty;tmp_ty > MID_TILE_REGION;tmp_ty = tmp_ty - NUM_TILES_REGION)
+          {
+            sy = sy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+          }
+
+          connect
+            (
+              <pin VDD11 of <device WLSR2_TILE @ [sx,sy]>>  => ntRef_ntVDD11,
+              <pin VSS of <device WLSR2_TILE @ [sx,sy]>>    => ntRef_ntVSS,
+              <pin VDD33 of <device WLSR2_TILE @ [sx,sy]>>  => ntRef_ntVDD33,
+              <pin VDDM of <device WLSR2_TILE @ [sx,sy]>>   => ntRef_ntVDDM           
+            );
+        } 
+
+        foreach tx ( L_WLSRA_TILES_X )
+        {
+          sx = tx * NUM_GRID_X;
+          sy = ty * NUM_GRID_Y;
+
+          for(tmp_ty = ty;tmp_ty > MID_TILE_REGION;tmp_ty = tmp_ty - NUM_TILES_REGION)
+          {
+            sy = sy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+          }
+
+          connect
+            (
+              <pin VDD11 of <device WLSRA_TILE @ [sx,sy]>>  => ntRef_ntVDD11,
+              <pin VSS of <device WLSRA_TILE @ [sx,sy]>>    => ntRef_ntVSS,
+              <pin VDD33 of <device WLSRA_TILE @ [sx,sy]>>  => ntRef_ntVDD33,
+              <pin VDDM of <device WLSRA_TILE @ [sx,sy]>>   => ntRef_ntVDDM    
+            );
+        }
+        foreach tx ( L_WLSRD_TILES_X )
+        {
+          sx = tx * NUM_GRID_X;
+          sy = ty * NUM_GRID_Y;
+
+          for(tmp_ty = ty;tmp_ty > MID_TILE_REGION;tmp_ty = tmp_ty - NUM_TILES_REGION)
+          {
+            sy = sy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+          }
+
+          connect
+            (
+              <pin VDD11 of <device WLSRD_TILE @ [sx,sy]>>  => ntRef_ntVDD11,
+              <pin VSS of <device WLSRD_TILE @ [sx,sy]>>  => ntRef_ntVSS,
+              <pin VDD33 of <device WLSRD_TILE @ [sx,sy]>>  => ntRef_ntVDD33,
+              <pin VDDM of <device WLSRD_TILE @ [sx,sy]>>   => ntRef_ntVDDM    
+            );
+        }
+    } 
+
+    foreach ty ( {ESD_PGL22G_TILE_Y} )
+    {
+        foreach tx ( {ESD_PGL22G_TILE_X} )
+        {
+          sx = tx * NUM_GRID_X;
+          sy = ty * NUM_GRID_Y;
+
+          for(tmp_ty = ty;tmp_ty > MID_TILE_REGION;tmp_ty = tmp_ty - NUM_TILES_REGION)
+          {
+            sy = sy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+          }
+
+          connect
+            (
+              <pin VDD11 of <device ESD_PGL22G_TILE @ [sx,sy]>>       => ntRef_ntVDD11,
+              <pin VDD33 of <device ESD_PGL22G_TILE @ [sx,sy]>>       => ntRef_ntVDD33,
+              <pin VSS of <device ESD_PGL22G_TILE @ [sx,sy]>>         => ntRef_ntVSS,
+              <pin VDD33A_PLL of <device ESD_PGL22G_TILE @ [sx,sy]>>  => ntRef_ntVDD33A_PLL,
+              <pin VSSA_PLL0 of <device ESD_PGL22G_TILE @ [sx,sy]>>   => ntRef_ntVSSA_PLL0,
+              <pin VSSA_PLL1 of <device ESD_PGL22G_TILE @ [sx,sy]>>   => ntRef_ntVSSA_PLL1,
+              <pin VSSA_PLL2 of <device ESD_PGL22G_TILE @ [sx,sy]>>   => ntRef_ntVSSA_PLL2,
+              <pin VSSA_PLL3 of <device ESD_PGL22G_TILE @ [sx,sy]>>   => ntRef_ntVSSA_PLL3,
+              <pin VSSA_PLL4  of <device ESD_PGL22G_TILE @ [sx,sy]>>  => ntRef_ntVSSA_PLL4,
+              <pin VSSA_PLL5  of <device ESD_PGL22G_TILE @ [sx,sy]>>  => ntRef_ntVSSA_PLL5,
+              <pin VDDIOL0 of <device ESD_PGL22G_TILE @ [sx,sy]>>     => ntRef_ntVDDIOL0,
+              <pin VDDIOL1 of <device ESD_PGL22G_TILE @ [sx,sy]>>     => ntRef_ntVDDIOL1,
+              <pin VDDIOL2 of <device ESD_PGL22G_TILE @ [sx,sy]>>     => ntRef_ntVDDIOL2,
+              <pin VDDIOR0 of <device ESD_PGL22G_TILE @ [sx,sy]>>     => ntRef_ntVDDIOR0,
+              <pin VDDIOR1 of <device ESD_PGL22G_TILE @ [sx,sy]>>     => ntRef_ntVDDIOR1,
+              <pin VDDIOR2 of <device ESD_PGL22G_TILE @ [sx,sy]>>     => ntRef_ntVDDIOR2,
+              <pin VSSIOL0 of <device ESD_PGL22G_TILE @ [sx,sy]>>     => ntRef_ntVSSIOL0,
+              <pin VSSIOL1 of <device ESD_PGL22G_TILE @ [sx,sy]>>     => ntRef_ntVSSIOL1,
+              <pin VSSIOL2 of <device ESD_PGL22G_TILE @ [sx,sy]>>     => ntRef_ntVSSIOL2,
+              <pin VSSIOR0 of <device ESD_PGL22G_TILE @ [sx,sy]>>     => ntRef_ntVSSIOR0,
+              <pin VSSIOR1 of <device ESD_PGL22G_TILE @ [sx,sy]>>     => ntRef_ntVSSIOR1,
+              <pin VSSIOR2 of <device ESD_PGL22G_TILE @ [sx,sy]>>     => ntRef_ntVSSIOR2
+
+            );
+        }  
+    } 
+ 
+    foreach tx ( L_HMEMC_TILES_X )
+    {
+        foreach ty ( L_HMEMC_TILES_Y )
+        {
+          sx = (tx+1) * NUM_GRID_X + 2;
+          sy = ty * NUM_GRID_Y;
+
+          for(tmp_ty = ty;tmp_ty > MID_TILE_REGION;tmp_ty = tmp_ty - NUM_TILES_REGION)
+          {
+            sy = sy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+          }
+
+          connect
+            (
+              <pin VDD11 of <device HMEMC_TILE @ [sx,sy]>>  => ntRef_ntVDD11,
+              <pin VSS of <device HMEMC_TILE @ [sx,sy]>>    => ntRef_ntVSS,
+              <pin VDDM of <device HMEMC_TILE @ [sx,sy]>>   => ntRef_ntVDDM
+            );
+        }  
+    } 
+
+
+    tx = IDCODE_TILE_X;
+    ty = IDCODE_TILE_Y;
+
+    sx = tx * NUM_GRID_X + 2;
+    sy = ty * NUM_GRID_Y;
+
+    for(tmp_ty = ty;tmp_ty > MID_TILE_REGION;tmp_ty = tmp_ty - NUM_TILES_REGION)
+    {
+      sy = sy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+    }
+
+    connect
+      (
+        <pin VDD11 of <device IDCODE_PGL22G_TILE @ [sx,sy]>>   => ntRef_ntVDD11,
+        <pin VSS of <device IDCODE_PGL22G_TILE @ [sx,sy]>>     => ntRef_ntVSS
+      );
+
+    tx = RLYBUFS_TILE_X;
+    ty = RLYBUFS_TILE_Y;
+
+    sx = tx * NUM_GRID_X + 2;
+    sy = ty * NUM_GRID_Y;
+
+    for(tmp_ty = ty;tmp_ty > MID_TILE_REGION;tmp_ty = tmp_ty - NUM_TILES_REGION)
+    {
+      sy = sy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+    }
+
+    connect
+      (
+        <pin VDD11 of <device RLYBUFS_TILE @ [sx,sy]>>   => ntRef_ntVDD11,
+        <pin VSS of <device RLYBUFS_TILE @ [sx,sy]>>     => ntRef_ntVSS
+      );
+
+
+
+};//end of structure arch_nl connect_power_input_srb of devPGL22G
+
+

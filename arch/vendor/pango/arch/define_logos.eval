@@ -1,0 +1,998 @@
+*******************************************************************************
+
+  Vendor    [Logos]
+
+  Author    [XIAWEI]
+
+  Abstract  [This defines all chips supported in family 'Logos']
+
+  Revision History:
+
+********************************************************************************************/
+
+family Logos of pango
+{
+    string pango_path = "/arch/vendor/pango/";
+
+    file ( "technology operator library" ) // pragma PAP_ARC_LOAD_ON_DEMAND="tech_operator_lib"
+    {
+        ( "/arch/vendor/pango/logos/common/lib/gtp_lib.v -format verilog -library tech_operator_lib" ),
+        ( "/arch/lib/bms/verilog/bmsPrim.v -format verilog -library behav_operator_lib" )
+    }
+
+    file ( "technology operator (valence) library" ) // pragma PAP_ARC_LOAD_ON_DEMAND="valence_tech_operator"
+    {
+        ( *pango_path + "logos/common/list/gtps_decl_list.eval -e -format tcl" )
+    }
+    
+    
+    // The PGL12G architecture
+    device ( PGL12G )
+    {
+        string logos_path = "/arch/vendor/pango/logos/";
+        string pgl_tile_based_path = "/arch/vendor/pango/logos/pgl12g/tile_based/";
+
+        string pgl12g_path  = "/arch/vendor/pango/logos/pgl12g/";
+
+
+        file ( "operator packing rules" ) // pragma PAP_ARC_LOAD_ON_DEMAND="packing_rules"
+        {
+            ( *pgl12g_path + "data/rules/packingrules.txt -format packing_rule" )
+        }
+
+        file ( "common defs" )
+        {
+            ( *logos_path + "common/valence/pg_defs.eval -e -format valence" ),
+            ( *pgl_tile_based_path + "valence/common/pkgs/pgl_defs.eval -e -format valence" ),
+            ( *pgl_tile_based_path + "valence/common/site/stARCH/stARCH.eval -e -format valence" )
+        } // file ( "common defs" )
+
+
+        file ( "prim grid devices" ) // pragma PAP_ARC_LOAD_ON_DEMAND="prim_grid_device"
+        {
+            ( *pgl12g_path + "valence/list/prim_grid_devices_list.eval -e -format tcl" )
+        }
+        
+        file ( "prim grid device symbols" ) // pragma PAP_ARC_LOAD_ON_DEMAND="prim_grid_device_symbol"
+        {
+            ( *pgl12g_path + "valence/list/prim_grid_devices_symbol_list.eval -e -format tcl" )
+        }
+        
+        file ( "gate devices" ) // pragma PAP_ARC_LOAD_ON_DEMAND="gate_device"
+        {
+            ( *pgl12g_path + "valence/list/gate_devices_list.eval -e -format tcl" )
+        }
+        
+        file ( "gate operators" ) // pragma PAP_ARC_LOAD_ON_DEMAND="gate_operator"
+        {
+            ( *pgl12g_path + "valence/list/gops_list.eval -e -format tcl" )
+        }
+        
+        file ( "tech operator impls" ) // pragma PAP_ARC_LOAD_ON_DEMAND="tech_operator_impl"
+        {
+            ( *pgl12g_path + "valence/list/gtps_impl_list.eval -e -format tcl" )
+        }
+
+        file
+        {
+            ( *pgl_tile_based_path + "valence/parts/pgl12g/pkgs/pgl12g_defs.eval -e -format valence" ),
+            ( *pgl_tile_based_path + "valence/parts/pgl12g/arch/generate_grid.eval -e -format valence" ),
+            ( *pgl12g_path + "valence/netlist/schm_funcs.eval -e -format valence" ),
+            ( *pgl12g_path + "valence/netlist/floorplan_funcs.eval -e -format valence" ),
+            ( *pgl12g_path + "valence/netlist/floorplan.eval -e -format valence" ),
+            ( *pgl12g_path + "valence/netlist/logic_view.eval -e -format valence" ),
+            ( *pgl12g_path + "valence/netlist/floorplan_view.eval -e -format valence" ),
+
+            // 1) arch
+            ( *pgl12g_path + "db/arch_lp.eadf -e -format adif -model_layer logic_device_layout" ),
+            ( *pgl12g_path + "db/arch_nt.eadf -e -format adif -model_layer logic_device_net" ),
+
+            // 2) arch view
+            //( *pgl12g_path + "valence/netlist/logic_schm_layout.eval -e -format valence" ),
+            ( *pgl12g_path + "db/arch_schm.eadf -e -format adif -model_layer logic_schematic" ),
+
+            // 3) floorplan
+            //( *pgl12g_path + "valence/netlist/layout_fp.eval -e -format valence" ),
+            ( *pgl12g_path + "db/fp_arch_lp.eadf -e -format adif -model_layer fp_device_layout" ),
+
+            // 4) floorplan view
+            //( *pgl12g_path + "valence/netlist/fp_schm_layout.eval -e -format valence" ),
+            ( *pgl12g_path + "db/fp_arch_schm.eadf -e -format adif -model_layer fp_schematic" ),
+
+            // 5) others
+            ( *pgl12g_path + "data/paramanager.txt -format param_manager" )
+        }
+
+        default packaging ( FBG256 )
+        {
+           file
+            {
+               ( *pgl_tile_based_path + "valence/parts/pgl12g/pkgs/pgl12g_fbg256_spec.eval -e -format valence -package" ),
+               ( *pgl12g_path + "package/fbg256.eval -e -format valence" )
+            }
+        }
+        
+        packaging ( LPG144 )
+        {
+           file
+            {
+               ( *pgl_tile_based_path + "valence/parts/pgl12g/pkgs/pgl12g_lpg144_spec.eval -e -format valence -package" ),
+               ( *pgl12g_path + "package/lpg144.eval -e -format valence" )
+            }
+        }
+    }
+
+      
+    // The PGL20H architecture
+    device ( PGL20H )
+    {
+        string logos_path = "/arch/vendor/pango/logos/";
+        string pgl_tile_based_path = "/arch/vendor/pango/logos/common_25/tile_based/";
+
+        string pgl20h_path  = "/arch/vendor/pango/logos/pgl20h/";
+
+
+        file ( "operator packing rules" ) // pragma PAP_ARC_LOAD_ON_DEMAND="packing_rules"
+        {
+            ( *logos_path + "common_25/packingrule/packingrules.txt -format packing_rule" )
+        }
+
+        file ( "common defs" )
+        {
+            ( *logos_path + "common/valence/pg_defs.eval -e -format valence" ),
+            ( *pgl_tile_based_path + "valence/common/pkgs/pgl_defs.eval -e -format valence" ),
+            ( *pgl_tile_based_path + "valence/common/site/stARCH/stARCH.eval -e -format valence" )
+        } // file ( "common defs" )
+        
+        file ( "prim grid devices" ) // pragma PAP_ARC_LOAD_ON_DEMAND="prim_grid_device"
+        {
+            ( *pgl20h_path + "valence/list/prim_grid_devices_list.eval -e -format tcl" )
+        }
+        
+        file ( "prim grid device symbols" ) // pragma PAP_ARC_LOAD_ON_DEMAND="prim_grid_device_symbol"
+        {
+            ( *pgl20h_path + "valence/list/prim_grid_devices_symbol_list.eval -e -format tcl" )
+        }
+        
+        file ( "gate devices" ) // pragma PAP_ARC_LOAD_ON_DEMAND="gate_device"
+        {
+            ( *pgl20h_path + "valence/list/gate_devices_list.eval -e -format tcl" )
+        }
+        
+        file ( "gate operators" ) // pragma PAP_ARC_LOAD_ON_DEMAND="gate_operator"
+        {
+            ( *pgl20h_path + "valence/list/gops_list.eval -e -format tcl" )
+        }
+        
+        file ( "tech operator impls" ) // pragma PAP_ARC_LOAD_ON_DEMAND="tech_operator_impl"
+        {
+            ( *pgl20h_path + "valence/list/gtps_impl_list.eval -e -format tcl" )
+        }
+
+        file
+        {
+            ( *pgl_tile_based_path + "valence/parts/pgl20h/pkgs/pgl20h_defs.eval -e -format valence" ),
+            ( *pgl_tile_based_path + "valence/parts/pgl20h/arch/generate_grid.eval -e -format valence" ),
+            ( *pgl20h_path + "valence/netlist/schm_funcs.eval -e -format valence" ),
+            ( *pgl20h_path + "valence/netlist/floorplan_funcs.eval -e -format valence" ),
+            ( *pgl20h_path + "valence/netlist/floorplan.eval -e -format valence" ),
+            ( *pgl20h_path + "valence/netlist/logic_view.eval -e -format valence" ),
+            ( *pgl20h_path + "valence/netlist/floorplan_view.eval -e -format valence" ),
+
+            // 1) arch
+            ( *pgl20h_path + "db/arch_lp.eadf -e -format adif -model_layer logic_device_layout" ),
+            ( *pgl20h_path + "db/arch_nt.eadf -e -format adif -model_layer logic_device_net" ),
+
+            // 2) arch view
+            //( *pgl20h_path + "valence/netlist/logic_schm_layout.eval -e -format valence" ),
+            ( *pgl20h_path + "db/arch_schm.eadf -e -format adif -model_layer logic_schematic" ),
+
+            // 3) floorplan
+            //( *pgl20h_path + "valence/netlist/layout_fp.eval -e -format valence" ),
+            ( *pgl20h_path + "db/fp_arch_lp.eadf -e -format adif -model_layer fp_device_layout" ),
+
+            // 4) floorplan view
+            //( *pgl20h_path + "valence/netlist/fp_schm_layout.eval -e -format valence" ),
+            ( *pgl20h_path + "db/fp_arch_schm.eadf -e -format adif -model_layer fp_schematic" ),
+
+            // 5) others
+            ( *pgl20h_path + "data/paramanager.txt -format param_manager" )
+        }
+
+        default packaging ( MBG324 )
+        {
+           file
+            {
+               ( *pgl_tile_based_path + "valence/parts/pgl20h/pkgs/pgl20h_mbg324_spec.eval -e -format valence -package" ),
+               ( *pgl20h_path + "package/pgl20h_mbg324.eval -e -format valence" )
+            }
+        }
+    }
+    
+
+    // The PGL22G architecture
+    device ( PGL22G )
+    {
+        string logos_path = "/arch/vendor/pango/logos/";        
+        string pgl22g_path  = "/arch/vendor/pango/logos/pgl22g/";
+        string pgl_tile_based_path = "/arch/vendor/pango/logos/pgl22g/tile_based/";
+
+
+        file ( "operator packing rules" ) // pragma PAP_ARC_LOAD_ON_DEMAND="packing_rules"
+        {
+            ( *pgl22g_path + "data/rules/packingrules.txt -format packing_rule" )
+        }
+
+        file ( "common defs" )
+        {
+            ( *logos_path + "common/valence/pg_defs.eval -e -format valence" ),
+            ( *pgl_tile_based_path + "valence/common/pkgs/pgl_defs.eval -e -format valence" ),
+            ( *pgl_tile_based_path + "valence/common/site/stARCH/stARCH.eval -e -format valence" )
+        } // file ( "common defs" )
+        
+        file ( "prim grid devices" ) // pragma PAP_ARC_LOAD_ON_DEMAND="prim_grid_device"
+        {
+            ( *pgl22g_path + "valence/list/prim_grid_devices_list.eval -e -format tcl" )
+        }
+        
+        file ( "prim grid device symbols" ) // pragma PAP_ARC_LOAD_ON_DEMAND="prim_grid_device_symbol"
+        {
+            ( *pgl22g_path + "valence/list/prim_grid_devices_symbol_list.eval -e -format tcl" )
+        }
+        
+        file ( "gate devices" ) // pragma PAP_ARC_LOAD_ON_DEMAND="gate_device"
+        {
+            ( *pgl22g_path + "valence/list/gate_devices_list.eval -e -format tcl" )
+        }
+        
+        file ( "gate operators" ) // pragma PAP_ARC_LOAD_ON_DEMAND="gate_operator"
+        {
+            ( *pgl22g_path + "valence/list/gops_list.eval -e -format tcl" )
+        }
+        
+        file ( "tech operator impls" ) // pragma PAP_ARC_LOAD_ON_DEMAND="tech_operator_impl"
+        {
+            ( *pgl22g_path + "valence/list/gtps_impl_list.eval -e -format tcl" )
+        }        
+
+
+        file
+        {
+            ( *pgl_tile_based_path + "valence/parts/pgl22g/pkgs/pgl22g_defs.eval -e -format valence" ),
+            ( *pgl_tile_based_path + "valence/parts/pgl22g/arch/generate_grid.eval -e -format valence" ),
+            ( *pgl22g_path + "valence/netlist/pgl22g_schm_funcs.eval -e -format valence" ),
+            ( *pgl22g_path + "valence/netlist/pgl22g_floorplan_funcs.eval -e -format valence" ),
+            ( *pgl22g_path + "valence/netlist/floorplan_pgl22g.eval -e -format valence" ),
+            ( *pgl22g_path + "valence/netlist/logic_view.eval -e -format valence" ),
+            ( *pgl22g_path + "valence/netlist/floorplan_view.eval -e -format valence" ),
+
+            // 1) arch
+            ( *pgl22g_path + "db/arch_pgl22g_lp.eadf -e -format adif -model_layer logic_device_layout" ),
+            ( *pgl22g_path + "db/arch_pgl22g_nt.eadf -e -format adif -model_layer logic_device_net" ),
+
+            // 2) arch view
+            //( *pgl22g_path + "valence/netlist/logic_schm_layout.eval -e -format valence" ),
+            ( *pgl22g_path + "db/arch_pgl22g_schm.eadf -e -format adif -model_layer logic_schematic" ),
+
+            // 3) floorplan
+            //( *pgl22g_path + "valence/netlist/layout_fp.eval -e -format valence" ),
+            ( *pgl22g_path + "db/fp_arch_pgl22g_lp.eadf -e -format adif -model_layer fp_device_layout" ),
+
+            // 4) floorplan view
+            //( *pgl22g_path + "valence/netlist/fp_schm_layout.eval -e -format valence" ),
+            ( *pgl22g_path + "db/fp_arch_pgl22g_schm.eadf -e -format adif -model_layer fp_schematic" ),
+
+            // 5) others
+            ( *pgl22g_path + "data/paramanager.txt -format param_manager" )
+        }
+
+        default packaging ( FBG256 )
+        {
+           file
+            {
+                ( *pgl_tile_based_path + "valence/parts/pgl22g/pkgs/pgl22g_bg256_spec.eval -e -format valence -package" ),
+                ( *pgl22g_path + "package/pgl22g_fbg256.eval -e -format valence" )
+            }
+        }
+
+        packaging ( MBG324 )
+        {
+           file
+            {
+               ( *pgl_tile_based_path + "valence/parts/pgl22g/pkgs/pgl22g_bg324_spec.eval -e -format valence -package" ),
+               ( *pgl22g_path + "package/pgl22g_mbg324.eval -e -format valence" )
+            }
+        }
+    } // end of PGL22G
+
+      // The PGL22GS architecture
+      device ( PGL22GS )
+      {
+          string logos_path = "/arch/vendor/pango/logos/";        
+          string pgl22g_path  = "/arch/vendor/pango/logos/pgl22g/";
+          string pgl_tile_based_path = "/arch/vendor/pango/logos/pgl22g/tile_based/";
+      
+      
+          file ( "operator packing rules" ) // pragma PAP_ARC_LOAD_ON_DEMAND="packing_rules"
+          {
+              ( *pgl22g_path + "data/rules/packingrules.txt -format packing_rule" )
+          }
+      
+          file ( "common defs" )
+          {
+              ( *logos_path + "common/valence/pg_defs.eval -e -format valence" ),
+              ( *pgl_tile_based_path + "valence/common/pkgs/pgl_defs.eval -e -format valence" ),
+              ( *pgl_tile_based_path + "valence/common/site/stARCH/stARCH.eval -e -format valence" )
+          } // file ( "common defs" )
+      
+      
+        file ( "prim grid devices" ) // pragma PAP_ARC_LOAD_ON_DEMAND="prim_grid_device"
+        {
+            ( *pgl22g_path + "valence/list/prim_grid_devices_list.eval -e -format tcl" )
+        }
+        
+        file ( "prim grid device symbols" ) // pragma PAP_ARC_LOAD_ON_DEMAND="prim_grid_device_symbol"
+        {
+            ( *pgl22g_path + "valence/list/prim_grid_devices_symbol_list.eval -e -format tcl" )
+        }
+        
+        file ( "gate devices" ) // pragma PAP_ARC_LOAD_ON_DEMAND="gate_device"
+        {
+            ( *pgl22g_path + "valence/list/gate_devices_list.eval -e -format tcl" )
+        }
+        
+        file ( "gate operators" ) // pragma PAP_ARC_LOAD_ON_DEMAND="gate_operator"
+        {
+            ( *pgl22g_path + "valence/list/gops_list.eval -e -format tcl" )
+        }
+        
+        file ( "tech operator impls" ) // pragma PAP_ARC_LOAD_ON_DEMAND="tech_operator_impl"
+        {
+            ( *pgl22g_path + "valence/list/gtps_impl_list.eval -e -format tcl" )
+        } 
+      
+      
+          file
+          {
+              ( *pgl_tile_based_path + "valence/parts/pgl22g/pkgs/pgl22g_defs.eval -e -format valence" ),
+              ( *pgl_tile_based_path + "valence/parts/pgl22g/arch/generate_grid.eval -e -format valence" ),
+              ( *pgl22g_path + "valence/netlist/pgl22g_schm_funcs.eval -e -format valence" ),
+              ( *pgl22g_path + "valence/netlist/pgl22g_floorplan_funcs.eval -e -format valence" ),
+              ( *pgl22g_path + "valence/netlist/floorplan_pgl22g.eval -e -format valence" ),
+              ( *pgl22g_path + "valence/netlist/logic_view.eval -e -format valence" ),
+              ( *pgl22g_path + "valence/netlist/floorplan_view.eval -e -format valence" ),
+      
+              // 1) arch
+              ( *pgl22g_path + "db/arch_pgl22g_lp.eadf -e -format adif -model_layer logic_device_layout" ),
+              ( *pgl22g_path + "db/arch_pgl22g_nt.eadf -e -format adif -model_layer logic_device_net" ),
+      
+              // 2) arch view
+              //( *pgl22g_path + "valence/netlist/logic_schm_layout.eval -e -format valence" ),
+              ( *pgl22g_path + "db/arch_pgl22g_schm.eadf -e -format adif -model_layer logic_schematic" ),
+      
+              // 3) floorplan
+              //( *pgl22g_path + "valence/netlist/layout_fp.eval -e -format valence" ),
+              ( *pgl22g_path + "db/fp_arch_pgl22g_lp.eadf -e -format adif -model_layer fp_device_layout" ),
+      
+              // 4) floorplan view
+              //( *pgl22g_path + "valence/netlist/fp_schm_layout.eval -e -format valence" ),
+              ( *pgl22g_path + "db/fp_arch_pgl22g_schm.eadf -e -format adif -model_layer fp_schematic" ),
+      
+              // 5) others
+              ( *pgl22g_path + "data/paramanager.txt -format param_manager" )
+          }
+      
+          default packaging ( LPG176 )
+          {
+             file
+              {
+                  ( *pgl_tile_based_path + "valence/parts/pgl22g/pkgs/pgl22gs_lpg176_spec.eval -e -format valence -package" ),
+                  ( *pgl22g_path + "package/pgl22gs_lpg176.eval -e -format valence" )
+              }
+          }
+      } // end of PGL22GS     
+    
+    
+    // The PGL25G architecture
+    device ( PGL25G )
+    {
+        string logos_path = "/arch/vendor/pango/logos/";
+        string pgl_tile_based_path = "/arch/vendor/pango/logos/common_25/tile_based/";
+
+        string pgl25g_path  = "/arch/vendor/pango/logos/pgl25g/";
+
+
+        file ( "operator packing rules" ) // pragma PAP_ARC_LOAD_ON_DEMAND="packing_rules"
+        {
+            ( *logos_path + "common_25/packingrule/packingrules.txt -format packing_rule" )
+        }
+
+        file ( "common defs" )
+        {
+            ( *logos_path + "common/valence/pg_defs.eval -e -format valence" ),
+            ( *pgl_tile_based_path + "valence/common/pkgs/pgl_defs.eval -e -format valence" ),
+            ( *pgl_tile_based_path + "valence/common/site/stARCH/stARCH.eval -e -format valence" )
+        } // file ( "common defs" )
+
+
+        file ( "prim grid devices" ) // pragma PAP_ARC_LOAD_ON_DEMAND="prim_grid_device"
+        {
+            ( *pgl25g_path + "valence/list/prim_grid_devices_list.eval -e -format tcl" )
+        }
+        
+        file ( "prim grid device symbols" ) // pragma PAP_ARC_LOAD_ON_DEMAND="prim_grid_device_symbol"
+        {
+            ( *pgl25g_path + "valence/list/prim_grid_devices_symbol_list.eval -e -format tcl" )
+        }
+        
+        file ( "gate devices" ) // pragma PAP_ARC_LOAD_ON_DEMAND="gate_device"
+        {
+            ( *pgl25g_path + "valence/list/gate_devices_list.eval -e -format tcl" )
+        }
+        
+        file ( "gate operators" ) // pragma PAP_ARC_LOAD_ON_DEMAND="gate_operator"
+        {
+            ( *pgl25g_path + "valence/list/gops_list.eval -e -format tcl" )
+        }
+        
+        file ( "tech operator impls" ) // pragma PAP_ARC_LOAD_ON_DEMAND="tech_operator_impl"
+        {
+            ( *pgl25g_path + "valence/list/gtps_impl_list.eval -e -format tcl" )
+        } 
+
+        file
+        {
+            ( *pgl_tile_based_path + "valence/parts/pgl25g/pkgs/pgl25g_defs.eval -e -format valence" ),
+            ( *pgl_tile_based_path + "valence/parts/pgl25g/arch/generate_grid.eval -e -format valence" ),
+            ( *pgl25g_path + "valence/netlist/schm_funcs.eval -e -format valence" ),
+            ( *pgl25g_path + "valence/netlist/floorplan_funcs.eval -e -format valence" ),
+            ( *pgl25g_path + "valence/netlist/floorplan.eval -e -format valence" ),
+            ( *pgl25g_path + "valence/netlist/logic_view.eval -e -format valence" ),
+            ( *pgl25g_path + "valence/netlist/floorplan_view.eval -e -format valence" ),
+
+            // 1) arch
+            ( *pgl25g_path + "db/arch_lp.eadf -e -format adif -model_layer logic_device_layout" ),
+            ( *pgl25g_path + "db/arch_nt.eadf -e -format adif -model_layer logic_device_net" ),
+
+            // 2) arch view
+            //( *pgl25g_path + "valence/netlist/logic_schm_layout.eval -e -format valence" ),
+            ( *pgl25g_path + "db/arch_schm.eadf -e -format adif -model_layer logic_schematic" ),
+
+            // 3) floorplan
+            //( *pgl25g_path + "valence/netlist/layout_fp.eval -e -format valence" ),
+            ( *pgl25g_path + "db/fp_arch_lp.eadf -e -format adif -model_layer fp_device_layout" ),
+
+            // 4) floorplan view
+            //( *pgl25g_path + "valence/netlist/fp_schm_layout.eval -e -format valence" ),
+            ( *pgl25g_path + "db/fp_arch_schm.eadf -e -format adif -model_layer fp_schematic" ),
+
+            // 5) others
+            ( *pgl25g_path + "data/paramanager.txt -format param_manager" )
+        }
+
+        default packaging ( FBG484 )
+        {
+           file
+            {
+               ( *pgl_tile_based_path + "valence/parts/pgl25g/pkgs/pgl25g_fbg484_spec.eval -e -format valence -package" ),
+               ( *pgl25g_path + "package/pgl25g_fbg484.eval -e -format valence" )
+            }
+        }
+        
+        packaging ( MBG324 )
+        {
+           file
+            {
+               ( *pgl_tile_based_path + "valence/parts/pgl25g/pkgs/pgl25g_mbg324_spec.eval -e -format valence -package" ),
+               ( *pgl25g_path + "package/pgl25g_mbg324.eval -e -format valence" )
+            }
+        }
+        
+        packaging ( FBG256 )
+        {
+           file
+            {
+               ( *pgl_tile_based_path + "valence/parts/pgl25g/pkgs/pgl25g_fbg256_spec.eval -e -format valence -package" ),
+               ( *pgl25g_path + "package/pgl25g_fbg256.eval -e -format valence" )
+            }
+        }
+    }    
+
+
+      // The PGL35ES architecture
+    device ( PGL35ES )
+    {
+        string logos_path = "/arch/vendor/pango/logos/";
+        string pgl_tile_based_path = "/arch/vendor/pango/logos/common_35es/tile_based/";
+
+        string pgl35es_path  = "/arch/vendor/pango/logos/pgl35es/";
+
+
+        file ( "operator packing rules" ) // pragma PAP_ARC_LOAD_ON_DEMAND="packing_rules"
+        {
+            ( *logos_path + "common_35es/packingrule/packingrules.txt -format packing_rule" )
+        }
+
+        file ( "common defs" )
+        {
+            ( *logos_path + "common/valence/pg_defs.eval -e -format valence" ),
+            ( *pgl_tile_based_path + "valence/common/pkgs/pgl_defs.eval -e -format valence" ),
+            ( *pgl_tile_based_path + "valence/common/site/stARCH/stARCH.eval -e -format valence" )
+        } // file ( "common defs" )
+
+
+        file ( "prim grid devices" ) // pragma PAP_ARC_LOAD_ON_DEMAND="prim_grid_device"
+        {
+            ( *pgl35es_path + "valence/list/prim_grid_devices_list.eval -e -format tcl" )
+        }
+        
+        file ( "prim grid device symbols" ) // pragma PAP_ARC_LOAD_ON_DEMAND="prim_grid_device_symbol"
+        {
+            ( *pgl35es_path + "valence/list/prim_grid_devices_symbol_list.eval -e -format tcl" )
+        }
+        
+        file ( "gate devices" ) // pragma PAP_ARC_LOAD_ON_DEMAND="gate_device"
+        {
+            ( *pgl35es_path + "valence/list/gate_devices_list.eval -e -format tcl" )
+        }
+        
+        file ( "gate operators" ) // pragma PAP_ARC_LOAD_ON_DEMAND="gate_operator"
+        {
+            ( *pgl35es_path + "valence/list/gops_list.eval -e -format tcl" )
+        }
+        
+        file ( "tech operator impls" ) // pragma PAP_ARC_LOAD_ON_DEMAND="tech_operator_impl"
+        {
+            ( *pgl35es_path + "valence/list/gtps_impl_list.eval -e -format tcl" )
+        } 
+
+        file
+        {
+            ( *pgl_tile_based_path + "valence/parts/pgl35es/pkgs/pgl35es_defs.eval -e -format valence" ),
+            ( *pgl_tile_based_path + "valence/parts/pgl35es/arch/generate_grid.eval -e -format valence" ),
+            ( *pgl35es_path + "valence/netlist/schm_funcs.eval -e -format valence" ),
+            ( *pgl35es_path + "valence/netlist/floorplan_funcs.eval -e -format valence" ),
+            ( *pgl35es_path + "valence/netlist/floorplan.eval -e -format valence" ),
+            ( *pgl35es_path + "valence/netlist/logic_view.eval -e -format valence" ),
+            ( *pgl35es_path + "valence/netlist/floorplan_view.eval -e -format valence" ),
+
+            // 1) arch
+            ( *pgl35es_path + "db/arch_lp.eadf -e -format adif -model_layer logic_device_layout" ),
+            ( *pgl35es_path + "db/arch_nt.eadf -e -format adif -model_layer logic_device_net" ),
+
+            // 2) arch view
+            //( *pgl35es_path + "valence/netlist/logic_schm_layout.eval -e -format valence" ),
+            ( *pgl35es_path + "db/arch_schm.eadf -e -format adif -model_layer logic_schematic" ),
+
+            // 3) floorplan
+            //( *pgl35es_path + "valence/netlist/layout_fp.eval -e -format valence" ),
+            ( *pgl35es_path + "db/fp_arch_lp.eadf -e -format adif -model_layer fp_device_layout" ),
+
+            // 4) floorplan view
+            //( *pgl35es_path + "valence/netlist/fp_schm_layout.eval -e -format valence" ),
+            ( *pgl35es_path + "db/fp_arch_schm.eadf -e -format adif -model_layer fp_schematic" ),
+
+            // 5) others
+            ( *pgl35es_path + "data/paramanager.txt -format param_manager" )
+        }
+
+        packaging ( FFBG1152A )
+        {
+           file
+            {
+               ( *pgl_tile_based_path + "valence/parts/pgl35es/pkgs/pgl35es_ffbg1152a_spec.eval -e -format valence -package" ),
+               ( *pgl35es_path + "package/ffbg1152a.eval -e -format valence" )
+            }
+        }
+
+    packaging ( FFBG1152B )
+        {
+           file
+            {
+               ( *pgl_tile_based_path + "valence/parts/pgl35es/pkgs/pgl35es_ffbg1152b_spec.eval -e -format valence -package" ),
+               ( *pgl35es_path + "package/ffbg1152b.eval -e -format valence" )
+            }
+        }
+    }// end of PGL35ES
+
+
+    // The PGL50G architecture
+    device ( PGL50G )
+    {
+        string logos_path = "/arch/vendor/pango/logos/";
+        string pgl_tile_based_path = "/arch/vendor/pango/logos/common_25/tile_based/";
+
+        string pgl50h_path  = "/arch/vendor/pango/logos/pgl50h/";
+
+
+        file ( "operator packing rules" ) // pragma PAP_ARC_LOAD_ON_DEMAND="packing_rules"
+        {
+            ( *logos_path + "common_25/packingrule/packingrules.txt -format packing_rule" )
+        }
+
+        file ( "common defs" )
+        {
+            ( *logos_path + "common/valence/pg_defs.eval -e -format valence" ),
+            ( *pgl_tile_based_path + "valence/common/pkgs/pgl_defs.eval -e -format valence" ),
+            ( *pgl_tile_based_path + "valence/common/site/stARCH/stARCH.eval -e -format valence" )
+        } // file ( "common defs" )
+
+        
+        file ( "prim grid devices" ) // pragma PAP_ARC_LOAD_ON_DEMAND="prim_grid_device"
+        {
+            ( *pgl50h_path + "valence/list/prim_grid_devices_list.eval -e -format tcl" )
+        }
+        
+        file ( "prim grid device symbols" ) // pragma PAP_ARC_LOAD_ON_DEMAND="prim_grid_device_symbol"
+        {
+            ( *pgl50h_path + "valence/list/prim_grid_devices_symbol_list.eval -e -format tcl" )
+        }
+        
+        file ( "gate devices" ) // pragma PAP_ARC_LOAD_ON_DEMAND="gate_device"
+        {
+            ( *pgl50h_path + "valence/list/gate_devices_list.eval -e -format tcl" )
+        }
+        
+        file ( "gate operators" ) // pragma PAP_ARC_LOAD_ON_DEMAND="gate_operator"
+        {
+            ( *pgl50h_path + "valence/list/gops_list.eval -e -format tcl" )
+        }
+        
+        file ( "tech operator impls" ) // pragma PAP_ARC_LOAD_ON_DEMAND="tech_operator_impl"
+        {
+            ( *pgl50h_path + "valence/list/gtps_impl_list.eval -e -format tcl" )
+        } 
+
+        file
+        {
+            ( *pgl_tile_based_path + "valence/parts/pgl50h/pkgs/pgl50h_defs.eval -e -format valence" ),
+            ( *pgl_tile_based_path + "valence/parts/pgl50h/arch/generate_grid.eval -e -format valence" ),
+            ( *pgl50h_path + "valence/netlist/schm_funcs.eval -e -format valence" ),
+            ( *pgl50h_path + "valence/netlist/floorplan_funcs.eval -e -format valence" ),
+            ( *pgl50h_path + "valence/netlist/floorplan.eval -e -format valence" ),
+            ( *pgl50h_path + "valence/netlist/logic_view.eval -e -format valence" ),
+            ( *pgl50h_path + "valence/netlist/floorplan_view.eval -e -format valence" ),
+
+            // 1) arch
+            ( *pgl50h_path + "db/arch_lp.eadf -e -format adif -model_layer logic_device_layout" ),
+            ( *pgl50h_path + "db/arch_nt.eadf -e -format adif -model_layer logic_device_net" ),
+
+            // 2) arch view
+            //( *pgl50h_path + "valence/netlist/logic_schm_layout.eval -e -format valence" ),
+            ( *pgl50h_path + "db/arch_schm.eadf -e -format adif -model_layer logic_schematic" ),
+
+            // 3) floorplan
+            //( *pgl50h_path + "valence/netlist/layout_fp.eval -e -format valence" ),
+            ( *pgl50h_path + "db/fp_arch_lp.eadf -e -format adif -model_layer fp_device_layout" ),
+
+            // 4) floorplan view
+            //( *pgl50h_path + "valence/netlist/fp_schm_layout.eval -e -format valence" ),
+            ( *pgl50h_path + "db/fp_arch_schm.eadf -e -format adif -model_layer fp_schematic" ),
+
+            // 5) others
+            ( *pgl50h_path + "data/paramanager.txt -format param_manager" )
+        }
+
+    packaging ( MBG324 )
+        {
+           file
+            {
+               ( *pgl_tile_based_path + "valence/parts/pgl50h/pkgs/pgl50g_mbg324_spec.eval -e -format valence -package" ),
+               ( *pgl50h_path + "package/pgl50g_mbg324.eval -e -format valence" )
+            }
+        }
+    packaging ( MBG484 )
+        {
+           file
+            {
+               ( *pgl_tile_based_path + "valence/parts/pgl50h/pkgs/pgl50g_mbg484_spec.eval -e -format valence -package" ),
+               ( *pgl50h_path + "package/pgl50g_mbg484.eval -e -format valence" )
+            }
+        }
+        packaging ( FBG484 )
+        {
+           file
+            {
+               ( *pgl_tile_based_path + "valence/parts/pgl50h/pkgs/pgl50g_fbg484_spec.eval -e -format valence -package" ),
+               ( *pgl50h_path + "package/pgl50g_fbg484.eval -e -format valence" )
+            }
+        }      
+    }    
+
+
+    // The PGL50H architecture
+    device ( PGL50H )
+    {
+        string logos_path = "/arch/vendor/pango/logos/";
+        string pgl_tile_based_path = "/arch/vendor/pango/logos/common_25/tile_based/";
+
+        string pgl50h_path  = "/arch/vendor/pango/logos/pgl50h/";
+
+
+        file ( "operator packing rules" ) // pragma PAP_ARC_LOAD_ON_DEMAND="packing_rules"
+        {
+            ( *logos_path + "common_25/packingrule/packingrules.txt -format packing_rule" )
+        }
+
+        file ( "common defs" )
+        {
+            ( *logos_path + "common/valence/pg_defs.eval -e -format valence" ),
+            ( *pgl_tile_based_path + "valence/common/pkgs/pgl_defs.eval -e -format valence" ),
+            ( *pgl_tile_based_path + "valence/common/site/stARCH/stARCH.eval -e -format valence" )
+        } // file ( "common defs" )
+
+        
+        file ( "prim grid devices" ) // pragma PAP_ARC_LOAD_ON_DEMAND="prim_grid_device"
+        {
+            ( *pgl50h_path + "valence/list/prim_grid_devices_list.eval -e -format tcl" )
+        }
+        
+        file ( "prim grid device symbols" ) // pragma PAP_ARC_LOAD_ON_DEMAND="prim_grid_device_symbol"
+        {
+            ( *pgl50h_path + "valence/list/prim_grid_devices_symbol_list.eval -e -format tcl" )
+        }
+        
+        file ( "gate devices" ) // pragma PAP_ARC_LOAD_ON_DEMAND="gate_device"
+        {
+            ( *pgl50h_path + "valence/list/gate_devices_list.eval -e -format tcl" )
+        }
+        
+        file ( "gate operators" ) // pragma PAP_ARC_LOAD_ON_DEMAND="gate_operator"
+        {
+            ( *pgl50h_path + "valence/list/gops_list.eval -e -format tcl" )
+        }
+        
+        file ( "tech operator impls" ) // pragma PAP_ARC_LOAD_ON_DEMAND="tech_operator_impl"
+        {
+            ( *pgl50h_path + "valence/list/gtps_impl_list.eval -e -format tcl" )
+        } 
+
+        file
+        {
+            ( *pgl_tile_based_path + "valence/parts/pgl50h/pkgs/pgl50h_defs.eval -e -format valence" ),
+            ( *pgl_tile_based_path + "valence/parts/pgl50h/arch/generate_grid.eval -e -format valence" ),
+            ( *pgl50h_path + "valence/netlist/schm_funcs.eval -e -format valence" ),
+            ( *pgl50h_path + "valence/netlist/floorplan_funcs.eval -e -format valence" ),
+            ( *pgl50h_path + "valence/netlist/floorplan.eval -e -format valence" ),
+            ( *pgl50h_path + "valence/netlist/logic_view.eval -e -format valence" ),
+            ( *pgl50h_path + "valence/netlist/floorplan_view.eval -e -format valence" ),
+
+            // 1) arch
+            ( *pgl50h_path + "db/arch_lp.eadf -e -format adif -model_layer logic_device_layout" ),
+            ( *pgl50h_path + "db/arch_nt.eadf -e -format adif -model_layer logic_device_net" ),
+
+            // 2) arch view
+            //( *pgl50h_path + "valence/netlist/logic_schm_layout.eval -e -format valence" ),
+            ( *pgl50h_path + "db/arch_schm.eadf -e -format adif -model_layer logic_schematic" ),
+
+            // 3) floorplan
+            //( *pgl50h_path + "valence/netlist/layout_fp.eval -e -format valence" ),
+            ( *pgl50h_path + "db/fp_arch_lp.eadf -e -format adif -model_layer fp_device_layout" ),
+
+            // 4) floorplan view
+            //( *pgl50h_path + "valence/netlist/fp_schm_layout.eval -e -format valence" ),
+            ( *pgl50h_path + "db/fp_arch_schm.eadf -e -format adif -model_layer fp_schematic" ),
+
+            // 5) others
+            ( *pgl50h_path + "data/paramanager.txt -format param_manager" )
+        }
+
+    packaging ( MBG324 )
+        {
+           file
+            {
+               ( *pgl_tile_based_path + "valence/parts/pgl50h/pkgs/pgl50h_mbg324_spec.eval -e -format valence -package" ),
+               ( *pgl50h_path + "package/pgl50h_mbg324.eval -e -format valence" )
+            }
+        }
+    packaging ( MBG484 )
+        {
+           file
+            {
+               ( *pgl_tile_based_path + "valence/parts/pgl50h/pkgs/pgl50h_mbg484_spec.eval -e -format valence -package" ),
+               ( *pgl50h_path + "package/pgl50h_mbg484.eval -e -format valence" )
+            }
+        }
+        packaging ( FBG484 )
+        {
+           file
+            {
+               ( *pgl_tile_based_path + "valence/parts/pgl50h/pkgs/pgl50h_fbg484_spec.eval -e -format valence -package" ),
+               ( *pgl50h_path + "package/pgl50h_fbg484.eval -e -format valence" )
+            }
+        }       
+    }    
+    
+    // The PGL100H architecture
+    device ( PGL100H )
+    {
+        string logos_path = "/arch/vendor/pango/logos/";
+        string pgl_tile_based_path = "/arch/vendor/pango/logos/common_25/tile_based/";
+
+        string pgl100h_path  = "/arch/vendor/pango/logos/pgl100h/";
+
+
+        file ( "operator packing rules" ) // pragma PAP_ARC_LOAD_ON_DEMAND="packing_rules"
+        {
+            ( *logos_path + "common_25/packingrule/packingrules.txt -format packing_rule" )
+        }
+
+        file ( "common defs" )
+        {
+            ( *logos_path + "common/valence/pg_defs.eval -e -format valence" ),
+            ( *pgl_tile_based_path + "valence/common/pkgs/pgl_defs.eval -e -format valence" ),
+            ( *pgl_tile_based_path + "valence/common/site/stARCH/stARCH.eval -e -format valence" )
+        } // file ( "common defs" )
+
+        
+        file ( "prim grid devices" ) // pragma PAP_ARC_LOAD_ON_DEMAND="prim_grid_device"
+        {
+            ( *pgl100h_path + "valence/list/prim_grid_devices_list.eval -e -format tcl" )
+        }
+        
+        file ( "prim grid device symbols" ) // pragma PAP_ARC_LOAD_ON_DEMAND="prim_grid_device_symbol"
+        {
+            ( *pgl100h_path + "valence/list/prim_grid_devices_symbol_list.eval -e -format tcl" )
+        }
+        
+        file ( "gate devices" ) // pragma PAP_ARC_LOAD_ON_DEMAND="gate_device"
+        {
+            ( *pgl100h_path + "valence/list/gate_devices_list.eval -e -format tcl" )
+        }
+        
+        file ( "gate operators" ) // pragma PAP_ARC_LOAD_ON_DEMAND="gate_operator"
+        {
+            ( *pgl100h_path + "valence/list/gops_list.eval -e -format tcl" )
+        }
+        
+        file ( "tech operator impls" ) // pragma PAP_ARC_LOAD_ON_DEMAND="tech_operator_impl"
+        {
+            ( *pgl100h_path + "valence/list/gtps_impl_list.eval -e -format tcl" )
+        } 
+
+        file
+        {
+            ( *pgl_tile_based_path + "valence/parts/pgl100h/pkgs/pgl100h_defs.eval -e -format valence" ),
+            ( *pgl_tile_based_path + "valence/parts/pgl100h/arch/generate_grid.eval -e -format valence" ),
+            ( *pgl100h_path + "valence/netlist/schm_funcs.eval -e -format valence" ),
+            ( *pgl100h_path + "valence/netlist/floorplan_funcs.eval -e -format valence" ),
+            ( *pgl100h_path + "valence/netlist/floorplan.eval -e -format valence" ),
+            ( *pgl100h_path + "valence/netlist/logic_view.eval -e -format valence" ),
+            ( *pgl100h_path + "valence/netlist/floorplan_view.eval -e -format valence" ),
+
+            // 1) arch
+            ( *pgl100h_path + "db/arch_lp.eadf -e -format adif -model_layer logic_device_layout" ),
+            ( *pgl100h_path + "db/arch_nt.eadf -e -format adif -model_layer logic_device_net" ),
+
+            // 2) arch view
+            //( *pgl100h_path + "valence/netlist/logic_schm_layout.eval -e -format valence" ),
+            ( *pgl100h_path + "db/arch_schm.eadf -e -format adif -model_layer logic_schematic" ),
+
+            // 3) floorplan
+            //( *pgl100h_path + "valence/netlist/layout_fp.eval -e -format valence" ),
+            ( *pgl100h_path + "db/fp_arch_lp.eadf -e -format adif -model_layer fp_device_layout" ),
+
+            // 4) floorplan view
+            //( *pgl100h_path + "valence/netlist/fp_schm_layout.eval -e -format valence" ),
+            ( *pgl100h_path + "db/fp_arch_schm.eadf -e -format adif -model_layer fp_schematic" ),
+
+            // 5) others
+            ( *pgl100h_path + "data/paramanager.txt -format param_manager" )
+        }
+
+        default packaging ( FBG900 )
+        {
+           file
+            {
+               ( *pgl_tile_based_path + "valence/parts/pgl100h/pkgs/pgl100h_fbg900_spec.eval -e -format valence -package" ),
+               ( *pgl100h_path + "package/pgl100h_fbg900.eval -e -format valence" )
+            }
+        }       
+    }    
+    
+    // The PGL200ES architecture
+    device ( PGL200ES )
+    {
+        string logos_path = "/arch/vendor/pango/logos/";
+        string pgl_tile_based_path = "/arch/vendor/pango/logos/common_35es/tile_based/";
+
+        string pgl200es_path  = "/arch/vendor/pango/logos/pgl200es/";
+
+
+        file ( "operator packing rules" ) // pragma PAP_ARC_LOAD_ON_DEMAND="packing_rules"
+        {
+            ( *logos_path + "common_35es/packingrule/packingrules.txt -format packing_rule" )
+        }
+
+        file ( "common defs" )
+        {
+            ( *logos_path + "common/valence/pg_defs.eval -e -format valence" ),
+            ( *pgl_tile_based_path + "valence/common/pkgs/pgl_defs.eval -e -format valence" ),
+            ( *pgl_tile_based_path + "valence/common/site/stARCH/stARCH.eval -e -format valence" )
+        } // file ( "common defs" )
+
+
+        file ( "prim grid devices" ) // pragma PAP_ARC_LOAD_ON_DEMAND="prim_grid_device"
+        {
+            ( *pgl200es_path + "valence/list/prim_grid_devices_list.eval -e -format tcl" )
+        }
+        
+        file ( "prim grid device symbols" ) // pragma PAP_ARC_LOAD_ON_DEMAND="prim_grid_device_symbol"
+        {
+            ( *pgl200es_path + "valence/list/prim_grid_devices_symbol_list.eval -e -format tcl" )
+        }
+        
+        file ( "gate devices" ) // pragma PAP_ARC_LOAD_ON_DEMAND="gate_device"
+        {
+            ( *pgl200es_path + "valence/list/gate_devices_list.eval -e -format tcl" )
+        }
+        
+        file ( "gate operators" ) // pragma PAP_ARC_LOAD_ON_DEMAND="gate_operator"
+        {
+            ( *pgl200es_path + "valence/list/gops_list.eval -e -format tcl" )
+        }
+        
+        file ( "tech operator impls" ) // pragma PAP_ARC_LOAD_ON_DEMAND="tech_operator_impl"
+        {
+            ( *pgl200es_path + "valence/list/gtps_impl_list.eval -e -format tcl" )
+        } 
+
+
+        file
+        {
+            ( *pgl_tile_based_path + "valence/parts/pgl200es/pkgs/pgl200es_defs.eval -e -format valence" ),
+            ( *pgl_tile_based_path + "valence/parts/pgl200es/arch/generate_grid.eval -e -format valence" ),
+            ( *pgl200es_path + "valence/netlist/schm_funcs.eval -e -format valence" ),
+            ( *pgl200es_path + "valence/netlist/floorplan_funcs.eval -e -format valence" ),
+            ( *pgl200es_path + "valence/netlist/floorplan.eval -e -format valence" ),
+            ( *pgl200es_path + "valence/netlist/logic_view.eval -e -format valence" ),
+            ( *pgl200es_path + "valence/netlist/floorplan_view.eval -e -format valence" ),
+
+            // 1) arch
+            ( *pgl200es_path + "db/arch_lp.eadf -e -format adif -model_layer logic_device_layout" ),
+            ( *pgl200es_path + "db/arch_nt.eadf -e -format adif -model_layer logic_device_net" ),
+
+            // 2) arch view
+            //( *pgl200es_path + "valence/netlist/logic_schm_layout.eval -e -format valence" ),
+            ( *pgl200es_path + "db/arch_schm.eadf -e -format adif -model_layer logic_schematic" ),
+
+            // 3) floorplan
+            //( *pgl200es_path + "valence/netlist/layout_fp.eval -e -format valence" ),
+            ( *pgl200es_path + "db/fp_arch_lp.eadf -e -format adif -model_layer fp_device_layout" ),
+
+            // 4) floorplan view
+            //( *pgl200es_path + "valence/netlist/fp_schm_layout.eval -e -format valence" ),
+            ( *pgl200es_path + "db/fp_arch_schm.eadf -e -format adif -model_layer fp_schematic" ),
+
+            // 5) others
+            ( *pgl200es_path + "data/paramanager.txt -format param_manager" )
+        }
+
+        default packaging ( FBG484 )
+        {
+           file
+            {
+               ( *pgl_tile_based_path + "valence/parts/pgl200es/pkgs/pgl200es_fbg484_spec.eval -e -format valence -package" ),
+               ( *pgl200es_path + "package/fbg484.eval -e -format valence" )
+            }
+        }
+    }// end of PGL200ES
+
+    // Speedgrade,common to all device in the family
+
+    speedgrade ( sg5 ) /* pragma display_name="-5" oem_name="-5" */
+    {
+    }
+
+    default speedgrade ( sg6 ) /* pragma display_name="-6" oem_name="-6" */
+    {
+    }
+
+    speedgrade ( sg7 ) /* pragma display_name="-7" oem_name="-7" */
+    {
+    }
+
+
+} // family Logos
+
+

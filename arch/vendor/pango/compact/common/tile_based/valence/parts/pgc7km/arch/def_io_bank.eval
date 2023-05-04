@@ -1,0 +1,75 @@
+use pgc_defs,pgc7km_defs;
+
+/*******************************************************************************
+
+3 IO banks and 2 MIPI_DPHY_TILE are defined. The banks are named 
+
+                MIPI_DPHY0                            BANK1                      
+                BANK0     
+                MIPI_DPHY1                            BANK2
+
+********************************************************************************/       
+structure arch_nl define_io_bank of devPGC7KM
+{
+ 
+  &wire ntRef_ntVCCIO0 = <wire ntVCCIO0>;  
+  &wire ntRef_ntVCCIO1 = <wire ntVCCIO1>;
+  &wire ntRef_ntVCCIO2 = <wire ntVCCIO2>;
+
+  &wire ntRef_ntVSSIO0 = <wire ntVSSIO0>;  
+  &wire ntRef_ntVSSIO1 = <wire ntVSSIO1>;
+  &wire ntRef_ntVSSIO2 = <wire ntVSSIO2>;
+
+
+  int ty,sx,sy;
+
+
+
+  //==================================//
+  //            BANK0                //
+  //==================================//
+  device group BANK0 /*pragma PAP_ARC_GROUP_TYPE="IO_BANK"*/;// pragma PAP_ARC_COLOR="191:0:0"
+ 
+  sx = IOB_TILE_X_L * NUM_GRID_X;
+  sy = IOB0_TILE_Y * NUM_GRID_Y; 
+
+  connect
+    (
+      <pin VCCIO of <device IOB0_7KM_TILE @ [sx,sy]>> => ntRef_ntVCCIO0,
+      <pin VSSIO of <device IOB0_7KM_TILE @ [sx,sy]>> => ntRef_ntVSSIO0
+    );
+  BANK0 += { <device IOB0_7KM_TILE @ [sx,sy]> };
+
+
+  //==================================//
+  //            BANK1                //
+  //==================================//
+  device group BANK1 /*pragma PAP_ARC_GROUP_TYPE="IO_BANK"*/;// pragma PAP_ARC_COLOR="191:191:0"
+ 
+  sx = IOB_TILE_X_R * NUM_GRID_X;
+  sy = IOB1_TILE_Y * NUM_GRID_Y; 
+
+
+  connect
+    (
+      <pin VCCIO of <device IOB1_7KM_TILE @ [sx,sy]>> => ntRef_ntVCCIO1,
+      <pin VSSIO of <device IOB1_7KM_TILE @ [sx,sy]>> => ntRef_ntVSSIO1
+    );
+  BANK1 +={ <device IOB1_7KM_TILE @ [sx,sy]>};
+
+  //==================================//
+  //            BANK2                //
+  //==================================//
+  device group BANK2 /*pragma PAP_ARC_GROUP_TYPE="IO_BANK"*/;// pragma PAP_ARC_COLOR="191:0:191"
+ 
+  sx = IOB_TILE_X_R * NUM_GRID_X;
+  sy = IOB2_TILE_Y * NUM_GRID_Y; 
+
+  connect
+    (
+      <pin VCCIO of <device IOB2_7KM_TILE @ [sx,sy]>> => ntRef_ntVCCIO2,
+      <pin VSSIO of <device IOB2_7KM_TILE @ [sx,sy]>> => ntRef_ntVSSIO2
+    );
+  BANK2 +={ <device IOB2_7KM_TILE @ [sx,sy]> };
+  
+}//end of structure arch_nl define_io_bank of PGC7KM

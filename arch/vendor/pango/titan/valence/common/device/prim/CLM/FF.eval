@@ -1,0 +1,95 @@
+*****************************************************************
+
+  Device    [FF]
+
+  Author    [clwang]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+prim
+device FF
+{
+    parameter
+    (
+        config string GRS_EN         = "FALSE",             // "TRUE" "FALSE"
+        config string LRS_EN         = "TRUE",              // "TRUE" "FALSE"
+        config string SET            = "SET",               // "SET" "RESET"
+        config string SYNC           = "SYNC"               // "SYNC" "ASYNC"
+    );
+    port 
+    ( 
+        // Input Ports of FF
+        input D, RS, CE, CK,
+       
+        // Output Ports for FF
+        output Q
+    );
+
+};
+
+propagation prop of FF
+{
+   propagate ( D   |-> Q );
+   propagate ( RS  |-> Q );
+   propagate ( CE  |-> Q );
+   propagate ( CK  |-> Q );
+};
+
+/**Device***********************************************************************
+
+  Device    [FF]
+
+  Author    [xsniu]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+
+timing ff_tnl of FF
+{
+    if(SYNC == "SYNC")
+    {
+        operator V_FFSYN V_FFSYN
+            parameter map 
+            (
+                GRS_EN    => GRS_EN,
+                SET_RESET => SET,
+                LRS_EN    => LRS_EN
+            )
+            port map 
+            (
+               Q => Q,
+               D => D, 
+               SR => RS, 
+               CK => CK, 
+               CE => CE
+            ); 
+    }
+    else if(SYNC == "ASYNC")
+    {
+        operator V_FFASYN V_FFASYN
+            parameter map 
+            (
+                GRS_EN    => GRS_EN,
+                SET_RESET => SET,
+                LRS_EN    => LRS_EN
+            )
+            port map 
+            (
+               Q => Q,
+               D => D, 
+               SR => RS, 
+               CK => CK, 
+               CE => CE
+            ); 
+    } 
+    else
+    {
+        error("Illegal configuration to generate timing model");
+    }
+}

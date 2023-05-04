@@ -1,0 +1,87 @@
+*******************************************************************
+
+  Device    [devBAE_S]
+
+  Author    [guoxi]
+
+  Abstract  [THE DEVICE MODELLED FOR THE END OF CARRY CHAIN. FOR THE OUTPUT PORT 
+             HAD BEEN USED BY SUM OF CARRY CHAIN, SIGNAL OF THE PORT COUT CAN NOT
+             PASS TO IT DERECTLY.]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devBAE_S : device devB_S
+{
+    parameter
+    (
+        config bit    CP_INITB[31:0]  = 32'hffff_ffff,        
+        config string CP_MODEB      = "LUT5",           //"LUT5" "ROM" "WMUX" "RAM" "ARITH" "PRIENC" "MUX4" "XOR" "COMP" "RAM"
+        config string CP_MASK    := "FALSE",                 
+        config string CP_Y1MUX_SEL := "CYX"              //"FX":F1 "CYX":CYB "MF":L7
+    );
+    
+    port
+    (
+               output   Y1,
+        logic  input    FGB_CIN
+    );
+}; // end of device devBAE_S
+
+
+/*******************************************************************************
+
+  Device    [devBAE_S]
+
+  Author    [guoxi]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devBAE_S
+{
+
+    // Wires connecting to output ports
+    wire ntY1;
+    // Internal wires  
+    wire ntCYB;
+    wire ntCYA;
+    //
+    // Connection to ports
+    //
+    ntCYA     <= FGB_CIN;
+    Y1        <= ntY1;
+
+    //
+    // Instances. FGA section
+    //
+
+    device LUT5SC FYB
+        parameter map
+        (
+            CP_INIT   => CP_INITB,
+            CP_MODE   => CP_MODEB,
+            CP_MASK   => CP_MASK 
+        )
+        port map
+        (
+            CIN  => ntCYA,
+            COUT => ntCYB
+         );
+
+    device YMUX  Y1MUX
+        parameter map
+        (
+            CP_OUT_SEL => CP_Y1MUX_SEL
+        )
+        port map
+        (
+            Y    => ntY1,
+            CYX  => ntCYB
+        );   
+}; // end of structure netlist of devBAE_S
+
+

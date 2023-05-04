@@ -1,0 +1,113 @@
+*****************************************************************
+
+  Device    [devDMUX]
+
+  Author    []
+
+  Abstract  [THE DEVICE CAN BE USED FOR WMUX.]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devDMUX : device devD
+{
+    parameter
+    (
+        config bit INITD[31:0]     = 32'h0000_0000,
+        config string FGD_MODE     = "WMUX",               // "LUT5" "ROM" "WMUX" "ARITH"        
+        config string Y3MUX_SEL    := "FG"                 // "L8"  "FG" "CY"
+    );
+    
+    port
+    (
+        input    D0, D1, D2, D3, D4, DD,
+        output   Y3
+    );
+}; // end of device devDMUX
+
+
+/*******************************************************************************
+
+  Device    [devDMUX]
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devDMUX
+{
+    // Wires for input ports
+    wire ntD0, ntD1, ntD2, ntD3, ntD4, ntDD; 
+
+    // Wires connecting to output ports
+    wire ntY3MUX;
+    // Internal wires
+    wire ntFGD_Z;
+    //
+    // Connection to ports
+    //
+ 
+    ntD0      <= D0;
+    ntD1      <= D1;
+    ntD2      <= D2;
+    ntD3      <= D3;
+    ntD4      <= D4;
+    ntDD      <= DD;
+        
+    Y3        <= ntY3MUX;      
+    
+    //
+    // Instances. FGA section
+    //
+
+    device FGA FGD 
+        parameter map
+        (
+            INIT        => INITD,
+            MODE        => FGD_MODE
+        )
+        port map 
+        (
+            A0   => ntD0, 
+            A1   => ntD1, 
+            A2   => ntD2, 
+            A3   => ntD3, 
+            A4   => ntD4,       
+            A5   => ntDD,
+            Z    => ntFGD_Z 
+        );
+
+    device Y3MUX Y3MUX
+        parameter map
+        (
+            CFG  => Y3MUX_SEL
+        )      
+        port map
+        (
+            FG  => ntFGD_Z,
+            Z   => ntY3MUX
+        );
+}; // end of structure netlist of devDMUX
+timing tnl of devDMUX      
+{        
+  operator V_LUT5M V_FGD 
+      parameter map            
+      (                        
+          SECTION  => "D",
+          INIT     => INITD
+      )                        
+      port map                
+      (                   
+          I0  => D0,       
+          ID  => DD,       
+          I1  => D1,       
+          I2  => D2,       
+          I3  => D3,
+          I4  => D4,       
+          Z   => Y3        
+      );            
+};                         

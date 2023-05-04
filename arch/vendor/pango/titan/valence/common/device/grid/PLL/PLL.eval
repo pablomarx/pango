@@ -1,0 +1,1335 @@
+*****************************************************************
+
+  Device    [PLL]
+
+  Author    [clwang]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+grid
+device PLL
+{
+    parameter
+    (
+        // These are the config parameters that are used to enable formal flow. They
+        // should be present in the declaration only if a MACRO is set. In normal
+        // implementation flow they should be turned off.
+
+        config string CLKIN_FREQ        = "50MHZ",
+        config string DYN_CLKIN_EN      = "FALSE"              ,  // enable selection mode for input clkin1 and clkin2
+                                                                  // FALSE:clkin_sel =sc_clkin_sel  static mode;
+                                                                  // TRUE :clkin_sel =dyn_clkin_sel  dynamic mode
+        config string CLKIN_SEL         = "0"                  ,  // static selection mode for input clkin1 and clkin2
+                                                                  // 0:clkin =clkmuxout1; 1:clkin =clkmuxout2
+        config bit    DYN_IDIV_EN       = 1'b0                 ,  // enable selection mode for input counter
+                                                                  // 1'b0:idiv_sel<0:5>=sc_idiv<0:5> static mode 
+                                                                  // 1'b1:idiv_sel=dyn_idiv<0:5>  dynamic mode
+        config int    STATIC_IDIV       = 63                    ,  // IDIV ratio for input clk divider
+                                                                  // "1"~"64":111111~000000;
+        config bit DYN_FDIV_EN          = 1'b0                 ,  // enable selection mode for feedback signals                 
+                                                                  // 1'b0:fdiv_sel<0:5> =sc_fdiv<0:5> statc mode
+                                                                  // 1'b1:div_sel<0:5>=dyn_fdiv<0:5> dynamic mode
+        config int STATIC_FDIV          = 63                    ,  // FDIV ratio for feedback clk divider;
+                                                                  // setting same as sc_idiv<5:0>
+        config bit TESTSEL[1:0]         = 2'b00                ,  // used for testing the function for input div, feedback div and output div by cim routing to IO
+                                                                  // 2'b00: test_clk_o=1'b0 
+                                                                  // 2'b01: test_clk_o=clkout0 
+                                                                  // 2'b10: test_clk_o=output from IDIV
+                                                                  // 2'b11: test_clk_o=output from FDIV
+        config bit OFDDN               = 1'b0                  ,  // enable obsrving the signal dn from PFD  by cim routing to IO
+                                                                  // 1'b0: o_fddn=1'b0  disable; 1'b1: o_fddn=dn     enable
+        config bit OFDUP               = 1'b0                  ,  // enable the signal up from PFD testing by cim routing to IO
+                                                                  // 1'b0: o_fdup=1'b0  disable;  1'b1: o_fdup=up     enable
+        config bit EN_FLD               = 1'b0                 ,  // enable frequency lock detection
+                                                                  // 1'b0: pll_lock=1'b0 disable       "0" for frequency unlock
+                                                                  // 1'b1: pll_lock=compared result    "1" for frequency lock                 
+        config bit EN_PLD               = 1'b0                 ,  // enable phase lock detection
+                                                                  // 1'b0: pll_lock=1'b0 disable            "0" for phase unlock
+                                                                  // 1'b1: pll_lock=comared result in phase "1" for phase lock
+        config bit FLD_COUNT[3:0]       = 4'b0000              ,  // counter number in FLD(frequency lock detection)
+                                                                  // 4'b1111: counter num=256    4'b1110: counter num=240     4'b1101: counter num=224;
+                                                                  // 4'b1100: counter num=208    4'b1011: counter num=192   ....     4'b0000: counter num=16     
+        config bit CRIPPLE[1:0]         = 2'b00                ,  // alleviating high frequency ripple on control line
+                                                                  // 2'b00: cap_ripple=1.61pf  2'b01: cap_ripple=3.76pf 
+                                                                  // 2'b10: cap_ripple=4.65pf  2'b11: cap_ripple=8.10pf
+        config bit KVOG[2:0]            = 3'b000               ,  // sc_kvog<x>=1'b0, increase KVCOcoarse, sc_kvog<x>=1'b1, increase KVCOfine
+                                                                  // 3'b000:~3'b111:  increment number will be gotten based on silicon testing
+        config bit FLT_OP               = 1'b0                 ,  // enable op on control line
+                                                                  // 1'b0:   disable op     
+        config int ICP                 = 10                    ,  // selecting icp number
+                                                                  // 5'b00000:icp =10ua; 5'b00001:icp =20ua; 5'b00010:icp =30ua; 5'b00011:icp =40ua
+                                                                  // 5'b00100:icp =50ua; 5'b00101:icp =60ua; 5'b00110:icp =70ua; 5'b00111:icp =80ua
+                                                                  // .....  5'b11111:icp =        
+        config bit PLLPD                = 1'b0                 ,  // reserved
+        config bit GMC_PROG[2:0]        = 3'b100               ,  // used for adjusting gmc gain. (only used for internal trimming)
+        config bit GMC_SEL[3:0]         = 4'b0000              ,  // used as a backup for gmc cell (not open to users)
+        config bit LPF_REF[6:0]         = 7'b000_0000          ,  // select resistance on LPF
+                                                                  // 7'b0000000: r=1x; 7'b0000001  r=1x; 7'b0000010  r=2x; 7'b0000100  r=4x
+                                                                  // 7'b0001000  r=8x; 7'b0010000  r=16x; 7'b0100000  r=32x; 7'b1000000  r=48x
+        config bit RST_LF               = 1'b0                 ,  // reset the fine tunning control line voltage to "0"
+                                                                  // 1'b0: vhf=depended on CP        1'b1: vhf= "0" 
+        config bit EN_IUP               = 1'b0                 , // Testing current for iup and idn     
+        config bit TEST_ICP             = 1'b0                 , // 2'bx0: disable iup and idn testing  
+                                                                 // 2'b11: enable iup testing;          
+                                                                 // 2'b01: enable idn testing           
+        config bit PRESET_GMC           = 1'b0                 , // preset coarse tunning control line to "1"(only for internal testing)
+                                                                 // 1'b1: preset vlf to "1";  1'b0: disable preset
+        config bit RESET_GMC            = 1'b0                 , // reset coarse tunning control line to "0" (only for internal testing)
+                                                                 // 1'b1: reset vlf to "0";  1'b0: disable reset
+        config bit GMC_REF[2:0]         = 3'b000               , // setting for the reference voltage of GMC
+                                                                 // 3'b000:  gmc_ref=0.45V;  3'b001:  gmc_ref=0.5V;  3'b010:  gmc_ref=0.55V;   3'b011:  gmc_ref=0.6V
+                                                                 // 3'b100:  gmc_ref=0.2V ;  3'b101:  gmc_ref=0.25V; 3'b110:  gmc_ref=0.3V ;   3'b111:  gmc_ref=0.35V
+        
+        config bit VCP_TEST_EN          = 1'b0                 , // testing voltage on the control line (only for internal testing)
+        config bit VCP_P                = 1'b0                 , // 2'b11: enable testing voltage on the control line
+                                                                 // 2'b0x: disable testing voltage on the control line
+                                                                 // 2'bx0: disable testing voltage on the control line
+                                                                 
+        config bit FDELAY_PWD           = 1'b0                 , // reserved
+        config bit IRSTEN               = 1'b0                 ,
+        config bit PLLPDN               = 1'b0                 , // gate if pll can be on after chip wakeup
+                                                                 // 1'b0: disable pll on
+                                                                 // 1'b1: enable pll on
+        config bit PWDEN                = 1'b0                 , // dynamicall control pll on or off
+                                                                 // 1'b0: disable dynamtic control function 
+                                                                 // 1'b1: enable dynamtic control function
+        config bit RSTEN                = 1'b0                 , // gate if pll_rst can reset pll
+                                                                 // 1'b0: disable pll_rst action
+                                                                 // 1'b1: enable pll_rst action
+        config bit ORSTEN               = 1'b0                 , // gate if reset_odiv can reset odiv0,2,3,4
+                                                                 // 1'b0: disable reset_odiv action
+                                                                 // 1'b1: enable  reset_odiv action
+                                                                 
+        config bit DYNP16S1_EN          = 1'b0                 , // gate if dynamic selection for phase and duty adjustment on the first~fourth output is available.
+        config bit DYNP16S2_EN          = 1'b0                 , // 1'b0:  static selection                 1'b1:  dynamtic selection
+        config bit DYNP16S3_EN          = 1'b0                 , // 1'b0:  static selection                 1'b1:  dynamtic selection
+        config bit DYNP16S4_EN          = 1'b0                 , // 1'b0:  static selection                 1'b1:  dynamtic selection
+
+        config string GATEO_EN          = "FALSE"              , // gate clks on five outputs   
+        config string GATE1_EN          = "FALSE"              , // 1'b0 : disable gate function
+        config string GATE2_EN          = "FALSE"              , // 1'b1:  enable  gate function
+        config string GATE3_EN          = "FALSE"              , // CLKOUT_GATE[4:0]
+        config string GATE4_EN          = "FALSE"              ,   
+        
+        config int CLKOUTMUX2           = 0                , //2'b00: clkout2=bypass  2'b01: clkout2= clkout0/div    2'b10: clkout2= psdiv2    2'b11: clkout2=vcc              
+        config int CLKOUTMUX3           = 0                , //2'b00: clkout3 = bypass   2'b01: clkout3= clkout0/div  2'b10: clkout3 = psdiv3    2'b11: clkout3 = mp125div     
+        config int CLKOUTMUX4           = 0                , //2'b00: clkout4 = bypass   2'b01: clkout4 = clkout0/div  2'b10: clkout4 = psdiv4   2'b11: clkout4 = count32      
+
+        config int STATIC_PS1           = 8              , // setting for clkout1  phase-shift
+                                                             // phase-shft=0\45\90\135\180\225\270\315\360:default
+        config int STATIC_DU1           = 0              ,
+                                                
+        config int STATIC_PS2           = 8                  ,
+        config int STATIC_DU2           = 0                  ,
+        
+        config int STATIC_PS3           = 8                  ,
+        config int STATIC_DU3           = 0                  ,
+        
+        config int STATIC_PS4           = 8                  ,
+        config int STATIC_DU4           = 0                  ,        
+        
+        
+        config bit DYN_ODIV0_SEL        = 1'b0                 , // gate if ratio of odiv can be changed
+                                                                 // 1'b0 : disable dynamic adjustment function
+                                                                 // 1'b1:  enable  dynamic adjustment function
+        config bit DYN_ODIV2_SEL        = 1'b0                 ,
+        config bit DYN_ODIV3_SEL        = 1'b0                 ,
+        config bit DYN_ODIV4_SEL        = 1'b0                 ,
+        
+        config bit FD_SEL0[4:0]         = 5'b0_0000            , // gate fine adjustment on internal feedback path
+                                                                 // 5'b0xxxx:  bypass; 5'b10011: delay =75ps@falling edge;
+                                                                 // 5'b10101: delay =100ps@falling edge; 5'b10110: delay = 50ps@falling edge      
+        config bit FD_SEL1[4:0]         = 5'b0_0000            ,
+        config bit FD_SEL2[4:0]         = 5'b0_0000            ,
+        config bit FD_SEL3[4:0]         = 5'b0_0000            ,
+        config bit FD_SEL4[4:0]         = 5'b0_0000            ,
+        
+        config int STATIC_ODIV          = 2                    , // odiv0 division ratio
+                                                                 // 6'b000000: division ratio=/2; 6'b000001: division ratio=/4;
+                                                                 // 6'b000010: division ratio=/6; 6'b000011: division ratio=/8 ~ 6'b111111: division ratio=/128
+        config int STATIC_O2DIV        = 2                     ,
+        config int STATIC_O3DIV        = 2                     ,
+        config int STATIC_O4DIV        = 2                     ,
+        
+        config string SFTINDLYSEL       = "BYPASS"             , // setting for odiv0 output delay
+                                                                 // 2'b00:  bypass; 2'b01: 50ps ;2'b10: 100ps ;3'b11: 150ps     
+        config string FB_SEL            = "DISABLE"            , // "CLKOUT0"; "CLKOUT1"; "CLKOUT2"; "DISABLE"
+                                                                 // selection for internal feedback path
+                                                                 // 2'b00: feedback=clkout0; 2'b01: feedback=clkout1; 2'b10: feedback=clkout2;2'b11: feedback=vss!                
+        config bit TEST_SEL             = 1'b0                 , // digital block testing
+                                                                 // 1'b0:    disable testing function; 1'b1:    enable  testing function
+                                                                 
+        config int DIV125_M             = 1,                     // 1~63
+        config int DIV125_N             = 0,                     // 0~7
+
+          
+        config int DIVK                 = 0                     , // pll_count_32bit divider parameter
+                                                                 // fout=K* clkin/(4*1024*1024*1024)
+        config bit LDO_TEST_EN          = 1'b0                 ,
+        config bit LDO_TESTSEL          = 1'b0                 ,
+        config bit LDO_VREF_TRIM[1:0]   = 2'b11                ,
+        config bit PD                   = 1'b0                 ,
+        config string EXTERNAL_FB       = "DISABLE"            /* DISABLE | CLKOUT0 | CLKOUT1 | CLKOUT2 | CLKOUT3 | CLKOUT4 */
+    );
+
+    port
+    (
+        config input SC_DYN_CLKIN_EN         = 1'b0       /*pragma PAP_CFG_BIT_NAME = "SC_DYN_CLKIN_EN" */,
+        config input SC_CLKIN_SEL            = 1'b0       /*pragma PAP_CFG_BIT_NAME = "SC_CLKIN_DSEL" */,
+        config input SC_DYN_IDIV_EN          = 1'b0       /*pragma PAP_CFG_BIT_NAME = "SC_DYN_IDIV_EN" */,
+        config input SC_IDIV[5:0]            = 6'b00_0000 /*pragma PAP_CFG_BIT_NAME = "SC_IDIV<5>, SC_IDIV<4>, SC_IDIV<3>,SC_IDIV<2>, SC_IDIV<1>, SC_IDIV<0>" */,
+        config input SC_DYN_FDIV_EN          = 1'b0       /*pragma PAP_CFG_BIT_NAME = "SC_DYN_FDIV_EN" */,
+        config input SC_FDIV[5:0]            = 6'b00_0000 /*pragma PAP_CFG_BIT_NAME = "SC_FDIV<5>, SC_FDIV<4>, SC_FDIV<3>,SC_FDIV<2>, SC_FDIV<1>, SC_FDIV<0>" */,
+        config input SC_TESTSEL[1:0]         = 2'b00      /*pragma PAP_CFG_BIT_NAME = "SC_TESTSEL<1>, SC_TESTSEL<0>" */,
+        config input SC_O_FDDN               = 1'b0       /*pragma PAP_CFG_BIT_NAME = "SC_O_FDDN" */,
+        config input SC_O_FDUP               = 1'b0       /*pragma PAP_CFG_BIT_NAME = "SC_O_FDUP" */,
+        config input SC_EN_FLD               = 1'b0       /*pragma PAP_CFG_BIT_NAME = "SC_EN_FLD" */,
+        config input SC_EN_PLD               = 1'b0       /*pragma PAP_CFG_BIT_NAME = "SC_EN_PLD" */,
+        config input SC_FLD_COUNT[3:0]       = 4'b0000    /*pragma PAP_CFG_BIT_NAME = "SC_FLD_COUNT<3>, SC_FLD_COUNT<2>, SC_FLD_COUNT<1>, SC_FLD_COUNT<0>" */,
+        config input SC_CRIPPLE[1:0]         = 2'b00      /*pragma PAP_CFG_BIT_NAME = "SC_CRIPPLE<1>, SC_CRIPPLE<0>" */,
+        config input SC_KVOG[2:0]            = 3'b000     /*pragma PAP_CFG_BIT_NAME = "SC_KVOG<2>, SC_KVOG<1>, SC_KVOG<0>" */,
+        config input SC_FLT_OP               = 1'b0       /*pragma PAP_CFG_BIT_NAME = "SC_FLT_OP" */,
+        config input SC_ICP[4:0]             = 5'b0_0000  /*pragma PAP_CFG_BIT_NAME = "SC_ICP<4>, SC_ICP<3>, SC_ICP<2>, SC_ICP<1>, SC_ICP<0>" */,
+        config input SC_PLLPD                = 1'b0       /*pragma PAP_CFG_BIT_NAME = "SC_PLLPD" */,
+        config input SC_GMC_PROG[2:0]        = 3'b000     /*pragma PAP_CFG_BIT_NAME = "SC_GMC_PROG<2>, SC_GMC_PROG<1>, SC_GMC_PROG<0>" */,
+        config input SC_GMC_SEL[3:0]         = 4'b0000    /*pragma PAP_CFG_BIT_NAME = "SC_GMC_SEL<3>, SC_GMC_SEL<2>, SC_GMC_SEL<1>, SC_GMC_SEL<0>" */,
+        config input SC_LPF_REF[6:0]         = 7'b000_0000/*pragma PAP_CFG_BIT_NAME = "SC_LPF_REF<6>, SC_LPF_REF<5>, SC_LPF_REF<4>, SC_LPF_REF<3>,SC_LPF_REF<2>, SC_LPF_REF<1>, SC_LPF_REF<0>" */,
+        config input SC_RST_LF               = 1'b0       /*pragma PAP_CFG_BIT_NAME = "SC_RST_LF" */,
+        config input SC_EN_IUP               = 1'b0       /*pragma PAP_CFG_BIT_NAME = "SC_EN_IUP" */,
+        config input SC_TEST_ICP             = 1'b0       /*pragma PAP_CFG_BIT_NAME = "SC_TEST_ICP" */,
+        config input SC_PRESET_GMC           = 1'b0       /*pragma PAP_CFG_BIT_NAME = "SC_PRESET_GMC" */,
+        config input SC_RESET_GMC            = 1'b0       /*pragma PAP_CFG_BIT_NAME = "SC_RESET_GMC" */,
+        config input SC_GMC_REF[2:0]         = 3'b000     /*pragma PAP_CFG_BIT_NAME = "SC_GMC_REF<2>, SC_GMC_REF<1>, SC_GMC_REF<0>" */,
+        config input SC_VCP_TEST_EN          = 1'b0       /*pragma PAP_CFG_BIT_NAME = "SC_VCP_TEST_EN" */,
+        config input SC_VCP                  = 1'b0       /*pragma PAP_CFG_BIT_NAME = "SC_VCP" */,
+        config input SC_FDELAY_PWD           = 1'b0       /*pragma PAP_CFG_BIT_NAME = "SC_FDELAY_PWD" */,
+        config input SC_IRSTEN               = 1'b0       /*pragma PAP_CFG_BIT_NAME = "SC_IRSTEN" */,
+        config input SC_PLLPDN               = 1'b0       /*pragma PAP_CFG_BIT_NAME = "SC_PLLPDN" */,
+        config input SC_PWDEN                = 1'b0       /*pragma PAP_CFG_BIT_NAME = "SC_PWDEN" */,
+        config input SC_RSTEN                = 1'b0       /*pragma PAP_CFG_BIT_NAME = "SC_RSTEN" */,
+        config input SC_ORSTEN               = 1'b0       /*pragma PAP_CFG_BIT_NAME = "SC_ORSTEN" */,
+        config input SC_16DYNPS1_EN          = 1'b0       /*pragma PAP_CFG_BIT_NAME = "SC_16DYNPS1_EN" */,
+        config input SC_16DYNPS2_EN          = 1'b0       /*pragma PAP_CFG_BIT_NAME = "SC_16DYNPS2_EN" */,
+        config input SC_16DYNPS3_EN          = 1'b0       /*pragma PAP_CFG_BIT_NAME = "SC_16DYNPS3_EN" */,
+        config input SC_16DYNPS4_EN          = 1'b0       /*pragma PAP_CFG_BIT_NAME = "SC_16DYNPS4_EN" */,
+        config input SC_CLKOUT_GATE[4:0]     = 5'b0_0000  /*pragma PAP_CFG_BIT_NAME = "SC_CLKOUT_GATE<4>, SC_CLKOUT_GATE<3>, SC_CLKOUT_GATE<2>, SC_CLKOUT_GATE<1>, SC_CLKOUT_GATE<0>" */,
+        config input SC_CLKOUTMUX2[1:0]      = 2'b00      /*pragma PAP_CFG_BIT_NAME = "SC_CLKOUTMUX2<1>, SC_CLKOUTMUX2<0>" */,
+        config input SC_CLKOUTMUX3[1:0]      = 2'b00      /*pragma PAP_CFG_BIT_NAME = "SC_CLKOUTMUX3<1>, SC_CLKOUTMUX3<0>" */,
+        config input SC_CLKOUTMUX4[1:0]      = 2'b00      /*pragma PAP_CFG_BIT_NAME = "SC_CLKOUTMUX4<1>, SC_CLKOUTMUX4<0>" */,
+        config input SC_DUTY1[3:0]           = 4'b0000    /*pragma PAP_CFG_BIT_NAME = "SC_DUTY1<3>, SC_DUTY1<2>, SC_DUTY1<1>, SC_DUTY1<0>" */,
+        config input SC_DUTY2[3:0]           = 4'b0000    /*pragma PAP_CFG_BIT_NAME = "SC_DUTY2<3>, SC_DUTY2<2>, SC_DUTY2<1>, SC_DUTY2<0>" */,
+        config input SC_DUTY3[3:0]           = 4'b0000    /*pragma PAP_CFG_BIT_NAME = "SC_DUTY3<3>, SC_DUTY3<2>, SC_DUTY3<1>, SC_DUTY3<0>" */,
+        config input SC_DUTY4[3:0]           = 4'b0000    /*pragma PAP_CFG_BIT_NAME = "SC_DUTY4<3>, SC_DUTY4<2>, SC_DUTY4<1>, SC_DUTY4<0>" */,
+        config input SC_PHASE1[3:0]          = 4'b0000    /*pragma PAP_CFG_BIT_NAME = "SC_PHASE1<3>, SC_PHASE1<2>, SC_PHASE1<1>, SC_PHASE1<0>" */,
+        config input SC_PHASE2[3:0]          = 4'b0000    /*pragma PAP_CFG_BIT_NAME = "SC_PHASE2<3>, SC_PHASE2<2>, SC_PHASE2<1>, SC_PHASE2<0>" */,
+        config input SC_PHASE3[3:0]          = 4'b0000    /*pragma PAP_CFG_BIT_NAME = "SC_PHASE3<3>, SC_PHASE3<2>, SC_PHASE3<1>, SC_PHASE3<0>" */,
+        config input SC_PHASE4[3:0]          = 4'b0000    /*pragma PAP_CFG_BIT_NAME = "SC_PHASE4<3>, SC_PHASE4<2>, SC_PHASE4<1>, SC_PHASE4<0>" */,
+        config input SC_DYN_ODIV0_SEL        = 1'b0       /*pragma PAP_CFG_BIT_NAME = "SC_DYN_ODIV0_SEL" */, 
+        config input SC_DYN_ODIV2_SEL        = 1'b0       /*pragma PAP_CFG_BIT_NAME = "SC_DYN_ODIV2_SEL" */, 
+        config input SC_DYN_ODIV3_SEL        = 1'b0       /*pragma PAP_CFG_BIT_NAME = "SC_DYN_ODIV3_SEL" */,
+        config input SC_DYN_ODIV4_SEL        = 1'b0       /*pragma PAP_CFG_BIT_NAME = "SC_DYN_ODIV4_SEL" */,
+        config input SC_FD_SEL0[4:0]         = 5'b0_0000  /*pragma PAP_CFG_BIT_NAME = "SC_FD_SEL0<4>, SC_FD_SEL0<3>, SC_FD_SEL0<2>, SC_FD_SEL0<1>, SC_FD_SEL0<0>" */,
+        config input SC_FD_SEL1[4:0]         = 5'b0_0000  /*pragma PAP_CFG_BIT_NAME = "SC_FD_SEL1<4>, SC_FD_SEL1<3>, SC_FD_SEL1<2>, SC_FD_SEL1<1>, SC_FD_SEL1<0>" */,
+        config input SC_FD_SEL2[4:0]         = 5'b0_0000  /*pragma PAP_CFG_BIT_NAME = "SC_FD_SEL2<4>, SC_FD_SEL2<3>, SC_FD_SEL2<2>, SC_FD_SEL2<1>, SC_FD_SEL2<0>" */,
+        config input SC_FD_SEL3[4:0]         = 5'b0_0000  /*pragma PAP_CFG_BIT_NAME = "SC_FD_SEL3<4>, SC_FD_SEL3<3>, SC_FD_SEL3<2>, SC_FD_SEL3<1>, SC_FD_SEL3<0>" */,
+        config input SC_FD_SEL4[4:0]         = 5'b0_0000  /*pragma PAP_CFG_BIT_NAME = "SC_FD_SEL4<4>, SC_FD_SEL4<3>, SC_FD_SEL4<2>, SC_FD_SEL4<1>, SC_FD_SEL4<0>" */,
+        config input SC_ODIV0[5:0]           = 6'b00_0000  /*pragma PAP_CFG_BIT_NAME = "SC_ODIV0<5>, SC_ODIV0<4>, SC_ODIV0<3>, SC_ODIV0<2>, SC_ODIV0<1>, SC_ODIV0<0>" */,
+        config input SC_ODIV2[5:0]           = 6'b00_0000  /*pragma PAP_CFG_BIT_NAME = "SC_ODIV2<5>, SC_ODIV2<4>, SC_ODIV2<3>, SC_ODIV2<2>, SC_ODIV2<1>, SC_ODIV2<0>" */,
+        config input SC_ODIV3[5:0]           = 6'b00_0000  /*pragma PAP_CFG_BIT_NAME = "SC_ODIV3<5>, SC_ODIV3<4>, SC_ODIV3<3>, SC_ODIV3<2>, SC_ODIV3<1>, SC_ODIV3<0>" */,
+        config input SC_ODIV4[5:0]           = 6'b00_0000  /*pragma PAP_CFG_BIT_NAME = "SC_ODIV4<5>, SC_ODIV4<4>, SC_ODIV4<3>, SC_ODIV4<2>, SC_ODIV4<1>, SC_ODIV4<0>" */,
+        config input SC_SFTINDLYSEL[1:0]     = 2'b00      /*pragma PAP_CFG_BIT_NAME = "SC_SFTINDLYSEL<1>, SC_SFTINDLYSEL<0>" */, 
+        config input SC_FB_SEL[1:0]          = 2'b00      /*pragma PAP_CFG_BIT_NAME = "SC_FB_SEL<1>, SC_FB_SEL<0>" */, 
+        config input SC_TEST_SEL             = 1'b0       /*pragma PAP_CFG_BIT_NAME = "SC_TEST_SEL" */,
+        config input SC_CNT0_F[9:0]          = 10'b00_0000_0000
+        /*pragma PAP_CFG_BIT_NAME = "SC_CNT0_F<9>,SC_CNT0_F<8>, SC_CNT0_F<7>, SC_CNT0_F<6>, SC_CNT0_F<5>, SC_CNT0_F<4>, SC_CNT0_F<3>,SC_CNT0_F<2>, SC_CNT0_F<1>, SC_CNT0_F<0>" */, 
+        config input SC_CNT1_F[9:0]          = 10'b00_0000_0000
+        /*pragma PAP_CFG_BIT_NAME = "SC_CNT1_F<9>,SC_CNT1_F<8>, SC_CNT1_F<7>, SC_CNT1_F<6>, SC_CNT1_F<5>, SC_CNT1_F<4>, SC_CNT1_F<3>,SC_CNT1_F<2>, SC_CNT1_F<1>, SC_CNT1_F<0>" */, 
+        config input SC_CNT1_R[9:0]          = 10'b00_0000_0000  
+        /*pragma PAP_CFG_BIT_NAME = "SC_CNT1_R<9>,SC_CNT1_R<8>, SC_CNT1_R<7>, SC_CNT1_R<6>, SC_CNT1_R<5>, SC_CNT1_R<4>, SC_CNT1_R<3>,SC_CNT1_R<2>, SC_CNT1_R<1>, SC_CNT1_R<0>" */,
+        config input SC_CNT2_F[9:0]          = 10'b00_0000_0000
+        /*pragma PAP_CFG_BIT_NAME = "SC_CNT2_F<9>,SC_CNT2_F<8>, SC_CNT2_F<7>, SC_CNT2_F<6>, SC_CNT2_F<5>, SC_CNT2_F<4>, SC_CNT2_F<3>,SC_CNT2_F<2>, SC_CNT2_F<1>, SC_CNT2_F<0>" */,
+        config input SC_CNT2_R[9:0]          = 10'b00_0000_0000
+        /*pragma PAP_CFG_BIT_NAME = "SC_CNT2_R<9>,SC_CNT2_R<8>, SC_CNT2_R<7>, SC_CNT2_R<6>, SC_CNT2_R<5>, SC_CNT2_R<4>, SC_CNT2_R<3>,SC_CNT2_R<2>, SC_CNT2_R<1>, SC_CNT2_R<0>" */,
+        
+        config input SC_CNT3_F[9:0]          = 10'b00_0000_0000
+        /*pragma PAP_CFG_BIT_NAME = "SC_CNT3_F<9>,SC_CNT3_F<8>, SC_CNT3_F<7>, SC_CNT3_F<6>, SC_CNT3_F<5>, SC_CNT3_F<4>, SC_CNT3_F<3>,SC_CNT3_F<2>, SC_CNT3_F<1>, SC_CNT3_F<0>" */,
+        
+        config input SC_CNT3_R[9:0]          = 10'b00_0000_0000
+        /*pragma PAP_CFG_BIT_NAME = "SC_CNT3_R<9>,SC_CNT3_R<8>, SC_CNT3_R<7>, SC_CNT3_R<6>, SC_CNT3_R<5>, SC_CNT3_R<4>, SC_CNT3_R<3>,SC_CNT3_R<2>, SC_CNT3_R<1>, SC_CNT3_R<0>" */,
+        
+        config input SC_CNT4_F[9:0]          = 10'b00_0000_0000
+        /*pragma PAP_CFG_BIT_NAME = "SC_CNT4_F<9>,SC_CNT4_F<8>, SC_CNT4_F<7>, SC_CNT4_F<6>, SC_CNT4_F<5>, SC_CNT4_F<4>, SC_CNT4_F<3>,SC_CNT4_F<2>, SC_CNT4_F<1>, SC_CNT4_F<0>" */,
+        
+        config input SC_CNT4_R[9:0]          = 10'b00_0000_0000
+        /*pragma PAP_CFG_BIT_NAME = "SC_CNT4_R<9>,SC_CNT4_R<8>, SC_CNT4_R<7>, SC_CNT4_R<6>, SC_CNT4_R<5>, SC_CNT4_R<4>, SC_CNT4_R<3>,SC_CNT4_R<2>, SC_CNT4_R<1>, SC_CNT4_R<0>" */,
+        
+        config input SC_CNT5_F[9:0]          = 10'b00_0000_0000
+        /*pragma PAP_CFG_BIT_NAME = "SC_CNT5_F<9>,SC_CNT5_F<8>, SC_CNT5_F<7>, SC_CNT5_F<6>, SC_CNT5_F<5>, SC_CNT5_F<4>, SC_CNT5_F<3>,SC_CNT5_F<2>, SC_CNT5_F<1>, SC_CNT5_F<0>" */,
+        
+        config input SC_CNT5_R[9:0]          = 10'b00_0000_0000
+        /*pragma PAP_CFG_BIT_NAME = "SC_CNT5_R<9>,SC_CNT5_R<8>, SC_CNT5_R<7>, SC_CNT5_R<6>, SC_CNT5_R<5>, SC_CNT5_R<4>, SC_CNT5_R<3>,SC_CNT5_R<2>, SC_CNT5_R<1>, SC_CNT5_R<0>" */,
+        
+        config input SC_CNT6_F[9:0]          = 10'b00_0000_0000 
+        /*pragma PAP_CFG_BIT_NAME = "SC_CNT6_F<9>,SC_CNT6_F<8>, SC_CNT6_F<7>, SC_CNT6_F<6>, SC_CNT6_F<5>, SC_CNT6_F<4>, SC_CNT6_F<3>,SC_CNT6_F<2>, SC_CNT6_F<1>, SC_CNT6_F<0>" */,
+        
+        config input SC_CNT6_R[9:0]          = 10'b00_0000_0000
+        /*pragma PAP_CFG_BIT_NAME = "SC_CNT6_R<9>,SC_CNT6_R<8>, SC_CNT6_R<7>, SC_CNT6_R<6>, SC_CNT6_R<5>, SC_CNT6_R<4>, SC_CNT6_R<3>,SC_CNT6_R<2>, SC_CNT6_R<1>, SC_CNT6_R<0>" */,
+        
+        config input SC_CNT7_F[9:0]          = 10'b00_0000_0000
+        /*pragma PAP_CFG_BIT_NAME = "SC_CNT7_F<9>,SC_CNT7_F<8>, SC_CNT7_F<7>, SC_CNT7_F<6>, SC_CNT7_F<5>, SC_CNT7_F<4>, SC_CNT7_F<3>,SC_CNT7_F<2>, SC_CNT7_F<1>, SC_CNT7_F<0>" */,
+        
+        config input SC_CNT7_R[9:0]          = 10'b00_0000_0000
+        /*pragma PAP_CFG_BIT_NAME = "SC_CNT7_R<9>,SC_CNT7_R<8>, SC_CNT7_R<7>, SC_CNT7_R<6>, SC_CNT7_R<5>, SC_CNT7_R<4>, SC_CNT7_R<3>,SC_CNT7_R<2>, SC_CNT7_R<1>, SC_CNT7_R<0>" */,
+        
+        config input SC_CNT_LIMIT[9:0]       = 10'b00_0000_0000
+        /*pragma PAP_CFG_BIT_NAME = "SC_CNT_LIMIT<9>,SC_CNT_LIMIT<8>, SC_CNT_LIMIT<7>, SC_CNT_LIMIT<6>, SC_CNT_LIMIT<5>, SC_CNT_LIMIT<4>, SC_CNT_LIMIT<3>,SC_CNT_LIMIT<2>, SC_CNT_LIMIT<1>, SC_CNT_LIMIT<0>" */,
+        
+        config input SC_K[31:0]              = 32'h0000_0000
+        /*pragma PAP_CFG_BIT_NAME = "SC_K<31>, SC_K<30>,SC_K<29>,SC_K<28>, SC_K<27>, SC_K<26>, SC_K<25>, SC_K<24>, SC_K<23>,SC_K<22>, SC_K<21>, SC_K<20>,SC_K<19>,SC_K<18>, SC_K<17>, SC_K<16>, SC_K<15>, SC_K<14>, SC_K<13>,SC_K<12>, SC_K<11>, SC_K<10>,SC_K<9>,SC_K<8>, SC_K<7>, SC_K<6>, SC_K<5>, SC_K<4>, SC_K<3>,SC_K<2>, SC_K<1>, SC_K<0>" */,
+        
+        config input SC_P0F_EDGE_S[3:0]      = 4'b0000     /*pragma PAP_CFG_BIT_NAME = "SC_P0F_EDGE_S<3>, SC_P0F_EDGE_S<2>, SC_P0F_EDGE_S<1>, SC_P0F_EDGE_S<0>" */,
+        config input SC_P1F_EDGE_S[3:0]      = 4'b0000     /*pragma PAP_CFG_BIT_NAME = "SC_P1F_EDGE_S<3>, SC_P1F_EDGE_S<2>, SC_P1F_EDGE_S<1>, SC_P1F_EDGE_S<0>" */,
+        config input SC_P1R_EDGE_S[2:0]      = 3'b000      /*pragma PAP_CFG_BIT_NAME = "SC_P1R_EDGE_S<2>, SC_P1R_EDGE_S<1>, SC_P1R_EDGE_S<0>" */,                           
+        config input SC_P2F_EDGE_S[3:0]      = 4'b0000     /*pragma PAP_CFG_BIT_NAME = "SC_P2F_EDGE_S<3>, SC_P2F_EDGE_S<2>, SC_P2F_EDGE_S<1>, SC_P2F_EDGE_S<0>" */,
+        config input SC_P2R_EDGE_S[1:0]      = 2'b00       /*pragma PAP_CFG_BIT_NAME = "SC_P2R_EDGE_S<1>, SC_P2R_EDGE_S<0>" */,                            
+        config input SC_P3F_EDGE_S[3:0]      = 4'b0000     /*pragma PAP_CFG_BIT_NAME = "SC_P3F_EDGE_S<3>, SC_P3F_EDGE_S<2>, SC_P3F_EDGE_S<1>, SC_P3F_EDGE_S<0>" */,
+        config input SC_P3R_EDGE_S[2:0]      = 3'b000      /*pragma PAP_CFG_BIT_NAME = "SC_P3R_EDGE_S<2>, SC_P3R_EDGE_S<1>, SC_P3R_EDGE_S<0>" */,                         
+        config input SC_P4F_EDGE_S[3:0]      = 4'b0000     /*pragma PAP_CFG_BIT_NAME = "SC_P4F_EDGE_S<3>, SC_P4F_EDGE_S<2>, SC_P4F_EDGE_S<1>, SC_P4F_EDGE_S<0>" */,
+        config input SC_P4R_EDGE_S           = 1'b0        /*pragma PAP_CFG_BIT_NAME = "SC_P4R_EDGE_S<0>" */,                         
+        config input SC_P5F_EDGE_S[3:0]      = 4'b0000     /*pragma PAP_CFG_BIT_NAME = "SC_P5F_EDGE_S<3>, SC_P5F_EDGE_S<2>, SC_P5F_EDGE_S<1>, SC_P5F_EDGE_S<0>" */,
+        config input SC_P5R_EDGE_S[2:0]      = 3'b000      /*pragma PAP_CFG_BIT_NAME = "SC_P5R_EDGE_S<2>, SC_P5R_EDGE_S<1>, SC_P5R_EDGE_S<0>" */,                       
+        config input SC_P6F_EDGE_S[3:0]      = 4'b0000     /*pragma PAP_CFG_BIT_NAME = "SC_P6F_EDGE_S<3>, SC_P6F_EDGE_S<2>, SC_P6F_EDGE_S<1>, SC_P6F_EDGE_S<0>" */,
+        config input SC_P6R_EDGE_S[1:0]      = 2'b00       /*pragma PAP_CFG_BIT_NAME = "SC_P6R_EDGE_S<1>, SC_P6R_EDGE_S<0>" */,                        
+        config input SC_P7F_EDGE_S[3:0]      = 4'b0000     /*pragma PAP_CFG_BIT_NAME = "SC_P7F_EDGE_S<3>, SC_P7F_EDGE_S<2>, SC_P7F_EDGE_S<1>, SC_P7F_EDGE_S<0>" */,
+        config input SC_P7R_EDGE_S[2:0]      = 3'b000      /*pragma PAP_CFG_BIT_NAME = "SC_P7R_EDGE_S<2>, SC_P7R_EDGE_S<1>, SC_P7R_EDGE_S<0>" */,                      
+        config input SC_LDO_TEST_EN          = 1'b0        /*pragma PAP_CFG_BIT_NAME = "SC_LDO_TEST_EN" */,
+        config input SC_LDO_TESTSEL          = 1'b0        /*pragma PAP_CFG_BIT_NAME = "SC_LDO_TESTSEL" */,
+        config input SC_LDO_VREF_TRIM[1:0]   = 2'b00       /*pragma PAP_CFG_BIT_NAME = "SC_LDO_VREF_TRIM<1>, SC_LDO_VREF_TRIM<0>" */,
+        config input SC_PD                   = 1'b0        /*pragma PAP_CFG_BIT_NAME = "SC_PD" */,    
+       //input   GLOGEN, 
+       
+       output  O_FDDN, 
+       output  O_FDUP, 
+       output  PLL_LOCK, 
+       output  TEST_CLK_O,
+       
+       input   CIM_MFG_VCP       = 1'b1, 
+       input   PLL_RST           = 1'b1, 
+       input   PLLPWD            = 1'b1, 
+       input   RESET_IDIV        = 1'b1, 
+       input   RESET_ODIV        = 1'b1,
+       input   TEST_CLKIN        = 1'b1, 
+       input   VCP               = 1'b1,
+       input   CIM_DYN_CLKIN_SEL = 1'b1,
+       
+       output  CLKOUT[4:0],       
+       input   CLKIN1                = 1'b1, 
+       input   CLKIN2                = 1'b1,
+       input   CLKFB                 = 1'b1,  
+       input   CIM_DYNPS3[3:0]       = 4'b1111,
+       input   GATEO[4:0]            = 5'h1f,
+       input   CIM_DYNDU3[3:0]       = 4'b1111,
+       input   DYN_ODIV4_SEL_IN[5:0] = 6'h3f,
+       input   DYN_ODIV3_SEL_IN[5:0] = 6'h3f,
+       input   DYN_ODIV2_SEL_IN[5:0] = 6'h3f,
+       input   DYN_IDIV[5:0]         = 6'h3f,
+       input   DYN_FDIV[5:0]         = 6'h3f,
+       input   CIM_DYNPS4[3:0]       = 4'b1111,
+       input   CIM_DYNPS2[3:0]       = 4'b1111,
+       input   CIM_DYNPS1[3:0]       = 4'b1111,
+       input   CIM_DYNODIV[5:0]      = 6'h3f,
+       input   CIM_DYNDU4[3:0]       = 4'b1111,
+       input   CIM_DYNDU2[3:0]       = 4'b1111,
+       input   CIM_DYNDU1[3:0]       = 4'b1111
+       
+    );
+}; // end of device PLL
+
+/*******************************************************************************
+
+  Device    [PLL]
+
+  Author    [clwang]
+
+  Abstract  [The structure netlist of CLMS is described in the similar fashion
+             as in HDL. In unit instantiation statement, the formal pin may be
+             connected to net which is declared explicitly.
+
+             In Valence, the connection can also be made from formal pin to other
+             pin or port, in which case Valence compiler shall create the net to
+             fulfil the connection. The built-in naming convention is kicked in
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of PLL
+{
+     device PLL_INST PLL_INST
+        parameter map
+        (
+            CLKIN_FREQ       =>  CLKIN_FREQ,
+            DYN_CLKIN_EN     =>  DYN_CLKIN_EN,
+            CLKIN_SEL        =>  CLKIN_SEL,
+            DYN_IDIV_EN      =>  DYN_IDIV_EN,
+            STATIC_IDIV      =>  STATIC_IDIV,
+            DYN_FDIV_EN      =>  DYN_FDIV_EN,
+            STATIC_FDIV      =>  STATIC_FDIV,
+            TESTSEL          =>  TESTSEL,
+            OFDDN            =>  OFDDN,
+            OFDUP            =>  OFDUP,
+            EN_FLD           =>  EN_FLD,
+            EN_PLD           =>  EN_PLD,
+            FLD_COUNT        =>  FLD_COUNT,
+            CRIPPLE          =>  CRIPPLE,
+            KVOG             =>  KVOG,
+            FLT_OP           =>  FLT_OP,
+            ICP              =>  ICP,
+            PLLPD            =>  PLLPD,
+            GMC_PROG         =>  GMC_PROG,
+            GMC_SEL          =>  GMC_SEL,
+            LPF_REF          =>  LPF_REF,
+            RST_LF           =>  RST_LF,
+            EN_IUP           =>  EN_IUP,
+            TEST_ICP         =>  TEST_ICP,
+            PRESET_GMC       =>  PRESET_GMC,
+            RESET_GMC        =>  RESET_GMC,
+            GMC_REF          =>  GMC_REF,
+            VCP_TEST_EN      =>  VCP_TEST_EN,
+            VCP_P            =>  VCP_P,
+            FDELAY_PWD       =>  FDELAY_PWD,
+            IRSTEN           =>  IRSTEN,
+            PLLPDN           =>  PLLPDN,
+            PWDEN            =>  PWDEN,
+            RSTEN            =>  RSTEN,
+            ORSTEN           =>  ORSTEN,
+            DYNP16S1_EN      =>  DYNP16S1_EN,
+            DYNP16S2_EN      =>  DYNP16S2_EN,
+            DYNP16S3_EN      =>  DYNP16S3_EN,
+            DYNP16S4_EN      =>  DYNP16S4_EN,
+            GATEO_EN         =>  GATEO_EN,
+            GATE1_EN         =>  GATE1_EN,
+            GATE2_EN         =>  GATE2_EN,
+            GATE3_EN         =>  GATE3_EN,
+            GATE4_EN         =>  GATE4_EN,
+            CLKOUTMUX2       =>  CLKOUTMUX2,
+            CLKOUTMUX3       =>  CLKOUTMUX3,
+            CLKOUTMUX4       =>  CLKOUTMUX4,
+            STATIC_PS1       =>  STATIC_PS1,
+            STATIC_DU1       =>  STATIC_DU1,
+            STATIC_PS2       =>  STATIC_PS2,
+            STATIC_DU2       =>  STATIC_DU2,
+            STATIC_PS3       =>  STATIC_PS3,
+            STATIC_DU3       =>  STATIC_DU3,
+            STATIC_PS4       =>  STATIC_PS4,
+            STATIC_DU4       =>  STATIC_DU4,
+            DYN_ODIV0_SEL    =>  DYN_ODIV0_SEL,
+            DYN_ODIV2_SEL    =>  DYN_ODIV2_SEL,
+            DYN_ODIV3_SEL    =>  DYN_ODIV3_SEL,
+            DYN_ODIV4_SEL    =>  DYN_ODIV4_SEL,
+            FD_SEL0          =>  FD_SEL0,
+            FD_SEL1          =>  FD_SEL1,
+            FD_SEL2          =>  FD_SEL2,
+            FD_SEL3          =>  FD_SEL3,
+            FD_SEL4          =>  FD_SEL4,
+            STATIC_ODIV      =>  STATIC_ODIV,
+            STATIC_O2DIV     =>  STATIC_O2DIV,
+            STATIC_O3DIV     =>  STATIC_O3DIV,
+            STATIC_O4DIV     =>  STATIC_O4DIV,
+            SFTINDLYSEL      =>  SFTINDLYSEL,
+            FB_SEL           =>  FB_SEL,
+            TEST_SEL         =>  TEST_SEL,
+            DIV125_M         =>  DIV125_M,
+            DIV125_N         =>  DIV125_N,
+            DIVK             =>  DIVK,
+            LDO_TEST_EN      =>  LDO_TEST_EN,
+            LDO_TESTSEL      =>  LDO_TESTSEL,
+            LDO_VREF_TRIM    =>  LDO_VREF_TRIM,
+            PD               =>  PD     
+        )
+        port map
+        (
+            O_FDDN              => O_FDDN,
+            O_FDUP              => O_FDUP,
+            PLL_LOCK            => PLL_LOCK,
+            TEST_CLK_O          => TEST_CLK_O,
+            CIM_MFG_VCP         => CIM_MFG_VCP,
+            PLL_RST             => PLL_RST,
+            PLLPWD              => PLLPWD,
+            RESET_IDIV          => RESET_IDIV,
+            RESET_ODIV          => RESET_ODIV,
+            TEST_CLKIN          => TEST_CLKIN,
+            VCP                 => VCP,
+            CIM_DYN_CLKIN_SEL   => CIM_DYN_CLKIN_SEL,
+            CLKOUT              => CLKOUT,
+            CLKIN1              => CLKIN1,
+            CLKIN2              => CLKIN2,
+            CLKFB               => CLKFB,
+            CIM_DYNPS3          => CIM_DYNPS3,
+            GATEO               => GATEO,
+            CIM_DYNDU3          => CIM_DYNDU3,
+            DYN_ODIV4_SEL_IN    => DYN_ODIV4_SEL_IN,
+            DYN_ODIV3_SEL_IN    => DYN_ODIV3_SEL_IN,
+            DYN_ODIV2_SEL_IN    => DYN_ODIV2_SEL_IN,
+            DYN_IDIV            => DYN_IDIV,
+            DYN_FDIV            => DYN_FDIV,
+            CIM_DYNPS4          => CIM_DYNPS4,
+            CIM_DYNPS2          => CIM_DYNPS2,
+            CIM_DYNPS1          => CIM_DYNPS1,
+            CIM_DYNODIV         => CIM_DYNODIV,
+            CIM_DYNDU4          => CIM_DYNDU4,
+            CIM_DYNDU2          => CIM_DYNDU2,
+            CIM_DYNDU1          => CIM_DYNDU1
+        );
+
+}; // end of structure netlist of PLL
+
+/*******************************************************************************
+
+  Device    [PLL]
+
+  Author    [clwang]
+
+  Abstract  [Configure the configuration bits based on the value of config parameter]
+
+  Revision History:
+
+********************************************************************************/
+configuration cfg of PLL
+{   
+    SC_DYN_CLKIN_EN   := (DYN_CLKIN_EN == "FALSE") ? 1'b0 : 1'b1 ;
+    
+    SC_CLKIN_SEL      := CLKIN_SEL == "0" ? 1'b0 : 1'b1          ;
+    SC_DYN_IDIV_EN    := DYN_IDIV_EN     ;  
+    
+    int IDIV = 64 - STATIC_IDIV;
+    bit IDIV_B[6:0] = 7'b000_0000;
+    if (IDIV < 0 || IDIV > 63)
+    {
+        IDIV_B = 7'b000_0000;
+    }
+    else
+    {
+        IDIV_B = to_signed(IDIV,7); //64 - IDIV, for GTP simulate dismatch.
+    }
+    SC_IDIV           := IDIV_B[5:0]     ;
+    
+    
+    if (FB_SEL == "CLKOUT0")
+    {
+        SC_FB_SEL := 2'b00;
+    }
+    else if (FB_SEL == "CLKOUT1")   
+    {
+        SC_FB_SEL := 2'b01;
+    }
+    else if (FB_SEL == "CLKOUT2")   
+    {
+        SC_FB_SEL := 2'b10;
+    }   
+    else //if (FB_SEL == "DISABLE") 
+    {
+        SC_FB_SEL := 2'b11;
+    }
+           
+    SC_DYN_FDIV_EN    := DYN_FDIV_EN     ;
+
+    int FDIV = 64 - STATIC_FDIV;   
+    bit FDIV_B[5:0] = 6'b00_0000; 
+    if (FDIV < 0 || FDIV > 63)
+    {
+        FDIV_B = 6'b00_0000;
+    }
+    else
+    {
+        FDIV_B = to_unsigned((FDIV),6);
+    }    
+    SC_FDIV           := FDIV_B            ;
+    
+    
+    SC_TESTSEL        := TESTSEL         ;
+    SC_O_FDDN         := OFDDN           ;
+    SC_O_FDUP         := OFDUP           ;
+    SC_EN_FLD         := EN_FLD          ;
+    SC_EN_PLD         := EN_PLD          ;
+    SC_FLD_COUNT      := FLD_COUNT       ;
+    SC_CRIPPLE        := CRIPPLE         ;
+    SC_KVOG           := KVOG            ;
+    SC_FLT_OP         := FLT_OP          ;
+    
+    bit icp[4:0] = 5'b0_0000;    
+    if (ICP/10 - 1 > 31 || ICP < 1)
+    {
+        icp = 5'b0_0000;
+    }
+    else // if (ICP/10 - 1 >= 1 && ICP/10 - 1 <= 31)
+    {
+        icp = to_unsigned((ICP/10 - 1),5);
+    }
+    SC_ICP            := icp             ;
+    
+    SC_PLLPD          := PLLPD           ;
+    SC_GMC_PROG       := GMC_PROG        ;
+    SC_GMC_SEL        := GMC_SEL         ;
+    SC_LPF_REF        := LPF_REF         ;
+    SC_RST_LF         := RST_LF          ;
+    SC_EN_IUP         := EN_IUP          ;
+    SC_TEST_ICP       := TEST_ICP        ;
+    SC_PRESET_GMC     := PRESET_GMC      ;
+    SC_RESET_GMC      := RESET_GMC       ;
+    SC_GMC_REF        := GMC_REF         ;
+    SC_VCP_TEST_EN    := VCP_TEST_EN     ;
+    SC_VCP            := VCP_P           ;
+    SC_FDELAY_PWD     := FDELAY_PWD      ;
+    SC_IRSTEN         := IRSTEN          ;
+    SC_PLLPDN         := PLLPDN          ;
+    SC_PWDEN          := PWDEN           ;
+    SC_RSTEN          := RSTEN           ;
+    SC_ORSTEN         := ORSTEN          ;
+    SC_16DYNPS1_EN    := DYNP16S1_EN     ;
+    SC_16DYNPS2_EN    := DYNP16S2_EN     ;
+    SC_16DYNPS3_EN    := DYNP16S3_EN     ;
+    SC_16DYNPS4_EN    := DYNP16S4_EN     ;
+    
+    SC_CLKOUT_GATE[0] := (GATEO_EN == "FALSE") ? 1'b0 : 1'b1; 
+    SC_CLKOUT_GATE[1] := (GATE1_EN == "FALSE") ? 1'b0 : 1'b1; 
+    SC_CLKOUT_GATE[2] := (GATE2_EN == "FALSE") ? 1'b0 : 1'b1; 
+    SC_CLKOUT_GATE[3] := (GATE3_EN == "FALSE") ? 1'b0 : 1'b1; 
+    SC_CLKOUT_GATE[4] := (GATE4_EN == "FALSE") ? 1'b0 : 1'b1;     
+
+    if (CLKOUTMUX2 == 1)
+    {
+        SC_CLKOUTMUX2     := 2'b01      ;
+    } 
+    else if (CLKOUTMUX2 == 2)
+    {
+        SC_CLKOUTMUX2     := 2'b10      ;
+    } 
+    else if (CLKOUTMUX2 == 3)
+    {
+        SC_CLKOUTMUX2     := 2'b11      ;
+    }
+    else
+    {
+        SC_CLKOUTMUX2     := 2'b00      ;
+    } 
+    
+    if (CLKOUTMUX3 == 1)
+    {
+        SC_CLKOUTMUX3     := 2'b01      ;
+    } 
+    else if (CLKOUTMUX3 == 2)
+    {
+        SC_CLKOUTMUX3     := 2'b10      ;
+    } 
+    else if (CLKOUTMUX3 == 3)
+    {
+        SC_CLKOUTMUX3     := 2'b11      ;
+    }
+    else
+    {
+        SC_CLKOUTMUX3     := 2'b00      ;
+    } 
+    
+    if (CLKOUTMUX4 == 1)
+    {
+        SC_CLKOUTMUX4     := 2'b01      ;
+    } 
+    else if (CLKOUTMUX4 == 2)
+    {
+        SC_CLKOUTMUX4     := 2'b10      ;
+    } 
+    else if (CLKOUTMUX4 == 3)
+    {
+        SC_CLKOUTMUX4     := 2'b11      ;
+    }
+    else
+    {
+        SC_CLKOUTMUX4     := 2'b00      ;
+    } 
+   
+    int PHASE1 = STATIC_PS1 * 16 + STATIC_DU1; 
+    // 8:  42: 76: 110: 128: 162: 196: 230:
+    if (PHASE1 == 8) // 0                
+    {
+        SC_PHASE1 := 4'b0000         ;
+        SC_DUTY1  := 4'b1000         ;
+    }
+    else if (PHASE1 == 25)
+    {
+        SC_PHASE1 := 4'b0001         ;
+        SC_DUTY1  := 4'b1001         ;    
+    }
+    else if (PHASE1 == 42) // 45
+    {
+        SC_PHASE1 := 4'b0010         ;
+        SC_DUTY1  := 4'b1010         ;    
+    }
+    else if (PHASE1 == 59) 
+    {
+        SC_PHASE1 := 4'b0011         ;
+        SC_DUTY1  := 4'b1011         ;    
+    }
+    else if (PHASE1 == 76)  // 90
+    {
+        SC_PHASE1 := 4'b0100         ;
+        SC_DUTY1  := 4'b1100         ;
+    }
+    else if (PHASE1 == 93) 
+    {
+        SC_PHASE1 := 4'b0101         ;
+        SC_DUTY1  := 4'b1101         ;    
+    }
+    else if (PHASE1 == 110) // 135
+    {
+        SC_PHASE1 := 4'b0110         ;
+        SC_DUTY1  := 4'b1110         ;
+    }
+    else if (PHASE1 == 127) 
+    {
+        SC_PHASE1 := 4'b0111         ;
+        SC_DUTY1  := 4'b1111         ;    
+    }    
+    else if (PHASE1 == 128) // 180
+    {
+        SC_PHASE1 := 4'b1000         ;
+        SC_DUTY1  := 4'b0000         ;
+    } 
+    else if (PHASE1 == 145) 
+    {
+        SC_PHASE1 := 4'b1001         ;
+        SC_DUTY1  := 4'b0001         ;    
+    }         
+    else if (PHASE1 == 162) // 225
+    { 
+        SC_PHASE1 := 4'b1010         ;
+        SC_DUTY1  := 4'b0010         ;
+    } 
+    else if (PHASE1 == 179) 
+    {
+        SC_PHASE1 := 4'b1011         ;
+        SC_DUTY1  := 4'b0011         ;    
+    }      
+    else if (PHASE1 == 196)  // 270
+    {
+        SC_PHASE1 := 4'b1100         ;
+        SC_DUTY1  := 4'b0100         ;
+    }
+    else if (PHASE1 == 213) 
+    {
+        SC_PHASE1 := 4'b1101         ;
+        SC_DUTY1  := 4'b0101         ;    
+    }     
+    else if (PHASE1 == 230)  // 315
+    {
+        SC_PHASE1 := 4'b1110         ;
+        SC_DUTY1  := 4'b0110         ;
+    } 
+    else if (PHASE1 == 247) 
+    {
+        SC_PHASE1 := 4'b1111         ;
+        SC_DUTY1  := 4'b0111         ;    
+    }       
+    else                    // default
+    {
+        SC_PHASE1 := 4'b0000         ;
+        SC_DUTY1  := 4'b0000         ;
+    }
+    
+    
+    int PHASE2 = STATIC_PS2 * 16 + STATIC_DU2;
+    // 8:  42: 76: 110: 128: 162: 196: 230:
+    if (PHASE2 == 8) // 0                
+    {
+        SC_PHASE2 := 4'b0000         ;
+        SC_DUTY2  := 4'b1000         ;
+    }
+    else if (PHASE2 == 25)
+    {
+        SC_PHASE2 := 4'b0001         ;
+        SC_DUTY2  := 4'b1001         ;    
+    }
+    else if (PHASE2 == 42) // 45
+    {
+        SC_PHASE2 := 4'b0010         ;
+        SC_DUTY2  := 4'b1010         ;    
+    }
+    else if (PHASE2 == 59) 
+    {
+        SC_PHASE2 := 4'b0011         ;
+        SC_DUTY2  := 4'b1011         ;    
+    }
+    else if (PHASE2 == 76)  // 90
+    {
+        SC_PHASE2 := 4'b0100         ;
+        SC_DUTY2  := 4'b1100         ;
+    }
+    else if (PHASE2 == 93) 
+    {
+        SC_PHASE2 := 4'b0101         ;
+        SC_DUTY2  := 4'b1101         ;    
+    }
+    else if (PHASE2 == 110) // 135
+    {
+        SC_PHASE2 := 4'b0110         ;
+        SC_DUTY2  := 4'b1110         ;
+    }
+    else if (PHASE2 == 127) 
+    {
+        SC_PHASE2 := 4'b0111         ;
+        SC_DUTY2  := 4'b1111         ;    
+    }    
+    else if (PHASE2 == 128) // 180
+    {
+        SC_PHASE2 := 4'b1000         ;
+        SC_DUTY2  := 4'b0000         ;
+    } 
+    else if (PHASE2 == 145) 
+    {
+        SC_PHASE2 := 4'b1001         ;
+        SC_DUTY2  := 4'b0001         ;    
+    }         
+    else if (PHASE2 == 162) // 225
+    { 
+        SC_PHASE2 := 4'b1010         ;
+        SC_DUTY2  := 4'b0010         ;
+    } 
+    else if (PHASE2 == 179) 
+    {
+        SC_PHASE2 := 4'b1011         ;
+        SC_DUTY2  := 4'b0011         ;    
+    }      
+    else if (PHASE2 == 196)  // 270
+    {
+        SC_PHASE2 := 4'b1100         ;
+        SC_DUTY2  := 4'b0100         ;
+    }
+    else if (PHASE2 == 213) 
+    {
+        SC_PHASE2 := 4'b1101         ;
+        SC_DUTY2  := 4'b0101         ;    
+    }     
+    else if (PHASE2 == 230)  // 315
+    {
+        SC_PHASE2 := 4'b1110         ;
+        SC_DUTY2  := 4'b0110         ;
+    } 
+    else if (PHASE2 == 247) 
+    {
+        SC_PHASE2 := 4'b1111         ;
+        SC_DUTY2  := 4'b0111         ;    
+    }       
+    else                    // default
+    {
+        SC_PHASE2 := 4'b0000         ;
+        SC_DUTY2  := 4'b0000         ;
+    }
+    
+    int PHASE3 = STATIC_PS3 * 16 + STATIC_DU3;  
+    // 8:  42: 76: 110: 128: 162: 196: 230:  
+    if (PHASE3 == 8)       // 0
+    {
+        SC_PHASE3 := 4'b0000         ;
+        SC_DUTY3  := 4'b1000         ;
+    }
+    else if (PHASE3 == 25)
+    {
+        SC_PHASE3 := 4'b0001         ;
+        SC_DUTY3  := 4'b1001         ;    
+    }
+    else if (PHASE3 == 42) // 45
+    {
+        SC_PHASE3 := 4'b0010         ;
+        SC_DUTY3  := 4'b1010         ;    
+    }
+    else if (PHASE3 == 59) 
+    {
+        SC_PHASE3 := 4'b0011         ;
+        SC_DUTY3  := 4'b1011         ;    
+    }
+    else if (PHASE3 == 76) // 90
+    {
+        SC_PHASE3 := 4'b0100         ;
+        SC_DUTY3  := 4'b1100         ;
+    }
+    else if (PHASE3 == 93) 
+    {
+        SC_PHASE3 := 4'b0101         ;
+        SC_DUTY3  := 4'b1101         ;    
+    }
+    else if (PHASE3 == 110 ) // 135
+    {
+        SC_PHASE3 := 4'b0110         ;
+        SC_DUTY3  := 4'b1110         ;
+    }
+    else if (PHASE3 == 127) 
+    {
+        SC_PHASE3 := 4'b0111         ;
+        SC_DUTY3  := 4'b1111         ;    
+    }    
+    else if (PHASE3 == 128)  // 180
+    {
+        SC_PHASE3 := 4'b1000         ;
+        SC_DUTY3  := 4'b0000         ;
+    }
+    else if (PHASE3 == 145) 
+    {
+        SC_PHASE3 := 4'b1001         ;
+        SC_DUTY3  := 4'b0001         ;    
+    }        
+    else if (PHASE3 == 162) // 225
+    { 
+        SC_PHASE3 := 4'b1010         ;
+        SC_DUTY3  := 4'b0010         ;
+    }
+    else if (PHASE3 == 179) 
+    {
+        SC_PHASE3 := 4'b1011         ;
+        SC_DUTY3  := 4'b0011         ;    
+    }       
+    else if (PHASE3 == 196) // 270
+    {
+        SC_PHASE3 := 4'b1100         ;
+        SC_DUTY3  := 4'b0100         ;
+    }
+    else if (PHASE3 == 213) 
+    {
+        SC_PHASE3 := 4'b1101         ;
+        SC_DUTY3  := 4'b0101         ;    
+    }     
+    else if (PHASE3 == 230) // 315
+    {
+        SC_PHASE3 := 4'b1110         ;
+        SC_DUTY3  := 4'b0110         ;
+    }
+    else if (PHASE3 == 247) 
+    {
+        SC_PHASE3 := 4'b1111         ;
+        SC_DUTY3  := 4'b0111         ;    
+    }    
+    else                    // default
+    {
+        SC_PHASE3 := 4'b0000         ;
+        SC_DUTY3  := 4'b0000         ;
+    }    
+    
+    int PHASE4 = STATIC_PS4 * 16 + STATIC_DU4;
+    // 8:  42: 76: 110: 128: 162: 196: 230: 
+    if (PHASE4 == 8)   // 0
+    {
+        SC_PHASE4 := 4'b0000         ;
+        SC_DUTY4  := 4'b1000         ;
+    }
+    else if (PHASE4 == 25)
+    {
+        SC_PHASE4 := 4'b0001         ;
+        SC_DUTY4  := 4'b1001         ;    
+    }
+    else if (PHASE4 == 42) // 45
+    {
+        SC_PHASE4 := 4'b0010         ;
+        SC_DUTY4  := 4'b1010         ;    
+    }
+    else if (PHASE4 == 59) 
+    {
+        SC_PHASE4 := 4'b0011         ;
+        SC_DUTY4  := 4'b1011         ;    
+    }
+    else if (PHASE4 == 76) // 90
+    {
+        SC_PHASE4 := 4'b0100         ;
+        SC_DUTY4  := 4'b1100         ;
+    }
+    else if (PHASE4 == 93) 
+    {
+        SC_PHASE4 := 4'b0101         ;
+        SC_DUTY4  := 4'b1101         ;    
+    }
+    else if (PHASE4 == 110 ) // 135
+    {
+        SC_PHASE4 := 4'b0110         ;
+        SC_DUTY4  := 4'b1110         ;
+    }
+    else if (PHASE4 == 127) 
+    {
+        SC_PHASE4 := 4'b0111         ;
+        SC_DUTY4  := 4'b1111         ;    
+    }    
+    else if (PHASE4 == 128) // 180
+    {
+        SC_PHASE4 := 4'b1000         ;
+        SC_DUTY4  := 4'b0000         ;
+    }
+    else if (PHASE4 == 145) 
+    {
+        SC_PHASE4 := 4'b1001         ;
+        SC_DUTY4  := 4'b0001         ;    
+    }         
+    else if (PHASE4 == 162) // 225
+    { 
+        SC_PHASE4 := 4'b1010         ;
+        SC_DUTY4  := 4'b0010         ;
+    }
+    else if (PHASE4 == 179) 
+    {
+        SC_PHASE4 := 4'b1011         ;
+        SC_DUTY4  := 4'b0011         ;    
+    }      
+    else if (PHASE4 == 196) // 270
+    {
+        SC_PHASE4 := 4'b1100         ;
+        SC_DUTY4  := 4'b0100         ;
+    }
+    else if (PHASE4 == 213) 
+    {
+        SC_PHASE4 := 4'b1101         ;
+        SC_DUTY4  := 4'b0101         ;    
+    }     
+    else if (PHASE4 == 230) // 315
+    {
+        SC_PHASE4 := 4'b1110         ;
+        SC_DUTY4  := 4'b0110         ;
+    }
+    else if (PHASE4 == 247) 
+    {
+        SC_PHASE4 := 4'b1111         ;
+        SC_DUTY4  := 4'b0111         ;    
+    }     
+    else
+    {
+        SC_PHASE4 := 4'b0000         ;
+        SC_DUTY4  := 4'b0000         ;
+    }
+
+     
+    SC_DYN_ODIV0_SEL  := DYN_ODIV0_SEL   ;
+    SC_DYN_ODIV2_SEL  := DYN_ODIV2_SEL   ;
+    SC_DYN_ODIV3_SEL  := DYN_ODIV3_SEL   ;
+    SC_DYN_ODIV4_SEL  := DYN_ODIV4_SEL   ;
+    SC_FD_SEL0        := FD_SEL0         ;
+    SC_FD_SEL1        := FD_SEL1         ;
+    SC_FD_SEL2        := FD_SEL2         ;
+    SC_FD_SEL3        := FD_SEL3         ;
+    SC_FD_SEL4        := FD_SEL4         ;
+    
+    int ODIV0 = STATIC_ODIV/2 - 1;
+    bit ODIV0_B[5:0] = 6'b00_0000; 
+    if (ODIV0 < 0 || ODIV0 > 63)
+    {
+        ODIV0_B = 6'b00_0000;
+    }
+    else
+    {
+        ODIV0_B = to_unsigned((ODIV0),6);
+    } 
+    SC_ODIV0          := ODIV0_B            ;
+    
+    int ODIV2 = STATIC_O2DIV/2 - 1;
+    bit ODIV2_B[5:0] = 6'b00_0000; 
+    if (ODIV2 < 0 || ODIV2 > 63)
+    {
+        ODIV2_B = 6'b00_0000;
+    }
+    else
+    {
+        ODIV2_B = to_unsigned((ODIV2),6);
+    }
+    SC_ODIV2          := ODIV2_B           ;
+    
+    int ODIV3 = STATIC_O3DIV/2 - 1;
+    bit ODIV3_B[5:0] = 6'b00_0000; 
+    if (ODIV3 < 0 || ODIV3 > 63)
+    {
+        ODIV3_B = 6'b00_0000;
+    }
+    else
+    {
+        ODIV3_B = to_unsigned((ODIV3),6);
+    }  
+    SC_ODIV3          := ODIV3_B           ;
+    
+    int ODIV4 = STATIC_O4DIV/2 - 1;
+    bit ODIV4_B[5:0] = 6'b00_0000; 
+    if (ODIV4 < 0 || ODIV4 > 63)
+    {
+        ODIV4_B = 6'b00_0000;
+    }
+    else
+    {
+        ODIV4_B = to_unsigned((ODIV4),6);
+    } 
+    SC_ODIV4          := ODIV4_B           ;
+    
+    // 2'b00:  bypass; 2'b01: 50ps ;2'b10: 100ps ;3'b11: 150ps  
+    if (SFTINDLYSEL == "50PS" )
+    {
+        SC_SFTINDLYSEL    := 2'b01     ;
+    }
+    else if (SFTINDLYSEL == "100PS")
+    {
+        SC_SFTINDLYSEL    := 2'b10     ;
+    }
+    else if (SFTINDLYSEL == "150PS")
+    {
+        SC_SFTINDLYSEL    := 2'b11     ;
+    }
+    else // if (SFTINDLYSEL == "BYPASS")
+    {
+        SC_SFTINDLYSEL    := 2'b00     ;
+    }
+
+
+    SC_TEST_SEL       := TEST_SEL        ;
+
+    if (DIV125_M > 63 || DIV125_M <= 0 || DIV125_N > 7 || DIV125_N < 0)
+    {
+        error("DIV125_M must be in (0,63],and DIV125_N must be in [0,7]!");
+    }
+    else
+    {
+        int MN = 0;
+        
+        // COUNT
+        MN             = (8*DIV125_M+DIV125_N)/16-1;
+        bit MN_B[10:0] = 11'b000_0000_0000; 
+        if ((MN + 1)!= 0)
+        {
+            MN_B = to_signed(MN,11);
+            SC_CNT0_F  := MN_B[9:0]      ;
+        }
+        else
+        {
+            MN    = 8*DIV125_M+DIV125_N-1;
+            MN_B  = to_signed(MN,11);
+            SC_CNT0_F  := MN_B[9:0]       ;        
+        }
+        
+        MN         = 3*(8*DIV125_M+DIV125_N)/16-1;
+        MN_B       = to_signed(MN,11); 
+        SC_CNT1_F  := MN_B[9:0]             ;
+        
+        MN         = 2*(8*DIV125_M+DIV125_N)/16-1; 
+        MN_B       = to_signed(MN,11); 
+        SC_CNT1_R  := MN_B[9:0]          ;
+        
+           
+        MN         = 5*(8*DIV125_M+DIV125_N)/16-1; 
+        MN_B       = to_signed(MN,11);  
+        SC_CNT2_F  := MN_B[9:0]          ;
+          
+        MN         = 4*(8*DIV125_M+DIV125_N)/16-1; 
+        MN_B       = to_signed(MN,11);  
+        SC_CNT2_R  := MN_B[9:0]          ;
+        
+        MN         = 7*(8*DIV125_M+DIV125_N)/16-1; 
+        MN_B       = to_signed(MN,11);  
+        SC_CNT3_F  := MN_B[9:0]          ;
+        
+        MN         = 6*(8*DIV125_M+DIV125_N)/16-1;
+        MN_B       = to_signed(MN,11);   
+        SC_CNT3_R  := MN_B[9:0]          ;
+           
+        MN         = 9*(8*DIV125_M+DIV125_N)/16-1;
+        MN_B       = to_signed(MN,11);  
+        SC_CNT4_F  := MN_B[9:0]          ;
+           
+        MN         = 8*(8*DIV125_M+DIV125_N)/16-1; 
+        MN_B       = to_signed(MN,11); 
+        SC_CNT4_R  := MN_B[9:0]          ;
+            
+        MN         = 11*(8*DIV125_M+DIV125_N)/16-1;
+        MN_B       = to_signed(MN,11); 
+        SC_CNT5_F  := MN_B[9:0]          ;
+            
+        MN         = 10*(8*DIV125_M+DIV125_N)/16-1; 
+        MN_B       = to_signed(MN,11); 
+        SC_CNT5_R  := MN_B[9:0]          ;
+            
+        MN         = 13*(8*DIV125_M+DIV125_N)/16-1;
+        MN_B       = to_signed(MN,11); 
+        SC_CNT6_F := MN_B[9:0]          ;
+            
+        MN         = 12*(8*DIV125_M+DIV125_N)/16-1; 
+        MN_B       = to_signed(MN,11); 
+        SC_CNT6_R  := MN_B[9:0]          ;
+           
+        MN         = 15*(8*DIV125_M+DIV125_N)/16-1;
+        MN_B       = to_signed(MN,11);   
+        SC_CNT7_F  := MN_B[9:0]          ;
+          
+        MN         = 14*(8*DIV125_M+DIV125_N)/16-1;   
+        MN_B       = to_signed(MN,11); 
+        SC_CNT7_R  := MN_B[9:0]          ;          
+           
+        MN         = (8*DIV125_M+DIV125_N)-1;   
+        MN_B       = to_signed(MN,11);  
+        SC_CNT_LIMIT      := MN_B[9:0]       ;  
+       
+        // PHASE
+        bit PMN_B[4:0] = 5'b0_0000;
+        MN                = (8*DIV125_M+DIV125_N)%16;   
+        PMN_B             = to_signed(MN,5);  
+        SC_P0F_EDGE_S     := PMN_B[3:0]      ;
+        
+        MN                = 3*(8*DIV125_M+DIV125_N)%16;   
+        PMN_B             = to_signed(MN,5);         
+        SC_P1F_EDGE_S     := PMN_B[3:0]      ;
+        
+        MN                = 2*(8*DIV125_M+DIV125_N)%16;   
+        PMN_B             = to_signed(MN,5);    
+        SC_P1R_EDGE_S     := PMN_B[3:1]      ;
+        
+        MN                = 5*(8*DIV125_M+DIV125_N)%16;   
+        PMN_B             = to_signed(MN,5);  
+        SC_P2F_EDGE_S     := PMN_B[3:0]      ;
+        
+        MN                = 4*(8*DIV125_M+DIV125_N)%16;   
+        PMN_B             = to_signed(MN,5);  
+        SC_P2R_EDGE_S     := PMN_B[3:2]      ;
+        
+        MN                = 7*(8*DIV125_M+DIV125_N)%16;   
+        PMN_B             = to_signed(MN,5);  
+        SC_P3F_EDGE_S     := PMN_B[3:0]      ;
+        
+        MN                = 6*(8*DIV125_M+DIV125_N)%16;   
+        PMN_B             = to_signed(MN,5);  
+        SC_P3R_EDGE_S     := PMN_B[3:1]      ;
+        
+        MN                = 9*(8*DIV125_M+DIV125_N)%16;   
+        PMN_B             = to_signed(MN,5);  
+        SC_P4F_EDGE_S     := PMN_B[3:0]      ;
+        
+        MN                = 8*(8*DIV125_M+DIV125_N)%16;   
+        PMN_B             = to_signed(MN,5);  
+        SC_P4R_EDGE_S     := PMN_B[3]      ;
+        
+        MN                = 11*(8*DIV125_M+DIV125_N)%16;   
+        PMN_B             = to_signed(MN,5);  
+        SC_P5F_EDGE_S     := PMN_B[3:0]      ;
+        
+        MN                = 10*(8*DIV125_M+DIV125_N)%16;   
+        PMN_B             = to_signed(MN,5);  
+        SC_P5R_EDGE_S     := PMN_B[3:1]      ;
+        
+        MN                = 13*(8*DIV125_M+DIV125_N)%16;   
+        PMN_B             = to_signed(MN,5);  
+        SC_P6F_EDGE_S     := PMN_B[3:0]      ;
+        
+        MN                = 12*(8*DIV125_M+DIV125_N)%16;   
+        PMN_B             = to_signed(MN,5);  
+        SC_P6R_EDGE_S     := PMN_B[3:2]      ;
+        
+        MN                = 15*(8*DIV125_M+DIV125_N)%16;   
+        PMN_B             = to_signed(MN,5);  
+        SC_P7F_EDGE_S     := PMN_B[3:0]      ;
+        
+        MN                = 14*(8*DIV125_M+DIV125_N)%16;   
+        PMN_B             = to_signed(MN,5);  
+        SC_P7R_EDGE_S     := PMN_B[3:1]      ;         
+          
+    }
+    
+    bit DIVK_B[31:0] = 32'h0000_0000; 
+    DIVK_B           = to_unsigned((DIVK),32);         
+    SC_K              := DIVK_B          ;
+    
+    SC_LDO_TEST_EN    := LDO_TEST_EN     ;
+    SC_LDO_TESTSEL    := LDO_TESTSEL     ;
+    SC_LDO_VREF_TRIM  := LDO_VREF_TRIM   ;
+    SC_PD             := PD              ;
+}; // end of configuration cfg of PLL
+
+
+timing tnl of PLL
+{
+    operator V_PLL V_PLL
+        parameter map
+        (
+           CLKIN_FREQ            =>    CLKIN_FREQ,
+           DYNAMIC_CLKIN_EN      =>   (DYN_CLKIN_EN  == "FALSE") ? "FALSE" : "TRUE", 
+           CLKIN_SSEL            =>   (CLKIN_SEL == "0")?  0 :  1,
+           DYNAMIC_RATIOI_EN     =>   (DYN_IDIV_EN == 1'b0) ? "FALSE" : "TRUE",  
+           STATIC_RATIOI         =>    STATIC_IDIV,
+           DYNAMIC_RATIOF_EN     =>   (DYN_FDIV_EN == 1'b0) ? "FALSE" : "TRUE", 
+           STATIC_RATIOF         =>    STATIC_FDIV,
+           DYNAMIC_RATIO_EN      =>   (DYN_ODIV0_SEL == 1'b0) ? "FALSE" : "TRUE",  
+           STATIC_RATIO          =>    STATIC_ODIV,
+           CLKOUT2_SEL           =>    CLKOUTMUX2,
+           DYNAMIC_RATIO2_EN     =>   (DYN_ODIV2_SEL == 1'b0) ? "FALSE" : "TRUE", 
+           STATIC_RATIO2         =>    STATIC_O2DIV,
+           CLKOUT3_SEL           =>    CLKOUTMUX3,
+           DYNAMIC_RATIO3_EN     =>   (DYN_ODIV3_SEL == 1'b0) ? "FALSE" : "TRUE", 
+           STATIC_RATIO3         =>    STATIC_O3DIV,
+           CLKOUT4_SEL           =>    CLKOUTMUX4,
+           DYNAMIC_RATIO4_EN     =>   (DYN_ODIV4_SEL == 1'b0) ? "FALSE" : "TRUE", 
+           STATIC_RATIO4         =>    STATIC_O4DIV,
+           INTERNAL_FB           =>    FB_SEL,
+           EXTERNAL_FB           =>    EXTERNAL_FB,
+           DYNAMIC_DUPS1_EN      =>   (DYNP16S1_EN == 1'b0) ? "FALSE" : "TRUE", 
+           STATIC_PHASE1         =>   STATIC_PS1,
+           STATIC_DUTY1          =>   STATIC_DU1,
+           DYNAMIC_DUPS2_EN      =>   (DYNP16S2_EN == 1'b0) ? "FALSE" : "TRUE", 
+           STATIC_DUTY2          =>   STATIC_DU2,
+           STATIC_PHASE2         =>   STATIC_PS2,
+           DYNAMIC_DUPS3_EN      =>   (DYNP16S3_EN == 1'b0) ? "FALSE" : "TRUE", 
+           STATIC_DUTY3          =>   STATIC_DU3,
+           STATIC_PHASE3         =>   STATIC_PS3, 
+           DYNAMIC_DUPS4_EN      =>   (DYNP16S4_EN == 1'b0) ? "FALSE" : "TRUE", 
+           STATIC_DUTY4          =>   STATIC_DU4,
+           STATIC_PHASE4         =>   STATIC_PS4,
+           CLKOUT0_SYN_EN        =>   GATEO_EN, 
+           CLKOUT1_SYN_EN        =>   GATE1_EN, 
+           CLKOUT2_SYN_EN        =>   GATE2_EN, 
+           CLKOUT3_SYN_EN        =>   GATE3_EN, 
+           CLKOUT4_SYN_EN        =>   GATE4_EN, 
+           RST_INNER_EN          =>   ( PLLPDN == 1'b1 ) ? "TRUE" : "FALSE",
+           RSTODIV_EN            =>   ( ORSTEN == 1'b1 ) ? "TRUE" : "FALSE",
+           RSTIDIV_EN            =>   ( IRSTEN == 1'b1 ) ? "TRUE" : "FALSE",   
+           CLKOUT3_DIV125_M      =>   DIV125_M,
+           CLKOUT3_DIV125_N      =>   DIV125_N,
+           CLKOUT4_DIV32BIT_K    =>   DIVK         
+        )
+        port map
+        (
+            PLL_PWD      => PLLPWD,
+            RST          => PLL_RST, 
+            CLKIN1       => CLKIN1,
+            CLKIN2       => CLKIN2,
+            CLKIN_DSEL   => CIM_DYN_CLKIN_SEL,
+            CLKFB        => CLKFB,
+            RATIOI       => DYN_IDIV,
+            RATIOF       => DYN_FDIV,
+            RATIO        => CIM_DYNODIV,
+            RATIO2       => DYN_ODIV2_SEL_IN,
+            RATIO3       => DYN_ODIV3_SEL_IN,
+            RATIO4       => DYN_ODIV4_SEL_IN,
+            DUTY1        => CIM_DYNDU1,
+            DUTY2        => CIM_DYNDU2,
+            DUTY3        => CIM_DYNDU3,
+            DUTY4        => CIM_DYNDU4,
+            PHASE1       => CIM_DYNPS1,
+            PHASE2       => CIM_DYNPS2,
+            PHASE3       => CIM_DYNPS3,
+            PHASE4       => CIM_DYNPS4,
+            RSTIDIV      => RESET_IDIV,
+            RSTODIV      => RESET_ODIV,
+            CLKOUT0_SYN  => GATEO[0],   
+            CLKOUT1_SYN  => GATEO[1],
+            CLKOUT2_SYN  => GATEO[2],
+            CLKOUT3_SYN  => GATEO[3],
+            CLKOUT4_SYN  => GATEO[4],
+            LOCK         => PLL_LOCK,
+            CLKOUT0      => CLKOUT[0], 
+            CLKOUT1      => CLKOUT[1],   
+            CLKOUT2      => CLKOUT[2],
+            CLKOUT3      => CLKOUT[3],
+            CLKOUT4      => CLKOUT[4]
+        );
+};
+

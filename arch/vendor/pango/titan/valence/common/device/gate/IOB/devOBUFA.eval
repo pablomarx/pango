@@ -1,0 +1,92 @@
+******************************************************************
+//
+//  Device    [devOBUFA]
+//
+//  project   [Pango]
+//  
+//  Author    [hzhang]
+//
+//  Abstract  [ ]
+//
+//  Revision History:
+//                       
+//********************************************************************************/
+
+gate device devOBUFA : device IOB_A
+{
+    parameter 
+    (   
+       config string IOB_MODE           := "OBUF",
+        config string TERMINATED         = "UNUSED",    /* "UNUSED" , "PULLUP" , "PULLDOWN" , "KEEPER" */
+        config string HOT_SOCKET         = "ON",        // ON; OFF
+        config string POWER_MODE         = "ON",        // ON; OFF: POWER GUARD OFF
+        config string VCCIO              = "3.3",       // "3.3" "2.5" "1.8" "1.5" "1.2"
+        
+        config string OPENDRAIN          = "OFF",       // OFF: NA; ON: OD
+        // obuf
+        config string SLEW_MODE          = "F",  // "F" "S"
+        config string DRV_CURR_EN        = "TRUE",  // "TRUE" "FALSE"  
+        config string DRV_CURR_VAL       = "4",
+        config string PMOS_FINGER        = "1",  // "1" "2" "3" "4" "5" "6"
+        config string NMOS_FINGER        = "1",  // "1" "2" "3" "4" "5" "6"
+        config string IOSTANDARD         = "DEFAULT"  
+    );
+   
+    port
+    (   
+        input DO,
+        input TO,
+        inout PAD
+     );
+};  // end of device devOBUFA
+
+
+/*******************************************************************************
+
+  Device    [devOBUFA]
+
+  Author    []
+
+  Abstract  [gate grid devOBUFA. structure nestlist]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devOBUFA
+{
+    wire ntPAD, ntDO;
+    
+    PAD <= ntPAD;
+    ntDO <= DO;
+     
+    device IOB_OBUFA OBUFA
+        parameter map
+        (
+            IOB_MODE     => IOB_MODE,
+            SLEW_MODE    => SLEW_MODE,
+            DRV_CURR_VAL => DRV_CURR_VAL,
+            IOSTANDARD   => IOSTANDARD
+        )
+        port map
+        (
+            IN           => ntDO,
+            OUT          => ntPAD
+        );
+                   
+};  // end of structure netlist of devOBUFA            
+            
+timing tnl of devOBUFA
+{
+    operator V_OBUF obuf
+        parameter map
+        (
+            IOSTANDARD => IOSTANDARD,
+            SLEW_RATE  => (SLEW_MODE == "S") ? "SLOW" : "FAST",
+            DRIVE_STRENGTH => DRV_CURR_VAL
+        )
+        port map
+        (
+            I => DO,
+            O => PAD
+        );
+} 

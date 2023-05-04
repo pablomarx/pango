@@ -1,0 +1,96 @@
+*****************************************************************
+
+  Operator   [GTP_OSERDES_E1]
+
+  Author      []
+
+  Abstract    []
+
+  Copyright 2014 (c). SHENZHEN PANGO MICROSYSTEMS CO.,LTD.
+  All Right Reserved.
+
+  Revision History:
+     06/18/14 - Initial version.
+
+********************************************************************************/
+implementation impl of GTP_OSERDES_E1
+{    
+   wire DIN[7:0]; 
+   wire ntRCLK, ntDO, ntRST;   
+   if (OSERDES_MODE == "OSER8")
+   {
+        operator gopOSERDES gateop
+        parameter map 
+        (
+            CP_ODDR_MODE => OSERDES_MODE,
+            CP_GRS_DIS   => GRS_EN == "FALSE" ? "TRUE" : "FALSE",
+            CP_RST_EN    => "ENABLE"
+        )
+        port map
+        (
+            DO            => ntDO,
+            CLK_SYS       => ntRCLK,
+            CLK_IO        => OCLK,
+            RST_OSERDES   => ntRST,   
+            TX_DATA[7:0]  => DI[7:0]
+        ); 
+   }
+   else if (OSERDES_MODE == "OSER7")
+   {
+        operator gopOSERDES gateop
+        parameter map 
+        (
+            CP_ODDR_MODE => OSERDES_MODE,
+            CP_GRS_DIS   => GRS_EN == "FALSE" ? "TRUE" : "FALSE",
+            CP_RST_EN    => "ENABLE"
+        )
+        port map
+        (
+            DO            => ntDO,
+            CLK_SYS       => ntRCLK,
+            CLK_IO        => OCLK,
+            RST_OSERDES   => ntRST,   
+            TX_DATA[6:0]  => DI[6:0]
+        ); 
+   }
+   else
+   {
+        operator gopOSERDES4 gateop
+        parameter map 
+        (
+            CP_ODDR_MODE => OSERDES_MODE,
+            CP_GRS_DIS   => GRS_EN == "FALSE" ? "TRUE" : "FALSE",
+            CP_RST_EN    => "ENABLE"
+        )
+        port map
+        (
+            DO            => ntDO,
+            CLK_SYS       => ntRCLK,
+            CLK_IO        => OCLK,
+            RST_OSERDES   => ntRST,   
+            TX_DATA[3:0]  => DI[3:0]
+        );        
+   }
+    
+    
+
+        
+    operator gopIOL iola
+        parameter map
+        (
+            CP_SCLK_EN => "ENABLE",
+            CP_PDIFF   => "DISABLE",
+            CP_DQMODE  => 2'b11,
+            CP_MIPI_EN => "DISABLE"
+        )
+        port map
+        (
+            CLK               =>    RCLK    ,   
+            CLK_SYS_SERDES    =>    ntRCLK  ,
+            SR                =>    RST     ,
+            SR_O              =>    ntRST   ,
+            DO_IN             =>    ntDO    ,
+            DQ                =>    DO
+        );
+
+};

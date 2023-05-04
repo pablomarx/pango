@@ -1,0 +1,3607 @@
+*******************************************************************
+
+  Package   [pango_schm_funcs]
+
+  Author    [jblu]
+
+  Abstract  [Schematic description common to pango architecture]
+
+  Revision History:
+
+********************************************************************************/
+library work;
+USE pgl_defs, pgl100h_defs, pango_defs;
+
+package pgl_schm_funcs
+{
+
+function draw_srb_tile( unsigned int tx, ty )
+{
+    // Site index variable. The X index for logic and GUI are declared separately
+    //printf("%d, %d", tx, ty);
+    unsigned int lsx, lsy, gsx, gsy;
+
+    lsx = tx * NUM_GRID_X;
+    lsy = ty * NUM_GRID_Y;
+    
+    unsigned int temp_ty;
+    for(temp_ty = ty;temp_ty > MID_TILE_REGION;temp_ty = temp_ty - NUM_TILES_REGION)
+    {
+      lsy = lsy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+    }
+    
+    gsx = (lsx/NUM_GRID_X) * TILE_NUM_GUI_GRID_X;
+    gsy = (lsy/NUM_GRID_Y) * TILE_NUM_GUI_GRID_Y;
+    
+    // device reference variables
+    &device xRef, rRef;
+    string strVar, strVar1;
+
+    // Pull out the device instances from logic structure
+    xRef = <device SRB @[lsx,lsy] of ARCHITECTURE>;
+    sprintf(strVar, "SRB_%d_%d", lsx, lsy);
+    device SRB ( symbol logsym ) *strVar @[gsx+201,gsy+200];
+    map 
+    (
+        <instance *strVar> => xRef
+    );
+    
+    // Pull out the device instances from logic structure
+    rRef = <device HARD0N1 @[lsx,lsy+1] of ARCHITECTURE>;
+    sprintf(strVar1, "HARD0N1_%d_%d", lsx, lsy+1);
+    device HARD0N1 ( symbol logsym ) *strVar1 @[gsx+620,gsy+780];
+    map
+    (
+        <instance *strVar1> => rRef
+    );   
+}   // end of function draw_srb_tile
+
+function draw_pcie_tile
+(
+    unsigned int tx,
+    unsigned int ty,
+    unsigned int tx_r
+)
+{
+    unsigned int lsx, lsy, gsx, gsy;
+    lsx = tx * NUM_GRID_X+2;
+    lsy = ty * NUM_GRID_Y;
+    
+    gsx = (lsx/NUM_GRID_X) * TILE_NUM_GUI_GRID_X;
+    gsy = (lsy/NUM_GRID_Y) * TILE_NUM_GUI_GRID_Y;
+
+    &device xRef;
+    string strVar;
+    
+    xRef = <device PCIE @[lsx+0,lsy+0]  of ARCHITECTURE>;
+    sprintf(strVar, "PCIE_%d_%d", lsx+0, lsy+0);
+    device PCIE ( symbol logsym )  *strVar  @[gsx + 2900,gsy + 3050];
+    map
+    (
+         <instance *strVar>   => xRef
+    );
+}
+    
+function draw_clma_tile( unsigned int tx, ty)
+{
+    // Site index variable. The X index for logic and GUI are declared separately
+    unsigned int lsx, lsy, gsx, gsy;
+    
+    lsx = tx * NUM_GRID_X + 2;
+    lsy = ty * NUM_GRID_Y;
+    
+    unsigned int temp_ty;
+    for(temp_ty = ty;temp_ty > MID_TILE_REGION;temp_ty = temp_ty - NUM_TILES_REGION)
+    {
+        lsy = lsy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+    }
+    
+    gsx = (lsx/NUM_GRID_X) * TILE_NUM_GUI_GRID_X;
+    gsy = (lsy/NUM_GRID_Y) * TILE_NUM_GUI_GRID_Y;
+    
+    // device reference variables
+    &device xRef, rRef;
+    
+  
+    xRef = <device CLMA @[lsx,lsy]   of ARCHITECTURE>;
+    rRef = <device CLMA @[lsx,lsy+1] of ARCHITECTURE>;
+    
+    // Instantiate the schematic. 
+    device LOGIC_CLMA_TILE ( schematic logic_clma_tile_schm ) 
+    instance map
+    (
+        <symbol CLMA @[740,280]> => xRef,
+        <symbol CLMA @[870,540]> => rRef
+    )
+    @[gsx,gsy];
+}   // end of function draw_clm_tile
+
+
+function draw_clms_tile( unsigned int tx, ty)
+{
+    // Site index variable. The X index for logic and GUI are declared separately
+    unsigned int lsx, lsy, gsx, gsy;
+    
+    lsx = tx * NUM_GRID_X+2;
+    lsy = ty * NUM_GRID_Y;
+    
+    unsigned int temp_ty;
+    for(temp_ty = ty;temp_ty > MID_TILE_REGION;temp_ty = temp_ty - NUM_TILES_REGION)
+    {
+        lsy = lsy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+    }
+    
+    gsx = (lsx/NUM_GRID_X) * TILE_NUM_GUI_GRID_X;
+    gsy = (lsy/NUM_GRID_Y) * TILE_NUM_GUI_GRID_Y;
+    
+    // device reference variables
+    &device xRef, rRef;
+    
+    xRef = <device CLMA @[lsx,lsy]   of ARCHITECTURE>;
+    rRef = <device CLMS @[lsx,lsy+1] of ARCHITECTURE>;
+    
+    // Instantiate the schematic. 
+    device LOGIC_CLMS_TILE ( schematic logic_clms_tile_schm )
+    instance map
+    (
+        <symbol CLMA @[740,280]> => xRef,
+        <symbol CLMS @[870,540]> => rRef
+    )
+    @[gsx,gsy];
+}   // end of function draw_clms_tile
+
+
+function draw_ccs_tile( unsigned int tx, ty )
+{
+    // Site index variable. The X index for logic and GUI are declared separately
+    unsigned int lsx, lsy, gsx, gsy;
+    
+    lsx = tx * NUM_GRID_X;
+    lsy = ty * NUM_GRID_Y;
+    
+    gsx = (lsx/NUM_GRID_X) * TILE_NUM_GUI_GRID_X;
+    gsy = (lsy/NUM_GRID_Y) * TILE_NUM_GUI_GRID_Y;
+    
+    // device reference variables
+    &device xRef;
+    string strVar;
+    
+    gsx += 1200;
+    
+   // gsx -= 2400;
+    
+    xRef = <device FUSECODE @[lsx,lsy+1] of ARCHITECTURE>;
+    sprintf(strVar, "FUSECODE_%d_%d", lsx, lsy+1);
+    device FUSECODE ( symbol logsym ) *strVar @[gsx+1000,gsy+1200+200];
+    map 
+    ( 
+        <instance *strVar> => xRef
+    );
+    
+    
+    xRef = <device START @[lsx,lsy+2] of ARCHITECTURE>;
+    sprintf(strVar, "START_%d_%d", lsx, lsy+2);
+    device START ( symbol logsym ) *strVar @[gsx+400,gsy+1200+200];
+    map 
+    ( 
+        <instance *strVar> => xRef
+    );
+    
+    xRef = <device IPAL @[lsx,lsy+3] of ARCHITECTURE>;
+    sprintf(strVar, "IPAL_%d_%d", lsx, lsy+3);
+    device IPAL ( symbol logsym ) *strVar @[gsx+400,gsy+1200+600];
+    map 
+    ( 
+        <instance *strVar> => xRef
+    ); 
+  unsigned int dt, dx, dy;
+  dx = 1;
+  for ( dt = 0; dt < 2; dt += 1 )
+  {
+      dy = dt;
+      
+      xRef = <device SCANCHAIN @[lsx+dx,lsy+dy] of ARCHITECTURE>;
+      sprintf(strVar, "SCANCHAIN_%d_%d", lsx+dx, lsy+dy);
+      device SCANCHAIN ( symbol logsym_0 ) *strVar @[gsx+400,gsy+2400+80+280*dt];       //gsx+3600+400,gsy+4800+80+280*dt]
+      map 
+      ( 
+          <instance *strVar> => xRef
+      );
+  }
+   
+  
+  xRef = <device UDID @[lsx+1,lsy+2] of ARCHITECTURE>;
+  sprintf(strVar, "UDID_%d_%d", lsx+1, lsy+2);
+  device UDID ( symbol logsym ) *strVar @[gsx+400,gsy+2400+600+400];       //gsx+3600+400,gsy+6000+600
+  map 
+  ( 
+      <instance *strVar> => xRef
+  );
+  
+    xRef = <device OSC @[lsx+1,lsy+3] of ARCHITECTURE>;
+    sprintf(strVar, "OSC_%d_%d", lsx+1, lsy+3);
+  device OSC ( symbol logsym ) *strVar @[gsx+400,gsy+3600+200];    //[gsx+1000+600,gsy+6000+200]
+    map 
+    ( 
+        <instance *strVar> => xRef
+    );
+}   // end of function draw_ccs_tile_pgl100h
+
+function draw_analog_tile(unsigned int tx,ty)
+{
+    unsigned int lsx, lsy, gsx, gsy;
+    lsx = tx*NUM_GRID_X + 2;
+    lsy = ty * NUM_GRID_Y;
+    
+    unsigned int tmp_ty;
+    for(tmp_ty=ty;tmp_ty > MID_TILE_REGION;tmp_ty = tmp_ty - NUM_TILES_REGION)
+    {
+      lsy = lsy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+    }
+    
+    gsx=(lsx/NUM_GRID_X)*TILE_NUM_GUI_GRID_X;
+    gsy=(lsy/NUM_GRID_Y) * TILE_NUM_GUI_GRID_Y;
+    
+    &device xRef,rRef;
+    string strVar,strVar1;
+    
+    gsx-=1200;
+    rRef = <device MFG_TEST @[lsx+1,lsy+2] of ARCHITECTURE>;
+    sprintf(strVar1, "MFG_TEST_%d_%d", lsx+1, lsy+2);
+    device MFG_TEST ( symbol logsym ) *strVar1 @[gsx+1000+400,gsy+4800+200+1000];              //[gsx+3600+400,gsy+7200+200]
+    map 
+    ( 
+        <instance *strVar1> => rRef
+    );
+    
+    rRef = <device LDO @[lsx,lsy+0] of ARCHITECTURE>;
+    sprintf(strVar1, "LDO_%d_%d", lsx, lsy+0);
+    device LDO ( symbol logsym ) *strVar1 @[gsx,gsy+100];              //[gsx+3600+400,gsy+7200+200]
+    map 
+    ( 
+        <instance *strVar1> => rRef
+    );
+    
+    rRef = <device LDO @[lsx,lsy+1] of ARCHITECTURE>;
+    sprintf(strVar1, "LDO_%d_%d", lsx, lsy+1);
+    device LDO ( symbol logsym ) *strVar1 @[gsx,gsy+150];              //[gsx+3600+400,gsy+7200+200]
+    map 
+    ( 
+        <instance *strVar1> => rRef
+    );
+    
+    rRef = <device LDO @[lsx,lsy+2] of ARCHITECTURE>;
+    sprintf(strVar1, "LDO_%d_%d", lsx, lsy+2);
+    device LDO ( symbol logsym ) *strVar1 @[gsx,gsy+200];              //[gsx+3600+400,gsy+7200+200]
+    map 
+    ( 
+        <instance *strVar1> => rRef
+    );
+}
+
+function draw_drm_tile( unsigned int tx, ty )
+{
+    // Site index variable. The X index for logic and GUI are declared separately
+    unsigned int lsx, lsy, gsx, gsy;
+    
+    lsx = tx * NUM_GRID_X + 2;
+    lsy = ty * NUM_GRID_Y;
+    
+    unsigned int temp_ty;
+    for(temp_ty = ty;temp_ty > MID_TILE_REGION;temp_ty = temp_ty - NUM_TILES_REGION)
+    {
+        lsy = lsy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+    }
+    
+    gsx = (lsx/NUM_GRID_X) * TILE_NUM_GUI_GRID_X;
+    gsy = (lsy/NUM_GRID_Y) * TILE_NUM_GUI_GRID_Y;
+    
+    // device reference variables
+    &device xRef;
+    string strVar;
+    
+    xRef = <device DRM @[lsx,lsy]  of ARCHITECTURE>;
+    sprintf(strVar, "DRM_%d_%d", lsx, lsy);
+    device DRM  ( symbol logsym_0 )  *strVar  @[gsx+800,gsy+200];
+    map 
+    ( 
+        <instance *strVar> => xRef
+     ); 
+        
+}// end of function draw_drm_tile
+
+
+function draw_apm_tile( unsigned int tx, ty )
+{
+    // Site index variable. The X index for logic and GUI are declared separately
+    unsigned int lsx, lsy, gsx, gsy;
+    
+    lsx = tx * NUM_GRID_X + 2;
+    lsy = ty * NUM_GRID_Y;
+    
+    gsx = (lsx/NUM_GRID_X) * TILE_NUM_GUI_GRID_X;
+    gsy = (lsy/NUM_GRID_Y) * TILE_NUM_GUI_GRID_Y;
+    
+    // device reference variables
+    &device xRef, rRef;
+    string strVar, strVar1;
+    
+    xRef = <device APM @[lsx,lsy] of ARCHITECTURE>;
+    sprintf(strVar, "APM_%d_%d", lsx, lsy);
+    device APM ( symbol logsym ) *strVar @[gsx+800,gsy+200];
+    map 
+    ( 
+        <instance *strVar> => xRef
+    );
+    
+    rRef = <device APMMUX @[lsx,lsy+4] of ARCHITECTURE>;
+    sprintf(strVar1, "APMMUX_%d_%d", lsx, lsy+4);
+    device APMMUX ( symbol logsym_w ) *strVar1 @[gsx+750,gsy+1670];
+    map 
+    ( 
+        <instance *strVar1> => rRef
+    );
+}   // end of function draw_apm_tile
+
+function draw_pll_tile( unsigned int tx, ty, pll_flag )
+{
+    // Site index variable. The X index for logic and GUI are declared separately
+    unsigned int lsx, lsy, gsx, gsy;
+    
+    lsx = tx * NUM_GRID_X + 2;
+    lsy = ty * NUM_GRID_Y;
+    
+    unsigned int temp_ty;
+    for(temp_ty = ty;temp_ty > MID_TILE_REGION;temp_ty = temp_ty - NUM_TILES_REGION)
+    {
+      lsy = lsy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+    }
+    
+    gsx = (lsx/NUM_GRID_X) * TILE_NUM_GUI_GRID_X;
+    gsy = (lsy/NUM_GRID_Y) * TILE_NUM_GUI_GRID_Y;
+    
+    // device reference variables
+    &device xRef;
+    string strVar;
+    
+    if (pll_flag == 1)
+    {
+        xRef = <device PLL @[lsx,lsy+7] of ARCHITECTURE>;
+        sprintf(strVar, "PLL_%d_%d", lsx, lsy+7);
+        device PLL ( symbol logsym_1 ) *strVar @[gsx+800,gsy+200];
+        map 
+        ( 
+            <instance *strVar> => xRef
+        );
+        
+        xRef = <device PLLMUX @[lsx,lsy+11] of ARCHITECTURE>;
+        sprintf(strVar, "PLLMUX_%d_%d", lsx, lsy+11);
+        device PLLMUX ( symbol logsym ) *strVar @[gsx+700,gsy+500-32];
+        map 
+        ( 
+            <instance *strVar> => xRef
+        );
+    }
+    else
+    {
+        xRef = <device PLL @[lsx,lsy+7] of ARCHITECTURE>;
+        sprintf(strVar, "PLL_%d_%d", lsx, lsy+7);
+        device PLL ( symbol logsym ) *strVar @[gsx+800,gsy+200];
+        map 
+        ( 
+            <instance *strVar> => xRef
+        );
+        
+        xRef = <device PLLMUX @[lsx,lsy+11] of ARCHITECTURE>;
+        sprintf(strVar, "PLLMUX_%d_%d", lsx, lsy+11);
+        device PLLMUX ( symbol logsym ) *strVar @[gsx+700,gsy+500-32+3600];
+        map 
+        ( 
+            <instance *strVar> => xRef
+        );
+    }
+    
+    xRef = <device PREGMUX @[lsx,lsy+5] of ARCHITECTURE>;
+    sprintf(strVar, "PREGMUX_%d_%d", lsx, lsy+5);
+    device PREGMUX ( symbol logsym ) *strVar @[gsx+1080,gsy+2610];
+    map 
+    ( 
+        <instance *strVar> => xRef
+    );
+    
+    xRef = <device PREGMUX_TEST @[lsx,lsy+4] of ARCHITECTURE>;
+    sprintf(strVar, "PREGMUX_TEST_%d_%d", lsx, lsy+4);
+    device PREGMUX_TEST ( symbol logsym ) *strVar @[gsx+1080,gsy+1400];
+    map 
+    ( 
+        <instance *strVar> => xRef
+    );
+    
+    xRef = <device PREGMUX_OUT @[lsx,lsy+3] of ARCHITECTURE>;
+    sprintf(strVar, "PREGMUX_OUT_%d_%d", lsx, lsy+3);
+    device PREGMUX_OUT ( symbol logsym ) *strVar @[gsx+1160,gsy+2710];
+    map 
+    ( 
+        <instance *strVar> => xRef
+    );
+     
+    if(pll_flag == 1)
+    {
+        xRef = <device G2RCKMUX @[lsx,lsy+2] of ARCHITECTURE>;
+        sprintf(strVar, "G2RCKMUX_%d_%d", lsx, lsy+2);
+        device G2RCKMUX ( symbol logsym ) *strVar @[gsx+1100,gsy-1200+1000];
+        map 
+        ( 
+            <instance *strVar> => xRef
+        );
+        
+        xRef = <device G2RCKMUX @[lsx,lsy+1] of ARCHITECTURE>;
+        sprintf(strVar, "G2RCKMUX_%d_%d", lsx, lsy+1);
+        device G2RCKMUX ( symbol logsym ) *strVar @[gsx+1100,gsy-1200+1100];
+        map 
+        ( 
+            <instance *strVar> => xRef
+        );
+    }
+    else
+    {
+        xRef = <device G2RCKMUX @[lsx,lsy+2] of ARCHITECTURE>;
+        sprintf(strVar, "G2RCKMUX_%d_%d", lsx, lsy+2);
+        device G2RCKMUX ( symbol logsym ) *strVar @[gsx+1100,gsy+4800+800];
+        map 
+        ( 
+            <instance *strVar> => xRef
+        );
+        
+        xRef = <device G2RCKMUX @[lsx,lsy+1] of ARCHITECTURE>;
+        sprintf(strVar, "G2RCKMUX_%d_%d", lsx, lsy+1);
+        device G2RCKMUX ( symbol logsym ) *strVar @[gsx+1100,gsy+4800+700];
+        map 
+        ( 
+            <instance *strVar> => xRef
+        );
+    }
+}   // end of function draw_pll_tile
+
+function draw_hsst_tile(unsigned int tx,ty)
+{
+    unsigned int lsx, lsy, gsx, gsy;
+    &device xRef;
+    string strVar;
+    
+    lsx = tx * NUM_GRID_X;
+    lsy = ty * NUM_GRID_Y;
+    
+    gsx = (lsx/NUM_GRID_X) * TILE_NUM_GUI_GRID_X;
+    gsy = (lsy/NUM_GRID_Y) * TILE_NUM_GUI_GRID_Y;
+
+    unsigned int dy;
+    
+    xRef = <device HSST @[lsx+0,lsy+0]  of ARCHITECTURE>;
+    sprintf(strVar, "HSST_%d_%d", lsx+0, lsy+0);
+    device HSST  ( symbol logsym )  *strVar  @[gsx - 110,gsy + 1250];
+    map
+    (
+         <instance *strVar>   => xRef
+    );
+}
+
+function draw_uscm_tile( unsigned int tx, ty )
+{
+    // Site index variable. The X index for logic and GUI are declared separately
+    unsigned int lsx, lsy, gsx, gsy;
+    
+    lsx = tx * NUM_GRID_X;
+    lsy = ty * NUM_GRID_Y;
+    
+    unsigned int temp_ty;
+    for(temp_ty = ty;temp_ty > MID_TILE_REGION;temp_ty = temp_ty - NUM_TILES_REGION)
+    {
+        lsy = lsy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+    }
+    
+    gsx = (lsx/NUM_GRID_X) * TILE_NUM_GUI_GRID_X;
+    gsy = (lsy/NUM_GRID_Y) * TILE_NUM_GUI_GRID_Y;
+    if (ty == 28)
+    {
+        gsy = gsy + 3 * TILE_NUM_GUI_GRID_Y;
+    }
+    
+    gsy += 4; // adjust for drawing pattern
+    
+    // device reference variables
+    &device xRef;
+    string strVar;
+    
+    unsigned int nx, ny, dx, dy;
+
+    for(ny = 0;ny < 8;ny = ny + 1)
+    {
+        dx = 0;
+        dy = ny;
+        
+        xRef = <device USCM @[lsx+dx,lsy+dy]  of ARCHITECTURE>;
+        sprintf(strVar, "USCM_%d_%d", lsx+dx, lsy+dy);
+        device USCM  ( symbol logsym )  *strVar  @[gsx+500,gsy+204+ny*70];
+        map 
+        ( 
+            <instance *strVar>   => xRef
+        );  
+        
+        xRef = <device USCMMUX @[lsx+dx,lsy+dy]  of ARCHITECTURE>;
+        sprintf(strVar, "USCMMUX_%d_%d", lsx+dx, lsy+dy);
+        device USCMMUX  ( symbol logsym )  *strVar  @[gsx+150,gsy+200+ny*70];
+        map 
+        ( 
+            <instance *strVar>   => xRef
+        );
+        
+        xRef = <device USCMMUX_OUT @[lsx+dx,lsy+dy]  of ARCHITECTURE>;
+        sprintf(strVar, "USCMMUX_OUT_%d_%d", lsx+dx, lsy+dy);
+        device USCMMUX_OUT  ( symbol logsym )  *strVar  @[gsx+400,gsy+200+ny*70];
+        map 
+        ( 
+            <instance *strVar>   => xRef
+        ); 
+    }
+    
+    for(ny = 0;ny < 5;ny = ny + 1)
+    {
+        dx = 0;
+        dy = 15 + ny;
+        
+        xRef = <device USCMMUX_TEST @[lsx+dx,lsy+dy]  of ARCHITECTURE>;
+        sprintf(strVar, "USCMMUX_TEST_%d_%d", lsx+dx, lsy+dy);
+        device USCMMUX_TEST  ( symbol logsym )  *strVar  @[gsx+300,gsy+200+ny*70];
+        map 
+        ( 
+            <instance *strVar>   => xRef
+        );
+    }
+    for(ny = 5;ny < 8;ny = ny + 1)
+    {
+        dx = 1;
+        dy = ny - 5;
+        
+        xRef = <device USCMMUX_TEST @[lsx+dx,lsy+dy]  of ARCHITECTURE>;
+        sprintf(strVar, "USCMMUX_TEST_%d_%d", lsx+dx, lsy+dy);
+        device USCMMUX_TEST  ( symbol logsym )  *strVar  @[gsx+300,gsy+200+ny*70];
+        map 
+        ( 
+            <instance *strVar>   => xRef
+        );
+    }
+    
+    // 2nd part
+    gsy = gsy + TILE_NUM_GUI_GRID_Y;
+    
+    for(ny = 0;ny < 7;ny = ny + 1)
+    {
+        dx = 0;
+        dy = 8 + ny;
+        
+        xRef = <device USCM @[lsx+dx,lsy+dy]  of ARCHITECTURE>;
+        sprintf(strVar, "USCM_%d_%d", lsx+dx, lsy+dy);
+        device USCM  ( symbol logsym )  *strVar  @[gsx+500,gsy+204+ny*70];
+        map 
+        ( 
+            <instance *strVar>   => xRef
+        );  
+        
+        xRef = <device USCMMUX @[lsx+dx,lsy+dy]  of ARCHITECTURE>;
+        sprintf(strVar, "USCMMUX_%d_%d", lsx+dx, lsy+dy);
+        device USCMMUX  ( symbol logsym )  *strVar  @[gsx+150,gsy+200+ny*70];
+        map 
+        ( 
+            <instance *strVar>   => xRef
+        );
+        
+        xRef = <device USCMMUX_OUT @[lsx+dx,lsy+dy]  of ARCHITECTURE>;
+        sprintf(strVar, "USCMMUX_OUT_%d_%d", lsx+dx, lsy+dy);
+        device USCMMUX_OUT  ( symbol logsym )  *strVar  @[gsx+400,gsy+200+ny*70];
+        map 
+        ( 
+            <instance *strVar>   => xRef
+        ); 
+    }
+    
+    for(ny = 0;ny < 7;ny = ny + 1)
+    {
+        dx = 1;
+        dy = 3 + ny;
+        
+        xRef = <device USCMMUX_TEST @[lsx+dx,lsy+dy]  of ARCHITECTURE>;
+        sprintf(strVar, "USCMMUX_TEST_%d_%d", lsx+dx, lsy+dy);
+        device USCMMUX_TEST  ( symbol logsym )  *strVar  @[gsx+300,gsy+200+ny*70];
+        map 
+        ( 
+            <instance *strVar>   => xRef
+        );
+    }
+}// end of function draw_uscm_tile
+
+
+function draw_iol_tile_ud(unsigned int tx,ty)
+{
+    // Site index variable. The X index for logic and GUI are declared separately
+    unsigned int lsx, lsy, gsx, gsy;
+    
+    lsx = tx * NUM_GRID_X + 2;
+    lsy = ty * NUM_GRID_Y;
+    
+    unsigned int temp_ty;
+    for(temp_ty = ty;temp_ty > MID_TILE_REGION;temp_ty = temp_ty - NUM_TILES_REGION)
+    {
+        lsy = lsy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+    }
+    
+    gsx = (lsx/NUM_GRID_X) * TILE_NUM_GUI_GRID_X;
+    gsy = (lsy/NUM_GRID_Y) * TILE_NUM_GUI_GRID_Y;
+    
+    // device reference variables
+    &device xRef, rRef, mRef, nRef;
+    
+    xRef = <device IOLMUX @[lsx,lsy+1]   of ARCHITECTURE>;
+    rRef = <device IOLMUX @[lsx,lsy+2]   of ARCHITECTURE>;
+    mRef = <device IOL    @[lsx+1,lsy+1] of ARCHITECTURE>;
+    nRef = <device IOL    @[lsx+1,lsy+2] of ARCHITECTURE>;
+    // Instantiate the schematic. 
+    device LOGIC_IOL_TILE ( schematic logic_iol_tile_schm )
+    instance map
+    (
+        <symbol IOLMUX  @[1100,425]> => xRef,
+        <symbol IOLMUX  @[1100,585]> => rRef,
+        <symbol IOL     @[960,280] > => mRef,
+        <symbol IOL     @[960,540] > => nRef
+    )
+    @[gsx,gsy];
+}   // end of function draw_iol_ud_tile
+
+
+function draw_iol_tile(unsigned int tx,ty)
+{
+    // Site index variable. The X index for logic and GUI are declared separately
+    unsigned int lsx, lsy, gsx, gsy;
+    
+    lsx = tx * NUM_GRID_X + 2;
+    lsy = ty * NUM_GRID_Y;
+    
+    unsigned int temp_ty;
+    for(temp_ty = ty;temp_ty > MID_TILE_REGION;temp_ty = temp_ty - NUM_TILES_REGION)
+    {
+        lsy = lsy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+    }
+    
+    gsx = (lsx/NUM_GRID_X) * TILE_NUM_GUI_GRID_X;
+    gsy = (lsy/NUM_GRID_Y) * TILE_NUM_GUI_GRID_Y;
+    
+    // device reference variables
+    &device xRef, rRef, mRef, nRef;
+    
+    xRef = <device IOLMUX @[lsx,lsy+1]   of ARCHITECTURE>;
+    rRef = <device IOLMUX @[lsx,lsy+2]   of ARCHITECTURE>;
+    mRef = <device IOL    @[lsx+1,lsy+1] of ARCHITECTURE>;
+    nRef = <device IOL    @[lsx+1,lsy+2] of ARCHITECTURE>;
+    // Instantiate the schematic. 
+    device LOGIC_IOL_TILE ( schematic logic_iol_tile_schm )
+    instance map
+    (
+        <symbol IOLMUX  @[1100,425]> => xRef,
+        <symbol IOLMUX  @[1100,585]> => rRef,
+        <symbol IOL     @[960,280] > => mRef,
+        <symbol IOL     @[960,540] > => nRef
+    )
+    @[gsx,gsy];
+}   // end of function draw_iol_tile
+
+
+function draw_dqsl_tile( unsigned int tx, ty )//, flag
+{
+    // Site index variable. The X index for logic and GUI are declared separately
+    unsigned int lsx, lsy, gsx, gsy;
+    
+    lsx = tx * NUM_GRID_X+2;
+    lsy = ty * NUM_GRID_Y;
+    
+    unsigned int temp_ty;
+    for(temp_ty = ty;temp_ty > MID_TILE_REGION;temp_ty = temp_ty - NUM_TILES_REGION)
+    {
+        lsy = lsy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+    }
+    
+    gsx = (lsx/NUM_GRID_X) * TILE_NUM_GUI_GRID_X;
+    gsy = (lsy/NUM_GRID_Y) * TILE_NUM_GUI_GRID_Y;
+    
+    // device reference variables
+    &device xRef;
+    string strVar;
+    
+    xRef = <device DQSL @[lsx,lsy] of ARCHITECTURE>;
+    sprintf(strVar, "DQSL_%d_%d", lsx, lsy);
+    device DQSL ( symbol logsym ) *strVar @[gsx+800,gsy+280];
+    map
+    (
+        <instance *strVar>   => xRef
+    );
+     
+    xRef = <device DQSLMUX @[lsx,lsy+1] of ARCHITECTURE>;
+    sprintf(strVar, "DQSLMUX_%d_%d", lsx, lsy+1);
+    device DQSLMUX ( symbol logsym ) *strVar @[gsx+950,gsy+430];
+    map
+    (
+        <instance *strVar>   => xRef
+    );
+}   // end of function draw_dqsl_tile
+
+
+function draw_iockgatedll_tile( unsigned int tx, ty )
+{   
+    unsigned int lsx, lsy, gsx, gsy;
+    
+    lsx = tx * NUM_GRID_X + 2;
+    lsy = ty * NUM_GRID_Y;
+    
+    unsigned int temp_ty;
+    for(temp_ty = ty;temp_ty > MID_TILE_REGION;temp_ty = temp_ty - NUM_TILES_REGION)
+    {
+      lsy = lsy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+    }
+    
+    gsx = (lsx/NUM_GRID_X) * TILE_NUM_GUI_GRID_X;
+    gsy = (lsy/NUM_GRID_Y) * TILE_NUM_GUI_GRID_Y;
+    
+    gsy = gsy + 1200;
+    
+  if(tx*2 < NUM_TILE_X)
+  {
+    gsx = gsx - 1200;   // (dx,dy) = (-1200,1200)
+    
+    &device wRef;
+    wRef = <device IOCKDLY @[lsx,lsy+4]  of ARCHITECTURE>;
+    string strVar0;
+    sprintf(strVar0, "IOCKDLY_%d_%d", lsx, lsy+4);
+    device IOCKDLY  ( symbol logsym_w )  *strVar0  @[gsx+100,gsy+630];
+    map 
+    ( 
+         <instance *strVar0>   => wRef
+     );
+    
+    wRef = <device IOCKDLYMUX @[lsx,lsy]  of ARCHITECTURE>;
+    string strVar1;
+    sprintf(strVar1, "IOCKDLYMUX_%d_%d", lsx, lsy);
+    device IOCKDLYMUX  ( symbol logsym_w )  *strVar1  @[gsx+200,gsy+600];
+    map 
+    ( 
+         <instance *strVar1>   => wRef
+     );
+     
+    wRef = <device IOCKDLY @[lsx,lsy+5]  of ARCHITECTURE>;
+    string strVar2;
+    sprintf(strVar2, "IOCKDLY_%d_%d", lsx, lsy+5);
+    device IOCKDLY  ( symbol logsym_w )  *strVar2  @[gsx+100,gsy+830];
+    map 
+    ( 
+         <instance *strVar2>   => wRef
+     );
+    
+    wRef = <device IOCKDLYMUX @[lsx,lsy+1]  of ARCHITECTURE>;
+    string strVar3;
+    sprintf(strVar3, "IOCKDLYMUX_%d_%d", lsx, lsy+1);
+    device IOCKDLYMUX  ( symbol logsym_w )  *strVar3  @[gsx+200,gsy+800];
+    map 
+    ( 
+         <instance *strVar3>   => wRef
+     );
+     
+    wRef = <device IOCKGMUX @[lsx,lsy+1]  of ARCHITECTURE>;
+    string strVar4;
+    sprintf(strVar4, "IOCKGMUX_%d_%d", lsx, lsy+1);
+    device IOCKGMUX  ( symbol logsym_w )  *strVar4  @[gsx+300,gsy+450+70];
+    map 
+    ( 
+         <instance *strVar4>   => wRef
+     );
+     
+    wRef = <device IOCKGMUX_OUT @[lsx,lsy+1]  of ARCHITECTURE>;
+    string strVar5;
+    sprintf(strVar5, "IOCKGMUX_OUT_%d_%d", lsx, lsy+1);
+    device IOCKGMUX_OUT  ( symbol logsym )  *strVar5  @[gsx+400,gsy+450+35];
+    map 
+    ( 
+         <instance *strVar5>   => wRef
+     );
+     
+    wRef = <device IOCKGMUX_TEST @[lsx,lsy+3]  of ARCHITECTURE>;
+    string strVar6;
+    sprintf(strVar6, "IOCKGMUX_TEST_%d_%d", lsx, lsy+3);
+    device IOCKGMUX_TEST  ( symbol logsym )  *strVar6  @[gsx+300,gsy+450];
+    map 
+    ( 
+         <instance *strVar6>   => wRef
+     ); 
+     
+    wRef = <device IOCKGATE @[lsx,lsy+1]  of ARCHITECTURE>;
+    string strVar7;
+    sprintf(strVar7, "IOCKGATE_%d_%d", lsx, lsy+1);
+    device IOCKGATE  ( symbol logsym_w )  *strVar7  @[gsx+500,gsy+505];
+    map 
+    ( 
+         <instance *strVar7>   => wRef
+     ); 
+     
+    wRef = <device IOCKDIV @[lsx,lsy+9]  of ARCHITECTURE>;
+    string strVar8;
+    sprintf(strVar8, "IOCKDIV_%d_%d", lsx, lsy+9);
+    device IOCKDIV  ( symbol logsym_w )  *strVar8  @[gsx+600,gsy+470];
+    map 
+    ( 
+         <instance *strVar8>   => wRef
+     ); 
+     
+    wRef = <device RCKBMUX @[lsx,lsy+1]  of ARCHITECTURE>;
+    string strVar9;
+    sprintf(strVar9, "RCKBMUX_%d_%d", lsx, lsy+1);
+    device RCKBMUX ( symbol logsym )  *strVar9  @[gsx+700,gsy+450+70*3];
+    map 
+    ( 
+         <instance *strVar9>   => wRef
+     );
+
+    wRef = <device RCKBMUX_OUT @[lsx+1,lsy+8]  of ARCHITECTURE>;
+    string strVar10;
+    sprintf(strVar10, "RCKBMUX_OUT_%d_%d", lsx+1, lsy+8);
+    device RCKBMUX_OUT ( symbol logsym )  *strVar10  @[gsx+800,gsy+450+70*2+35];
+    map 
+    ( 
+         <instance *strVar10>   => wRef
+     );
+     
+    wRef = <device RCKBMUX_TEST @[lsx,lsy+11]  of ARCHITECTURE>;
+    string strVar11;
+    sprintf(strVar11, "RCKBMUX_TEST_%d_%d", lsx, lsy+11);
+    device RCKBMUX_TEST ( symbol logsym )  *strVar11  @[gsx+700,gsy+450+70*2];
+    map 
+    ( 
+         <instance *strVar11>   => wRef
+     );
+     
+    wRef = <device VCKBMUX @[lsx,lsy+1]  of ARCHITECTURE>;
+    string strVar12;
+    sprintf(strVar12, "VCKBMUX_%d_%d", lsx, lsy+1);
+    device VCKBMUX ( symbol logsym )  *strVar12  @[gsx+900,gsy+450+70*5];
+    map 
+    ( 
+         <instance *strVar12>   => wRef
+     );
+     
+    wRef = <device VCKBMUX_OUT @[lsx+1,lsy+9]  of ARCHITECTURE>;
+    string strVar13;
+    sprintf(strVar13, "VCKBMUX_OUT_%d_%d", lsx+1, lsy+9);
+    device VCKBMUX_OUT ( symbol logsym )  *strVar13  @[gsx+1000,gsy+450+70*4+35];
+    map 
+    ( 
+         <instance *strVar13>   => wRef
+     );
+     
+    wRef = <device VCKBMUX_TEST @[lsx+1,lsy+1]  of ARCHITECTURE>;
+    string strVar14;
+    sprintf(strVar14, "VCKBMUX_TEST_%d_%d", lsx+1, lsy+1);
+    device VCKBMUX_TEST ( symbol logsym )  *strVar14  @[gsx+900,gsy+450+70*4];
+    map 
+    ( 
+         <instance *strVar14>   => wRef
+     );
+    
+    // (dx,dy) = (-1200,1200)
+    wRef = <device IOCKDLY @[lsx,lsy+6]  of ARCHITECTURE>;
+    string strVar15;
+    sprintf(strVar15, "IOCKDLY_%d_%d", lsx, lsy+6);
+    device IOCKDLY  ( symbol logsym_w )  *strVar15  @[gsx+100,gsy+30];
+    map 
+    ( 
+         <instance *strVar15>   => wRef
+     );
+    
+    wRef = <device IOCKDLYMUX @[lsx,lsy+2]  of ARCHITECTURE>;
+    string strVar16;
+    sprintf(strVar16, "IOCKDLYMUX_%d_%d", lsx, lsy+2);
+    device IOCKDLYMUX  ( symbol logsym_w )  *strVar16  @[gsx+200,gsy+0];
+    map 
+    ( 
+         <instance *strVar16>   => wRef
+     );
+     
+    wRef = <device IOCKDLY @[lsx,lsy+7]  of ARCHITECTURE>;
+    string strVar17;
+    sprintf(strVar17, "IOCKDLY_%d_%d", lsx, lsy+7);
+    device IOCKDLY  ( symbol logsym_w )  *strVar17  @[gsx+100,gsy+230];
+    map 
+    ( 
+         <instance *strVar17>   => wRef
+     );
+    
+    wRef = <device IOCKDLYMUX @[lsx,lsy+3]  of ARCHITECTURE>;
+    string strVar18;
+    sprintf(strVar18, "IOCKDLYMUX_%d_%d", lsx, lsy+3);
+    device IOCKDLYMUX  ( symbol logsym_w )  *strVar18  @[gsx+200,gsy+200];
+    map 
+    ( 
+         <instance *strVar18>   => wRef
+     );
+    
+    wRef = <device IOCKGMUX @[lsx,lsy]  of ARCHITECTURE>;
+    string strVar19;
+    sprintf(strVar19, "IOCKGMUX_%d_%d", lsx, lsy);
+    device IOCKGMUX  ( symbol logsym_w )  *strVar19  @[gsx+300,gsy+350];
+    map 
+    ( 
+         <instance *strVar19>   => wRef
+     );
+     
+    wRef = <device IOCKGMUX_OUT @[lsx+1,lsy+10]  of ARCHITECTURE>;
+    string strVar20;
+    sprintf(strVar20, "IOCKGMUX_OUT_%d_%d", lsx+1, lsy+10);
+    device IOCKGMUX_OUT  ( symbol logsym )  *strVar20  @[gsx+400,gsy+350-70+35];
+    map 
+    ( 
+         <instance *strVar20>   => wRef
+     );
+     
+    wRef = <device IOCKGMUX_TEST @[lsx,lsy+2]  of ARCHITECTURE>;
+    string strVar21;
+    sprintf(strVar21, "IOCKGMUX_TEST_%d_%d", lsx, lsy+2);
+    device IOCKGMUX_TEST  ( symbol logsym )  *strVar21  @[gsx+300,gsy+350-70];
+    map 
+    ( 
+         <instance *strVar21>   => wRef
+     );
+     
+    wRef = <device IOCKGATE @[lsx,lsy]  of ARCHITECTURE>;
+    string strVar22;
+    sprintf(strVar22, "IOCKGATE_%d_%d", lsx, lsy);
+    device IOCKGATE  ( symbol logsym_w )  *strVar22  @[gsx+500,gsy+335];
+    map 
+    ( 
+         <instance *strVar22>   => wRef
+     ); 
+     
+    wRef = <device IOCKDIV @[lsx,lsy+8]  of ARCHITECTURE>;
+    string strVar23;
+    sprintf(strVar23, "IOCKDIV_%d_%d", lsx, lsy+8);
+    device IOCKDIV  ( symbol logsym_w )  *strVar23  @[gsx+600,gsy+370];
+    map 
+    ( 
+         <instance *strVar23>   => wRef
+     ); 
+     
+    wRef = <device RCKBMUX @[lsx,lsy]  of ARCHITECTURE>;
+    string strVar24;
+    sprintf(strVar24, "RCKBMUX_%d_%d", lsx, lsy);
+    device RCKBMUX ( symbol logsym )  *strVar24  @[gsx+700,gsy+350-70*2];
+    map 
+    ( 
+         <instance *strVar24>   => wRef
+     );
+
+    wRef = <device RCKBMUX_OUT @[lsx+1,lsy+11]  of ARCHITECTURE>;
+    string strVar25;
+    sprintf(strVar25, "RCKBMUX_OUT_%d_%d", lsx+1, lsy+11);
+    device RCKBMUX_OUT ( symbol logsym )  *strVar25  @[gsx+800,gsy+350-70*3+35];
+    map 
+    ( 
+         <instance *strVar25>   => wRef
+     );
+     
+    wRef = <device RCKBMUX_TEST @[lsx,lsy+10]  of ARCHITECTURE>;
+    string strVar26;
+    sprintf(strVar26, "RCKBMUX_TEST_%d_%d", lsx, lsy+10);
+    device RCKBMUX_TEST ( symbol logsym )  *strVar26  @[gsx+700,gsy+350-70*3];
+    map 
+    ( 
+         <instance *strVar26>   => wRef
+     );
+     
+    wRef = <device VCKBMUX @[lsx,lsy]  of ARCHITECTURE>;
+    string strVar27;
+    sprintf(strVar27, "VCKBMUX_%d_%d", lsx, lsy);
+    device VCKBMUX ( symbol logsym )  *strVar27  @[gsx+900,gsy+350-70*4];
+    map 
+    ( 
+         <instance *strVar27>   => wRef
+     );
+     
+    wRef = <device VCKBMUX_OUT @[lsx,lsy]  of ARCHITECTURE>;
+    string strVar28;
+    sprintf(strVar28, "VCKBMUX_OUT_%d_%d", lsx, lsy);
+    device VCKBMUX_OUT ( symbol logsym )  *strVar28  @[gsx+1000,gsy+350-70*5+35];
+    map 
+    ( 
+         <instance *strVar28>   => wRef
+     );
+     
+    wRef = <device VCKBMUX_TEST @[lsx+1,lsy]  of ARCHITECTURE>;
+    string strVar29;
+    sprintf(strVar29, "VCKBMUX_TEST_%d_%d", lsx+1, lsy);
+    device VCKBMUX_TEST ( symbol logsym )  *strVar29  @[gsx+900,gsy+350-70*5];
+    map 
+    ( 
+         <instance *strVar29>   => wRef
+     );
+     
+    gsx = gsx + 1200;   // (dx,dy) = (0,1200)
+    
+    &device sRef;
+    sRef  = <device CKEB  @[lsx,lsy]     of ARCHITECTURE>;
+    string strVar32;
+    sprintf(strVar32, "CKEB_%d_%d", lsx, lsy);
+    device CKEB   ( symbol logsym )  *strVar32  @[gsx+1000,gsy+920];
+    map 
+    ( 
+        <instance *strVar32>   => sRef
+     );    
+    
+    sRef = <device CKEBMUX @[lsx+0,lsy+0]  of ARCHITECTURE>;
+    sprintf(strVar32, "CKEBMUX_%d_%d", lsx+0, lsy+0);
+    device CKEBMUX  ( symbol logsym )  *strVar32  @[gsx+600,gsy+900];
+    map 
+    ( 
+         <instance *strVar32>   => sRef
+     );
+     
+    gsx = gsx + 1200;   // (dx,dy) = (1200,1200)
+    
+    &device xRef;     
+    xRef  = <device DLLMUX  @[lsx,lsy]     of ARCHITECTURE>;
+    string strVar30;
+    sprintf(strVar30, "DLLMUX_%d_%d", lsx, lsy);
+    device DLLMUX   ( symbol logsym_w )  *strVar30  @[gsx+600,gsy+430];
+    map 
+    ( 
+        <instance *strVar30>   => xRef
+     );   
+     
+     // Pull out the device instances from logic structure  
+    &device mRef;
+    mRef  = <device DLL  @[lsx+1,lsy+3]     of ARCHITECTURE>;
+    string strVar31;
+    sprintf(strVar31, "DLL_%d_%d", lsx+1, lsy+3);
+    device DLL   ( symbol logsym )  *strVar31  @[gsx+700,gsy+320];
+    map 
+    ( 
+        <instance *strVar31>   => mRef
+     );
+     
+    // Pull out the device instances from logic structure  
+    sRef  = <device RCKB  @[lsx+1,lsy+4]     of ARCHITECTURE>;
+    string strVar33;
+    sprintf(strVar33, "RCKB_%d_%d", lsx+1, lsy+4);
+    device RCKB   ( symbol logsym )  *strVar33  @[gsx+500,gsy+250];
+    map 
+    ( 
+        <instance *strVar33>   => sRef
+     );
+     
+    sRef  = <device RCKB  @[lsx+1,lsy+5]     of ARCHITECTURE>;
+    string strVar34;
+    sprintf(strVar34, "RCKB_%d_%d", lsx+1, lsy+5);
+    device RCKB   ( symbol logsym )  *strVar34  @[gsx+500,gsy+550];
+    map 
+    ( 
+        <instance *strVar34>   => sRef
+     );
+     
+    sRef  = <device RCKB  @[lsx+1,lsy+6]     of ARCHITECTURE>;
+    string strVar35;
+    sprintf(strVar35, "RCKB_%d_%d", lsx+1, lsy+6);
+    device RCKB   ( symbol logsym )  *strVar35  @[gsx+500,gsy+350];
+    map 
+    ( 
+        <instance *strVar35>   => sRef
+     );
+     
+    sRef  = <device RCKB  @[lsx+1,lsy+7]     of ARCHITECTURE>;
+    string strVar36;
+    sprintf(strVar36, "RCKB_%d_%d", lsx+1, lsy+7);
+    device RCKB   ( symbol logsym )  *strVar36  @[gsx+500,gsy+450];
+    map 
+    ( 
+        <instance *strVar36>   => sRef
+     );
+    int dx,dy;
+    dx = 0;
+    dy = 0;
+    sRef = <device PIOMUX @[lsx+dx,lsy+dy] of ARCHITECTURE>;
+    string strVar37;
+    sprintf(strVar37, "PIOMUX_%d_%d", lsx+dx,lsy+dy);
+    device PIOMUX ( symbol logsym ) *strVar37 @[gsx+100,gsy+700];
+    map 
+    ( 
+       <instance *strVar37> => sRef
+    );  
+    dx = 0;
+    dy = 1;
+    sRef = <device PIOMUX_TEST @[lsx+dx,lsy+dy] of ARCHITECTURE>;
+    string strVar38;
+    sprintf(strVar38, "PIOMUX_TEST_%d_%d", lsx+dx,lsy+dy);
+    device PIOMUX_TEST ( symbol logsym ) *strVar38 @[gsx+300,gsy+700];
+    map 
+    ( 
+        <instance *strVar38> => sRef
+    );  
+    dx = 0;
+    dy = 2;     
+    sRef = <device PIOMUX_OUT @[lsx+dx,lsy+dy] of ARCHITECTURE>;
+    string strVar39;    
+    sprintf(strVar39, "PIOMUX_OUT_%d_%d", lsx+dx,lsy+dy);
+    device PIOMUX_OUT ( symbol logsym ) *strVar39 @[gsx+500,gsy+700];
+    map 
+    ( 
+        <instance *strVar39> => sRef
+    );      
+  }
+  else
+  {
+    gsx = gsx + 1200;   // (dx,dy) = (1200,1200)
+    
+    &device wRef;
+    wRef = <device IOCKDLY @[lsx,lsy+4]  of ARCHITECTURE>;
+    string strVar0;
+    sprintf(strVar0, "IOCKDLY_%d_%d", lsx, lsy+4);
+    device IOCKDLY  ( symbol logsym_e )  *strVar0  @[gsx+1100,gsy+630];
+    map 
+    ( 
+         <instance *strVar0>   => wRef
+     );
+    
+    wRef = <device IOCKDLYMUX @[lsx,lsy]  of ARCHITECTURE>;
+    string strVar1;
+    sprintf(strVar1, "IOCKDLYMUX_%d_%d", lsx, lsy);
+    device IOCKDLYMUX  ( symbol logsym_e )  *strVar1  @[gsx+1000,gsy+600];
+    map 
+    ( 
+         <instance *strVar1>   => wRef
+     );
+     
+    wRef = <device IOCKDLY @[lsx,lsy+5]  of ARCHITECTURE>;
+    string strVar2;
+    sprintf(strVar2, "IOCKDLY_%d_%d", lsx, lsy+5);
+    device IOCKDLY  ( symbol logsym_e )  *strVar2  @[gsx+1100,gsy+830];
+    map 
+    ( 
+         <instance *strVar2>   => wRef
+     );
+    
+    wRef = <device IOCKDLYMUX @[lsx,lsy+1]  of ARCHITECTURE>;
+    string strVar3;
+    sprintf(strVar3, "IOCKDLYMUX_%d_%d", lsx, lsy+1);
+    device IOCKDLYMUX  ( symbol logsym_e )  *strVar3  @[gsx+1000,gsy+800];
+    map 
+    ( 
+         <instance *strVar3>   => wRef
+     );
+     
+    wRef = <device IOCKGMUX @[lsx,lsy+1]  of ARCHITECTURE>;
+    string strVar4;
+    sprintf(strVar4, "IOCKGMUX_%d_%d", lsx, lsy+1);
+    device IOCKGMUX  ( symbol logsym_e )  *strVar4  @[gsx+900,gsy+450+70];
+    map 
+    ( 
+         <instance *strVar4>   => wRef
+     );
+     
+    wRef = <device IOCKGMUX_OUT @[lsx,lsy+1]  of ARCHITECTURE>;
+    string strVar5;
+    sprintf(strVar5, "IOCKGMUX_OUT_%d_%d", lsx, lsy+1);
+    device IOCKGMUX_OUT  ( symbol logsym_e )  *strVar5  @[gsx+800,gsy+450+35];
+    map 
+    ( 
+         <instance *strVar5>   => wRef
+     );
+     
+    wRef = <device IOCKGMUX_TEST @[lsx,lsy+3]  of ARCHITECTURE>;
+    string strVar6;
+    sprintf(strVar6, "IOCKGMUX_TEST_%d_%d", lsx, lsy+3);
+    device IOCKGMUX_TEST  ( symbol logsym_e )  *strVar6  @[gsx+900,gsy+450];
+    map 
+    ( 
+         <instance *strVar6>   => wRef
+     ); 
+     
+    wRef = <device IOCKGATE @[lsx,lsy+1]  of ARCHITECTURE>;
+    string strVar7;
+    sprintf(strVar7, "IOCKGATE_%d_%d", lsx, lsy+1);
+    device IOCKGATE  ( symbol logsym_e )  *strVar7  @[gsx+700,gsy+505];
+    map 
+    ( 
+         <instance *strVar7>   => wRef
+     ); 
+     
+    wRef = <device IOCKDIV @[lsx,lsy+9]  of ARCHITECTURE>;
+    string strVar8;
+    sprintf(strVar8, "IOCKDIV_%d_%d", lsx, lsy+9);
+    device IOCKDIV  ( symbol logsym_e )  *strVar8  @[gsx+600,gsy+470];
+    map 
+    ( 
+         <instance *strVar8>   => wRef
+     ); 
+     
+    wRef = <device RCKBMUX @[lsx,lsy+1]  of ARCHITECTURE>;
+    string strVar9;
+    sprintf(strVar9, "RCKBMUX_%d_%d", lsx, lsy+1);
+    device RCKBMUX ( symbol logsym_e )  *strVar9  @[gsx+500,gsy+450+70*3];
+    map 
+    ( 
+         <instance *strVar9>   => wRef
+     );
+
+    wRef = <device RCKBMUX_OUT @[lsx+1,lsy+8]  of ARCHITECTURE>;
+    string strVar10;
+    sprintf(strVar10, "RCKBMUX_OUT_%d_%d", lsx+1, lsy+8);
+    device RCKBMUX_OUT ( symbol logsym_e )  *strVar10  @[gsx+400,gsy+450+70*2+35];
+    map 
+    ( 
+         <instance *strVar10>   => wRef
+     );
+     
+    wRef = <device RCKBMUX_TEST @[lsx,lsy+11]  of ARCHITECTURE>;
+    string strVar11;
+    sprintf(strVar11, "RCKBMUX_TEST_%d_%d", lsx, lsy+11);
+    device RCKBMUX_TEST ( symbol logsym_e )  *strVar11  @[gsx+500,gsy+450+70*2];
+    map 
+    ( 
+         <instance *strVar11>   => wRef
+     );
+     
+    wRef = <device VCKBMUX @[lsx,lsy+1]  of ARCHITECTURE>;
+    string strVar12;
+    sprintf(strVar12, "VCKBMUX_%d_%d", lsx, lsy+1);
+    device VCKBMUX ( symbol logsym_e )  *strVar12  @[gsx+300,gsy+450+70*5];
+    map 
+    ( 
+         <instance *strVar12>   => wRef
+     );
+     
+    wRef = <device VCKBMUX_OUT @[lsx+1,lsy+9]  of ARCHITECTURE>;
+    string strVar13;
+    sprintf(strVar13, "VCKBMUX_OUT_%d_%d", lsx+1, lsy+9);
+    device VCKBMUX_OUT ( symbol logsym_e )  *strVar13  @[gsx+200,gsy+450+70*4+35];
+    map 
+    ( 
+         <instance *strVar13>   => wRef
+     );
+     
+    wRef = <device VCKBMUX_TEST @[lsx+1,lsy+1]  of ARCHITECTURE>;
+    string strVar14;
+    sprintf(strVar14, "VCKBMUX_TEST_%d_%d", lsx+1, lsy+1);
+    device VCKBMUX_TEST ( symbol logsym_e )  *strVar14  @[gsx+300,gsy+450+70*4];
+    map 
+    ( 
+         <instance *strVar14>   => wRef
+     );
+    
+    // (dx,dy) = (1200,1200)
+    wRef = <device IOCKDLY @[lsx,lsy+6]  of ARCHITECTURE>;
+    string strVar15;
+    sprintf(strVar15, "IOCKDLY_%d_%d", lsx, lsy+6);
+    device IOCKDLY  ( symbol logsym_e )  *strVar15  @[gsx+1100,gsy+30];
+    map 
+    ( 
+         <instance *strVar15>   => wRef
+     );
+    
+    wRef = <device IOCKDLYMUX @[lsx,lsy+2]  of ARCHITECTURE>;
+    string strVar16;
+    sprintf(strVar16, "IOCKDLYMUX_%d_%d", lsx, lsy+2);
+    device IOCKDLYMUX  ( symbol logsym_e )  *strVar16  @[gsx+1000,gsy+0];
+    map 
+    ( 
+         <instance *strVar16>   => wRef
+     );
+     
+    wRef = <device IOCKDLY @[lsx,lsy+7]  of ARCHITECTURE>;
+    string strVar17;
+    sprintf(strVar17, "IOCKDLY_%d_%d", lsx, lsy+7);
+    device IOCKDLY  ( symbol logsym_e )  *strVar17  @[gsx+1100,gsy+230];
+    map 
+    ( 
+         <instance *strVar17>   => wRef
+     );
+    
+    wRef = <device IOCKDLYMUX @[lsx,lsy+3]  of ARCHITECTURE>;
+    string strVar18;
+    sprintf(strVar18, "IOCKDLYMUX_%d_%d", lsx, lsy+3);
+    device IOCKDLYMUX  ( symbol logsym_e )  *strVar18  @[gsx+1000,gsy+200];
+    map 
+    ( 
+         <instance *strVar18>   => wRef
+     );
+    
+    wRef = <device IOCKGMUX @[lsx,lsy]  of ARCHITECTURE>;
+    string strVar19;
+    sprintf(strVar19, "IOCKGMUX_%d_%d", lsx, lsy);
+    device IOCKGMUX  ( symbol logsym_e )  *strVar19  @[gsx+900,gsy+350];
+    map 
+    ( 
+         <instance *strVar19>   => wRef
+     );
+     
+    wRef = <device IOCKGMUX_OUT @[lsx+1,lsy+10]  of ARCHITECTURE>;
+    string strVar20;
+    sprintf(strVar20, "IOCKGMUX_OUT_%d_%d", lsx+1, lsy+10);
+    device IOCKGMUX_OUT  ( symbol logsym_e )  *strVar20  @[gsx+800,gsy+350-70+35];
+    map 
+    ( 
+         <instance *strVar20>   => wRef
+     );
+     
+    wRef = <device IOCKGMUX_TEST @[lsx,lsy+2]  of ARCHITECTURE>;
+    string strVar21;
+    sprintf(strVar21, "IOCKGMUX_TEST_%d_%d", lsx, lsy+2);
+    device IOCKGMUX_TEST  ( symbol logsym_e )  *strVar21  @[gsx+900,gsy+350-70];
+    map 
+    ( 
+         <instance *strVar21>   => wRef
+     );
+     
+    wRef = <device IOCKGATE @[lsx,lsy]  of ARCHITECTURE>;
+    string strVar22;
+    sprintf(strVar22, "IOCKGATE_%d_%d", lsx, lsy);
+    device IOCKGATE  ( symbol logsym_e )  *strVar22  @[gsx+700,gsy+335];
+    map 
+    ( 
+         <instance *strVar22>   => wRef
+     ); 
+     
+    wRef = <device IOCKDIV @[lsx,lsy+8]  of ARCHITECTURE>;
+    string strVar23;
+    sprintf(strVar23, "IOCKDIV_%d_%d", lsx, lsy+8);
+    device IOCKDIV  ( symbol logsym_e )  *strVar23  @[gsx+600,gsy+370];
+    map 
+    ( 
+         <instance *strVar23>   => wRef
+     ); 
+     
+    wRef = <device RCKBMUX @[lsx,lsy]  of ARCHITECTURE>;
+    string strVar24;
+    sprintf(strVar24, "RCKBMUX_%d_%d", lsx, lsy);
+    device RCKBMUX ( symbol logsym_e )  *strVar24  @[gsx+500,gsy+350-70*2];
+    map 
+    ( 
+         <instance *strVar24>   => wRef
+     );
+
+    wRef = <device RCKBMUX_OUT @[lsx+1,lsy+11]  of ARCHITECTURE>;
+    string strVar25;
+    sprintf(strVar25, "RCKBMUX_OUT_%d_%d", lsx+1, lsy+11);
+    device RCKBMUX_OUT ( symbol logsym_e )  *strVar25  @[gsx+400,gsy+350-70*3+35];
+    map 
+    ( 
+         <instance *strVar25>   => wRef
+     );
+     
+    wRef = <device RCKBMUX_TEST @[lsx,lsy+10]  of ARCHITECTURE>;
+    string strVar26;
+    sprintf(strVar26, "RCKBMUX_TEST_%d_%d", lsx, lsy+10);
+    device RCKBMUX_TEST ( symbol logsym_e )  *strVar26  @[gsx+500,gsy+350-70*3];
+    map 
+    ( 
+         <instance *strVar26>   => wRef
+     );
+     
+    wRef = <device VCKBMUX @[lsx,lsy]  of ARCHITECTURE>;
+    string strVar27;
+    sprintf(strVar27, "VCKBMUX_%d_%d", lsx, lsy);
+    device VCKBMUX ( symbol logsym_e )  *strVar27  @[gsx+300,gsy+350-70*4];
+    map 
+    ( 
+         <instance *strVar27>   => wRef
+     );
+     
+    wRef = <device VCKBMUX_OUT @[lsx,lsy]  of ARCHITECTURE>;
+    string strVar28;
+    sprintf(strVar28, "VCKBMUX_OUT_%d_%d", lsx, lsy);
+    device VCKBMUX_OUT ( symbol logsym_e )  *strVar28  @[gsx+200,gsy+350-70*5+35];
+    map 
+    ( 
+         <instance *strVar28>   => wRef
+     );
+     
+    wRef = <device VCKBMUX_TEST @[lsx+1,lsy]  of ARCHITECTURE>;
+    string strVar29;
+    sprintf(strVar29, "VCKBMUX_TEST_%d_%d", lsx+1, lsy);
+    device VCKBMUX_TEST ( symbol logsym_e )  *strVar29  @[gsx+300,gsy+350-70*5];
+    map 
+    ( 
+         <instance *strVar29>   => wRef
+     );
+     
+    gsx = gsx - 1200;   // (dx,dy) = (0,1200)
+    
+    &device sRef;
+    sRef  = <device CKEB  @[lsx,lsy]     of ARCHITECTURE>;
+    string strVar32;
+    sprintf(strVar32, "CKEB_%d_%d", lsx, lsy);
+    device CKEB   ( symbol logsym )  *strVar32  @[gsx+1000,gsy+920];
+    map 
+    ( 
+        <instance *strVar32>   => sRef
+     );    
+    
+    sRef = <device CKEBMUX @[lsx+0,lsy+0]  of ARCHITECTURE>;
+    sprintf(strVar32, "CKEBMUX_%d_%d", lsx+0, lsy+0);
+    device CKEBMUX  ( symbol logsym )  *strVar32  @[gsx+600,gsy+900];
+    map 
+    ( 
+         <instance *strVar32>   => sRef
+     );
+     
+    gsx = gsx - 1200;   // (dx,dy) = (-1200,1200)
+    
+    &device xRef;     
+    xRef  = <device DLLMUX  @[lsx,lsy]     of ARCHITECTURE>;
+    string strVar30;
+    sprintf(strVar30, "DLLMUX_%d_%d", lsx, lsy);
+    device DLLMUX   ( symbol logsym )  *strVar30  @[gsx+1000,gsy+430];
+    map 
+    ( 
+        <instance *strVar30>   => xRef
+     );   
+     
+     // Pull out the device instances from logic structure  
+    &device mRef;
+    mRef  = <device DLL  @[lsx+1,lsy+3]     of ARCHITECTURE>;
+    string strVar31;
+    sprintf(strVar31, "DLL_%d_%d", lsx+1, lsy+3);
+    device DLL   ( symbol logsym_1 )  *strVar31  @[gsx+900,gsy+320];
+    map 
+    ( 
+        <instance *strVar31>   => mRef
+     );
+     
+    // Pull out the device instances from logic structure  
+    sRef  = <device RCKB  @[lsx+1,lsy+4]     of ARCHITECTURE>;
+    string strVar33;
+    sprintf(strVar33, "RCKB_%d_%d", lsx+1, lsy+4);
+    device RCKB   ( symbol logsym_e )  *strVar33  @[gsx+1100,gsy+250];
+    map 
+    ( 
+        <instance *strVar33>   => sRef
+     );
+     
+    sRef  = <device RCKB  @[lsx+1,lsy+5]     of ARCHITECTURE>;
+    string strVar34;
+    sprintf(strVar34, "RCKB_%d_%d", lsx+1, lsy+5);
+    device RCKB   ( symbol logsym_e )  *strVar34  @[gsx+1100,gsy+550];
+    map 
+    ( 
+        <instance *strVar34>   => sRef
+     );
+     
+    sRef  = <device RCKB  @[lsx+1,lsy+6]     of ARCHITECTURE>;
+    string strVar35;
+    sprintf(strVar35, "RCKB_%d_%d", lsx+1, lsy+6);
+    device RCKB   ( symbol logsym_e )  *strVar35  @[gsx+1100,gsy+350];
+    map 
+    ( 
+        <instance *strVar35>   => sRef
+     );
+     
+    sRef  = <device RCKB  @[lsx+1,lsy+7]     of ARCHITECTURE>;
+    string strVar36;
+    sprintf(strVar36, "RCKB_%d_%d", lsx+1, lsy+7);
+    device RCKB   ( symbol logsym_e )  *strVar36  @[gsx+1100,gsy+450];
+    map 
+    ( 
+        <instance *strVar36>   => sRef
+     );
+  }
+}  // end of function draw_iockgatedll
+
+function draw_iockgatedll_100h_tile( unsigned int tx, ty )
+{   
+    unsigned int lsx, lsy, gsx, gsy;
+    
+    lsx = tx * NUM_GRID_X + 2;
+    lsy = ty * NUM_GRID_Y;
+    
+    unsigned int temp_ty;
+    for(temp_ty = ty;temp_ty > MID_TILE_REGION;temp_ty = temp_ty - NUM_TILES_REGION)
+    {
+      lsy = lsy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+    }
+    
+    gsx = (lsx/NUM_GRID_X) * TILE_NUM_GUI_GRID_X;
+    gsy = (lsy/NUM_GRID_Y) * TILE_NUM_GUI_GRID_Y;
+    
+    gsy = gsy + 1200;
+    
+  if(tx*2 < NUM_TILE_X)
+  {
+    gsx = gsx - 1200;   // (dx,dy) = (-1200,1200)
+    
+    &device wRef;
+    wRef = <device IOCKDLY @[lsx,lsy+4]  of ARCHITECTURE>;
+    string strVar0;
+    sprintf(strVar0, "IOCKDLY_%d_%d", lsx, lsy+4);
+    device IOCKDLY  ( symbol logsym_w )  *strVar0  @[gsx+100,gsy+630];
+    map 
+    ( 
+         <instance *strVar0>   => wRef
+     );
+    
+    wRef = <device IOCKDLYMUX @[lsx,lsy]  of ARCHITECTURE>;
+    string strVar1;
+    sprintf(strVar1, "IOCKDLYMUX_%d_%d", lsx, lsy);
+    device IOCKDLYMUX  ( symbol logsym_w )  *strVar1  @[gsx+200,gsy+600];
+    map 
+    ( 
+         <instance *strVar1>   => wRef
+     );
+     
+    wRef = <device IOCKDLY @[lsx,lsy+5]  of ARCHITECTURE>;
+    string strVar2;
+    sprintf(strVar2, "IOCKDLY_%d_%d", lsx, lsy+5);
+    device IOCKDLY  ( symbol logsym_w )  *strVar2  @[gsx+100,gsy+830];
+    map 
+    ( 
+         <instance *strVar2>   => wRef
+     );
+    
+    wRef = <device IOCKDLYMUX @[lsx,lsy+1]  of ARCHITECTURE>;
+    string strVar3;
+    sprintf(strVar3, "IOCKDLYMUX_%d_%d", lsx, lsy+1);
+    device IOCKDLYMUX  ( symbol logsym_w )  *strVar3  @[gsx+200,gsy+800];
+    map 
+    ( 
+         <instance *strVar3>   => wRef
+     );
+     
+    wRef = <device IOCKGMUX @[lsx,lsy+1]  of ARCHITECTURE>;
+    string strVar4;
+    sprintf(strVar4, "IOCKGMUX_%d_%d", lsx, lsy+1);
+    device IOCKGMUX  ( symbol logsym_w )  *strVar4  @[gsx+300,gsy+450+70];
+    map 
+    ( 
+         <instance *strVar4>   => wRef
+     );
+     
+    wRef = <device IOCKGMUX_OUT @[lsx,lsy+1]  of ARCHITECTURE>;
+    string strVar5;
+    sprintf(strVar5, "IOCKGMUX_OUT_%d_%d", lsx, lsy+1);
+    device IOCKGMUX_OUT  ( symbol logsym )  *strVar5  @[gsx+400,gsy+450+35];
+    map 
+    ( 
+         <instance *strVar5>   => wRef
+     );
+     
+    wRef = <device IOCKGMUX_TEST @[lsx,lsy+3]  of ARCHITECTURE>;
+    string strVar6;
+    sprintf(strVar6, "IOCKGMUX_TEST_%d_%d", lsx, lsy+3);
+    device IOCKGMUX_TEST  ( symbol logsym )  *strVar6  @[gsx+300,gsy+450];
+    map 
+    ( 
+         <instance *strVar6>   => wRef
+     ); 
+     
+    wRef = <device IOCKGATE @[lsx,lsy+1]  of ARCHITECTURE>;
+    string strVar7;
+    sprintf(strVar7, "IOCKGATE_%d_%d", lsx, lsy+1);
+    device IOCKGATE  ( symbol logsym_w )  *strVar7  @[gsx+500,gsy+505];
+    map 
+    ( 
+         <instance *strVar7>   => wRef
+     ); 
+     
+    wRef = <device IOCKDIV @[lsx,lsy+9]  of ARCHITECTURE>;
+    string strVar8;
+    sprintf(strVar8, "IOCKDIV_%d_%d", lsx, lsy+9);
+    device IOCKDIV  ( symbol logsym_w )  *strVar8  @[gsx+600,gsy+470];
+    map 
+    ( 
+         <instance *strVar8>   => wRef
+     ); 
+     
+    wRef = <device RCKBMUX @[lsx,lsy+1]  of ARCHITECTURE>;
+    string strVar9;
+    sprintf(strVar9, "RCKBMUX_%d_%d", lsx, lsy+1);
+    device RCKBMUX ( symbol logsym )  *strVar9  @[gsx+700,gsy+450+70*3];
+    map 
+    ( 
+         <instance *strVar9>   => wRef
+     );
+
+    wRef = <device RCKBMUX_OUT @[lsx+1,lsy+8]  of ARCHITECTURE>;
+    string strVar10;
+    sprintf(strVar10, "RCKBMUX_OUT_%d_%d", lsx+1, lsy+8);
+    device RCKBMUX_OUT ( symbol logsym )  *strVar10  @[gsx+800,gsy+450+70*2+35];
+    map 
+    ( 
+         <instance *strVar10>   => wRef
+     );
+     
+    wRef = <device RCKBMUX_TEST @[lsx,lsy+11]  of ARCHITECTURE>;
+    string strVar11;
+    sprintf(strVar11, "RCKBMUX_TEST_%d_%d", lsx, lsy+11);
+    device RCKBMUX_TEST ( symbol logsym )  *strVar11  @[gsx+700,gsy+450+70*2];
+    map 
+    ( 
+         <instance *strVar11>   => wRef
+     );
+     
+    wRef = <device VCKBMUX @[lsx,lsy+1]  of ARCHITECTURE>;
+    string strVar12;
+    sprintf(strVar12, "VCKBMUX_%d_%d", lsx, lsy+1);
+    device VCKBMUX ( symbol logsym )  *strVar12  @[gsx+900,gsy+450+70*5];
+    map 
+    ( 
+         <instance *strVar12>   => wRef
+     );
+     
+    wRef = <device VCKBMUX_OUT @[lsx+1,lsy+9]  of ARCHITECTURE>;
+    string strVar13;
+    sprintf(strVar13, "VCKBMUX_OUT_%d_%d", lsx+1, lsy+9);
+    device VCKBMUX_OUT ( symbol logsym )  *strVar13  @[gsx+1000,gsy+450+70*4+35];
+    map 
+    ( 
+         <instance *strVar13>   => wRef
+     );
+     
+    wRef = <device VCKBMUX_TEST @[lsx+1,lsy+1]  of ARCHITECTURE>;
+    string strVar14;
+    sprintf(strVar14, "VCKBMUX_TEST_%d_%d", lsx+1, lsy+1);
+    device VCKBMUX_TEST ( symbol logsym )  *strVar14  @[gsx+900,gsy+450+70*4];
+    map 
+    ( 
+         <instance *strVar14>   => wRef
+     );
+    
+    // (dx,dy) = (-1200,1200)
+    wRef = <device IOCKDLY @[lsx,lsy+6]  of ARCHITECTURE>;
+    string strVar15;
+    sprintf(strVar15, "IOCKDLY_%d_%d", lsx, lsy+6);
+    device IOCKDLY  ( symbol logsym_w )  *strVar15  @[gsx+100,gsy+30];
+    map 
+    ( 
+         <instance *strVar15>   => wRef
+     );
+    
+    wRef = <device IOCKDLYMUX @[lsx,lsy+2]  of ARCHITECTURE>;
+    string strVar16;
+    sprintf(strVar16, "IOCKDLYMUX_%d_%d", lsx, lsy+2);
+    device IOCKDLYMUX  ( symbol logsym_w )  *strVar16  @[gsx+200,gsy+0];
+    map 
+    ( 
+         <instance *strVar16>   => wRef
+     );
+     
+    wRef = <device IOCKDLY @[lsx,lsy+7]  of ARCHITECTURE>;
+    string strVar17;
+    sprintf(strVar17, "IOCKDLY_%d_%d", lsx, lsy+7);
+    device IOCKDLY  ( symbol logsym_w )  *strVar17  @[gsx+100,gsy+230];
+    map 
+    ( 
+         <instance *strVar17>   => wRef
+     );
+    
+    wRef = <device IOCKDLYMUX @[lsx,lsy+3]  of ARCHITECTURE>;
+    string strVar18;
+    sprintf(strVar18, "IOCKDLYMUX_%d_%d", lsx, lsy+3);
+    device IOCKDLYMUX  ( symbol logsym_w )  *strVar18  @[gsx+200,gsy+200];
+    map 
+    ( 
+         <instance *strVar18>   => wRef
+     );
+    
+    wRef = <device IOCKGMUX @[lsx,lsy]  of ARCHITECTURE>;
+    string strVar19;
+    sprintf(strVar19, "IOCKGMUX_%d_%d", lsx, lsy);
+    device IOCKGMUX  ( symbol logsym_w )  *strVar19  @[gsx+300,gsy+350];
+    map 
+    ( 
+         <instance *strVar19>   => wRef
+     );
+     
+    wRef = <device IOCKGMUX_OUT @[lsx+1,lsy+10]  of ARCHITECTURE>;
+    string strVar20;
+    sprintf(strVar20, "IOCKGMUX_OUT_%d_%d", lsx+1, lsy+10);
+    device IOCKGMUX_OUT  ( symbol logsym )  *strVar20  @[gsx+400,gsy+350-70+35];
+    map 
+    ( 
+         <instance *strVar20>   => wRef
+     );
+     
+    wRef = <device IOCKGMUX_TEST @[lsx,lsy+2]  of ARCHITECTURE>;
+    string strVar21;
+    sprintf(strVar21, "IOCKGMUX_TEST_%d_%d", lsx, lsy+2);
+    device IOCKGMUX_TEST  ( symbol logsym )  *strVar21  @[gsx+300,gsy+350-70];
+    map 
+    ( 
+         <instance *strVar21>   => wRef
+     );
+     
+    wRef = <device IOCKGATE @[lsx,lsy]  of ARCHITECTURE>;
+    string strVar22;
+    sprintf(strVar22, "IOCKGATE_%d_%d", lsx, lsy);
+    device IOCKGATE  ( symbol logsym_w )  *strVar22  @[gsx+500,gsy+335];
+    map 
+    ( 
+         <instance *strVar22>   => wRef
+     ); 
+     
+    wRef = <device IOCKDIV @[lsx,lsy+8]  of ARCHITECTURE>;
+    string strVar23;
+    sprintf(strVar23, "IOCKDIV_%d_%d", lsx, lsy+8);
+    device IOCKDIV  ( symbol logsym_w )  *strVar23  @[gsx+600,gsy+370];
+    map 
+    ( 
+         <instance *strVar23>   => wRef
+     ); 
+     
+    wRef = <device RCKBMUX @[lsx,lsy]  of ARCHITECTURE>;
+    string strVar24;
+    sprintf(strVar24, "RCKBMUX_%d_%d", lsx, lsy);
+    device RCKBMUX ( symbol logsym )  *strVar24  @[gsx+700,gsy+350-70*2];
+    map 
+    ( 
+         <instance *strVar24>   => wRef
+     );
+
+    wRef = <device RCKBMUX_OUT @[lsx+1,lsy+11]  of ARCHITECTURE>;
+    string strVar25;
+    sprintf(strVar25, "RCKBMUX_OUT_%d_%d", lsx+1, lsy+11);
+    device RCKBMUX_OUT ( symbol logsym )  *strVar25  @[gsx+800,gsy+350-70*3+35];
+    map 
+    ( 
+         <instance *strVar25>   => wRef
+     );
+     
+    wRef = <device RCKBMUX_TEST @[lsx,lsy+10]  of ARCHITECTURE>;
+    string strVar26;
+    sprintf(strVar26, "RCKBMUX_TEST_%d_%d", lsx, lsy+10);
+    device RCKBMUX_TEST ( symbol logsym )  *strVar26  @[gsx+700,gsy+350-70*3];
+    map 
+    ( 
+         <instance *strVar26>   => wRef
+     );
+     
+    wRef = <device VCKBMUX @[lsx,lsy]  of ARCHITECTURE>;
+    string strVar27;
+    sprintf(strVar27, "VCKBMUX_%d_%d", lsx, lsy);
+    device VCKBMUX ( symbol logsym )  *strVar27  @[gsx+900,gsy+350-70*4];
+    map 
+    ( 
+         <instance *strVar27>   => wRef
+     );
+     
+    wRef = <device VCKBMUX_OUT @[lsx,lsy]  of ARCHITECTURE>;
+    string strVar28;
+    sprintf(strVar28, "VCKBMUX_OUT_%d_%d", lsx, lsy);
+    device VCKBMUX_OUT ( symbol logsym )  *strVar28  @[gsx+1000,gsy+350-70*5+35];
+    map 
+    ( 
+         <instance *strVar28>   => wRef
+     );
+     
+    wRef = <device VCKBMUX_TEST @[lsx+1,lsy]  of ARCHITECTURE>;
+    string strVar29;
+    sprintf(strVar29, "VCKBMUX_TEST_%d_%d", lsx+1, lsy);
+    device VCKBMUX_TEST ( symbol logsym )  *strVar29  @[gsx+900,gsy+350-70*5];
+    map 
+    ( 
+         <instance *strVar29>   => wRef
+     );
+     
+    gsx = gsx + 1200;   // (dx,dy) = (0,1200)
+    
+    &device sRef;
+    sRef  = <device CKEB  @[lsx,lsy]     of ARCHITECTURE>;
+    string strVar32;
+    sprintf(strVar32, "CKEB_%d_%d", lsx, lsy);
+    device CKEB   ( symbol logsym )  *strVar32  @[gsx+1000,gsy+920];
+    map 
+    ( 
+        <instance *strVar32>   => sRef
+     );    
+    
+    sRef = <device CKEBMUX @[lsx+0,lsy+0]  of ARCHITECTURE>;
+    sprintf(strVar32, "CKEBMUX_%d_%d", lsx+0, lsy+0);
+    device CKEBMUX  ( symbol logsym )  *strVar32  @[gsx+600,gsy+900];
+    map 
+    ( 
+         <instance *strVar32>   => sRef
+     );
+     
+    gsx = gsx + 1200;   // (dx,dy) = (1200,1200)
+    
+    &device xRef;     
+    xRef  = <device DLLMUX  @[lsx,lsy]     of ARCHITECTURE>;
+    string strVar30;
+    sprintf(strVar30, "DLLMUX_%d_%d", lsx, lsy);
+    device DLLMUX   ( symbol logsym_w )  *strVar30  @[gsx+600,gsy+430];
+    map 
+    ( 
+        <instance *strVar30>   => xRef
+     );   
+     
+     // Pull out the device instances from logic structure  
+    &device mRef;
+    mRef  = <device DLL  @[lsx+1,lsy+3]     of ARCHITECTURE>;
+    string strVar31;
+    sprintf(strVar31, "DLL_%d_%d", lsx+1, lsy+3);
+    device DLL   ( symbol logsym )  *strVar31  @[gsx+700,gsy+320];
+    map 
+    ( 
+        <instance *strVar31>   => mRef
+     );
+     
+    // Pull out the device instances from logic structure  
+    sRef  = <device RCKB  @[lsx+1,lsy+4]     of ARCHITECTURE>;
+    string strVar33;
+    sprintf(strVar33, "RCKB_%d_%d", lsx+1, lsy+4);
+    device RCKB   ( symbol logsym )  *strVar33  @[gsx+500,gsy+250];
+    map 
+    ( 
+        <instance *strVar33>   => sRef
+     );
+     
+    sRef  = <device RCKB  @[lsx+1,lsy+5]     of ARCHITECTURE>;
+    string strVar34;
+    sprintf(strVar34, "RCKB_%d_%d", lsx+1, lsy+5);
+    device RCKB   ( symbol logsym )  *strVar34  @[gsx+500,gsy+550];
+    map 
+    ( 
+        <instance *strVar34>   => sRef
+     );
+     
+    sRef  = <device RCKB  @[lsx+1,lsy+6]     of ARCHITECTURE>;
+    string strVar35;
+    sprintf(strVar35, "RCKB_%d_%d", lsx+1, lsy+6);
+    device RCKB   ( symbol logsym )  *strVar35  @[gsx+500,gsy+350];
+    map 
+    ( 
+        <instance *strVar35>   => sRef
+     );
+     
+    sRef  = <device RCKB  @[lsx+1,lsy+7]     of ARCHITECTURE>;
+    string strVar36;
+    sprintf(strVar36, "RCKB_%d_%d", lsx+1, lsy+7);
+    device RCKB   ( symbol logsym )  *strVar36  @[gsx+500,gsy+450];
+    map 
+    ( 
+        <instance *strVar36>   => sRef
+     );
+    int dx,dy;
+    dx = 0;
+    dy = 0;
+    sRef = <device PIOMUX @[lsx+dx,lsy+dy] of ARCHITECTURE>;
+    string strVar37;
+    sprintf(strVar37, "PIOMUX_%d_%d", lsx+dx,lsy+dy);
+    device PIOMUX ( symbol logsym ) *strVar37 @[gsx+100,gsy+700];
+    map 
+    ( 
+       <instance *strVar37> => sRef
+    );  
+    dx = 0;
+    dy = 1;
+    sRef = <device PIOMUX_TEST @[lsx+dx,lsy+dy] of ARCHITECTURE>;
+    string strVar38;
+    sprintf(strVar38, "PIOMUX_TEST_%d_%d", lsx+dx,lsy+dy);
+    device PIOMUX_TEST ( symbol logsym ) *strVar38 @[gsx+300,gsy+700];
+    map 
+    ( 
+        <instance *strVar38> => sRef
+    );  
+    dx = 0;
+    dy = 2;     
+    sRef = <device PIOMUX_OUT @[lsx+dx,lsy+dy] of ARCHITECTURE>;
+    string strVar39;    
+    sprintf(strVar39, "PIOMUX_OUT_%d_%d", lsx+dx,lsy+dy);
+    device PIOMUX_OUT ( symbol logsym ) *strVar39 @[gsx+500,gsy+700];
+    map 
+    ( 
+        <instance *strVar39> => sRef
+    );      
+  }
+  else
+  {
+    gsx = gsx + 1200;   // (dx,dy) = (1200,1200)
+    
+    &device wRef;
+    wRef = <device IOCKDLY @[lsx,lsy+4]  of ARCHITECTURE>;
+    string strVar0;
+    sprintf(strVar0, "IOCKDLY_%d_%d", lsx, lsy+4);
+    device IOCKDLY  ( symbol logsym_e )  *strVar0  @[gsx+1100,gsy+630];
+    map 
+    ( 
+         <instance *strVar0>   => wRef
+     );
+    
+    wRef = <device IOCKDLYMUX @[lsx,lsy]  of ARCHITECTURE>;
+    string strVar1;
+    sprintf(strVar1, "IOCKDLYMUX_%d_%d", lsx, lsy);
+    device IOCKDLYMUX  ( symbol logsym_e )  *strVar1  @[gsx+1000,gsy+600];
+    map 
+    ( 
+         <instance *strVar1>   => wRef
+     );
+     
+    wRef = <device IOCKDLY @[lsx,lsy+5]  of ARCHITECTURE>;
+    string strVar2;
+    sprintf(strVar2, "IOCKDLY_%d_%d", lsx, lsy+5);
+    device IOCKDLY  ( symbol logsym_e )  *strVar2  @[gsx+1100,gsy+830];
+    map 
+    ( 
+         <instance *strVar2>   => wRef
+     );
+    
+    wRef = <device IOCKDLYMUX @[lsx,lsy+1]  of ARCHITECTURE>;
+    string strVar3;
+    sprintf(strVar3, "IOCKDLYMUX_%d_%d", lsx, lsy+1);
+    device IOCKDLYMUX  ( symbol logsym_e )  *strVar3  @[gsx+1000,gsy+800];
+    map 
+    ( 
+         <instance *strVar3>   => wRef
+     );
+     
+    wRef = <device IOCKGMUX @[lsx,lsy+1]  of ARCHITECTURE>;
+    string strVar4;
+    sprintf(strVar4, "IOCKGMUX_%d_%d", lsx, lsy+1);
+    device IOCKGMUX  ( symbol logsym_e )  *strVar4  @[gsx+900,gsy+450+70];
+    map 
+    ( 
+         <instance *strVar4>   => wRef
+     );
+     
+    wRef = <device IOCKGMUX_OUT @[lsx,lsy+1]  of ARCHITECTURE>;
+    string strVar5;
+    sprintf(strVar5, "IOCKGMUX_OUT_%d_%d", lsx, lsy+1);
+    device IOCKGMUX_OUT  ( symbol logsym_e )  *strVar5  @[gsx+800,gsy+450+35];
+    map 
+    ( 
+         <instance *strVar5>   => wRef
+     );
+     
+    wRef = <device IOCKGMUX_TEST @[lsx,lsy+3]  of ARCHITECTURE>;
+    string strVar6;
+    sprintf(strVar6, "IOCKGMUX_TEST_%d_%d", lsx, lsy+3);
+    device IOCKGMUX_TEST  ( symbol logsym_e )  *strVar6  @[gsx+900,gsy+450];
+    map 
+    ( 
+         <instance *strVar6>   => wRef
+     ); 
+     
+    wRef = <device IOCKGATE @[lsx,lsy+1]  of ARCHITECTURE>;
+    string strVar7;
+    sprintf(strVar7, "IOCKGATE_%d_%d", lsx, lsy+1);
+    device IOCKGATE  ( symbol logsym_e )  *strVar7  @[gsx+700,gsy+505];
+    map 
+    ( 
+         <instance *strVar7>   => wRef
+     ); 
+     
+    wRef = <device IOCKDIV @[lsx,lsy+9]  of ARCHITECTURE>;
+    string strVar8;
+    sprintf(strVar8, "IOCKDIV_%d_%d", lsx, lsy+9);
+    device IOCKDIV  ( symbol logsym_e )  *strVar8  @[gsx+600,gsy+470];
+    map 
+    ( 
+         <instance *strVar8>   => wRef
+     ); 
+     
+    wRef = <device RCKBMUX @[lsx,lsy+1]  of ARCHITECTURE>;
+    string strVar9;
+    sprintf(strVar9, "RCKBMUX_%d_%d", lsx, lsy+1);
+    device RCKBMUX ( symbol logsym_e )  *strVar9  @[gsx+500,gsy+450+70*3];
+    map 
+    ( 
+         <instance *strVar9>   => wRef
+     );
+
+    wRef = <device RCKBMUX_OUT @[lsx+1,lsy+8]  of ARCHITECTURE>;
+    string strVar10;
+    sprintf(strVar10, "RCKBMUX_OUT_%d_%d", lsx+1, lsy+8);
+    device RCKBMUX_OUT ( symbol logsym_e )  *strVar10  @[gsx+400,gsy+450+70*2+35];
+    map 
+    ( 
+         <instance *strVar10>   => wRef
+     );
+     
+    wRef = <device RCKBMUX_TEST @[lsx,lsy+11]  of ARCHITECTURE>;
+    string strVar11;
+    sprintf(strVar11, "RCKBMUX_TEST_%d_%d", lsx, lsy+11);
+    device RCKBMUX_TEST ( symbol logsym_e )  *strVar11  @[gsx+500,gsy+450+70*2];
+    map 
+    ( 
+         <instance *strVar11>   => wRef
+     );
+     
+    wRef = <device VCKBMUX @[lsx,lsy+1]  of ARCHITECTURE>;
+    string strVar12;
+    sprintf(strVar12, "VCKBMUX_%d_%d", lsx, lsy+1);
+    device VCKBMUX ( symbol logsym_e )  *strVar12  @[gsx+300,gsy+450+70*5];
+    map 
+    ( 
+         <instance *strVar12>   => wRef
+     );
+     
+    wRef = <device VCKBMUX_OUT @[lsx+1,lsy+9]  of ARCHITECTURE>;
+    string strVar13;
+    sprintf(strVar13, "VCKBMUX_OUT_%d_%d", lsx+1, lsy+9);
+    device VCKBMUX_OUT ( symbol logsym_e )  *strVar13  @[gsx+200,gsy+450+70*4+35];
+    map 
+    ( 
+         <instance *strVar13>   => wRef
+     );
+     
+    wRef = <device VCKBMUX_TEST @[lsx+1,lsy+1]  of ARCHITECTURE>;
+    string strVar14;
+    sprintf(strVar14, "VCKBMUX_TEST_%d_%d", lsx+1, lsy+1);
+    device VCKBMUX_TEST ( symbol logsym_e )  *strVar14  @[gsx+300,gsy+450+70*4];
+    map 
+    ( 
+         <instance *strVar14>   => wRef
+     );
+    
+    // (dx,dy) = (1200,1200)
+    wRef = <device IOCKDLY @[lsx,lsy+6]  of ARCHITECTURE>;
+    string strVar15;
+    sprintf(strVar15, "IOCKDLY_%d_%d", lsx, lsy+6);
+    device IOCKDLY  ( symbol logsym_e )  *strVar15  @[gsx+1100,gsy+30];
+    map 
+    ( 
+         <instance *strVar15>   => wRef
+     );
+    
+    wRef = <device IOCKDLYMUX @[lsx,lsy+2]  of ARCHITECTURE>;
+    string strVar16;
+    sprintf(strVar16, "IOCKDLYMUX_%d_%d", lsx, lsy+2);
+    device IOCKDLYMUX  ( symbol logsym_e )  *strVar16  @[gsx+1000,gsy+0];
+    map 
+    ( 
+         <instance *strVar16>   => wRef
+     );
+     
+    wRef = <device IOCKDLY @[lsx,lsy+7]  of ARCHITECTURE>;
+    string strVar17;
+    sprintf(strVar17, "IOCKDLY_%d_%d", lsx, lsy+7);
+    device IOCKDLY  ( symbol logsym_e )  *strVar17  @[gsx+1100,gsy+230];
+    map 
+    ( 
+         <instance *strVar17>   => wRef
+     );
+    
+    wRef = <device IOCKDLYMUX @[lsx,lsy+3]  of ARCHITECTURE>;
+    string strVar18;
+    sprintf(strVar18, "IOCKDLYMUX_%d_%d", lsx, lsy+3);
+    device IOCKDLYMUX  ( symbol logsym_e )  *strVar18  @[gsx+1000,gsy+200];
+    map 
+    ( 
+         <instance *strVar18>   => wRef
+     );
+    
+    wRef = <device IOCKGMUX @[lsx,lsy]  of ARCHITECTURE>;
+    string strVar19;
+    sprintf(strVar19, "IOCKGMUX_%d_%d", lsx, lsy);
+    device IOCKGMUX  ( symbol logsym_e )  *strVar19  @[gsx+900,gsy+350];
+    map 
+    ( 
+         <instance *strVar19>   => wRef
+     );
+     
+    wRef = <device IOCKGMUX_OUT @[lsx+1,lsy+10]  of ARCHITECTURE>;
+    string strVar20;
+    sprintf(strVar20, "IOCKGMUX_OUT_%d_%d", lsx+1, lsy+10);
+    device IOCKGMUX_OUT  ( symbol logsym_e )  *strVar20  @[gsx+800,gsy+350-70+35];
+    map 
+    ( 
+         <instance *strVar20>   => wRef
+     );
+     
+    wRef = <device IOCKGMUX_TEST @[lsx,lsy+2]  of ARCHITECTURE>;
+    string strVar21;
+    sprintf(strVar21, "IOCKGMUX_TEST_%d_%d", lsx, lsy+2);
+    device IOCKGMUX_TEST  ( symbol logsym_e )  *strVar21  @[gsx+900,gsy+350-70];
+    map 
+    ( 
+         <instance *strVar21>   => wRef
+     );
+     
+    wRef = <device IOCKGATE @[lsx,lsy]  of ARCHITECTURE>;
+    string strVar22;
+    sprintf(strVar22, "IOCKGATE_%d_%d", lsx, lsy);
+    device IOCKGATE  ( symbol logsym_e )  *strVar22  @[gsx+700,gsy+335];
+    map 
+    ( 
+         <instance *strVar22>   => wRef
+     ); 
+     
+    wRef = <device IOCKDIV @[lsx,lsy+8]  of ARCHITECTURE>;
+    string strVar23;
+    sprintf(strVar23, "IOCKDIV_%d_%d", lsx, lsy+8);
+    device IOCKDIV  ( symbol logsym_e )  *strVar23  @[gsx+600,gsy+370];
+    map 
+    ( 
+         <instance *strVar23>   => wRef
+     ); 
+     
+    wRef = <device RCKBMUX @[lsx,lsy]  of ARCHITECTURE>;
+    string strVar24;
+    sprintf(strVar24, "RCKBMUX_%d_%d", lsx, lsy);
+    device RCKBMUX ( symbol logsym_e )  *strVar24  @[gsx+500,gsy+350-70*2];
+    map 
+    ( 
+         <instance *strVar24>   => wRef
+     );
+
+    wRef = <device RCKBMUX_OUT @[lsx+1,lsy+11]  of ARCHITECTURE>;
+    string strVar25;
+    sprintf(strVar25, "RCKBMUX_OUT_%d_%d", lsx+1, lsy+11);
+    device RCKBMUX_OUT ( symbol logsym_e )  *strVar25  @[gsx+400,gsy+350-70*3+35];
+    map 
+    ( 
+         <instance *strVar25>   => wRef
+     );
+     
+    wRef = <device RCKBMUX_TEST @[lsx,lsy+10]  of ARCHITECTURE>;
+    string strVar26;
+    sprintf(strVar26, "RCKBMUX_TEST_%d_%d", lsx, lsy+10);
+    device RCKBMUX_TEST ( symbol logsym_e )  *strVar26  @[gsx+500,gsy+350-70*3];
+    map 
+    ( 
+         <instance *strVar26>   => wRef
+     );
+     
+    wRef = <device VCKBMUX @[lsx,lsy]  of ARCHITECTURE>;
+    string strVar27;
+    sprintf(strVar27, "VCKBMUX_%d_%d", lsx, lsy);
+    device VCKBMUX ( symbol logsym_e )  *strVar27  @[gsx+300,gsy+350-70*4];
+    map 
+    ( 
+         <instance *strVar27>   => wRef
+     );
+     
+    wRef = <device VCKBMUX_OUT @[lsx,lsy]  of ARCHITECTURE>;
+    string strVar28;
+    sprintf(strVar28, "VCKBMUX_OUT_%d_%d", lsx, lsy);
+    device VCKBMUX_OUT ( symbol logsym_e )  *strVar28  @[gsx+200,gsy+350-70*5+35];
+    map 
+    ( 
+         <instance *strVar28>   => wRef
+     );
+     
+    wRef = <device VCKBMUX_TEST @[lsx+1,lsy]  of ARCHITECTURE>;
+    string strVar29;
+    sprintf(strVar29, "VCKBMUX_TEST_%d_%d", lsx+1, lsy);
+    device VCKBMUX_TEST ( symbol logsym_e )  *strVar29  @[gsx+300,gsy+350-70*5];
+    map 
+    ( 
+         <instance *strVar29>   => wRef
+     );
+     
+    gsx = gsx - 1200;   // (dx,dy) = (0,1200)
+    
+    &device sRef;
+    sRef  = <device CKEB  @[lsx,lsy]     of ARCHITECTURE>;
+    string strVar32;
+    sprintf(strVar32, "CKEB_%d_%d", lsx, lsy);
+    device CKEB   ( symbol logsym )  *strVar32  @[gsx+1000,gsy+920];
+    map 
+    ( 
+        <instance *strVar32>   => sRef
+     );    
+    
+    sRef = <device CKEBMUX @[lsx+0,lsy+0]  of ARCHITECTURE>;
+    sprintf(strVar32, "CKEBMUX_%d_%d", lsx+0, lsy+0);
+    device CKEBMUX  ( symbol logsym )  *strVar32  @[gsx+600,gsy+900];
+    map 
+    ( 
+         <instance *strVar32>   => sRef
+     );
+     
+    gsx = gsx - 1200;   // (dx,dy) = (-1200,1200)
+    
+    &device xRef;     
+    xRef  = <device DLLMUX  @[lsx,lsy]     of ARCHITECTURE>;
+    string strVar30;
+    sprintf(strVar30, "DLLMUX_%d_%d", lsx, lsy);
+    device DLLMUX   ( symbol logsym )  *strVar30  @[gsx+1000,gsy+430];
+    map 
+    ( 
+        <instance *strVar30>   => xRef
+     );   
+     
+     // Pull out the device instances from logic structure  
+    &device mRef;
+    mRef  = <device DLL  @[lsx+1,lsy+3]     of ARCHITECTURE>;
+    string strVar31;
+    sprintf(strVar31, "DLL_%d_%d", lsx+1, lsy+3);
+    device DLL   ( symbol logsym_1 )  *strVar31  @[gsx+900,gsy+320];
+    map 
+    ( 
+        <instance *strVar31>   => mRef
+     );
+     
+    // Pull out the device instances from logic structure  
+    sRef  = <device RCKB  @[lsx+1,lsy+4]     of ARCHITECTURE>;
+    string strVar33;
+    sprintf(strVar33, "RCKB_%d_%d", lsx+1, lsy+4);
+    device RCKB   ( symbol logsym_e )  *strVar33  @[gsx+1100,gsy+250];
+    map 
+    ( 
+        <instance *strVar33>   => sRef
+     );
+     
+    sRef  = <device RCKB  @[lsx+1,lsy+5]     of ARCHITECTURE>;
+    string strVar34;
+    sprintf(strVar34, "RCKB_%d_%d", lsx+1, lsy+5);
+    device RCKB   ( symbol logsym_e )  *strVar34  @[gsx+1100,gsy+550];
+    map 
+    ( 
+        <instance *strVar34>   => sRef
+     );
+     
+    sRef  = <device RCKB  @[lsx+1,lsy+6]     of ARCHITECTURE>;
+    string strVar35;
+    sprintf(strVar35, "RCKB_%d_%d", lsx+1, lsy+6);
+    device RCKB   ( symbol logsym_e )  *strVar35  @[gsx+1100,gsy+350];
+    map 
+    ( 
+        <instance *strVar35>   => sRef
+     );
+     
+    sRef  = <device RCKB  @[lsx+1,lsy+7]     of ARCHITECTURE>;
+    string strVar36;
+    sprintf(strVar36, "RCKB_%d_%d", lsx+1, lsy+7);
+    device RCKB   ( symbol logsym_e )  *strVar36  @[gsx+1100,gsy+450];
+    map 
+    ( 
+        <instance *strVar36>   => sRef
+     );
+     
+    sRef  = <device PIOMUX  @[lsx+0,lsy+0]     of ARCHITECTURE>;
+    string strVar37;
+    sprintf(strVar37, "PIOMUX%d_%d", lsx+0, lsy+0);
+    device PIOMUX   ( symbol logsym )  *strVar37  @[gsx+600,gsy+600];
+    map 
+    ( 
+        <instance *strVar37>   => sRef
+    );
+    
+    sRef  = <device PIOMUX_TEST  @[lsx+0,lsy+1]     of ARCHITECTURE>;
+    string strVar38;
+    sprintf(strVar38, "PIOMUX_TEST%d_%d", lsx+0, lsy+1);
+    device PIOMUX_TEST   ( symbol logsym )  *strVar38  @[gsx+600,gsy+700];
+    map 
+    ( 
+        <instance *strVar38>   => sRef
+    );
+    
+    sRef  = <device PIOMUX_OUT  @[lsx+0,lsy+2]     of ARCHITECTURE>;
+    string strVar39;
+    sprintf(strVar39, "PIOMUX_OUT%d_%d", lsx+0, lsy+2);
+    device PIOMUX_OUT   ( symbol logsym )  *strVar39  @[gsx+600,gsy+800];
+    map 
+    ( 
+        <instance *strVar39>   => sRef
+    );
+  }
+}  // end of function draw_iockgatedll_100h_tile
+
+function draw_iob0_tile( unsigned int tx,ty)
+{
+    unsigned int lsx, lsy, gsx, gsy;
+    
+    lsx = tx * NUM_GRID_X;
+    lsy = ty * NUM_GRID_Y;
+    
+    &device rRef;
+    string strVar;
+    unsigned int dt, dx, dy;
+  
+    unsigned int temp_ty;
+    for(temp_ty = ty;temp_ty > MID_TILE_REGION;temp_ty = temp_ty - NUM_TILES_REGION)
+    {
+      lsy = lsy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+    }
+    gsx = (lsx/NUM_GRID_X) * TILE_NUM_GUI_GRID_X;
+    gsy = (lsy/NUM_GRID_Y) * TILE_NUM_GUI_GRID_Y;
+    
+    unsigned int iobd[] = {364, 360, 356, 352, 344, 340, 336, 332, 324, 320, 316, 312, 300, 296, 292, 280, 276, 272, 268, 260, 256, 252, 248, 244, 240, 104, 100, 96, 92, 80, 76, 72, 68, 60, 56, 52, 48,  36, 32, 28, 20, 16, 12, 8, 4, 0};
+    unsigned int iobs[] = {365, 361, 357, 353, 341, 337, 333, 325, 321, 317, 313, 301, 297, 293, 281, 277, 273, 269, 261, 253, 249, 245, 241, 105, 101, 97, 93, 81, 77, 73, 69, 61, 57, 53, 49, 37,  29, 21, 17, 13, 9, 5};
+    unsigned int iobr[] = {345, 257, 33, 1};
+    
+    foreach dx (iobd)
+    {
+        rRef = <device IOBD @[lsx+dx, lsy] of ARCHITECTURE>;
+        sprintf(strVar, "IOBD_%d_%d", lsx+dx, lsy);
+        device IOBD ( symbol logsym ) *strVar @[gsx-800+300*dx+1200, gsy+500];
+        map
+        (
+            <instance *strVar> => rRef
+        );
+    }
+  
+    foreach dx (iobs)
+    {
+        rRef = <device IOBS @[lsx+dx, lsy] of ARCHITECTURE>;
+        sprintf(strVar, "IOBS_%d_%d", lsx+dx, lsy);
+        device IOBS ( symbol logsym_d ) *strVar @[gsx-400+300*dx+1200, gsy+500];
+        map
+        (
+            <instance *strVar> => rRef
+        );
+    }
+    
+    foreach dx (iobr)
+    {
+        rRef = <device IOBR @[lsx+dx, lsy] of ARCHITECTURE>;
+        sprintf(strVar, "IOBR_%d_%d", lsx+dx, lsy);
+        device IOBR ( symbol logsym ) *strVar @[gsx-400+300*dx+1200, gsy+500];
+        map
+        (
+            <instance *strVar> => rRef
+        );
+    }
+
+    rRef = <device BKCL @[lsx+120, lsy+0] of ARCHITECTURE>;
+    sprintf(strVar, "BKCL_%d_%d", lsx+120, lsy+0);
+    device BKCL ( symbol logsym ) *strVar @[gsx+500+1200*32, gsy+300];
+    map
+    (
+        <instance *strVar> => rRef
+    );
+
+    rRef = <device BKCL @[lsx+180, lsy+0] of ARCHITECTURE>;
+    sprintf(strVar, "BKCL_%d_%d", lsx+180, lsy+0);
+    device BKCL ( symbol logsym ) *strVar @[gsx+800+1200*32, gsy+300];
+    map
+    (
+        <instance *strVar> => rRef
+    );
+    
+    rRef = <device RESCAL @[lsx+181, lsy+0] of ARCHITECTURE>;
+    sprintf(strVar, "RESCAL_%d_%d", lsx+181, lsy+0);
+    device RESCAL ( symbol logsym ) *strVar @[gsx+1000+1200*32, gsy+400];
+    map
+    (
+        <instance *strVar> => rRef
+    );
+}
+
+function draw_iob1_tile( unsigned int tx,ty)
+{
+    unsigned int lsx, lsy, gsx, gsy;
+    
+    lsx = tx * NUM_GRID_X;
+    lsy = ty * NUM_GRID_Y;
+
+    &device rRef;
+    string strVar;
+    unsigned int dt, dx, dy;
+    
+    unsigned int temp_ty;
+    for(temp_ty = ty;temp_ty > MID_TILE_REGION;temp_ty = temp_ty - NUM_TILES_REGION)
+    {
+      lsy = lsy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+    }
+    gsx = (lsx/NUM_GRID_X) * TILE_NUM_GUI_GRID_X;
+    gsy = (lsy/NUM_GRID_Y) * TILE_NUM_GUI_GRID_Y;
+    
+    unsigned int iobs[] = { 365, 329, 328, 325, 324, 321, 320, 297, 296, 293, 292, 289, 288, 285, 284, 281, 280, 269, 268, 265, 264, 261, 260, 257, 256, 253, 252, 237, 236, 233, 232, 229, 228, 225, 224, 213, 
+                            212, 209, 208, 201, 200, 197, 196, 173, 172, 169, 168, 165, 164, 161, 157, 156, 145, 144, 141, 140, 137, 136, 133, 132, 129, 128, 117, 116, 113, 112, 109, 108, 105, 104, 101, 100, 
+                            89, 88, 85, 84, 81, 80, 77, 76, 73, 49, 48, 45, 44, 41, 40, 33, 32, 21, 20 
+                          };
+    unsigned int iobr[] = { 72, 160, 364 };
+    
+    foreach dx (iobs)
+    {
+        rRef = <device IOBS @[lsx, lsy+dx] of ARCHITECTURE>;
+        sprintf(strVar, "IOBS_%d_%d", lsx, lsy+dx);
+        device IOBS ( symbol logsym_d ) *strVar @[gsx+500, gsy-900+300*dx+1200];
+        map
+        (
+            <instance *strVar> => rRef
+        );
+    }
+
+    foreach dx (iobr)
+    {
+        rRef = <device IOBR @[lsx, lsy+dx] of ARCHITECTURE>;
+        sprintf(strVar, "IOBR_%d_%d", lsx, lsy+dx);
+        device IOBR ( symbol logsym ) *strVar @[gsx+500, gsy-900+300*dx+1200];
+        map
+        (
+            <instance *strVar> => rRef
+        );
+    }
+
+    rRef = <device BKCL @[lsx+0, lsy+180] of ARCHITECTURE>;
+    sprintf(strVar, "BKCL_%d_%d", lsx+0, lsy+180);
+    device BKCL ( symbol logsym ) *strVar @[gsx, gsy+500+1200*32];
+    map
+    (
+        <instance *strVar> => rRef
+    );
+    
+    rRef = <device RESCAL @[lsx+0, lsy+181] of ARCHITECTURE>;
+    sprintf(strVar, "RESCAL_%d_%d", lsx+0, lsy+181);
+    device RESCAL ( symbol logsym ) *strVar @[gsx+1, gsy+1000+1200*32];
+    map
+    (
+        <instance *strVar> => rRef
+    );
+    
+    rRef = <device CRYSTAL @[lsx+0, lsy+182] of ARCHITECTURE>;
+    sprintf(strVar, "CRYSTAL_%d_%d", lsx+0, lsy+182);
+    device CRYSTAL ( symbol logsym ) *strVar @[gsx+1, gsy+500+1200*28];
+    map
+    (
+        <instance *strVar> => rRef
+    );
+}
+
+function draw_iob2_tile( unsigned int tx,ty)
+{
+    unsigned int lsx, lsy, gsx, gsy;
+    
+    lsx = tx * NUM_GRID_X;
+    lsy = ty * NUM_GRID_Y;
+
+    &device rRef;
+    string strVar;
+    unsigned int dt, dx, dy;
+    
+    unsigned int temp_ty;
+    for(temp_ty = ty;temp_ty > MID_TILE_REGION;temp_ty = temp_ty - NUM_TILES_REGION)
+    {
+      lsy = lsy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+    }
+    gsx = (lsx/NUM_GRID_X) * TILE_NUM_GUI_GRID_X;
+    gsy = (lsy/NUM_GRID_Y) * TILE_NUM_GUI_GRID_Y;
+    
+    unsigned int iobd[] = { 365, 361, 357, 353, 345, 341, 337, 333, 325, 321, 317, 313, 301, 297, 293, 281, 277, 273, 269, 261, 257, 253, 249, 245, 241, 105, 101, 97, 93, 81, 77, 73, 69, 61, 57, 53, 49, 37, 33, 29, 21, 17, 13, 9, 5, 1};
+    unsigned int iobs[] = { 370, 369, 368, 364, 360, 356, 344, 340, 336, 332, 324, 320, 316, 312, 300, 296, 292, 276, 272, 268, 260, 256, 252, 248, 244, 240, 104, 100, 92, 80, 76, 72, 68, 60, 52, 48, 36, 32, 28, 20, 12, 8, 4, 0 };
+    unsigned int iobr[] = { 352, 280, 96, 56, 16 }; 
+    
+    foreach dx (iobs)
+    {
+        rRef = <device IOBS @[lsx+dx, lsy] of ARCHITECTURE>;
+        sprintf(strVar, "IOBS_%d_%d", lsx+dx, lsy);
+        device IOBS ( symbol logsym_d ) *strVar @[gsx-900+300*dx+1200, gsy+500];
+        map
+        (
+            <instance *strVar> => rRef
+        );
+    }
+    
+    foreach dx (iobr)
+    {
+        rRef = <device IOBR @[lsx+dx, lsy] of ARCHITECTURE>;
+        sprintf(strVar, "IOBR_%d_%d", lsx+dx, lsy);
+        device IOBR ( symbol logsym ) *strVar @[gsx-900+300*dx+1200, gsy+500];
+        map
+        (
+            <instance *strVar> => rRef
+        );
+    }
+    
+    foreach dx (iobd)
+    {
+        rRef = <device IOBD @[lsx+dx, lsy] of ARCHITECTURE>;
+        sprintf(strVar, "IOBD_%d_%d", lsx+dx, lsy);
+        device IOBD ( symbol logsym ) *strVar @[gsx-700+300*dx+1200, gsy+500];
+        map
+        (
+            <instance *strVar> => rRef
+        );
+    }
+
+
+    rRef = <device BKCL @[lsx+120, lsy+0] of ARCHITECTURE>;
+    sprintf(strVar, "BKCL_%d_%d", lsx+120, lsy+0);
+    device BKCL ( symbol logsym ) *strVar @[gsx+500+1200*32, gsy+300];
+    map
+    (
+        <instance *strVar> => rRef
+    );
+
+    rRef = <device BKCL @[lsx+180, lsy+0] of ARCHITECTURE>;
+    sprintf(strVar, "BKCL_%d_%d", lsx+180, lsy+0);
+    device BKCL ( symbol logsym ) *strVar @[gsx+800+1200*32, gsy+300];
+    map
+    (
+        <instance *strVar> => rRef
+    );
+    
+    rRef = <device RESCAL @[lsx+181, lsy+0] of ARCHITECTURE>;
+    sprintf(strVar, "RESCAL_%d_%d", lsx+181, lsy+0);
+    device RESCAL ( symbol logsym ) *strVar @[gsx+1000+1200*32, gsy+400];
+    map
+    (
+        <instance *strVar> => rRef
+    );
+}
+
+function draw_iob3_tile( unsigned int tx,ty)
+{
+    unsigned int lsx, lsy, gsx, gsy;
+    
+    lsx = tx * NUM_GRID_X;
+    lsy = ty * NUM_GRID_Y;
+    
+    &device rRef;
+    string strVar;
+    unsigned int dt, dx, dy;
+    
+    unsigned int temp_ty;
+    for(temp_ty = ty;temp_ty > MID_TILE_REGION;temp_ty = temp_ty - NUM_TILES_REGION)
+    {
+      lsy = lsy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+    }
+    gsx = (lsx/NUM_GRID_X) * TILE_NUM_GUI_GRID_X;
+    gsy = (lsy/NUM_GRID_Y) * TILE_NUM_GUI_GRID_Y;
+    
+    unsigned int iobs[] = { 364, 349, 348, 337, 336, 333, 332, 329, 328, 325, 324, 321, 320, 297, 296, 293, 292, 289, 288, 285, 284, 281, 280, 269, 268, 265, 264, 261, 260, 257, 256, 253, 252, 241, 240, 237, 236, 233, 232, 229, 228, 225, 224, 213, 212, 209, 208, 204, 201, 200, 197, 196, 173, 172, 169, 168, 165, 164, 161, 160, 157, 156, 145, 144, 141, 140, 137, 136, 133, 132, 129, 128, 117, 116, 113, 112, 109, 108, 104, 101, 100, 89, 88, 85, 84, 81, 80, 77, 76, 73, 72, 49, 48, 45, 44, 41, 40, 37, 36, 33, 32, 21, 20, 17, 16, 13, 12, 9, 8, 4};
+    unsigned int iobr[] = { 5, 105, 205, 365 };
+    
+    foreach dx (iobr)
+    {
+        rRef = <device IOBR @[lsx, lsy+dx] of ARCHITECTURE>;
+        sprintf(strVar, "IOBR_%d_%d", lsx, lsy+dx);
+        device IOBR ( symbol logsym ) *strVar @[gsx+500, gsy-800+300*dx+1200];
+        map
+        (
+            <instance *strVar> => rRef
+        );
+    }
+    
+    foreach dx (iobs)
+    {
+        rRef = <device IOBS @[lsx, lsy+dx] of ARCHITECTURE>;
+        sprintf(strVar, "IOBS_%d_%d", lsx, lsy+dx);
+        device IOBS ( symbol logsym_d ) *strVar @[gsx+500, gsy-800+300*dx+1200];
+        map
+        (
+            <instance *strVar> => rRef
+        );
+    }
+
+    rRef = <device BKCL @[lsx+0, lsy+180] of ARCHITECTURE>;
+    sprintf(strVar, "BKCL_%d_%d", lsx+0, lsy+180);
+    device BKCL ( symbol logsym ) *strVar @[gsx, gsy+500+1200*32];
+    map
+    (
+        <instance *strVar> => rRef
+    );
+    
+    rRef = <device RESCAL @[lsx+0, lsy+181] of ARCHITECTURE>;
+    sprintf(strVar, "RESCAL_%d_%d", lsx+0, lsy+181);
+    device RESCAL ( symbol logsym ) *strVar @[gsx+1, gsy+1000+1200*32];
+    map
+    (
+        <instance *strVar> => rRef
+    );
+    
+    rRef = <device CRYSTAL @[lsx+0, lsy+182] of ARCHITECTURE>;
+    sprintf(strVar, "CRYSTAL_%d_%d", lsx+0, lsy+182);
+    device CRYSTAL ( symbol logsym ) *strVar @[gsx+1, gsy+500+1200*28];
+    map
+    (
+        <instance *strVar> => rRef
+    );
+}
+
+function draw_iob4_tile( unsigned int tx,ty)
+{
+    unsigned int lsx, lsy, gsx, gsy;
+    
+    lsx = tx * NUM_GRID_X;
+    lsy = ty * NUM_GRID_Y;
+
+    &device rRef;
+    string strVar;
+    unsigned int dt, dx, dy;
+    
+    unsigned int temp_ty;
+    for(temp_ty = ty;temp_ty > MID_TILE_REGION;temp_ty = temp_ty - NUM_TILES_REGION)
+    {
+      lsy = lsy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+    }
+    gsx = (lsx/NUM_GRID_X) * TILE_NUM_GUI_GRID_X;
+    gsy = (lsy/NUM_GRID_Y) * TILE_NUM_GUI_GRID_Y;
+    
+    unsigned int iobs[] = { 240, 205, 204, 201, 200, 197, 196, 173, 172, 169, 168, 165, 164, 161, 160, 157, 156, 145, 144, 141, 140, 137, 136, 133, 132, 129, 128, 113, 112, 109, 108, 105, 104, 101, 100, 89, 88, 85, 84, 77, 76, 73, 72, 49, 48, 45, 44, 41, 40, 4 };
+    unsigned int iobr[] = { 5, 241 };
+   
+    foreach dx (iobs)
+    {
+        rRef = <device IOBS @[lsx, lsy+dx] of ARCHITECTURE>;
+        sprintf(strVar, "IOBS_%d_%d", lsx, lsy+dx);
+        device IOBS ( symbol logsym_d ) *strVar @[gsx+500, gsy-900+300*dx+1200];
+        map
+        (
+            <instance *strVar> => rRef
+        );
+    }
+
+    foreach dx (iobr)
+    {
+        rRef = <device IOBR @[lsx, lsy+dx] of ARCHITECTURE>;
+        sprintf(strVar, "IOBR_%d_%d", lsx, lsy+dx);
+        device IOBR ( symbol logsym ) *strVar @[gsx+500, gsy-900+300*dx+1200];
+        map
+        (
+            <instance *strVar> => rRef
+        );
+    }
+
+    rRef = <device BKCL @[lsx+0, lsy+120] of ARCHITECTURE>;
+    sprintf(strVar, "BKCL_%d_%d", lsx+0, lsy+120);
+    device BKCL ( symbol logsym ) *strVar @[gsx, gsy+500+1200*32];
+    map
+    (
+        <instance *strVar> => rRef
+    );
+    
+    rRef = <device RESCAL @[lsx+0, lsy+123] of ARCHITECTURE>;
+    sprintf(strVar, "RESCAL_%d_%d", lsx+0, lsy+123);
+    device RESCAL ( symbol logsym ) *strVar @[gsx+1, gsy+1000+1200*32];
+    map
+    (
+        <instance *strVar> => rRef
+    );
+    
+    rRef = <device CRYSTAL @[lsx+0, lsy+124] of ARCHITECTURE>;
+    sprintf(strVar, "CRYSTAL_%d_%d", lsx+0, lsy+124);
+    device CRYSTAL ( symbol logsym ) *strVar @[gsx+1, gsy+500+1200*28];
+    map
+    (
+        <instance *strVar> => rRef
+    );
+}
+
+function draw_iob5_tile( unsigned int tx,ty)
+{
+    unsigned int lsx, lsy, gsx, gsy;
+    
+    lsx = tx * NUM_GRID_X;
+    lsy = ty * NUM_GRID_Y;
+
+    &device rRef;
+    string strVar;
+    unsigned int dt, dx, dy;
+    
+    unsigned int temp_ty;
+    for(temp_ty = ty;temp_ty > MID_TILE_REGION;temp_ty = temp_ty - NUM_TILES_REGION)
+    {
+      lsy = lsy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+    }
+    gsx = (lsx/NUM_GRID_X) * TILE_NUM_GUI_GRID_X;
+    gsy = (lsy/NUM_GRID_Y) * TILE_NUM_GUI_GRID_Y;
+    
+    unsigned int iobs[] = { 241, 205, 204, 201, 200, 197, 196, 173, 172, 169, 168, 165, 164, 161, 160, 157, 156, 145, 144, 141, 140, 137, 136, 133, 132, 129, 128, 113, 112, 109, 108, 105, 104, 101, 100, 89, 88, 85, 84, 77, 76, 73, 72, 49, 48, 45, 44, 41, 40, 9, 5, 4 };
+    unsigned int iobr[] = { 8, 240 };
+
+    foreach dx (iobs)
+    {
+        rRef = <device IOBS @[lsx, lsy+dx] of ARCHITECTURE>;
+        sprintf(strVar, "IOBS_%d_%d", lsx, lsy+dx);
+        device IOBS ( symbol logsym_d ) *strVar @[gsx+500, gsy-800+300*dx+1200];
+        map
+        (
+            <instance *strVar> => rRef
+        );
+    }
+
+    foreach dx (iobr)
+    {
+        rRef = <device IOBR @[lsx, lsy+dx] of ARCHITECTURE>;
+        sprintf(strVar, "IOBR_%d_%d", lsx, lsy+dx);
+        device IOBR ( symbol logsym ) *strVar @[gsx+500, gsy-800+300*dx+1200];
+        map
+        (
+            <instance *strVar> => rRef
+        );
+    }
+
+    rRef = <device BKCL @[lsx+0, lsy+120] of ARCHITECTURE>;
+    sprintf(strVar, "BKCL_%d_%d", lsx+0, lsy+120);
+    device BKCL ( symbol logsym ) *strVar @[gsx, gsy+500+1200*32];
+    map
+    (
+        <instance *strVar> => rRef
+    );
+    
+    rRef = <device RESCAL @[lsx+0, lsy+123] of ARCHITECTURE>;
+    sprintf(strVar, "RESCAL_%d_%d", lsx+0, lsy+123);
+    device RESCAL ( symbol logsym ) *strVar @[gsx+1, gsy+1000+1200*32];
+    map
+    (
+        <instance *strVar> => rRef
+    );
+    
+    rRef = <device CRYSTAL @[lsx+0, lsy+124] of ARCHITECTURE>;
+    sprintf(strVar, "CRYSTAL_%d_%d", lsx+0, lsy+124);
+    device CRYSTAL ( symbol logsym ) *strVar @[gsx+1, gsy+500+1200*28];
+    map
+    (
+        <instance *strVar> => rRef
+    );
+}
+
+function draw_wlsr_tile( unsigned int tx, ty )
+{
+    // Site index variable. The X index for logic and GUI are declared separately
+    unsigned int lsx, lsy, gsx, gsy;
+    
+    lsx = tx * NUM_GRID_X;
+    lsy = ty * NUM_GRID_Y;
+    
+    unsigned int temp_ty;
+    for(temp_ty = ty;temp_ty > MID_TILE_REGION;temp_ty = temp_ty - NUM_TILES_REGION)
+    {
+        lsy = lsy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+    }
+    
+    gsx = (lsx/NUM_GRID_X) * TILE_NUM_GUI_GRID_X;
+    gsy = (lsy/NUM_GRID_Y) * TILE_NUM_GUI_GRID_Y;
+    
+    // device reference variables
+    &device xRef, rRef;
+    string strVar, strVar1;
+    
+    xRef = <device CKEB @[lsx+1,lsy+1]  of ARCHITECTURE>;
+    sprintf(strVar, "CKEB_%d_%d", lsx+1, lsy+1);
+    device CKEB  ( symbol logsym )  *strVar  @[gsx+1000,gsy+920];
+    map
+    (
+         <instance *strVar>   => xRef
+    );
+    
+    rRef = <device CKEBMUX @[lsx+1,lsy+2]  of ARCHITECTURE>;
+    sprintf(strVar1, "CKEBMUX_%d_%d", lsx+1, lsy+2);
+    device CKEBMUX  ( symbol logsym )  *strVar1  @[gsx+600,gsy+900];
+    map 
+    ( 
+         <instance *strVar1>   => rRef
+     );
+}   // end of function draw_wlsr_tile
+
+function draw_wlsra_tile( unsigned int tx, ty )
+{
+    // Site index variable. The X index for logic and GUI are declared separately
+    unsigned int lsx, lsy, gsx, gsy;
+    
+    lsx = tx * NUM_GRID_X;
+    lsy = ty * NUM_GRID_Y;
+    
+    unsigned int temp_ty;
+    for(temp_ty = ty;temp_ty > MID_TILE_REGION;temp_ty = temp_ty - NUM_TILES_REGION)
+    {
+        lsy = lsy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+    }
+    
+    gsx = (lsx/NUM_GRID_X) * TILE_NUM_GUI_GRID_X;
+    gsy = (lsy/NUM_GRID_Y) * TILE_NUM_GUI_GRID_Y;
+    
+    // device reference variables
+    &device xRef, rRef;
+    string strVar, strVar1;
+    
+    xRef = <device CKEB @[lsx+1,lsy+1]  of ARCHITECTURE>;
+    sprintf(strVar, "CKEB_%d_%d", lsx+1, lsy+1);
+    device CKEB  ( symbol logsym )  *strVar  @[gsx+1000,gsy+920];
+    map
+    (
+         <instance *strVar>   => xRef
+    );
+    
+    rRef = <device CKEBMUX @[lsx+1,lsy+2]  of ARCHITECTURE>;
+    sprintf(strVar1, "CKEBMUX_%d_%d", lsx+1, lsy+2);
+    device CKEBMUX  ( symbol logsym )  *strVar1  @[gsx+600,gsy+900];
+    map 
+    ( 
+         <instance *strVar1>   => rRef
+     );
+}   // end of function draw_wlsra_tile
+
+function draw_wlsr1_tile( unsigned int tx, ty )
+{
+    // Site index variable. The X index for logic and GUI are declared separately
+    unsigned int lsx, lsy, gsx, gsy;
+    
+    lsx = tx * NUM_GRID_X;
+    lsy = ty * NUM_GRID_Y;
+    
+    unsigned int temp_ty;
+    for(temp_ty = ty;temp_ty > MID_TILE_REGION;temp_ty = temp_ty - NUM_TILES_REGION)
+    {
+        lsy = lsy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+    }
+    
+    gsx = (lsx/NUM_GRID_X) * TILE_NUM_GUI_GRID_X;
+    gsy = (lsy/NUM_GRID_Y) * TILE_NUM_GUI_GRID_Y;
+    
+    // device reference variables
+    &device xRef, rRef;
+    string strVar, strVar1;
+    
+    xRef = <device CKEB @[lsx+1,lsy+1]  of ARCHITECTURE>;
+    sprintf(strVar, "CKEB_%d_%d", lsx+1, lsy+1);
+    device CKEB  ( symbol logsym )  *strVar  @[gsx+1000,gsy+920];
+    map
+    (
+         <instance *strVar>   => xRef
+    );
+    
+    rRef = <device CKEBMUX @[lsx+1,lsy+2]  of ARCHITECTURE>;
+    sprintf(strVar1, "CKEBMUX_%d_%d", lsx+1, lsy+2);
+    device CKEBMUX  ( symbol logsym )  *strVar1  @[gsx+600,gsy+900];
+    map 
+    ( 
+         <instance *strVar1>   => rRef
+     );
+}   // end of function draw_wlsr1_tile
+
+function draw_wlsr1_100h_tile( unsigned int tx, ty )
+{
+    // Site index variable. The X index for logic and GUI are declared separately
+    unsigned int lsx, lsy, gsx, gsy;
+    
+    lsx = tx * NUM_GRID_X;
+    lsy = ty * NUM_GRID_Y;
+    
+    unsigned int temp_ty;
+    for(temp_ty = ty;temp_ty > MID_TILE_REGION;temp_ty = temp_ty - NUM_TILES_REGION)
+    {
+        lsy = lsy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+    }
+    
+    gsx = (lsx/NUM_GRID_X) * TILE_NUM_GUI_GRID_X;
+    gsy = (lsy/NUM_GRID_Y) * TILE_NUM_GUI_GRID_Y;
+    
+    // device reference variables
+    &device xRef, rRef;
+    string strVar, strVar1;
+    
+    xRef = <device CKEB @[lsx+1,lsy+1]  of ARCHITECTURE>;
+    sprintf(strVar, "CKEB_%d_%d", lsx+1, lsy+1);
+    device CKEB  ( symbol logsym )  *strVar  @[gsx+1000,gsy+920];
+    map
+    (
+         <instance *strVar>   => xRef
+    );
+    
+    rRef = <device CKEBMUX @[lsx+1,lsy+2]  of ARCHITECTURE>;
+    sprintf(strVar1, "CKEBMUX_%d_%d", lsx+1, lsy+2);
+    device CKEBMUX  ( symbol logsym )  *strVar1  @[gsx+600,gsy+900];
+    map 
+    ( 
+         <instance *strVar1>   => rRef
+     );
+}   // end of function draw_wlsr1_100h_tile
+
+
+function draw_wlsrd_tile( unsigned int tx, ty )
+{
+    // Site index variable. The X index for logic and GUI are declared separately
+    unsigned int lsx, lsy, gsx, gsy;
+    
+    lsx = tx * NUM_GRID_X;
+    lsy = ty * NUM_GRID_Y;
+    
+    unsigned int temp_ty;
+    for(temp_ty = ty;temp_ty > MID_TILE_REGION;temp_ty = temp_ty - NUM_TILES_REGION)
+    {
+        lsy = lsy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+    }
+    
+    gsx = (lsx/NUM_GRID_X) * TILE_NUM_GUI_GRID_X;
+    gsy = (lsy/NUM_GRID_Y) * TILE_NUM_GUI_GRID_Y;
+    
+    // device reference variables
+    &device xRef, rRef;
+    string strVar, strVar1;
+    
+    xRef = <device CKEB @[lsx+1,lsy+1]  of ARCHITECTURE>;
+    sprintf(strVar, "CKEB_%d_%d", lsx+1, lsy+1);
+    device CKEB  ( symbol logsym )  *strVar  @[gsx+1000,gsy+920];
+    map
+    (
+         <instance *strVar>   => xRef
+    );
+    
+    rRef = <device CKEBMUX @[lsx+1,lsy+2]  of ARCHITECTURE>;
+    sprintf(strVar1, "CKEBMUX_%d_%d", lsx+1, lsy+2);
+    device CKEBMUX  ( symbol logsym )  *strVar1  @[gsx+600,gsy+900];
+    map 
+    ( 
+         <instance *strVar1>   => rRef
+     );
+}   // end of function draw_wlsrd_tile
+
+function draw_wlsr2_tile( unsigned int tx, ty )
+{
+    // Site index variable. The X index for logic and GUI are declared separately
+    unsigned int lsx, lsy, gsx, gsy;
+    
+    lsx = tx * NUM_GRID_X;
+    lsy = ty * NUM_GRID_Y;
+    
+    unsigned int temp_ty;
+    for(temp_ty = ty;temp_ty > MID_TILE_REGION;temp_ty = temp_ty - NUM_TILES_REGION)
+    {
+        lsy = lsy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+    }
+    
+    gsx = (lsx/NUM_GRID_X) * TILE_NUM_GUI_GRID_X;
+    gsy = (lsy/NUM_GRID_Y) * TILE_NUM_GUI_GRID_Y;
+    
+    // device reference variables
+    &device xRef, rRef;
+    string strVar, strVar1;
+    
+    xRef = <device CKEB @[lsx+1,lsy+1]  of ARCHITECTURE>;
+    sprintf(strVar, "CKEB_%d_%d", lsx+1, lsy+1);
+    device CKEB  ( symbol logsym )  *strVar  @[gsx+1000,gsy+920];
+    map
+    (
+         <instance *strVar>   => xRef
+    );
+    
+    rRef = <device CKEBMUX @[lsx+1,lsy+2]  of ARCHITECTURE>;
+    sprintf(strVar1, "CKEBMUX_%d_%d", lsx+1, lsy+2);
+    device CKEBMUX  ( symbol logsym )  *strVar1  @[gsx+600,gsy+900];
+    map 
+    ( 
+         <instance *strVar1>   => rRef
+     );
+}   // end of function draw_wlsr2_tile
+
+
+function draw_rckb_tile(unsigned int tx,ty)
+{   
+    // Site index variable. The X index for logic and GUI are declared separately
+    unsigned int lsx, lsy, gsx, gsy;
+    
+    lsx = tx * NUM_GRID_X + 2;
+    lsy = ty * NUM_GRID_Y;
+    
+    unsigned int temp_ty;
+    for(temp_ty = ty;temp_ty > MID_TILE_REGION;temp_ty = temp_ty - NUM_TILES_REGION)
+    {
+        lsy = lsy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+    }
+    
+    gsx = (lsx/NUM_GRID_X) * TILE_NUM_GUI_GRID_X;
+    gsy = (lsy/NUM_GRID_Y) * TILE_NUM_GUI_GRID_Y;
+    
+    // device reference variables
+    &device xRef;
+    string strVar;
+    
+    unsigned int dt, dx, dy;
+    
+    for ( dt = 0; dt < 2; dt += 1 )
+    {
+        // Part1.1
+        dx = 0;
+        dy = dt;
+        xRef = <device RCKBMUX  @[lsx+dx,lsy+dy]  of ARCHITECTURE>;
+        sprintf(strVar, "RCKBMUX_%d_%d", lsx+dx, lsy+dy);
+        device RCKBMUX  ( symbol sym )  *strVar  @[gsx+800,gsy+280+2400*dt];
+        map 
+        (
+             <instance *strVar>   => xRef
+        );
+        
+        dy = 10 + dt;
+        xRef = <device RCKBMUX_TEST  @[lsx+dx,lsy+dy]  of ARCHITECTURE>;
+        sprintf(strVar, "RCKBMUX_TEST_%d_%d", lsx+dx, lsy+dy);
+        device RCKBMUX_TEST  ( symbol sym )  *strVar  @[gsx+800,gsy+400+2400*dt];
+        map 
+        (
+             <instance *strVar>   => xRef
+        );
+        
+        dx = 1;
+        dy = 11 - 3*dt;
+        xRef = <device RCKBMUX_OUT  @[lsx+dx,lsy+dy]  of ARCHITECTURE>;
+        sprintf(strVar, "RCKBMUX_OUT_%d_%d", lsx+dx, lsy+dy);
+        device RCKBMUX_OUT  ( symbol sym )  *strVar  @[gsx+850,gsy+340+2400*dt];
+        map 
+        (
+             <instance *strVar>   => xRef
+        );
+        
+        // Part1.2
+        dx = 0;
+        dy = dt;
+        xRef = <device VCKBMUX  @[lsx+dx,lsy+dy]  of ARCHITECTURE>;
+        sprintf(strVar, "VCKBMUX_%d_%d", lsx+dx, lsy+dy);
+        device VCKBMUX  ( symbol sym )  *strVar  @[gsx+800,gsy+580+2400*dt];
+        map 
+        (
+             <instance *strVar>   => xRef
+        );
+        
+        dx = 1;
+        dy = dt;
+        xRef = <device VCKBMUX_TEST  @[lsx+dx,lsy+dy]  of ARCHITECTURE>;
+        sprintf(strVar, "VCKBMUX_TEST_%d_%d", lsx+dx, lsy+dy);
+        device VCKBMUX_TEST  ( symbol sym )  *strVar  @[gsx+800,gsy+700+2400*dt];
+        map 
+        (
+             <instance *strVar>   => xRef
+        );
+        
+        dx = dt;
+        dy = 9*dt;
+        xRef = <device VCKBMUX_OUT  @[lsx+dx,lsy+dy]  of ARCHITECTURE>;
+        sprintf(strVar, "VCKBMUX_OUT_%d_%d", lsx+dx, lsy+dy);
+        device VCKBMUX_OUT  ( symbol sym )  *strVar  @[gsx+850,gsy+640+2400*dt];
+        map 
+        (
+             <instance *strVar>   => xRef
+        );
+        
+        // Part1.3
+        dx = 1;
+        
+        dy = 6 + dt;
+        xRef = <device RCKB  @[lsx+dx,lsy+dy]  of ARCHITECTURE>;
+        sprintf(strVar, "RCKB_%d_%d", lsx+dx, lsy+dy);
+        device RCKB  ( symbol sym )  *strVar  @[gsx+900,gsy+360+2400*dt];
+        map 
+        (
+             <instance *strVar>   => xRef
+        );
+        
+        dy = 4 + dt;
+        xRef = <device RCKB  @[lsx+dx,lsy+dy]  of ARCHITECTURE>;
+        sprintf(strVar, "RCKB_%d_%d", lsx+dx, lsy+dy);
+        device RCKB  ( symbol sym )  *strVar  @[gsx+900,gsy+660+2400*dt];
+        map 
+        (
+             <instance *strVar>   => xRef
+        );
+    }
+    
+    gsy = gsy + 1200;    
+    
+    dx = 0;
+    dy = 0;
+    xRef = <device CKEB  @[lsx+dx,lsy+dy]  of ARCHITECTURE>;
+    sprintf(strVar, "CKEB_%d_%d", lsx+dx, lsy+dy);
+    device CKEB  ( symbol logsym )  *strVar  @[gsx+1000,gsy+920];
+    map 
+    (
+         <instance *strVar>   => xRef
+    );
+    
+    xRef = <device CKEBMUX @[lsx+0,lsy+0]  of ARCHITECTURE>;
+    sprintf(strVar, "CKEBMUX_%d_%d", lsx+0, lsy+0);
+    device CKEBMUX  ( symbol logsym )  *strVar  @[gsx+600,gsy+900];
+    map 
+    ( 
+         <instance *strVar>   => xRef
+     );
+}  // end of function draw_rckb_tile
+
+function draw_piomux_tile(unsigned int tx,ty)
+{   
+    unsigned int lsx, lsy, gsx, gsy;
+    
+    lsx = tx * NUM_GRID_X + 2;
+    lsy = ty * NUM_GRID_Y;
+    
+    unsigned int temp_ty;
+    for(temp_ty = ty;temp_ty > MID_TILE_REGION;temp_ty = temp_ty - NUM_TILES_REGION)
+    {
+      lsy = lsy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+    }
+    
+    gsx = (lsx/NUM_GRID_X) * TILE_NUM_GUI_GRID_X;
+    gsy = (lsy/NUM_GRID_Y) * TILE_NUM_GUI_GRID_Y;
+    
+   // device reference variables
+    &device xRef;
+    string strVar;
+    
+    unsigned int dt, dx, dy;
+    
+    for ( dt = 0; dt < 2; dt += 1 )
+    {
+        dx = dt;
+        dy = 0;
+        xRef = <device PIOMUX  @[lsx+dx,lsy+dy]  of ARCHITECTURE>;
+        sprintf(strVar, "PIOMUX%d_%d", lsx+dx, lsy+dy);
+        device PIOMUX  ( symbol logsym )  *strVar  @[gsx+1200+2400*dt+2,gsy+800];
+        map 
+        (
+             <instance *strVar>   => xRef
+        );
+    }
+    
+    for ( dt = 0; dt < 2; dt += 1 )
+    {
+        dx = dt;
+        dy = 1;
+        xRef = <device PIOMUX_TEST  @[lsx+dx,lsy+dy]  of ARCHITECTURE>;
+        sprintf(strVar, "PIOMUX_TEST%d_%d", lsx+dx, lsy+dy);
+        device PIOMUX_TEST  ( symbol logsym )  *strVar  @[gsx+1000+2400*dt,gsy+800];
+        map 
+        (
+             <instance *strVar>   => xRef
+        );
+    }
+    
+    for ( dt = 0; dt < 2; dt += 1 )
+    {
+        dx = dt;
+        dy = 2;
+        xRef = <device PIOMUX_OUT  @[lsx+dx,lsy+dy]  of ARCHITECTURE>;
+        sprintf(strVar, "PIOMUX_OUT%d_%d", lsx+dx, lsy+dy);
+        device PIOMUX_OUT  ( symbol logsym )  *strVar  @[gsx+800+2400*dt,gsy+800];
+        map 
+        (
+             <instance *strVar>   => xRef
+        );
+    } 
+       
+}
+
+function draw_clkmux_tile(unsigned int tx, ty)
+{
+    unsigned int lsx, lsy, gsx, gsy;
+    
+    lsx = tx * NUM_GRID_X;
+    lsy = ty * NUM_GRID_Y;
+    
+    gsx = (lsx/NUM_GRID_X) * TILE_NUM_GUI_GRID_X;
+    gsy = (lsy/NUM_GRID_Y) * TILE_NUM_GUI_GRID_Y;
+    &device xRef;
+    string strVar;
+    
+    //xRef = <device PREGMUX @[lsx,lsy] of ARCHITECTURE>;
+    //sprintf(strVar, "PREGMUX_%d_%d", lsx, lsy);
+    //device PREGMUX ( symbol logsym ) *strVar @[gsx,gsy];
+    //map 
+    //( 
+    //    <instance *strVar> => xRef
+    //);
+    //
+    //xRef = <device PREGMUX_TEST @[lsx,lsy+2] of ARCHITECTURE>;
+    //sprintf(strVar, "PREGMUX_TEST_%d_%d", lsx, lsy+2);
+    //device PREGMUX_TEST ( symbol logsym ) *strVar @[gsx,gsy+200];
+    //map 
+    //( 
+    //    <instance *strVar> => xRef
+    //);
+    //
+    //xRef = <device PREGMUX_OUT @[lsx,lsy+3] of ARCHITECTURE>;
+    //sprintf(strVar, "PREGMUX_OUT_%d_%d", lsx, lsy+3);
+    //device PREGMUX_OUT ( symbol logsym ) *strVar @[gsx,gsy+400];
+    //map 
+    //( 
+    //    <instance *strVar> => xRef
+    //);
+    //
+    //xRef = <device G2RCKMUX @[lsx+1,lsy] of ARCHITECTURE>;
+    //sprintf(strVar, "G2RCKMUX_%d_%d", lsx+1, lsy);
+    //device G2RCKMUX ( symbol logsym ) *strVar @[gsx+200,gsy];
+    //map 
+    //( 
+    //    <instance *strVar> => xRef
+    //);
+    //    
+    //xRef = <device G2RCKMUX @[lsx+1,lsy+1] of ARCHITECTURE>;
+    //sprintf(strVar, "G2RCKMUX_%d_%d", lsx+1, lsy+1);
+    //device G2RCKMUX ( symbol logsym ) *strVar @[gsx+200,gsy+200];
+    //map 
+    //( 
+    //    <instance *strVar> => xRef
+    //);
+}
+
+function draw_iockdll_tile(unsigned int tx,ty)
+{   
+    unsigned int lsx, lsy, gsx, gsy;
+    
+    lsx = tx * NUM_GRID_X;
+    lsy = ty * NUM_GRID_Y;
+    
+    unsigned int temp_ty;
+    for(temp_ty = ty;temp_ty > MID_TILE_REGION;temp_ty = temp_ty - NUM_TILES_REGION)
+    {
+      lsy = lsy + NUM_GRID_WLSR_Y - NUM_GRID_Y;
+    }
+    
+    gsx = (lsx/NUM_GRID_X) * TILE_NUM_GUI_GRID_X;
+    gsy = (lsy/NUM_GRID_Y) * TILE_NUM_GUI_GRID_Y;
+    
+    &device xRef, rRef;
+    
+    if(ty*2 < NUM_TILE_Y)
+   {
+    gsx = gsx - 1200;   // (dx,dy) = (-1200,1200)
+    
+    &device wRef;
+    wRef = <device IOCKDLY @[lsx,lsy]  of ARCHITECTURE>;
+    string strVar0;
+    sprintf(strVar0, "IOCKDLY_%d_%d", lsx, lsy);
+    device IOCKDLY  ( symbol logsym_w )  *strVar0  @[gsx+100+1200,gsy+630-5*1200];
+    map 
+    ( 
+         <instance *strVar0>   => wRef
+     );
+    
+    wRef = <device IOCKDLYMUX @[lsx,lsy+1]  of ARCHITECTURE>;
+    string strVar1;
+    sprintf(strVar1, "IOCKDLYMUX_%d_%d", lsx, lsy+1);
+    device IOCKDLYMUX  ( symbol logsym_w )  *strVar1  @[gsx+200+1200,gsy+600-5*1200];
+    map 
+    ( 
+         <instance *strVar1>   => wRef
+     );
+     
+    wRef = <device IOCKDLY @[lsx,lsy+2]  of ARCHITECTURE>;
+    string strVar2;
+    sprintf(strVar2, "IOCKDLY_%d_%d", lsx, lsy+2);
+    device IOCKDLY  ( symbol logsym_w )  *strVar2  @[gsx+100+1200,gsy+830-5*1200];
+    map 
+    ( 
+         <instance *strVar2>   => wRef
+     );
+     
+    wRef = <device IOCKDLYMUX @[lsx,lsy+3]  of ARCHITECTURE>;
+    string strVar3;
+    sprintf(strVar3, "IOCKDLYMUX_%d_%d", lsx, lsy+3);
+    device IOCKDLYMUX  ( symbol logsym_w )  *strVar3  @[gsx+200+1200,gsy+800-5*1200];
+    map 
+    ( 
+         <instance *strVar3>   => wRef
+     );
+   
+    wRef = <device IOCKGMUX @[lsx,lsy+4]  of ARCHITECTURE>;
+    string strVar4;
+    sprintf(strVar4, "IOCKGMUX_%d_%d", lsx, lsy+4);
+    device IOCKGMUX  ( symbol logsym_w )  *strVar4  @[gsx+300+1200,gsy+450+70-5*1200];
+    map 
+    ( 
+         <instance *strVar4>   => wRef
+     );
+     
+    wRef = <device IOCKGMUX_OUT @[lsx,lsy+6]  of ARCHITECTURE>;
+    string strVar5;
+    sprintf(strVar5, "IOCKGMUX_OUT_%d_%d", lsx, lsy+6);
+    device IOCKGMUX_OUT  ( symbol logsym )  *strVar5  @[gsx+400+1200,gsy+450+35-5*1200];
+    map 
+    ( 
+         <instance *strVar5>   => wRef
+     );
+     
+    wRef = <device IOCKGMUX_TEST @[lsx,lsy+5]  of ARCHITECTURE>;
+    string strVar6;
+    sprintf(strVar6, "IOCKGMUX_TEST_%d_%d", lsx, lsy+5);
+    device IOCKGMUX_TEST  ( symbol logsym )  *strVar6  @[gsx+300+1200,gsy+450-5*1200];
+    map 
+    ( 
+         <instance *strVar6>   => wRef
+    ); 
+    
+    wRef = <device IOCKGATE @[lsx+1,lsy]  of ARCHITECTURE>;
+    string strVar7;
+    sprintf(strVar7, "IOCKGATE_%d_%d", lsx+1, lsy);
+    device IOCKGATE  ( symbol logsym_w )  *strVar7  @[gsx+500+1200,gsy+505-5*1200];
+    map 
+    ( 
+         <instance *strVar7>   => wRef
+     ); 
+     
+    wRef = <device IOCKDIV @[lsx+1,lsy+1]  of ARCHITECTURE>;
+    string strVar8;
+    sprintf(strVar8, "IOCKDIV_%d_%d", lsx+1, lsy+1);
+    device IOCKDIV  ( symbol logsym_w )  *strVar8  @[gsx+600+1200,gsy+470-5*1200];
+    map 
+    ( 
+         <instance *strVar8>   => wRef
+     ); 
+     
+    wRef = <device IOCKDLY @[lsx+1,lsy+5]  of ARCHITECTURE>;
+    string strVar15;
+    sprintf(strVar15, "IOCKDLY_%d_%d", lsx+1, lsy+5);
+    device IOCKDLY  ( symbol logsym_w )  *strVar15  @[gsx+100+1200,gsy+30-5*1200];
+    map 
+    ( 
+         <instance *strVar15>   => wRef
+     );
+    
+    wRef = <device IOCKDLYMUX @[lsx+1,lsy+6]  of ARCHITECTURE>;
+    string strVar16;
+    sprintf(strVar16, "IOCKDLYMUX_%d_%d", lsx+1, lsy+6);
+    device IOCKDLYMUX  ( symbol logsym_w )  *strVar16  @[gsx+200+1200,gsy+0-5*1200];
+    map 
+    ( 
+         <instance *strVar16>   => wRef
+     );
+     
+    wRef = <device IOCKDLY @[lsx+1,lsy+7]  of ARCHITECTURE>;
+    string strVar17;
+    sprintf(strVar17, "IOCKDLY_%d_%d", lsx+1, lsy+7);
+    device IOCKDLY  ( symbol logsym_w )  *strVar17  @[gsx+100+1200,gsy+230-5*1200];
+    map 
+    ( 
+         <instance *strVar17>   => wRef
+     );
+    
+    wRef = <device IOCKDLYMUX @[lsx+3,lsy+3]  of ARCHITECTURE>;
+    string strVar18;
+    sprintf(strVar18, "IOCKDLYMUX_%d_%d", lsx+3, lsy+3);
+    device IOCKDLYMUX  ( symbol logsym_w )  *strVar18  @[gsx+200+1200,gsy+200-5*1200];
+    map 
+    ( 
+         <instance *strVar18>   => wRef
+     );
+     
+     wRef = <device IOCKGMUX @[lsx+3,lsy+2]  of ARCHITECTURE>;
+    string strVar19;
+    sprintf(strVar19, "IOCKGMUX_%d_%d", lsx+3, lsy+2);
+    device IOCKGMUX  ( symbol logsym_w )  *strVar19  @[gsx+300+1200,gsy+350-5*1200];
+    map 
+    ( 
+         <instance *strVar19>   => wRef
+     );
+     
+    wRef = <device IOCKGMUX_OUT @[lsx+3,lsy]  of ARCHITECTURE>;
+    string strVar20;
+    sprintf(strVar20, "IOCKGMUX_OUT_%d_%d", lsx+3, lsy);
+    device IOCKGMUX_OUT  ( symbol logsym )  *strVar20  @[gsx+400+1200,gsy+350-70+35-5*1200];
+    map 
+    ( 
+         <instance *strVar20>   => wRef
+     );
+     
+    wRef = <device IOCKGMUX_TEST @[lsx+3,lsy+1]  of ARCHITECTURE>;
+    string strVar21;
+    sprintf(strVar21, "IOCKGMUX_TEST_%d_%d", lsx+3, lsy+1);
+    device IOCKGMUX_TEST  ( symbol logsym )  *strVar21  @[gsx+300+1200,gsy+350-70-5*1200];
+    map 
+    ( 
+         <instance *strVar21>   => wRef
+     );
+     
+    wRef = <device IOCKGATE @[lsx+2,lsy]  of ARCHITECTURE>;
+    string strVar22;
+    sprintf(strVar22, "IOCKGATE_%d_%d", lsx+2, lsy);
+    device IOCKGATE  ( symbol logsym_w )  *strVar22  @[gsx+500+1200,gsy+335-5*1200];
+    map 
+    ( 
+         <instance *strVar22>   => wRef
+     ); 
+     
+    wRef = <device IOCKDIV @[lsx+2,lsy+1]  of ARCHITECTURE>;
+    string strVar23;
+    sprintf(strVar23, "IOCKDIV_%d_%d", lsx+2, lsy+1);
+    device IOCKDIV  ( symbol logsym_w )  *strVar23  @[gsx+600+1200,gsy+370-5*1200];
+    map 
+    ( 
+         <instance *strVar23>   => wRef
+     );
+     
+    gsx = gsx + 1200;   // (dx,dy) = (1200,1200)
+    
+    &device xRef;     
+    xRef  = <device DLLMUX  @[lsx+2,lsy+2]     of ARCHITECTURE>;
+    string strVar30;
+    sprintf(strVar30, "DLLMUX_%d_%d", lsx+2, lsy+2);
+    device DLLMUX   ( symbol logsym_w )  *strVar30  @[gsx+600,gsy+430-5*1200];
+    map 
+    ( 
+        <instance *strVar30>   => xRef
+     );   
+     
+     // Pull out the device instances from logic structure  
+    &device mRef;
+    mRef  = <device DLL  @[lsx+2,lsy+3]     of ARCHITECTURE>;
+    string strVar31;
+    sprintf(strVar31, "DLL_%d_%d", lsx+2, lsy+3);
+    device DLL   ( symbol logsym )  *strVar31  @[gsx+700,gsy+320-5*1200];
+    map 
+    ( 
+        <instance *strVar31>   => mRef
+     );     
+   }
+   else
+   {
+      gsx = gsx + 1200;   // (dx,dy) = (1200,1200)
+    
+    &device wRef;
+    wRef = <device IOCKDLY @[lsx,lsy]  of ARCHITECTURE>;
+    string strVar0;
+    sprintf(strVar0, "IOCKDLY_%d_%d", lsx, lsy);
+    device IOCKDLY  ( symbol logsym_e )  *strVar0  @[gsx+1100-1200,gsy+630+1200*2];
+    map 
+    ( 
+         <instance *strVar0>   => wRef
+     );
+    
+    wRef = <device IOCKDLYMUX @[lsx,lsy+1]  of ARCHITECTURE>;
+    string strVar1;
+    sprintf(strVar1, "IOCKDLYMUX_%d_%d", lsx, lsy+1);
+    device IOCKDLYMUX  ( symbol logsym_e )  *strVar1  @[gsx+1000-1200,gsy+600+1200*2];
+    map 
+    ( 
+         <instance *strVar1>   => wRef
+     );
+     
+    wRef = <device IOCKDLY @[lsx,lsy+2]  of ARCHITECTURE>;
+    string strVar2;
+    sprintf(strVar2, "IOCKDLY_%d_%d", lsx, lsy+2);
+    device IOCKDLY  ( symbol logsym_e )  *strVar2  @[gsx+1100-1200,gsy+830+1200*2];
+    map 
+    ( 
+         <instance *strVar2>   => wRef
+     );
+    
+    wRef = <device IOCKDLYMUX @[lsx,lsy+3]  of ARCHITECTURE>;
+    string strVar3;
+    sprintf(strVar3, "IOCKDLYMUX_%d_%d", lsx, lsy+3);
+    device IOCKDLYMUX  ( symbol logsym_e )  *strVar3  @[gsx+1000-1200,gsy+800+1200*2];
+    map 
+    ( 
+         <instance *strVar3>   => wRef
+     );
+     
+    wRef = <device IOCKGMUX @[lsx,lsy+4]  of ARCHITECTURE>;
+    string strVar4;
+    sprintf(strVar4, "IOCKGMUX_%d_%d", lsx, lsy+4);
+    device IOCKGMUX  ( symbol logsym_e )  *strVar4  @[gsx+900-1200,gsy+450+70+1200*2];
+    map 
+    ( 
+         <instance *strVar4>   => wRef
+     );
+     
+    wRef = <device IOCKGMUX_OUT @[lsx,lsy+6]  of ARCHITECTURE>;
+    string strVar5;
+    sprintf(strVar5, "IOCKGMUX_OUT_%d_%d", lsx, lsy+6);
+    device IOCKGMUX_OUT  ( symbol logsym_e )  *strVar5  @[gsx+800-1200,gsy+450+35+1200*2];
+    map 
+    ( 
+         <instance *strVar5>   => wRef
+     );
+     
+    wRef = <device IOCKGMUX_TEST @[lsx,lsy+5]  of ARCHITECTURE>;
+    string strVar6;
+    sprintf(strVar6, "IOCKGMUX_TEST_%d_%d", lsx, lsy+5);
+    device IOCKGMUX_TEST  ( symbol logsym_e )  *strVar6  @[gsx+900-1200,gsy+450+1200*2];
+    map 
+    ( 
+         <instance *strVar6>   => wRef
+     ); 
+     
+    wRef = <device IOCKGATE @[lsx+1,lsy]  of ARCHITECTURE>;
+    string strVar7;
+    sprintf(strVar7, "IOCKGATE_%d_%d", lsx+1, lsy);
+    device IOCKGATE  ( symbol logsym_e )  *strVar7  @[gsx+700-1200,gsy+505+1200*2];
+    map 
+    ( 
+         <instance *strVar7>   => wRef
+     ); 
+     
+    wRef = <device IOCKDIV @[lsx+1,lsy+1]  of ARCHITECTURE>;
+    string strVar8;
+    sprintf(strVar8, "IOCKDIV_%d_%d", lsx+1, lsy+1);
+    device IOCKDIV  ( symbol logsym_e )  *strVar8  @[gsx+600-1200,gsy+470+1200*2];
+    map 
+    ( 
+         <instance *strVar8>   => wRef
+     ); 
+     
+    // (dx,dy) = (1200,1200)
+    wRef = <device IOCKDLY @[lsx+1,lsy+5]  of ARCHITECTURE>;
+    string strVar15;
+    sprintf(strVar15, "IOCKDLY_%d_%d", lsx+1, lsy+5);
+    device IOCKDLY  ( symbol logsym_e )  *strVar15  @[gsx+1100-1200,gsy+30+1200*2];
+    map 
+    ( 
+         <instance *strVar15>   => wRef
+     );
+    
+    wRef = <device IOCKDLYMUX @[lsx+1,lsy+6]  of ARCHITECTURE>;
+    string strVar16;
+    sprintf(strVar16, "IOCKDLYMUX_%d_%d", lsx+1, lsy+6);
+    device IOCKDLYMUX  ( symbol logsym_e )  *strVar16  @[gsx+1000-1200,gsy+0+1200*2];
+    map 
+    ( 
+         <instance *strVar16>   => wRef
+     );
+     
+    wRef = <device IOCKDLY @[lsx+1,lsy+7]  of ARCHITECTURE>;
+    string strVar17;
+    sprintf(strVar17, "IOCKDLY_%d_%d", lsx+1, lsy+7);
+    device IOCKDLY  ( symbol logsym_e )  *strVar17  @[gsx+1100-1200,gsy+230+1200*2];
+    map 
+    ( 
+         <instance *strVar17>   => wRef
+     );
+    
+    wRef = <device IOCKDLYMUX @[lsx+3,lsy+3]  of ARCHITECTURE>;
+    string strVar18;
+    sprintf(strVar18, "IOCKDLYMUX_%d_%d", lsx+3, lsy+3);
+    device IOCKDLYMUX  ( symbol logsym_e )  *strVar18  @[gsx+1000-1200,gsy+200+1200*2];
+    map 
+    ( 
+         <instance *strVar18>   => wRef
+     );
+    
+    wRef = <device IOCKGMUX @[lsx+3,lsy+2]  of ARCHITECTURE>;
+    string strVar19;
+    sprintf(strVar19, "IOCKGMUX_%d_%d", lsx+3, lsy+2);
+    device IOCKGMUX  ( symbol logsym_e )  *strVar19  @[gsx+900-1200,gsy+350+1200*2];
+    map 
+    ( 
+         <instance *strVar19>   => wRef
+     );
+     
+    wRef = <device IOCKGMUX_OUT @[lsx+3,lsy]  of ARCHITECTURE>;
+    string strVar20;
+    sprintf(strVar20, "IOCKGMUX_OUT_%d_%d", lsx+3, lsy);
+    device IOCKGMUX_OUT  ( symbol logsym_e )  *strVar20  @[gsx+800-1200,gsy+350-70+35+1200*2];
+    map 
+    ( 
+         <instance *strVar20>   => wRef
+     );
+     
+    wRef = <device IOCKGMUX_TEST @[lsx+3,lsy+1]  of ARCHITECTURE>;
+    string strVar21;
+    sprintf(strVar21, "IOCKGMUX_TEST_%d_%d", lsx+3, lsy+1);
+    device IOCKGMUX_TEST  ( symbol logsym_e )  *strVar21  @[gsx+900-1200,gsy+350-70+1200*2];
+    map 
+    ( 
+         <instance *strVar21>   => wRef
+     );
+     
+    wRef = <device IOCKGATE @[lsx+2,lsy]  of ARCHITECTURE>;
+    string strVar22;
+    sprintf(strVar22, "IOCKGATE_%d_%d", lsx+2, lsy);
+    device IOCKGATE  ( symbol logsym_e )  *strVar22  @[gsx+700-1200,gsy+335+1200*2];
+    map 
+    ( 
+         <instance *strVar22>   => wRef
+     ); 
+     
+    wRef = <device IOCKDIV @[lsx+2,lsy+1]  of ARCHITECTURE>;
+    string strVar23;
+    sprintf(strVar23, "IOCKDIV_%d_%d", lsx+2, lsy+1);
+    device IOCKDIV  ( symbol logsym_e )  *strVar23  @[gsx+600-1200,gsy+370+1200*2];
+    map 
+    ( 
+         <instance *strVar23>   => wRef
+     ); 
+
+    gsx = gsx - 1200;   // (dx,dy) = (-1200,1200)
+    
+    &device xRef;     
+    xRef  = <device DLLMUX  @[lsx+2,lsy+2]     of ARCHITECTURE>;
+    string strVar30;
+    sprintf(strVar30, "DLLMUX_%d_%d", lsx+2, lsy+2);
+    device DLLMUX   ( symbol logsym )  *strVar30  @[gsx+1000-600,gsy+430+1200*2];
+    map 
+    ( 
+        <instance *strVar30>   => xRef
+     );   
+     
+     // Pull out the device instances from logic structure  
+    &device mRef;
+    mRef  = <device DLL  @[lsx+2,lsy+3]     of ARCHITECTURE>;
+    string strVar31;
+    sprintf(strVar31, "DLL_%d_%d", lsx+2, lsy+3);
+    device DLL   ( symbol logsym_1 )  *strVar31  @[gsx+900-600,gsy+320+1200*2];
+    map 
+    ( 
+        <instance *strVar31>   => mRef
+     );
+   }
+  }
+}

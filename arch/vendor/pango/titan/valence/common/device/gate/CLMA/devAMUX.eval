@@ -1,0 +1,112 @@
+*****************************************************************
+
+  Device    [devAMUX]
+
+  Author    []
+
+  Abstract  [THE DEVICE CAN BE USED FOR WMUX.]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devAMUX : device devA
+{
+    parameter
+    (
+        config bit INITA[31:0]       = 32'h0000_0000,        
+        config string FGA_MODE       = "WMUX",              // "LUT5" "ROM" "WMUX" "ARITH"        
+        config string Y0MUX_SEL      := "FG"                // "FFAB" "FG" "CY" 
+    );
+    
+    port
+    (
+        input    A0, A1, A2, A3, A4, AD,
+        output   Y0
+    );
+}; // end of device devAMUX
+
+
+/*******************************************************************************
+
+  Device    [devAMUX]
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devAMUX
+{
+    // Wires for input ports
+    wire ntA0, ntA1, ntA2, ntA3, ntA4, ntAD; 
+
+    // Wires connecting to output ports
+
+    wire ntY0MUX;
+
+    // Internal wires
+    wire ntFGA_Z;
+
+    //
+    // Connection to ports
+    //
+ 
+    ntA0      <= A0;
+    ntA1      <= A1;
+    ntA2      <= A2;
+    ntA3      <= A3;
+    ntA4      <= A4;
+    ntAD      <= AD;
+    Y0        <= ntY0MUX;
+    
+    //
+    // Instances. FGA section
+    //
+
+    device FGA FGA 
+        parameter map
+        (
+            INIT        => INITA,
+            MODE        => FGA_MODE
+        )
+        port map 
+        (
+            A0   => ntA0, A1  => ntA1, A2  => ntA2, A3  => ntA3, A4  => ntA4,       
+            A5   => ntAD,
+            Z    => ntFGA_Z 
+        );
+
+    device Y0MUX Y0MUX
+        parameter map
+        (
+            CFG  => Y0MUX_SEL
+        )      
+        port map
+        (
+            FG  => ntFGA_Z,
+            Z   => ntY0MUX
+        );
+}; // end of structure netlist of devAMUX
+
+timing tnl of devAMUX
+{
+  operator V_LUT5M V_FGA 
+      parameter map            
+      (                        
+          SECTION  => "A",
+          INIT     => INITA
+      )                        
+      port map                
+      (                   
+          I0  => A0,       
+          ID  => AD,       
+          I1  => A1,       
+          I2  => A2,       
+          I3  => A3,
+          I4  => A4,       
+          Z   => Y0        
+      );
+};                

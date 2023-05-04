@@ -1,0 +1,191 @@
+*****************************************************************
+
+  Device    [IPAL]
+
+  Author    [guoxi]
+
+  Abstract  [The Grid Device IPAL]
+
+  Revision History:
+
+********************************************************************************/
+//grid device started
+grid
+device IPAL
+{
+    // grid_property_def_start
+    // grid_property_def_end
+
+    parameter
+    (
+        config string CP_USER_EN_RBCRC = "DISABLE",
+        config string CP_USER_EN_SEU = "DISABLE",
+        config string CP_USER_EN_IPAL = "DISABLE",
+        config string CP_IPAL_M = "X8"
+    );
+    port
+    (
+// configuration_body_def_on
+
+
+    config input SC_USER_EN_RBCRC = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_USER_EN_RBCRC" */,
+
+    config input SC_USER_EN_SEU = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_USER_EN_SEU" */,
+
+    config input SC_USER_EN_IPAL = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_USER_EN_IPAL" */,
+
+    config input SC_IPAL_M[1:0] = 2'h0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_IPAL_M[1],SC_IPAL_M[0]" */,
+
+// configuration_body_def_end
+
+        input IPAL_DIN[31:0] = 32'b1111_1111_1111_1111_1111_1111_1111_1111,
+        input IPAL_CLK = 1'b1,
+        input IPAL_CS_N = 1'b1,
+        input IPAL_RDWR_N = 1'b1,
+        output IPAL_DOUT[31:0],
+        output SEU_INDEX[11:0],
+        output IPAL_BUSY,
+        output RBCRC_ERR,
+        output RBCRC_VALID,
+        output SEU_VALID,
+        output SEU_SEC,
+        output SEU_DED
+    );
+};
+//grid device end
+
+
+/*******************************************************************************
+
+  Device    [IPAL]
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+//grid device structure netlist started
+
+structure netlist of IPAL
+{
+   
+
+  
+}; // end of structure netlist of IPAL
+//grid device structure netlist end
+
+
+//grid device configure body started
+
+configuration cfg of IPAL
+{
+
+//initial config body0 begin
+    if(CP_USER_EN_RBCRC == "ENABLE")
+    {
+        SC_USER_EN_RBCRC  :=  1'b1;
+    }
+    else if(CP_USER_EN_RBCRC == "DISABLE")
+    {
+        SC_USER_EN_RBCRC  :=  1'b0;
+    }
+    else
+    {
+        SC_USER_EN_RBCRC  :=  1'bx;
+        error ("illegal setting for CP_USER_EN_RBCRC := %s",CP_USER_EN_RBCRC);
+    }
+
+//initial config body0 end
+
+
+//initial config body1 begin
+    if(CP_USER_EN_SEU == "ENABLE")
+    {
+        SC_USER_EN_SEU  :=  1'b1;
+    }
+    else if(CP_USER_EN_SEU == "DISABLE")
+    {
+        SC_USER_EN_SEU  :=  1'b0;
+    }
+    else
+    {
+        SC_USER_EN_SEU  :=  1'bx;
+        error ("illegal setting for CP_USER_EN_SEU := %s",CP_USER_EN_SEU);
+    }
+
+//initial config body1 end
+
+
+//initial config body2 begin
+    if(CP_USER_EN_IPAL == "ENABLE")
+    {
+        SC_USER_EN_IPAL  :=  1'b1;
+    }
+    else if(CP_USER_EN_IPAL == "DISABLE")
+    {
+        SC_USER_EN_IPAL  :=  1'b0;
+    }
+    else
+    {
+        SC_USER_EN_IPAL  :=  1'bx;
+        error ("illegal setting for CP_USER_EN_IPAL := %s",CP_USER_EN_IPAL);
+    }
+
+//initial config body2 end
+
+
+//initial config body3 begin
+    if(CP_IPAL_M == "X8")
+    {
+        SC_IPAL_M  :=  2'b00;
+    }
+    else if(CP_IPAL_M == "X16")
+    {
+        SC_IPAL_M :=  2'b01;
+    }
+    else if(CP_IPAL_M == "X32")
+    {
+        SC_IPAL_M  :=  2'b10;
+    }
+    else
+    {
+        SC_IPAL_M  :=  2'bxx;
+        error ("illegal setting SC_IPAL_Mfor  := %s",CP_IPAL_M);
+    }
+
+//initial config body3 end
+
+};
+
+//grid device configure body end
+
+timing ipal_tnl of IPAL
+{   
+   operator V_IPAL_E1 V_IPAL_E1
+        parameter map
+        (
+            DATA_WIDTH   => CP_IPAL_M,
+            SIM_DEVICE   => "PGL22G"
+        )
+        port map
+        (
+            CLK           =>  IPAL_CLK    ,
+            CS_N          =>  IPAL_CS_N   ,
+            RW_SEL        =>  IPAL_RDWR_N ,
+            DI            =>  IPAL_DIN    ,
+            DO            =>  IPAL_DOUT   ,
+            BUSY          =>  IPAL_BUSY   ,
+            RBCRC_ERR     =>  RBCRC_ERR   ,
+            RBCRC_VALID   =>  RBCRC_VALID ,
+            ECC_VALID     =>  SEU_VALID   ,
+            ECC_INDEX     =>  SEU_INDEX   ,
+            SERROR        =>  SEU_SEC     ,
+            DERROR        =>  SEU_DED     
+        );
+};

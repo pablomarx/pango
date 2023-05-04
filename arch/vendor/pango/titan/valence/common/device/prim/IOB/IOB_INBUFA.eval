@@ -1,0 +1,80 @@
+*****************************************************************
+
+  Device    [IOB_INBUFA]
+
+  Author    [hzhang]
+
+  Abstract  [INBUT WITH COMP PAD OF IOB]
+
+  Revision History:
+
+********************************************************************************/
+prim
+device IOB_INBUFA
+{
+    parameter
+    (
+        config string IOB_MODE           = "UNUSED",  // "IBUF", "OBUF", "IOBUF", "OBUFT", "IBUFDS", "OBUFDS", "IOBUFDS"
+        config string DDR_TERM_MODE      = "ON",      // "TERM": "ON" "OFF"     
+        config string DIFF_IN_TERM_MODE  = "ON",      // "ON" "OFF" 
+        config string IOSTANDARD         = "DEFAULT"
+    );
+    port
+    (
+         input  IN,
+         input  DIFFI_IN,
+         output O
+    );
+
+}; // end of device IOB_INBUFA
+
+
+propagation prop of IOB_INBUFA
+{
+    if (!strcmp(IOB_MODE, "IBUF") || !strcmp(IOB_MODE, "IOBUF"))
+    {
+        propagate ( IN |-> O );
+    }
+    else if (!strcmp(IOB_MODE, "IBUFDS") || !strcmp(IOB_MODE, "IOBUFDS"))
+    {
+        propagate ( IN        |-> O );
+        propagate ( DIFFI_IN  |-> O );
+    }
+};
+
+timing tnl of IOB_INBUFA
+{
+    if (!strcmp(IOB_MODE, "IBUF") || !strcmp(IOB_MODE, "IOBUF"))
+    {
+        operator V_IBUF ibuf
+        parameter map
+        (
+            IOSTANDARD => IOSTANDARD,
+            TERM_DDR   => DDR_TERM_MODE
+        )
+        port map
+        (
+            I => IN,
+            O => O
+        );
+    }
+    else if (!strcmp(IOB_MODE, "IBUFDS") || !strcmp(IOB_MODE, "IOBUFDS"))
+    {
+        operator V_IBUFDS ibufds
+        parameter map
+        (
+            IOSTANDARD => IOSTANDARD,
+            TERM_DIFF => DIFF_IN_TERM_MODE
+        )
+        port map
+        (
+            I  => IN,
+            IB => DIFFI_IN,
+            O  => O
+        );
+    }
+    else
+    {
+        error("Config error IOB_MODE = %s ",IOB_MODE);
+    }
+} 

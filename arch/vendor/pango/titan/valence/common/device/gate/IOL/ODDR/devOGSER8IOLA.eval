@@ -1,0 +1,339 @@
+*****************************************************************
+
+  Device    [devOGSER8IOLA]
+
+  Author    [hzhang]
+
+  Abstract  [devOGSER8IOLA on the TOP/RIGHT/BOTTOM of Arch.]
+
+  Revision History:
+
+********************************************************************************/
+
+gate
+device devOGSER8IOLA : device IOL
+{
+    parameter
+    (
+        config string DO_SEL         = "DO",   // "DO", "DO_COMP"
+        config string TO_SEL         = "TO",   // "TO", "TO_COMP"
+
+        config string TS_MUX_SEL    := "TS_ODDR",
+        config string OUT_MUX_SEL   := "ODDR_DO",
+
+        config string DELAY_MODE     = "NODELAY",      //"NODELAY", "INDELAY", "OUTDELAY",
+
+        config string DES_SER_CLK    = "IOCLK",        // "IOCLK", "SAMPLE_CLK", "PROBE_CLK"
+        
+        config bit    ODDR_LRS_EN    = 1'b0,
+        config string ODDR_OCLK     := "SERCLK",         // "SERCLK", "WCLK", "WCLKDEL", "SYSCLK"
+        config string ODDR_MODE     := "OGSER8",       //"OGDDR", "OGSER4", "OGSER7", "OGSER8", "OGSER10"
+                                                       //"OMDDR", "OMSER4", "OMSER8" ,"DISABLE"
+
+        config bit    GRS_EN         = 1'b0,
+        config bit    CLK_O_INV      = 1'b0,
+        config bit    LRS_INV        = 1'b0,
+
+        config bit    TRI_FORCE[1:0]  := 2'b11
+    );
+    port
+    (
+        input   TX_DATA[5:0],
+        input   TS_CTRL[3:0],
+
+        input   IOCLK,
+
+        input   SAMPLE_CLK,
+        input   PROBE_CLK,
+
+        input   SYSCLK,
+        input   LRS,
+    
+        // from/to IOB
+        output  TO,
+        output  DO,
+
+        input   ODDR_CIN[16:0],
+        output  ODDR_COUT[16:0],
+
+        output  DO_OUT,
+        output  TO_OUT
+    );
+
+}// end of device devOGSER8IOLA
+
+/*******************************************************************************
+
+  Device    [devOGSER8IOLA]
+
+  Author    []
+
+  Abstract  [The structure netlist of devOGSER8IOLA is described in the similar fashion
+             as in HDL. In unit instantiation statement, the formal pin may be
+             connected to net which is declared explicitly.
+
+             In Valence, the connection can also be made from formal pin to other
+             pin or port, in which case Valence compiler shall create the net to
+             fulfil the connection. The built-in naming convention is kicked in
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devOGSER8IOLA
+{
+    // Wires for input ports
+
+    wire ntSYSCLK, ntLRS;
+
+    wire ntSAMPLE_CLK;
+    wire ntPROBE_CLK;
+
+    ntSYSCLK          <= SYSCLK;
+    ntLRS             <= LRS;
+
+    ntSAMPLE_CLK      <= SAMPLE_CLK;
+    ntPROBE_CLK       <= PROBE_CLK;
+
+
+    // Wires connecting to output ports
+
+
+    wire ntTS_MUX;
+    wire ntOUT_DELSEL_MUX;
+
+
+
+    wire  ntDO_MUX, ntTO_MUX;
+
+    TO_OUT    <= ntTS_MUX;
+    DO_OUT    <= ntOUT_DELSEL_MUX;
+    
+    TO        <= ntTO_MUX;
+    DO        <= ntDO_MUX;
+
+    // Internal wires
+    wire ntLRS_MUX;
+    
+
+    wire ntSYSCLK_MUX_O;
+
+
+    wire ntIOCLK;
+    ntIOCLK <= IOCLK;
+    wire ntODDR_SERCLK_MUX;
+    wire ntODDR_OCLK_MUX;
+    wire ntODDR_LRS_MUX;
+    wire ntODDR_TS;
+    wire ntODDR_TX;
+
+
+    
+
+    wire ntOUTPUT_MUX;
+
+    device LRS_MUX LRS_MUX
+        parameter map
+        (
+            LRS_INV => LRS_INV
+        )
+        port map
+        (
+            I1  => ntLRS,
+            I0  => ntLRS,
+            Y   => ntLRS_MUX
+        );
+
+    device SYSCLK_MUX_O SYSCLK_MUX_O
+        parameter map
+        (
+            CLK_INV => CLK_O_INV
+        )
+        port map
+        (
+            I1   => ntSYSCLK,
+            I0   => ntSYSCLK,
+            Y    => ntSYSCLK_MUX_O
+        );
+
+    // ODDR
+    device ODDR_SERCLK_MUX ODDR_SERCLK_MUX
+        parameter map
+        (
+            SERCLK => DES_SER_CLK
+        )
+        port map
+        (
+            I2  => ntIOCLK,
+            I1  => ntSAMPLE_CLK,
+            I0  => ntPROBE_CLK,
+            Y   => ntODDR_SERCLK_MUX
+        );
+
+    device ODDR_OCLK_MUX ODDR_OCLK_MUX
+        parameter map
+        (
+            OCLK => ODDR_OCLK
+        )
+        port map
+        (
+            I3  => ntODDR_SERCLK_MUX,
+
+            Y   => ntODDR_OCLK_MUX
+        );
+
+    device ODDR_LRS_MUX ODDR_LRS_MUX
+        parameter map
+        (
+            LRS_USED => ODDR_LRS_EN
+        )
+        port map
+        (
+            LRS  => ntLRS_MUX,
+            ZERO  => 1'b0,
+            Y     => ntODDR_LRS_MUX
+        );
+
+    device ODDR ODDR
+        parameter map
+        (
+            ODDR_MODE => ODDR_MODE
+        )
+        port map
+        (
+            DATA         => TX_DATA,
+            TS           => TS_CTRL,
+            OCLK         => ntODDR_OCLK_MUX,
+            SYSCLK         => ntSYSCLK_MUX_O,
+            SERCLK       => ntODDR_SERCLK_MUX,
+
+            LRS          => ntODDR_LRS_MUX,
+        
+            //for cascaded parts
+            CIN          => ODDR_CIN,
+            COUT         => ODDR_COUT,
+
+            DO           => ntODDR_TX,
+            TO           => ntODDR_TS
+        );
+
+    // connected with TSFF & ODDR
+    device TS_MUX TS_MUX
+        parameter map
+        (
+            TS_SEL => TS_MUX_SEL
+        )
+        port map
+        (
+            I0  => ntODDR_TS,
+            Y   => ntTS_MUX
+        );
+  
+    // connected with OFF & ODDR
+
+    device OUTPUT_MUX OUTPUT_MUX
+        parameter map
+        (
+           OUT_SEL    => OUT_MUX_SEL
+        )
+        port map
+        (
+            I1  => ntODDR_TX,
+            Y   => ntOUTPUT_MUX
+        );
+
+   // DELAY
+
+    device OUT_DELSEL_MUX OUT_DELSEL_MUX
+        parameter map
+        (
+           DELAY_MODE => DELAY_MODE
+        )
+        port map
+        (
+            I0   => ntOUTPUT_MUX,
+            Y    => ntOUT_DELSEL_MUX
+        );
+
+    device DO_MUX DO_MUX
+       parameter map
+       (
+           DO_SEL  => DO_SEL
+       )
+       port map
+       (
+           I0   => ntOUT_DELSEL_MUX,
+
+           Y    => ntDO_MUX
+       );
+
+    device TO_MUX TO_MUX
+       parameter map
+       (
+           TO_SEL  => TO_SEL
+       )
+       port map
+       (
+           I0   => ntTS_MUX,
+
+           Y    => ntTO_MUX
+       );
+
+}; // end of structure netlist of devOGSER8IOLA
+
+
+timing tnl of devOGSER8IOLA
+{
+    wire ntCK_O_INV;
+    wire ntCE_INV;
+    wire ntRS_INV;
+    wire ntSER_CLK;
+
+    if (CLK_O_INV == 1'b1)
+    {
+        operator V_INV ckinv
+            parameter map
+            (
+                SECTION => "IOL_CLK_O_INV"
+            )
+            port map
+            (
+                I => SYSCLK,
+                Z => ntCK_O_INV
+            );
+    }
+
+    if (LRS_INV == 1'b1)
+    {
+        operator V_INV rsinv
+            parameter map
+            (
+                SECTION => "IOL_SR_INV"
+            )
+            port map
+            (
+                I => LRS,
+                Z => ntRS_INV
+            );
+    }
+
+    operator V_OGSER8 ogser8
+        parameter map
+        (
+            LRS_EN      =>  ( ODDR_LRS_EN == 1'b1) ? "TRUE" : "FALSE", 
+            GRS_EN      =>  ( GRS_EN == 1'b1)      ? "TRUE" : "FALSE"
+        )
+        port map
+        (
+            D[5:0]    =>   TX_DATA,
+            T         =>   TS_CTRL,
+            RCLK      =>   (CLK_O_INV == 1'b1) ?  ntCK_O_INV : SYSCLK,
+            RST       =>   (LRS_INV   == 1'b1) ?  ntRS_INV   : LRS ,
+            SERCLK    =>   ((DES_SER_CLK == "IOCLK" ) ? IOCLK : ((DES_SER_CLK == "SAMPLE_CLK") ? SAMPLE_CLK : ((DES_SER_CLK == "PROBE_CLK") ? PROBE_CLK : 1'bx))),
+            PADO      =>   DO,
+            PADT      =>   TO
+        );        
+};

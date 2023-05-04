@@ -1,0 +1,109 @@
+*****************************************************************
+
+  Device    [FF]
+
+  Author    [yqtan]
+
+  Abstract  [The Prim Device Of CLMA or CLMS]
+
+  Revision History:
+
+********************************************************************************/
+prim
+device FF
+{
+    parameter
+    (
+        config string CP_GRS_EN  = "FALSE",
+        config string CP_RS_MODE = "ASYNC",    //"ASYNC" "SYNC"
+        config string CP_FF_RS   = "SET"       //"SET" "RESET"
+    );
+    port 
+    ( 
+        // Input Ports of FF
+        input D,
+        input CLK,
+        input CE,
+        input RS,
+        
+        // Output Ports for FF
+        output Q
+    );
+
+};
+
+/**Device***********************************************************************
+
+  Device    [FF]
+
+  Abstract  [This specified how to propagate the input signal to the outputs based on
+             configuration]
+
+  Revision History:
+
+********************************************************************************/
+propagation pop of FF
+{
+    propagate ( D   |-> Q );
+    propagate ( RS  |-> Q );
+    propagate ( CE  |-> Q );
+    propagate ( CLK  |-> Q );
+
+}; // end of propagation for FF
+
+/**Device***********************************************************************
+
+  Device    [FF]
+
+  Author    [kongbiao]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+
+timing ff_tnl of FF
+{
+    if(CP_RS_MODE == "SYNC")
+    {
+        operator V_FFSYN FF
+            parameter map 
+            (
+                GRS_EN    => CP_GRS_EN,
+                SET_RESET => CP_FF_RS,
+                LRS_EN    => "TRUE"
+            )
+            port map 
+            (
+               Q => Q,
+               D => D, 
+               SR => RS, 
+               CK => CLK, 
+               CE => CE
+            ); 
+    }
+    else if(CP_RS_MODE == "ASYNC")
+    {
+        operator V_FFASYN FF
+            parameter map 
+            (
+                GRS_EN    => CP_GRS_EN,
+                SET_RESET => CP_FF_RS,
+                LRS_EN    => "TRUE"
+            )
+            port map 
+            (
+               Q => Q,
+               D => D, 
+               SR => RS, 
+               CK => CLK, 
+               CE => CE
+            ); 
+    } 
+    else
+    {
+        error("Illegal configuration to generate timing model");
+    }
+}; // End of timing netlist for FF
+

@@ -1,0 +1,384 @@
+*****************************************************************
+********************************************************************************/
+library work;
+use pgc_defs, pgc7km_defs;
+
+structure arch_nl connect_power_network of devPGC7KM
+{
+
+    &wire ntRef_ntVCCINT       = wire VCCINT;
+
+    &wire ntRef_ntVCC       = <wire ntVCC of architecture>;
+    &wire ntRef_ntVSS       = <wire ntVSS of architecture>;
+
+    &wire ntRef_ntEFB_TP    = <wire ntEFB_TP of architecture>;
+
+    &wire ntRef_ntVCCIO0 = <wire ntVCCIO0 of architecture>;
+    &wire ntRef_ntVCCIO1 = <wire ntVCCIO1 of architecture>;
+    &wire ntRef_ntVCCIO2 = <wire ntVCCIO2 of architecture>;
+
+    &wire ntRef_ntVSSIO0      = <wire ntVSSIO0   of architecture>;
+    &wire ntRef_ntVSSIO1      = <wire ntVSSIO1   of architecture>;
+    &wire ntRef_ntVSSIO2      = <wire ntVSSIO2   of architecture>;
+    &wire ntRef_ntVCCA_PLL    = <wire ntVCCA_PLL of architecture>;
+    &wire ntRef_ntVSSA_PLL    = <wire ntVSSA_PLL of architecture>;
+//  &wire ntRef_ntVCCA_BG     = <wire ntVCCA_BG  of architecture>;
+//  &wire ntRef_ntVSSA_BG     = <wire ntVSSA_BG  of architecture>;
+//  &wire ntRef_ntMIPI_CTRL   = <wire ntMIPI_CTRL  of architecture>;
+//    &wire ntRef_ntBG_TRIM_CP     = <wire ntBG_TRIM_CP  of architecture>;
+//  &wire ntRef_ntOSC_TRIM_CP     = <wire ntOSC_TRIM_CP  of architecture>;
+
+
+    unsigned int tx, ty;
+    unsigned int sx,sy;
+
+//  sx = ANALOG_TILE_X * NUM_GRID_X + 3;
+//  sy = ANALOG_TILE_Y * NUM_GRID_Y;
+
+//  string ccs = "CCS_7KM_TILE";
+//  string analog = "ANALOG_7KM_TILE";
+
+//  connect
+//    (
+//      <pin VCCA_BG of <device *analog @ [sx,sy]>>      => ntRef_ntVCCA_BG,
+//      <pin VCCA_BG of <device *analog @ [sx,sy]>>      => ntRef_ntVCC,
+//      <pin VCCINT of <device *analog @ [sx,sy]>>      => ntRef_ntVCCINT,
+//      <pin VSSA_BG of <device *analog @ [sx,sy]>>      => ntRef_ntVSSA_BG,
+//      <pin VSSA_BG of <device *analog @ [sx,sy]>>      => ntRef_ntVSS,
+//      <pin VSS of <device *analog @ [sx,sy]>>      => ntRef_ntVSS,
+//      <pin VCC of <device *analog @ [sx,sy]>>      => ntRef_ntVCC,
+//      <pin VCCIO of <device *analog @ [sx,sy]>>    => ntRef_ntVCCIO0
+//    );
+
+    foreach tx ( L_SRB_TILES_X )
+    {
+        foreach ty ( L_TILES_Y )
+        {
+          unsigned int sx,sy;
+          sx = tx * NUM_GRID_X;
+          sy = ty * NUM_GRID_Y;
+
+          connect
+            (
+               <pin VCCINT of <device SRB_TILE @ [sx,sy]>> => ntRef_ntVCCINT,
+               <pin VSS of <device SRB_TILE @ [sx,sy]>>    => ntRef_ntVSS
+            );
+        }
+    }
+
+    foreach tx ( L_CLMS_TILES_X )
+    {
+        foreach ty ( L_TILES_Y )
+        {
+          sx = tx * NUM_GRID_X + 3;
+          sy = ty * NUM_GRID_Y;
+
+          string clm = "CLMS_TILE";
+
+          connect
+            (
+               <pin VCCINT of <device *clm @ [sx,sy]>> => ntRef_ntVCCINT,
+               <pin VSS    of <device *clm @ [sx,sy]>> => ntRef_ntVSS
+            );
+          }
+    }
+
+    foreach tx ( L_CLMSS_TILES_X )
+    {
+        foreach ty ( L_TILES_Y )
+        {
+          sx = tx * NUM_GRID_X + 3;
+          sy = ty * NUM_GRID_Y;
+
+          string clm = "CLMSS_TILE";
+
+          connect
+            (
+               <pin VCCINT of <device *clm @ [sx,sy]>> => ntRef_ntVCCINT,
+               <pin VSS    of <device *clm @ [sx,sy]>> => ntRef_ntVSS
+            );
+          }
+    }
+
+    foreach tx ( L_DRM_TILES_X )
+    {
+        foreach ty ( L_DRM_TILES_Y )
+        {
+          sx = tx * NUM_GRID_X + 3;
+          sy = ty * NUM_GRID_Y;
+
+          connect
+            (
+              <pin VCCINT of <device DRM_TILE @ [sx,sy]>>  => ntRef_ntVCCINT,
+              <pin VSS    of <device DRM_TILE @ [sx,sy]>>    => ntRef_ntVSS
+            );
+        }
+    }
+
+
+
+    sx = USCM_TILE_X * NUM_GRID_X + 3;
+    sy = USCM_TILE_Y * NUM_GRID_Y;
+    string uscm = "USCM_7KM_TILE";
+
+    connect
+      (
+        <pin VCCINT of <device *uscm @ [sx,sy]>>  => ntRef_ntVCCINT,
+        <pin VSS    of <device *uscm @ [sx,sy]>>  => ntRef_ntVSS
+      );
+    
+
+
+
+
+
+//  foreach tx ( L_IOLL_TILES_X )
+//  {
+//      foreach ty ( L_IOLL_TILES_Y )
+//      {
+//        sx = tx * NUM_GRID_X + 3;
+//        sy = ty * NUM_GRID_Y;
+
+//        connect
+//          (
+//            <pin VCCINT of <device IOLL_TILE @ [sx,sy]>>  => ntRef_ntVCCINT,
+//            <pin VSS of <device IOLL_TILE @ [sx,sy]>>    => ntRef_ntVSS
+//          );
+//      }
+//  }
+
+//  foreach tx ( L_IOLR_TILES_X )
+//  {
+//      foreach ty ( L_IOLR_TILES_Y )
+//      {
+//        sx = tx * NUM_GRID_X + 3;
+//        sy = ty * NUM_GRID_Y;
+
+//        connect
+//          (
+//            <pin VCCINT of <device IOLR_TILE @ [sx,sy]>>  => ntRef_ntVCCINT,
+//            <pin VSS of <device IOLR_TILE @ [sx,sy]>>    => ntRef_ntVSS
+//          );
+//      }
+//  }
+
+
+
+
+    foreach tx ( L_CKEB_TILES_X )
+    {
+        foreach ty ( {CKEB_TILE_Y} )
+        {
+          sx = tx * NUM_GRID_X;
+          sy = ty * NUM_GRID_Y;
+
+          connect
+            (
+              <pin VCCINT of <device CKEB_TILE @ [sx,sy]>>  => ntRef_ntVCCINT,
+              <pin VSS    of <device CKEB_TILE @ [sx,sy]>>    => ntRef_ntVSS
+            );
+        }
+    }
+    foreach tx ( L_CKEBD_TILES_X )
+    {
+        foreach ty ( {CKEB_TILE_Y} )
+        {
+          sx = tx * NUM_GRID_X;
+          sy = ty * NUM_GRID_Y;
+
+          connect
+            (
+              <pin VCCINT of <device CKEBD_TILE @ [sx,sy]>>  => ntRef_ntVCCINT,
+              <pin VSS    of <device CKEBD_TILE @ [sx,sy]>>    => ntRef_ntVSS
+            );
+        }
+    }
+    foreach tx ( L_CKEB2_TILES_X )
+    {
+        foreach ty ( {CKEB_TILE_Y} )
+        {
+          sx = tx * NUM_GRID_X;
+          sy = ty * NUM_GRID_Y;
+
+          string ckeb = "CKEB2_TILE";
+
+          connect
+            (
+              <pin VCCINT of <device *ckeb @ [sx,sy]>>  => ntRef_ntVCCINT,
+              <pin VSS    of <device *ckeb @ [sx,sy]>>    => ntRef_ntVSS
+            );
+        }
+    }
+
+    foreach tx ( {IOCK_TILE_X_L, IOCK_TILE_X_R} )
+    {
+        foreach ty ( {IOCK_TILE_Y} )
+        {
+          sx = tx * NUM_GRID_X + 3;
+          sy = ty * NUM_GRID_Y;
+
+          string iock = (tx < USCM_TILE_X) ? "IOCK_7KM_TILE" : "IOCK_7KM1_TILE";
+
+          connect
+            (
+              <pin VCCINT of <device *iock @ [sx,sy]>>  => ntRef_ntVCCINT,
+              <pin VSS    of <device *iock @ [sx,sy]>>  => ntRef_ntVSS
+            );
+        }
+    }
+
+//  foreach tx ( {SFB_R_TILE_X} )
+//  {
+//      foreach ty ( L_SFB_R_TILES_Y )
+//      {
+//        sx = tx * NUM_GRID_X + 3;
+//        sy = ty * NUM_GRID_Y;
+
+//        connect
+//          (
+//            <pin VCCINT of <device SFB_TILE @ [sx,sy]>>  => ntRef_ntVCCINT,
+//            <pin VSS of <device SFB_TILE @ [sx,sy]>>    => ntRef_ntVSS
+//          );
+//      }
+//  }
+//  foreach tx ( {SFB_L_TILE_X} )
+//  {
+//      foreach ty ( L_SFB_L_TILES_Y )
+//      {
+//        sx = tx * NUM_GRID_X + 3;
+//        sy = ty * NUM_GRID_Y;
+
+//        connect
+//          (
+//            <pin VCCINT of <device SFB_TILE @ [sx,sy]>>  => ntRef_ntVCCINT,
+//            <pin VSS of <device SFB_TILE @ [sx,sy]>>    => ntRef_ntVSS
+//          );
+//      }
+//  }
+
+
+
+//    foreach tx ( L_SFB1_TILES_X )
+//    {
+//        foreach ty ( L_SFB1_TILES_Y )
+//        {
+//          sx = tx * NUM_GRID_X + 3;
+//          sy = ty * NUM_GRID_Y;
+//
+//          connect
+//            (
+//              <pin VCCINT of <device SFB1_TILE @ [sx,sy]>>  => ntRef_ntVCCINT,
+//              <pin VSS of <device SFB1_TILE @ [sx,sy]>>    => ntRef_ntVSS
+//            );
+//        }
+//    }
+
+
+      sx = PLL_TILE_X * NUM_GRID_X + 3;
+      sy = PLL_TILE_Y * NUM_GRID_Y;
+
+          connect
+            (
+              <pin VCCA_PLL of <device PLL_TILE @ [sx,sy]>>      => ntRef_ntVCCA_PLL,
+              <pin VSSA_PLL of <device PLL_TILE @ [sx,sy]>>      => ntRef_ntVSSA_PLL,
+              <pin VCCINT of <device PLL_TILE @ [sx,sy]>>      => ntRef_ntVCCINT,
+              <pin VSS of <device PLL_TILE @ [sx,sy]>>         => ntRef_ntVSS
+            );
+
+
+    foreach tx( {DLL_TILE_X_L, DLL_TILE_X_R} )
+    {
+        sx = tx * NUM_GRID_X + 3;
+        sy = (tx < USCM_TILE_X) ? (DLL_TILE_Y_L * NUM_GRID_Y) : (DLL_TILE_Y_R * NUM_GRID_Y);
+
+        connect
+          (
+            <pin VCCINT of <device DLL_TILE @ [sx,sy]>>  => ntRef_ntVCCINT,
+            <pin VSS of <device DLL_TILE @ [sx,sy]>>    => ntRef_ntVSS
+          );
+    
+    }
+
+
+
+ 
+//  sx = CCS_TILE_X * NUM_GRID_X + 3;
+//  sy = CCS_TILE_Y * NUM_GRID_Y;
+//  connect
+//    (
+//      <pin VCCINT of <device *ccs @ [sx,sy]>>  => ntRef_ntVCCINT,
+//      <pin VSS of <device *ccs @ [sx,sy]>>     => ntRef_ntVSS
+//    );
+
+    sx = CRAM_CTRL_TILE_X * NUM_GRID_X;
+    sy = CRAM_CTRL_TILE_Y * NUM_GRID_Y;
+    connect
+      (
+        <pin VCCINT of <device CRAM_CTRL_7KM_TILE @ [sx,sy]>>  => ntRef_ntVCCINT,
+        <pin VSS of <device CRAM_CTRL_7KM_TILE @ [sx,sy]>>    => ntRef_ntVSS
+      );
+
+    sx = IDCODE_TILE_X * NUM_GRID_X;
+    sy = IDCODE_TILE_Y * NUM_GRID_Y;
+    connect
+      (
+        <pin VCCINT of <device IDCODE_7K_TILE @ [sx,sy]>>  => ntRef_ntVCCINT,
+        <pin VSS of <device IDCODE_7K_TILE @ [sx,sy]>>     => ntRef_ntVSS
+      );
+
+
+//  sx = IOB0_TILE_X * NUM_GRID_X;
+//  sy = IOB0_TILE_Y * NUM_GRID_Y;
+//  connect
+//    (
+//      <pin MIPI_CTRL of <device IOB0_7KM_TILE @ [sx,sy]>>    => ntRef_ntMIPI_CTRL,
+//      <pin VCCINT of <device IOB0_7KM_TILE @ [sx,sy]>>    => ntRef_ntVCCINT,
+//      <pin VSS of <device IOB0_7KM_TILE @ [sx,sy]>>       => ntRef_ntVSS
+//    );
+
+//  sx = IOB1_TILE_X * NUM_GRID_X;
+//  sy = IOB1_TILE_Y * NUM_GRID_Y;
+//  connect
+//    (
+//      <pin VCCINT of <device IOB1_7KM_TILE @ [sx,sy]>>   => ntRef_ntVCCINT,
+//      <pin VSS of <device IOB1_7KM_TILE @ [sx,sy]>>      => ntRef_ntVSS
+//    );
+
+
+//  sx = ESD_TILE_X * NUM_GRID_X;
+//  sy = ESD_TILE_Y * NUM_GRID_X;
+//  connect
+//    (
+//      <pin VCC       of <device ESD_10K_TILE @ [sx,sy]>> => ntRef_ntVCC,   
+//      <pin VSS       of <device ESD_10K_TILE @ [sx,sy]>> => ntRef_ntVSS,   
+//      <pin VCCIO2 of <device ESD_10K_TILE @ [sx,sy]>> => ntRef_ntVCCIO2,
+//      <pin VCCIO1 of <device ESD_10K_TILE @ [sx,sy]>> => ntRef_ntVCCIO1,
+//      <pin VCCIO0 of <device ESD_10K_TILE @ [sx,sy]>> => ntRef_ntVCCIO0,
+
+//      <pin MIPI_CTRL of <device ESD_10K_TILE @ [sx,sy]>> => ntRef_ntMIPI_CTRL,
+//      <pin BG_TRIM_CP of <device ESD_10K_TILE @ [sx,sy]>> => ntRef_ntBG_TRIM_CP,
+//      <pin OSC_TRIM_CP of <device ESD_10K_TILE @ [sx,sy]>> => ntRef_ntOSC_TRIM_CP,
+//      <pin VCCA_BG   of <device ESD_10K_TILE @ [sx,sy]>> => ntRef_ntVCCA_BG,
+//      <pin VCCA_BG   of <device ESD_10K_TILE @ [sx,sy]>> => ntRef_ntVCC,
+//      <pin VCCA_PLLU  of <device ESD_10K_TILE @ [sx,sy]>> => ntRef_ntVCCA_PLLU,
+//      <pin VSSA_PLLU  of <device ESD_10K_TILE @ [sx,sy]>> => ntRef_ntVSSA_PLLU,
+//      <pin VCCA_PLLD  of <device ESD_10K_TILE @ [sx,sy]>> => ntRef_ntVCCA_PLLD,
+//      <pin VSSA_PLLD  of <device ESD_10K_TILE @ [sx,sy]>> => ntRef_ntVSSA_PLLD,
+//      <pin VCCINT    of <device ESD_10K_TILE @ [sx,sy]>> => ntRef_ntVCCINT,
+//        <pin VCCLA_BG  of <device ESD_10K_TILE @ [sx,sy]>> => ntRef_ntVCCA_BG,
+//        <pin VCCLA_PLL of <device ESD_10K_TILE @ [sx,sy]>> => ntRef_ntVCCA_PLL,
+//        <pin VCC_L     of <device ESD_10K_TILE @ [sx,sy]>> => ntRef_ntVCC,
+
+//      <pin VSSA_BG   of <device ESD_10K_TILE @ [sx,sy]>> => ntRef_ntVSSA_BG,
+//      <pin VSSA_BG   of <device ESD_10K_TILE @ [sx,sy]>> => ntRef_ntVSS,
+//      <pin VNEG      of <device ESD_10K_TILE @ [sx,sy]>> => ntRef_ntVSS,
+//      <pin VSSIO0 of <device ESD_10K_TILE @ [sx,sy]>> => ntRef_ntVSSIO0,
+//      <pin VSSIO1 of <device ESD_10K_TILE @ [sx,sy]>> => ntRef_ntVSSIO1,
+//      <pin VSSIO2 of <device ESD_10K_TILE @ [sx,sy]>> => ntRef_ntVSSIO2,
+//      <pin TP_PAD    of <device ESD_10K_TILE @ [sx,sy]>> => ntRef_ntEFB_TP
+//    );
+
+
+
+};//end of structure arch_nl connect_power_network of PGC10K
+

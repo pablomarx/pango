@@ -1,0 +1,421 @@
+*******************************************************************
+
+  Operator    [gopMUX4TO1Q]
+  
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+ ********************************************************************************/
+gate
+operator gopMUX4TO1Q
+{
+    parameter
+    (
+        string GRS_EN      = "FALSE",           // "TRUE" "FALSE"
+        string LRS_EN      = "TRUE",            // "TRUE"   "FALSE"    
+        bit    INIT[31:0] = 32'hAAF0_CCAA,
+        string CEMUX_SEL  = "CE",                // "CE" "CEIN"
+        string RSMUX_SEL  = "RS",                // "RS" "RSIN"
+        bit    CLK_POS    = 1'b0,                // 1'b0: "CLK"; 1'b1: "CLK_B"
+        bit    CE_POS     = 1'b0,                // 1'b0: "CE";  1'b1: "CE_B"
+        bit    RS_POS     = 1'b0,                // 1'b0: "RS";  1'b1: "RS_B"
+        string CE_USED    = "USED",              // "USED"  "UNUSED"
+        string RS_USED    = "USED",              // "USED"  "UNUSED"
+        string SYNC_MODE  = "SYNC",              // "SYNC" "ASYNC"
+        string FF_SET    = "RESET",              // "RESET" "SET"
+        string MODE      = "WMUX"               // "LUT5" "WMUX" "ARITH"
+    );
+
+    port
+    (
+        input  I0, I1, I2, I3,
+        input  S0, S1,
+        input  CLK /* pragma PAP_ARC_GOP_CTRL_PIN = "GCLK|RCLK"*/,
+        input  CE /* pragma PAP_ARC_GOP_CTRL_PIN = CE*/,
+        input  RS /* pragma PAP_ARC_GOP_CTRL_PIN = RST*/,
+        output CEOUT, RSOUT,
+        output F, Q
+    );
+};
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devAMUXQ_S to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devAMUXQ_S of gopMUX4TO1Q
+{   
+    device devAMUXQ_S gatedev
+        parameter map 
+        ( 
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,
+            INITA     => INIT,
+            FGA_MODE  => MODE,
+            CEMUX_SEL => CEMUX_SEL,                               // "CE" "CEIN"
+            RSMUX_SEL => RSMUX_SEL,                               // "RS" "RSIN"
+            CLK_POS   => CLK_POS,                                 // "CLK" "CLK_B"
+            CE_POS    => (CE_USED == "USED") ? CE_POS : 1'b0,     // "CE"  "CE_B"
+            RS_POS    => (RS_USED == "USED") ? RS_POS : 1'b1,     // "RS"  "RS_B"
+            SYNC_MODE => SYNC_MODE,                               // "SYNC" "ASYNC"
+            FF0_SET   => FF_SET                                   // "RESET" "SET"              
+        )
+        port map 
+        (  
+            AD    => I0,                          
+            A4    => S1,
+            A3    => S0,
+            A2    => I2,
+            A1    => I1,
+            A0    => I3,            
+            Y0    => F,
+            Q0    => Q,
+            RS    => (RSMUX_SEL == "RS")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE    => (CEMUX_SEL == "CE")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx, 
+            CLK   => CLK, 
+            RSIN  => (RSMUX_SEL == "RS")  ? 1'bx : RS,         
+            RSOUT => RSOUT,       
+            CEIN  => (CEMUX_SEL == "CE")  ? 1'bx : CE,        
+            CEOUT => CEOUT            
+        );
+}; // end of implementation impl_devAMUXQ_S of gopMUX4TO1Q
+
+
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devBMUXQ_S to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devBMUXQ_S of gopMUX4TO1Q
+{  
+    device devBMUXQ_S gatedev
+        parameter map 
+        ( 
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,
+            INITB     => INIT,
+            FGB_MODE  => MODE,
+            CEMUX_SEL => CEMUX_SEL,                               // "CE" "CEIN"
+            RSMUX_SEL => RSMUX_SEL,                               // "RS" "RSIN"
+            CLK_POS   => CLK_POS,                                 // "CLK" "CLK_B"
+            CE_POS    => (CE_USED == "USED") ? CE_POS : 1'b0,     // "CE"  "CE_B"
+            RS_POS    => (RS_USED == "USED") ? RS_POS : 1'b1,     // "RS"  "RS_B"
+            SYNC_MODE => SYNC_MODE,                               // "SYNC" "ASYNC"
+            FF1_SET   => FF_SET                                   // "RESET" "SET"              
+        )
+        port map 
+        (  
+            BD    => I0,                          
+            B4    => S1,
+            B3    => S0,
+            B2    => I2,
+            B1    => I1,
+            B0    => I3,            
+            Y1    => F,
+            Q1    => Q,
+            RS    => (RSMUX_SEL == "RS")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE    => (CEMUX_SEL == "CE")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx, 
+            CLK   => CLK, 
+            RSIN  => (RSMUX_SEL == "RS")  ? 1'bx : RS,         
+            RSOUT => RSOUT,       
+            CEIN  => (CEMUX_SEL == "CE")  ? 1'bx : CE,        
+            CEOUT => CEOUT            
+        );
+}; // end of implementation impl_devBMUXQ_S of gopMUX4TO1Q
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devCMUXQ_S to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devCMUXQ_S of gopMUX4TO1Q
+{    
+    device devCMUXQ_S gatedev
+        parameter map 
+        ( 
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,
+            INITC     => INIT,
+            FGC_MODE  => MODE,
+            CEMUX_SEL => CEMUX_SEL,                               // "CE" "CEIN"
+            RSMUX_SEL => RSMUX_SEL,                               // "RS" "RSIN"
+            CLK_POS   => CLK_POS,                                 // "CLK" "CLK_B"
+            CE_POS    => (CE_USED == "USED") ? CE_POS : 1'b0,     // "CE"  "CE_B"
+            RS_POS    => (RS_USED == "USED") ? RS_POS : 1'b1,     // "RS"  "RS_B"
+            SYNC_MODE => SYNC_MODE,                               // "SYNC" "ASYNC"
+            FF2_SET   => FF_SET                                   // "RESET" "SET"              
+        )
+        port map 
+        (  
+            CD    => I0,                          
+            C4    => S1,
+            C3    => S0,
+            C2    => I2,
+            C1    => I1,
+            C0    => I3,            
+            Y2    => F,
+            Q2    => Q,
+            RS    => (RSMUX_SEL == "RS")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE    => (CEMUX_SEL == "CE")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx, 
+            CLK   => CLK, 
+            RSIN  => (RSMUX_SEL == "RS")  ? 1'bx : RS,         
+            RSOUT => RSOUT,       
+            CEIN  => (CEMUX_SEL == "CE")  ? 1'bx : CE,        
+            CEOUT => CEOUT            
+        );
+}; // end of implementation impl_devCMUXQ_S of gopMUX4TO1Q
+
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devDMUXQ_S to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devDMUXQ_S of gopMUX4TO1Q
+{
+    device devDMUXQ_S gatedev
+        parameter map 
+        ( 
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,
+            INITD     => INIT,
+            FGD_MODE  => MODE,
+            CEMUX_SEL => CEMUX_SEL,                               // "CE" "CEIN"
+            RSMUX_SEL => RSMUX_SEL,                               // "RS" "RSIN"
+            CLK_POS   => CLK_POS,                                 // "CLK" "CLK_B"
+            CE_POS    => (CE_USED == "USED") ? CE_POS : 1'b0,     // "CE"  "CE_B"
+            RS_POS    => (RS_USED == "USED") ? RS_POS : 1'b1,     // "RS"  "RS_B"
+            SYNC_MODE => SYNC_MODE,                               // "SYNC" "ASYNC"
+            FF3_SET   => FF_SET                                   // "RESET" "SET"              
+        )
+        port map 
+        (  
+            DD    => I0,                          
+            D4    => S1,
+            D3    => S0,
+            D2    => I2,
+            D1    => I1,
+            D0    => I3,            
+            Y3    => F,
+            Q3    => Q,
+            RS    => (RSMUX_SEL == "RS")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE    => (CEMUX_SEL == "CE")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx, 
+            CLK   => CLK, 
+            RSIN  => (RSMUX_SEL == "RS")  ? 1'bx : RS,         
+            RSOUT => RSOUT,       
+            CEIN  => (CEMUX_SEL == "CE")  ? 1'bx : CE,        
+            CEOUT => CEOUT            
+        );
+}; // end of implementation impl_devDMUXQ_S of gopMUX4TO1Q
+
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devAMUXQ to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devAMUXQ of gopMUX4TO1Q
+{   
+    device devAMUXQ gatedev
+        parameter map 
+        ( 
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,
+            INITA     => INIT,
+            FGA_MODE  => MODE,
+            CEMUX_SEL => CEMUX_SEL,                               // "CE" "CEIN"
+            RSMUX_SEL => RSMUX_SEL,                               // "RS" "RSIN"
+            CLK_POS   => CLK_POS,                                 // "CLK" "CLK_B"
+            CE_POS    => (CE_USED == "USED") ? CE_POS : 1'b0,     // "CE"  "CE_B"
+            RS_POS    => (RS_USED == "USED") ? RS_POS : 1'b1,     // "RS"  "RS_B"
+            SYNC_MODE => SYNC_MODE,                               // "SYNC" "ASYNC"
+            FF0_SET   => FF_SET                                   // "RESET" "SET"              
+        )
+        port map 
+        (  
+            AD    => I0,                          
+            A4    => S1,
+            A3    => S0,
+            A2    => I2,
+            A1    => I1,
+            A0    => I3,            
+            Y0    => F,
+            Q0    => Q,
+            RS    => (RSMUX_SEL == "RS")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE    => (CEMUX_SEL == "CE")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx, 
+            CLK   => CLK, 
+            RSIN  => (RSMUX_SEL == "RS")  ? 1'bx : RS,         
+            RSOUT => RSOUT,       
+            CEIN  => (CEMUX_SEL == "CE")  ? 1'bx : CE,        
+            CEOUT => CEOUT            
+        );
+}; // end of implementation impl_devAMUXQ of gopMUX4TO1Q
+
+
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devBMUXQ to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devBMUXQ of gopMUX4TO1Q
+{    
+    device devBMUXQ gatedev
+        parameter map 
+        ( 
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,
+            INITB     => INIT,
+            FGB_MODE  => MODE,
+            CEMUX_SEL => CEMUX_SEL,                               // "CE" "CEIN"
+            RSMUX_SEL => RSMUX_SEL,                               // "RS" "RSIN"
+            CLK_POS   => CLK_POS,                                 // "CLK" "CLK_B"
+            CE_POS    => (CE_USED == "USED") ? CE_POS : 1'b0,     // "CE"  "CE_B"
+            RS_POS    => (RS_USED == "USED") ? RS_POS : 1'b1,     // "RS"  "RS_B"
+            SYNC_MODE => SYNC_MODE,                               // "SYNC" "ASYNC"
+            FF1_SET   => FF_SET                                   // "RESET" "SET"              
+        )
+        port map 
+        (  
+            BD    => I0,                          
+            B4    => S1,
+            B3    => S0,
+            B2    => I2,
+            B1    => I1,
+            B0    => I3,            
+            Y1    => F,
+            Q1    => Q,
+            RS    => (RSMUX_SEL == "RS")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE    => (CEMUX_SEL == "CE")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx, 
+            CLK   => CLK, 
+            RSIN  => (RSMUX_SEL == "RS")  ? 1'bx : RS,         
+            RSOUT => RSOUT,       
+            CEIN  => (CEMUX_SEL == "CE")  ? 1'bx : CE,        
+            CEOUT => CEOUT            
+        );
+}; // end of implementation impl_devBMUXQ of gopMUX4TO1Q
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devCMUXQ to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devCMUXQ of gopMUX4TO1Q
+{    
+    device devCMUXQ gatedev
+        parameter map 
+        ( 
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,
+            INITC     => INIT,
+            FGC_MODE  => MODE,
+            CEMUX_SEL => CEMUX_SEL,                               // "CE" "CEIN"
+            RSMUX_SEL => RSMUX_SEL,                               // "RS" "RSIN"
+            CLK_POS   => CLK_POS,                                 // "CLK" "CLK_B"
+            CE_POS    => (CE_USED == "USED") ? CE_POS : 1'b0,     // "CE"  "CE_B"
+            RS_POS    => (RS_USED == "USED") ? RS_POS : 1'b1,     // "RS"  "RS_B"
+            SYNC_MODE => SYNC_MODE,                               // "SYNC" "ASYNC"
+            FF2_SET   => FF_SET                                   // "RESET" "SET"              
+        )
+        port map 
+        (  
+            CD    => I0,                          
+            C4    => S1,
+            C3    => S0,
+            C2    => I2,
+            C1    => I1,
+            C0    => I3,            
+            Y2    => F,
+            Q2    => Q,
+            RS    => (RSMUX_SEL == "RS")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE    => (CEMUX_SEL == "CE")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx, 
+            CLK   => CLK, 
+            RSIN  => (RSMUX_SEL == "RS")  ? 1'bx : RS,         
+            RSOUT => RSOUT,       
+            CEIN  => (CEMUX_SEL == "CE")  ? 1'bx : CE,        
+            CEOUT => CEOUT            
+        );
+}; // end of implementation impl_devCMUXQ of gopMUX4TO1Q
+
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devDMUXQ to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devDMUXQ of gopMUX4TO1Q
+{    
+    device devDMUXQ gatedev
+        parameter map 
+        ( 
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,
+            INITD     => INIT,
+            FGD_MODE  => MODE,
+            CEMUX_SEL => CEMUX_SEL,                               // "CE" "CEIN"
+            RSMUX_SEL => RSMUX_SEL,                               // "RS" "RSIN"
+            CLK_POS   => CLK_POS,                                 // "CLK" "CLK_B"
+            CE_POS    => (CE_USED == "USED") ? CE_POS : 1'b0,     // "CE"  "CE_B"
+            RS_POS    => (RS_USED == "USED") ? RS_POS : 1'b1,     // "RS"  "RS_B"
+            SYNC_MODE => SYNC_MODE,                               // "SYNC" "ASYNC"
+            FF3_SET   => FF_SET                                   // "RESET" "SET"              
+        )
+        port map 
+        (  
+            DD    => I0,                          
+            D4    => S1,
+            D3    => S0,
+            D2    => I2,
+            D1    => I1,
+            D0    => I3,            
+            Y3    => F,
+            Q3    => Q,
+            RS    => (RSMUX_SEL == "RS")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE    => (CEMUX_SEL == "CE")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx, 
+            CLK   => CLK, 
+            RSIN  => (RSMUX_SEL == "RS")  ? 1'bx : RS,         
+            RSOUT => RSOUT,       
+            CEIN  => (CEMUX_SEL == "CE")  ? 1'bx : CE,        
+            CEOUT => CEOUT            
+        );
+}; // end of implementation impl_devDMUXQ of gopMUX4TO1Q
+
+
+
+

@@ -1,0 +1,100 @@
+*****************************************************************
+
+  Device    [SCANCHAIN]
+
+  Author    [clwang]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+grid
+device SCANCHAIN /* pragma PAP_LIB_NO_PRUNE */
+{
+    parameter
+    (   
+        config string USE_SCANCHAIN = "FALSE", 
+        config bit JTAG_IDCODE[31:0] = 32'hAAAA5555
+    );
+    port
+    (
+        config input SC_USE_SCANCHAIN = 1'b0 /*pragma PAP_CFG_BIT_NAME = "SC_USE_SCANCHAIN" */,
+        input   TDO_USER = 1'b1,
+        output  JCLK,
+        output  UPDR,
+        output  SHFTDR,
+        output  FLG_USER,
+        output  CAPDR,
+        output  RST,
+        output  TDI
+    );
+} // end of device SCANCHAIN
+
+/*******************************************************************************
+
+  Device    [SCANCHAIN]
+
+  Author    [clwang]
+
+  Abstract  [The structure netlist of SCANCHAIN is described in the similar fashion 
+             as in HDL. In unit instantiation statement, the formal pin may be 
+             connected to net which is declared explicitly. 
+             
+             In Valence, the connection can also be made from formal pin to other 
+             pin or port, in which case Valence compiler shall create the net to 
+             fulfil the connection. The built-in naming convention is kicked in 
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+
+structure netlist of SCANCHAIN
+{
+    device SCANCHAIN_INST SCANCHAIN_INST
+        parameter map
+        (
+            JTAG_IDCODE => JTAG_IDCODE
+        )
+        port map
+        (
+            TDO_USER   => TDO_USER,
+            JCLK       => JCLK,
+            UPDR       => UPDR,
+            SHFTDR     => SHFTDR,
+            FLG_USER   => FLG_USER,
+            CAPDR      => CAPDR,
+            RST        => RST,
+            TDI        => TDI
+        );
+}; // end of structure netlist of SCANCHAIN
+
+configuration cfg of SCANCHAIN             
+{           
+   SC_USE_SCANCHAIN    :=  (USE_SCANCHAIN == "TRUE") ? 1'b1 : 1'b0 ; 
+                                       
+}; // end of configuration cfg of SCANCHAIN
+
+timing tnl of SCANCHAIN
+{
+    operator V_SCANCHAIN V_SCANCHAIN
+        parameter map
+        (
+            IDCODE => JTAG_IDCODE
+        )
+        port map
+        (
+            TDO_USER  => TDO_USER,
+            JCLK      => JCLK,
+            UPDR      => UPDR,
+            SHFTDR    => SHFTDR,
+            FLG_USER  => FLG_USER,
+            CAPDR     => CAPDR,
+            RST       => RST,
+            TDI_USER  => TDI 
+        );
+}

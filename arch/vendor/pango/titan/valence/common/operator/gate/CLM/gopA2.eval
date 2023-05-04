@@ -1,0 +1,232 @@
+*********************************************************************
+
+  Operator    [gopA2]
+  
+  Author    [liujiao]
+
+  Abstract  []
+
+  Revision History:
+
+ ********************************************************************************/
+gate
+operator gopA2
+{
+    parameter
+    (
+         bit    INIT0[31:0]   = 32'h0000_0000,
+         bit    INIT1[31:0]   = 32'h0000_0000,
+         string YXMUX_SEL0    = "FG",          // "FG" "CY" 
+         string YXMUX_SEL1    = "FG",          // "FG" "CY"
+         string MODE0         = "ARITH",        // "LUT5" "WMUX" "ARITH"
+         string MODE1         = "ARITH"        // "LUT5" "WMUX" "ARITH"
+         
+    );
+
+    port
+    (
+        input  I00, I0X, I01, I02, I03, I04, Cin,
+        input  I10, I1X, I11, I12, I13, I14, //Cin1,
+        output Cout, Y0, Y1
+    );
+};
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Implement this using gate device devABLC_S]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_ABS of gopA2
+{
+    // string Y0MUX_SEL       = "FG";      // "FFAB" "FG" "CY"  
+        
+    device devABLC_S gatedev
+        parameter map 
+        ( 
+             INITA     => INIT0,
+             INITB     => INIT1,
+             FGA_MODE  => MODE0,
+             FGB_MODE  => MODE1,
+             Y0MUX_SEL => YXMUX_SEL0,
+             Y1MUX_SEL => YXMUX_SEL1 
+        )
+        port map 
+        (   
+            A0         => I00,
+            A1         => I01,
+            A2         => I02,
+            A3         => I03,
+            A4         => I04,
+            AD         => I0X,
+            
+            B0         => I10,
+            B1         => I11,
+            B2         => I12,
+            B3         => I13,
+            B4         => I14,
+            BD         => I1X,   
+            
+            CIN        => Cin,
+            //FGB_CIN    => Cin1,
+            //FGA_COUT   => Cout0,
+            FGB_COUT   => Cout, 
+            Y0         => Y0,
+            Y1         => Y1
+        );
+}; // end of implementation impl_ABS of gopA2
+
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Implement this using gate device devCDLC_S]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_CDS of gopA2
+{
+    // string Y2MUX_SEL       = "FG";      // "FFCD" "FG" "CY" 
+         
+    device devCDLC_S gatedev
+        parameter map 
+        ( 
+            INITC     => INIT0,
+            INITD     => INIT1,
+            FGC_MODE  => MODE0,
+            FGD_MODE  => MODE1,
+            Y2MUX_SEL => YXMUX_SEL0,
+            Y3MUX_SEL => YXMUX_SEL1 
+        )
+        port map 
+        (   
+            C0         => I00,   
+            C1         => I01,                               
+            C2         => I02,                               
+            C3         => I03,                               
+            C4         => I04,                               
+            CD         => I0X,
+            
+            D0         => I10,  
+            D1         => I11,                              
+            D2         => I12,                              
+            D3         => I13,                              
+            D4         => I14,                              
+            DD         => I1X,
+              
+            FGC_CIN    => Cin,
+            //FGD_CIN    => Cin1,
+            //FGC_COUT   => Cout0,
+            COUT       => Cout, 
+            Y2         => Y0,
+            Y3         => Y1
+        );
+}; // end of implementation impl_CDS of gopA2
+
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Implement this using gate device devABLC]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_AB of gopA2
+{  
+    // string Y0MUX_SEL       = "FG" ;     // "FFAB" "FG" "CY"  
+         
+    device devABLC gatedev
+        parameter map 
+        ( 
+            INITA     => INIT0,
+            INITB     => INIT1,
+            FGA_MODE  => MODE0,
+            FGB_MODE  => MODE1,
+            Y0MUX_SEL => YXMUX_SEL0,
+            Y1MUX_SEL => YXMUX_SEL1 
+        )
+        port map 
+        (    
+            A0         => I00,   
+            A1         => I01,                               
+            A2         => I02,                               
+            A3         => I03,                               
+            A4         => I04,                               
+            AD         => I0X,
+            
+            B0         => I10,  
+            B1         => I11,                              
+            B2         => I12,                              
+            B3         => I13,                              
+            B4         => I14,                              
+            BD         => I1X, 
+                         
+            CIN        => Cin,
+            //FGB_CIN    => Cin1,
+            //FGA_COUT   => Cout0,
+            FGB_COUT   => Cout, 
+            Y0         => Y0,
+            Y1         => Y1
+        );
+}; // end of implementation impl_AB of gopA2
+
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Implement this using gate device devCDLC]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_CD of gopA2
+{
+    // string Y2MUX_SEL       = "FG";      // "FFCD" "FG" "CY"    
+      
+    device devCDLC gatedev
+        parameter map 
+        ( 
+            INITC     => INIT0,
+            INITD     => INIT1,
+            FGC_MODE  => MODE0,
+            FGD_MODE  => MODE1,
+            Y2MUX_SEL => YXMUX_SEL0,
+            Y3MUX_SEL => YXMUX_SEL1
+        )
+        port map 
+        (           
+            C0         => I00,    
+            C1         => I01,                                
+            C2         => I02,                                
+            C3         => I03,                                
+            C4         => I04,                                
+            CD         => I0X,
+            
+            D0         => I10,    
+            D1         => I11,                                
+            D2         => I12,                                
+            D3         => I13,                                
+            D4         => I14,                                
+            DD         => I1X,
+                        
+            FGC_CIN    => Cin,
+            //FGD_CIN    => Cin1,
+            //FGC_COUT   => Cout0,
+            COUT       => Cout, 
+            Y2         => Y0,
+            Y3         => Y1
+        );
+}; // end of implementation impl_CD of gopA2
+
+
+
+
+

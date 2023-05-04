@@ -1,0 +1,96 @@
+******************************************************************
+//
+//  Device    [devOBUFTLB]
+//
+//  project   [Pango]
+//  
+//  Author    [hzhang]
+//
+//  Abstract  [ ]
+//
+//  Revision History:
+//                       
+//********************************************************************************/
+
+gate device devOBUFTLB : device IOB_LB
+{
+    parameter 
+    (   
+        config string IOB_MODE          := "OBUFT",
+        config string TERMINATED         = "UNUSED",    /* "UNUSED" , "PULLUP" , "PULLDOWN" , "KEEPER" */
+        config string HOT_SOCKET         = "ON",        // ON; OFF
+        config string POWER_MODE         = "ON",        // ON; OFF
+        config string VCCIO              = "3.3",       // "3.3" "2.5" "1.8" "1.5" "1.2"
+        
+        // obuf
+        config string OPENDRAIN          = "OFF",       // OFF: NA; ON: OD
+        config string SLEW_MODE          = "F",  // "F" "S"
+        config string DRV_CURR_EN        = "TRUE",  // "TRUE" "FALSE"  
+        config string DRV_CURR_VAL       = "4",
+        config string PMOS_FINGER        = "1",  // "1" "2" "3" "4" "5" "6"
+        config string NMOS_FINGER        = "1",  // "1" "2" "3" "4" "5" "6"
+        config string IOSTANDARD         = "DEFAULT"
+    );
+   
+    port
+    (
+        input DO, TO,
+        inout PAD
+    );
+};  // end of device devOBUFTLB
+
+
+/*******************************************************************************
+
+  Device    [devOBUFTLB]
+
+  Author    []
+
+  Abstract  [gate grid devOBUFTLB. structure nestlist]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devOBUFTLB
+{
+    // Wires connecting to ports. 
+    
+    wire ntPAD, ntDO, ntTO;
+    
+    PAD   <= ntPAD;
+    ntDO <= DO;
+    ntTO  <= TO;
+    
+    device IOB_OBUFLB OBUFLB
+        parameter map
+        (
+            IOB_MODE     => IOB_MODE,
+            SLEW_MODE    => SLEW_MODE,
+            DRV_CURR_VAL => DRV_CURR_VAL,
+            IOSTANDARD   => IOSTANDARD
+        )
+        port map
+        (
+            TS    => ntTO,
+            IN    => ntDO,
+            OUT   => ntPAD
+        );         
+            
+};  // end of structure netlist of devOBUFTLB            
+            
+timing tnl of devOBUFTLB
+{
+    operator V_OBUFT obuft
+        parameter map
+        (
+            IOSTANDARD => IOSTANDARD,
+            SLEW_RATE  => (SLEW_MODE == "S") ? "SLOW" : "FAST",
+            DRIVE_STRENGTH => DRV_CURR_VAL
+        )
+        port map
+        (
+            I => DO,
+            T => TO,
+            O => PAD
+        );
+}

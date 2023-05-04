@@ -1,0 +1,160 @@
+evBRAM64X1DL6_S.val
+ * @brief .
+ * @author zpfeng(file creator)
+ * @date 2019/07/18
+ * @copyright (c) Copyright 2013~2019 - PANGO MICROSYSTEMS, INC.
+ * ALL RIGHTS RESERVED.
+ *
+ * THE SOURCE CODE CONTAINED HEREIN IS PROPRIETARY TO PANGO MICROSYSTEMS, INC.
+ * IT SHALL NOT BE REPRODUCED OR DISCLOSED IN WHOLE OR IN PART OR USED BY PARTIES
+ * WITHOUT WRITTEN AUTHORIZATION FROM THE OWNER.
+ */
+
+
+gate
+device devBRAM64X1DL6_S : device CLMS
+{
+    parameter
+    (
+        config bit CP_INITB[63:0] = 64'hFFFFFFFFFFFFFFFF,
+        config string CP_MODEB = "RAM",
+        config string CP_RAM_LUTB_DIH = "LI",
+        config string CP_RAM_LUTB_DIL = "LI",
+        config string CP_MASK_LUT6B = "FALSE",
+        config string CP_CLK_POL = "FALSE",
+        config string CP_WCK_SEL = "LOCAL",
+        config string CP_RAM_MODE = "LRAM",
+        config string CP_RAM32_EN = "TRUE"
+    );
+    port
+    (
+        input B0,
+        input B1,
+        input B2,
+        input B3,
+        input B4,
+        input B5,
+        input M1,
+        input BD,
+        output Y1,
+
+        input M2,
+        input D0,
+        input D1,
+        input D2,
+        input D3,
+        input D4,
+        input D5,
+        input WE,
+        input CLK,
+        input NEXT_CLK
+    );
+
+}; // end of device devBRAM64X1DL6_S
+
+
+structure netlist of devBRAM64X1DL6_S
+{
+
+    wire  ntB5      ;
+    wire  ntB4      ;
+    wire  ntB3      ;
+    wire  ntB2      ;
+    wire  ntB1      ;
+    wire  ntB0      ;
+    wire  ntM1      ;
+    wire  ntBD      ;
+    wire  ntL6B     ;
+    wire  ntM2      ;
+
+    wire  ntD5      ;
+    wire  ntD4      ;
+    wire  ntD3      ;
+    wire  ntD2      ;
+    wire  ntD1      ;
+    wire  ntD0      ;
+    wire  ntWE      ;
+    wire  ntCLK     ;
+    wire  ntNEXT_CLK;
+    wire ntWCLK;
+    wire ntCLKR;
+
+    ntB5        <= B5      ;
+    ntB4        <= B4      ;
+    ntB3        <= B3      ;
+    ntB2        <= B2      ;
+    ntB1        <= B1      ;
+    ntB0        <= B0      ;
+    ntM1        <= M1      ;
+    ntM2        <= M2      ;
+    ntBD        <= BD      ;
+    Y1          <= ntL6B   ;
+
+    ntD5        <= D5      ;
+    ntD4        <= D4      ;
+    ntD3        <= D3      ;
+    ntD2        <= D2      ;
+    ntD1        <= D1      ;
+    ntD0        <= D0      ;
+    ntWE        <= WE      ;
+    ntCLK       <= CLK     ;
+    ntNEXT_CLK  <= NEXT_CLK;
+
+    device LUT6S FYB
+       parameter map
+       (
+             CP_INIT         => CP_INITB       ,
+             CP_MODE         => CP_MODEB       ,
+             CP_MASK_LUT6    => CP_MASK_LUT6B  ,
+             CP_RAM_LUT_DIL  => CP_RAM_LUTB_DIL,
+             CP_RAM_LUT_DIH  => CP_RAM_LUTB_DIH,
+             CP_M1_SEL       => 1'b1,
+             CP_M2_SEL       => 1'b0,
+             CP_RAM32_EN     => CP_RAM32_EN    ,
+             CP_RAM_MODE     => CP_RAM_MODE
+       )
+       port map
+       (
+             A0      => ntB0                                 ,
+             A1      => ntB1                                 ,
+             A2      => ntB2                                 ,
+             A3      => ntB3                                 ,
+             A4      => ntB4                                 ,
+             A5      => ntB5                                 ,
+             WA      => {ntD5, ntD4, ntD3, ntD2, ntD1, ntD0} ,
+             M1      => ntM1                                 ,
+             M2      => ntM2                                 ,
+             WCK     => ntWCLK                              ,
+             WE      => ntWE                                 ,
+             MX      => ntM1                               ,
+             XD      => ntBD                               ,
+             L6      => ntL6B
+       );
+
+
+       device MUX2_P WCKMUX
+       parameter map
+       (
+           SEL => CP_WCK_SEL
+       )
+       port map
+       (
+           DOUT  => ntWCLK    ,
+           DI0   => ntNEXT_CLK,
+           DI1   => ntCLKR
+       );
+
+      device CLK_POLMUX CLKPOLMUX
+      parameter map
+      (
+           CP_CLK_POL   =>   CP_CLK_POL
+      )
+      port map
+      (    Y            =>   ntCLKR,
+           DIN1         =>   ntCLK,
+           DIN0         =>   ntCLK
+      );
+}; // end of structure netlist of devBRAM64X1DL6_S
+
+
+

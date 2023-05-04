@@ -1,0 +1,112 @@
+*********************************************************************
+
+  Operator    [gopRAM128X1DL6AB]
+  
+  Author    [liujiao]
+
+  Abstract  []
+
+  Revision History:
+
+ ********************************************************************************/
+gate
+operator gopRAM128X1DL6AB
+{
+    parameter
+    (
+        bit    INITA[63:0]               = 64'hFFFFFFFFFFFFFFFF,
+        string MODE                      = "RAM",
+
+        string CR0PREMUX_SEL             = "MF",
+        string CR0POSTMUX_SEL            = "CX",
+        string RAM_LUTA_DIH              = "LI",
+        string RAM_LUTA_DIL              = "XI",
+        string MASK_LUT6A                = "TRUE",
+
+        bit    INITB[63:0]               = 64'hFFFFFFFFFFFFFFFF,
+        string RAM_LUTB_DIH              = "LI",
+        string RAM_LUTB_DIL              = "XI",
+        string MASK_LUT6B                = "TRUE",
+
+        string CLK_POL                   = "FALSE",
+
+        string WCK_SEL                   = "LOCAL",
+        string RAM_MODE                  = "MRAM",
+        string RAM32_EN                  = "FALSE"   
+    );
+
+    port
+    (        
+        input  RADDR[5:0],
+        input  RADDR1[5:0],
+        input  WADDR[6:0], 
+        input  M,
+        input  DI0,
+        input  DI1,
+        
+        input  WE, 
+        input  WCLK  /*pragma PAP_ARC_GOP_CTRL_PIN="GCLK|RCLK|COLCLK"*/,
+        output DO, 
+        output L6A, 
+        output L6B
+    );
+};
+
+implementation impl_devRAM128X1DL6AB_S of gopRAM128X1DL6AB
+{  
+    device devRAM128X1DL6AB_S gatedev
+        parameter map 
+        ( 
+            CP_INITA                       =>         INITA                   ,
+            CP_MODEA                       =>         MODE                   ,
+            CP_CR0PREMUX_SEL               =>         CR0PREMUX_SEL           ,
+            CP_CR0POSTMUX_SEL              =>         CR0POSTMUX_SEL          ,
+            CP_RAM_LUTA_DIH                =>         RAM_LUTA_DIH            ,
+            CP_RAM_LUTA_DIL                =>         RAM_LUTA_DIL            ,
+            CP_MASK_LUT6A                  =>         MASK_LUT6A              ,
+            CP_INITB                       =>         INITB                   ,
+            CP_MODEB                       =>         MODE                   ,
+            CP_RAM_LUTB_DIH                =>         RAM_LUTB_DIH            ,
+            CP_RAM_LUTB_DIL                =>         RAM_LUTB_DIL            ,
+            CP_MASK_LUT6B                  =>         MASK_LUT6B              ,
+            CP_CLK_POL                     =>         CLK_POL                 ,
+            CP_WCK_SEL                     =>         WCK_SEL                 ,
+            CP_RAM_MODE                    =>         RAM_MODE                ,
+            CP_RAM32_EN                    =>         RAM32_EN       
+        )
+        port map 
+        (                            
+            A0                             =>            RADDR[0]             ,
+            A1                             =>            RADDR[1]             ,
+            A2                             =>            RADDR[2]             ,
+            A3                             =>            RADDR[3]             ,
+            A4                             =>            RADDR[4]             ,
+            A5                             =>            RADDR[5]             ,
+            M0                             =>             M                   ,
+            CR0                            =>             DO                  ,
+            B0                             =>            RADDR1[0]            ,
+            B1                             =>            RADDR1[1]            ,
+            B2                             =>            RADDR1[2]            ,
+            B3                             =>            RADDR1[3]            ,
+            B4                             =>            RADDR1[4]            ,
+            B5                             =>            RADDR1[5]            ,
+            M1                             =>            WADDR[6]             ,
+            D0                             =>            WADDR[0]             ,
+            D1                             =>            WADDR[1]             ,
+            D2                             =>            WADDR[2]             ,
+            D3                             =>            WADDR[3]             ,
+            D4                             =>            WADDR[4]             ,
+            D5                             =>            WADDR[5]             ,
+            WE                             =>             WE                  ,
+            CLK                            =>          ( WCK_SEL == "LOCAL" ) ? WCLK : 1'bx                ,
+            AD                             =>             DI0                  ,
+            BD                             =>             DI1                  ,
+            NEXT_CLK                       =>          ( WCK_SEL != "LOCAL" ) ? WCLK : 1'bx                ,
+            Y0                =>   L6A,
+            Y1                =>   L6B
+        );
+}; // end of implementation impl_devRAM128X1DL6AB_S of gopRAM128X1DL6AB
+
+
+
+

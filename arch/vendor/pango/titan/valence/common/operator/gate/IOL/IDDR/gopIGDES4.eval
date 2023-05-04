@@ -1,0 +1,99 @@
+*******************************************************************
+
+  Operator    [gopIGDES4]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+gate
+operator gopIGDES4
+{
+    parameter
+    (
+        string IN_MUX_SEL         = "DIN",       // "DIN"     : IN_FROM_PAD
+                                                 // "DIN_CDR" : IN_PAD_FOR_CDR
+        bit    GRS_EN             = 1'b0,
+        bit    LRS_EN             = 1'b1,
+        bit    DPI_EN             = 1'b0,
+
+        string DESCLK_SRC         = "IOCLK",    //"IOCLK", "SAMPLE_CLK" "PROBE_CLK"
+
+
+        bit    CLK_INV            = 1'b0,
+        bit    LRS_INV            = 1'b0
+    );
+    port
+    (
+        input   DPI_CTRL[1:0],
+        input   DPI_STS_CLR,
+        output  DPI_STS[1:0],
+      
+        // IDDR
+
+        input   DESCLK /* pragma PAP_ARC_GOP_CTRL_PIN = IOCLK*/,
+    
+        input   SYSCLK /* pragma PAP_ARC_GOP_CTRL_PIN = "GCLK|RCLK"*/,
+        input   RESET /* pragma PAP_ARC_GOP_CTRL_PIN = RST*/,
+        
+        input   SLIP,
+        
+        input   PADI,
+        output  PADT,
+        output  Q[3:0],
+        output  OUT,
+
+        output  IDDR_COUT
+    );
+};
+
+implementation impl of gopIGDES4
+{
+    // IDDR config
+
+    if((DESCLK_SRC != "SAMPLE_CLK") && (DESCLK_SRC != "PROBE_CLK") && (DESCLK_SRC != "IOCLK"))
+    {
+        error("Error config IDDR_DESCLK = %s in gopIGDES4", DESCLK_SRC);
+    }
+
+    device devIGDES4IOL gate_igdes4iol
+        parameter map
+        (
+            IN_MUX_SEL   => IN_MUX_SEL,
+            GRS_EN       =>   GRS_EN,
+            DPI_EN       =>   DPI_EN,
+                             
+            DES_SER_CLK  =>   DESCLK_SRC,
+            
+            IDDR_LRS_EN  =>   LRS_EN,
+
+            CLK_I_INV    =>   CLK_INV,
+            LRS_INV      =>   LRS_INV
+        )
+
+        port map 
+        (
+            RX_DATA      =>   Q,
+            RX_DATA_DD   =>  OUT,
+
+            DPI_CTRL     =>   DPI_CTRL,
+            DPI_STS_CLR  =>   DPI_STS_CLR,
+            DPI_STS      =>   DPI_STS,
+
+            IOCLK        =>   (DESCLK_SRC == "IOCLK") ? DESCLK : 1'bx,
+          
+            SAMPLE_CLK   =>   (DESCLK_SRC == "SAMPLE_CLK") ? DESCLK : 1'bx,
+            PROBE_CLK    =>   (DESCLK_SRC == "PROBE_CLK") ? DESCLK : 1'bx,
+
+            SYSCLK       =>   SYSCLK,
+            LRS          =>   RESET,
+            SLIP         =>   SLIP,
+            TO           =>   PADT,
+            
+            DIN          =>   IN_MUX_SEL == "DIN"     ? PADI : 1'bx,
+            DIN_CDR      =>   IN_MUX_SEL == "DIN_CDR" ? PADI : 1'bx
+        );
+};
+
+

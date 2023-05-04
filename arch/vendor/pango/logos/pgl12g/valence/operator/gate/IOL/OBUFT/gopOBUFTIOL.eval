@@ -1,0 +1,56 @@
+*******************************************************************
+
+  Operator    [gopOBUFTIOL]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+gate
+operator gopOBUFTIOL
+{
+    parameter
+    (
+        string FROM_DQSL = "FALSE",
+        string MIPI_MODE = "FALSE"
+    )
+    port
+    (
+        input   IN,
+        input   TS,
+        input   MI,
+        // from to IOB
+        output  T,
+        output  O,
+        output  MO,
+        output  DO_OUT,
+        output  TO_OUT
+    );
+};
+
+implementation impl of gopOBUFTIOL
+{
+    device devOBUFTIOL gate_obuftiol
+        parameter map
+        (
+            CP_DOMODE  => FROM_DQSL == "FALSE" ? "DD" : "OUT_EXT",
+            CP_MIPI_EN => MIPI_MODE == "TRUE" ? "ENABLE" : "DISABLE"
+        )
+        port map 
+        (
+           TX_DATA[7]   =>  (FROM_DQSL == "FALSE") ? IN : 1'bx, 
+           OUT_EXT      =>  (FROM_DQSL == "TRUE") ? IN : 1'bx,
+           
+           TS_CTRL[0]   =>  TS,                
+           
+           TO           =>  T,
+           DO           =>  O,
+
+           DO_OUT       =>  DO_OUT,
+           TO_OUT       =>  TO_OUT,
+           
+           MIPI_SW_DYN_O =>  MO,
+           MIPI_SW_DYN_I =>  MI
+        );
+};

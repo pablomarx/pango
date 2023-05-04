@@ -1,0 +1,170 @@
+tarted
+grid
+device ISERDES
+{
+    // grid_property_def_start
+    // grid_property_def_end
+
+    parameter
+    (
+        config string CP_GRS_DIS = "FALSE",
+        config string CP_IDDR_MODE = "DISABLE",
+        config string CP_RSTA_EN = "DISABLE",
+        config string CP_RSTC_EN = "DISABLE"
+    );
+    port
+    (
+// configuration_body_def_on
+
+
+    config input SC_GRS_DIS = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_GRS_DIS" */,
+
+    config input SC_IDDR_MODE[1:0] = 2'h0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_IDDR_MODE[1],SC_IDDR_MODE[0]" */,
+
+    config input SC_RSTA_EN = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_RSTA_EN" */,
+
+    config input SC_RSTC_EN = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_RSTC_EN" */,
+
+// configuration_body_def_end
+
+        input DIN_C = 1'b1,
+        input DIN_A = 1'b1,
+        input CLK_IO_A = 1'b1,
+        input CLK_IO_C = 1'b1,
+        input CLK_SYS_A = 1'b1,
+        input CLK_SYS_C = 1'b1,
+        input ALIGNWD_A = 1'b1,
+        input ALIGNWD_C = 1'b1,
+        input RST_ISERDES_A = 1'b1,
+        input RST_ISERDES_C = 1'b1,
+        output RX_DATA[7:0]
+    );
+};
+//grid device end
+
+//grid device structure netlist started
+structure netlist of ISERDES
+{
+    //dummy instances for constraint editor
+     device ISERDES_INST ISERDESA ;
+     device ISERDES_INST ISERDESC ;
+};
+//grid device structure netlist end
+
+//grid device configure body started
+
+configuration cfg of ISERDES
+{
+
+//initial config body0 begin
+    if(CP_GRS_DIS == "FALSE")
+    {
+        SC_GRS_DIS  :=  1'b0;
+    }
+    else if(CP_GRS_DIS =="TRUE")
+    {
+        SC_GRS_DIS  :=  1'b1;
+    }
+    else
+    {
+        SC_GRS_DIS  :=  1'bx;
+        error("illegal setting for CP_GRS_DIS  :=  %s", CP_GRS_DIS);
+    }
+
+//initial config body0 end
+
+
+//initial config body1 begin
+    if(CP_IDDR_MODE == "DISABLE")
+    {
+        SC_IDDR_MODE  :=  2'b00;
+    }
+    else if(CP_IDDR_MODE =="IDES4")
+    {
+        SC_IDDR_MODE  :=  2'b01;
+    }
+    else if(CP_IDDR_MODE == "IDES8")
+    {
+        SC_IDDR_MODE  :=  2'b10;
+    }
+    else if(CP_IDDR_MODE == "IDES7")
+    {
+        SC_IDDR_MODE  :=  2'b11;
+    }
+    else
+    {
+        SC_IDDR_MODE  :=  2'bx;
+        error("illegal setting for CP_IDDR_MODE  :=  %s", CP_IDDR_MODE);
+    }
+
+//initial config body1 end
+
+
+//initial config body2 begin
+    if(CP_RSTA_EN == "DISABLE")
+    {
+        SC_RSTA_EN  :=  1'b0;
+    }
+    else if(CP_RSTA_EN == "ENABLE")
+    {
+        SC_RSTA_EN  :=  1'b1;
+    }
+    else
+    {
+        SC_RSTA_EN  :=  1'bx;
+        error("illegal setting for CP_RSTA_EN  :=  %s", CP_RSTA_EN);
+    }
+
+//initial config body2 end
+
+
+//initial config body3 begin
+    if(CP_RSTC_EN == "DISABLE")
+    {
+        SC_RSTC_EN  :=  1'b0;
+    }
+    else if(CP_RSTC_EN == "ENABLE")
+    {
+        SC_RSTC_EN  :=  1'b1;
+    }
+    else
+    {
+        SC_RSTC_EN  :=  1'bx;
+        error("illegal setting for CP_RSTC_EN  :=  %s", CP_RSTC_EN);
+    }
+
+//initial config body3 end
+
+};
+
+//grid device configure body end
+
+
+timing iserdes_tnl of ISERDES
+{
+    operator V_ISERDES_E1 V_ISERDES_E1
+        parameter map
+        (
+            ISERDES_MODE =>  CP_IDDR_MODE,
+            GRS_EN       => (CP_GRS_DIS== "FALSE") ? "TRUE"  :
+                            (CP_GRS_DIS== "TRUE" ) ? "FALSE" : ""
+        )
+        port map
+        (
+            DO        => RX_DATA      ,
+            DIA       => DIN_A        ,
+            DIC       => DIN_C        ,
+            RCLKA     => CLK_SYS_A    ,
+            RCLKC     => CLK_SYS_C    ,
+            ICLKA     => CLK_IO_A     ,
+            ICLKC     => CLK_IO_C     ,
+            ALIGNWDA  => ALIGNWD_A    ,
+            ALIGNWDC  => ALIGNWD_C    ,
+            RSTA      => RST_ISERDES_A,
+            RSTC      => RST_ISERDES_C 
+        );
+};

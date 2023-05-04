@@ -1,0 +1,264 @@
+*****************************************************************
+
+  Device    [ODDR]
+
+  Author    [clwang]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+prim
+device ODDR
+{
+    parameter
+    (
+        config string ODDR_MODE = "OGDDR", //"OGDDR", "OGSER4", "OGSER7", "OGSER8", "OGSER10"
+                                           //"OMDDR", "OMSER4", "OMSER8" 
+                                                      
+        config bit    GRS_EN = 1'b1,       //1'b1; 1'b0                      
+        config bit    LRS_EN = 1'b1,       //1'b1; 1'b0
+        config bit    WL_EXTEND = 1'b0     //1'b1; 1'b0
+    )
+    port
+    (
+        input  LRS,
+        input  DATA[5:0], 
+        input  TS[3:0],
+        input  OCLK,
+        input  SYSCLK,
+        input  SERCLK,
+
+        //for cascaded parts
+        input  CIN[16:0],
+        output COUT[16:0],
+
+        output DO,
+        output TO,
+        output TS_TERM_CTRL  // what is this?
+    );
+
+}; // end of device ODDR
+
+
+propagation prop of ODDR
+{
+   propagate ( DATA[0] |-> DO );
+   propagate ( DATA[1] |-> DO );
+   propagate ( DATA[2] |-> DO );
+   propagate ( DATA[3] |-> DO );
+   propagate ( DATA[4] |-> DO );
+   propagate ( DATA[5] |-> DO ); 
+
+   propagate ( CIN     |-> DO );
+
+   propagate ( DATA[0] |-> COUT );
+   propagate ( DATA[1] |-> COUT );
+   propagate ( DATA[2] |-> COUT );
+   propagate ( DATA[3] |-> COUT );
+
+   propagate ( TS[0]   |-> TO );
+   propagate ( TS[1]   |-> TO );
+   propagate ( TS[2]   |-> TO );
+   propagate ( TS[3]   |-> TO );
+
+   propagate ( SYSCLK  |-> COUT );
+   propagate ( SERCLK  |-> COUT );
+   propagate ( LRS     |-> COUT );
+   propagate ( OCLK    |-> COUT );
+   
+   propagate ( SYSCLK  |-> DO );
+   propagate ( SERCLK  |-> DO );
+   propagate ( LRS     |-> DO );
+   propagate ( OCLK    |-> DO );
+};
+
+
+/**Device***********************************************************************
+
+  Device    [ODDR]
+  
+  Author    [xsniu]
+
+  Abstract  [This specified the timing model under specific configuration]
+
+  Revision History:
+
+********************************************************************************/
+
+timing  oddr_tnl of ODDR
+{
+   if(ODDR_MODE == "OGDDR")
+   {
+       operator  V_OGDDR  V_OGDDR
+           parameter map
+           (
+                LRS_EN    =>  ( LRS_EN == 1'b1) ? "TRUE" : "FALSE", 
+                GRS_EN    =>  ( GRS_EN == 1'b1) ? "TRUE" : "FALSE"
+           )
+           port map
+           (
+                D         =>   DATA[1:0],
+                T         =>   TS[0],
+                RCLK      =>   SYSCLK,
+                RST       =>   LRS ,  
+                PADO      =>   DO,
+                PADT      =>   TO
+           );
+   }
+   else if(ODDR_MODE == "OGSER4")
+   {
+        operator V_OGSER4 V_OGSER4
+            parameter map
+            (
+                LRS_EN      =>  ( LRS_EN == 1'b1) ? "TRUE" : "FALSE", 
+                GRS_EN      =>  ( GRS_EN == 1'b1) ? "TRUE" : "FALSE"
+            )
+            port map
+            (
+                D         =>   DATA[3:0],
+                T         =>   TS[1:0],
+                RCLK      =>   SYSCLK,
+                SERCLK    =>   SERCLK,
+                RST       =>   LRS,  
+                PADO      =>   DO,
+                PADT      =>   TO
+            );      
+   }
+   else if(ODDR_MODE == "OGSER4E")
+   {
+        operator V_OGSER4E V_OGSER4E
+            parameter map
+            (
+                LRS_EN      =>  ( LRS_EN == 1'b1) ? "TRUE" : "FALSE", 
+                GRS_EN      =>  ( GRS_EN == 1'b1) ? "TRUE" : "FALSE"
+            )
+            port map
+            (
+                D         =>   {DATA[5],DATA[4],DATA[2],DATA[0]},
+                RCLK      =>   SYSCLK,
+                RST       =>   LRS ,
+                SERCLK    =>   SERCLK,
+                PADO      =>   DO
+            );        
+   }
+   else if(ODDR_MODE == "OGSER7")
+   {
+       operator  V_OGSER7  V_OGSER7
+          parameter map
+          (
+              LRS_EN    =>  ( LRS_EN == 1'b1) ? "TRUE" : "FALSE", 
+              GRS_EN    =>  ( GRS_EN == 1'b1) ? "TRUE" : "FALSE"
+          )
+          port map
+          (
+              D[5:0]    =>   DATA,
+              RCLK      =>   SYSCLK,
+              RST       =>   LRS ,
+              SERCLK    =>   SERCLK,
+              PADO      =>   DO
+          );
+   }
+   else if(ODDR_MODE == "OGSER8")
+   {
+       operator  V_OGSER8  V_OGSER8
+           parameter map
+           (
+               LRS_EN    =>  ( LRS_EN == 1'b1) ? "TRUE" : "FALSE", 
+               GRS_EN    =>  ( GRS_EN == 1'b1) ? "TRUE" : "FALSE"
+           )
+           port map
+           (
+               D[5:0]    =>   DATA,
+               T         =>   TS,
+               RCLK      =>   SYSCLK,
+               RST       =>   LRS ,
+               SERCLK    =>   SERCLK,
+               PADO      =>   DO,
+               PADT      =>   TO
+           );        
+   }
+   else if(ODDR_MODE == "OGSER10")
+   {
+       operator  V_OGSER10  V_OGSER10
+           parameter map
+           (
+               LRS_EN    =>  ( LRS_EN == 1'b1) ? "TRUE" : "FALSE", 
+               GRS_EN    =>  ( GRS_EN == 1'b1) ? "TRUE" : "FALSE"
+           )
+           port map
+           (
+               D[5:0]    =>   DATA,
+               RCLK      =>   SYSCLK,
+               RST       =>   LRS ,
+               SERCLK    =>   SERCLK,
+               PADO      =>   DO
+           );        
+   }
+   else if(ODDR_MODE == "OMDDR")
+   {
+       operator  V_OMDDR  V_OMDDR
+           parameter map
+           (
+               LRS_EN    =>  ( LRS_EN == 1'b1) ? "TRUE" : "FALSE", 
+               GRS_EN    =>  ( GRS_EN == 1'b1) ? "TRUE" : "FALSE"
+           )
+           port map
+           (
+               D         =>   DATA[1:0],
+               T         =>   TS[0],
+               RCLK      =>   SYSCLK,
+               OCLK      =>   OCLK,
+               RST       =>   LRS ,  
+               PADO      =>   DO,
+               PADT      =>   TO
+           );
+   }
+   else if(ODDR_MODE == "OMSER4")
+   {
+       operator  V_OMSER4  V_OMSER4
+           parameter map
+           (   
+               WL_EXTEND   =>  ( WL_EXTEND == 1'b1)   ? "TRUE" : "FALSE",
+               LRS_EN      =>  ( LRS_EN == 1'b1) ? "TRUE" : "FALSE", 
+               GRS_EN      =>  ( GRS_EN == 1'b1) ? "TRUE" : "FALSE"
+           )
+           port map
+           (
+               D         =>   DATA[3:0],
+               T         =>   TS[1:0],
+               RCLK      =>   SYSCLK,
+               OCLK      =>   OCLK,
+               SERCLK    =>   SERCLK,
+               RST       =>   LRS ,  
+               PADO      =>   DO,
+               PADT      =>   TO
+           );
+   }
+   else if(ODDR_MODE == "OMSER8")
+   {
+       operator  V_OMSER8  V_OMSER8
+           parameter map                                           
+           (   
+               WL_EXTEND   =>  ( WL_EXTEND == 1'b1) ? "TRUE" : "FALSE",                                                    
+               LRS_EN      =>  ( LRS_EN == 1'b1) ? "TRUE" : "FALSE", 
+               GRS_EN      =>  ( GRS_EN == 1'b1) ? "TRUE" : "FALSE"  
+           )                                                       
+           port map
+           (
+               D[5:0]    =>   DATA,
+               T         =>   TS,
+               RCLK      =>   SYSCLK,
+               OCLK      =>   OCLK,
+               SERCLK    =>   SERCLK,
+               RST       =>   LRS ,  
+               PADO      =>   DO,
+               PADT      =>   TO
+           );        
+   }
+   else
+   {
+       error("Illegal configuration to generate timing model");
+   }  
+}

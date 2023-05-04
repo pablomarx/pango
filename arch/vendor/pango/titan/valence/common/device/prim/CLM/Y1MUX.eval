@@ -1,0 +1,74 @@
+*****************************************************************
+
+  Device    [Y1MUX]
+
+  Author    [clwang]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+prim
+device Y1MUX
+{
+    parameter
+    (
+        config string CFG  = "L7"     // "L7" "FG" "CY"
+    );
+    port 
+    ( 
+        input  L7, FG, CY,
+        output Z
+    );
+
+}; // end of device Y1MUX
+
+/**Device***********************************************************************
+
+  Device    [Y1MUX]
+
+  Abstract  [This specified how to propagate the input signal to the outputs based on
+             configuration]
+
+  Revision History:
+
+********************************************************************************/
+propagation pop of Y1MUX
+{
+    if (CFG == "L7") 
+    {
+        propagate ( L7 --> Z );
+    } 
+    else if (CFG == "FG") 
+    {
+        propagate ( FG --> Z );
+    } 
+    else if (CFG == "CY") 
+    {
+        propagate ( CY --> Z );
+    } 
+    else 
+    {
+        error("Illegal configuration value with Y1MUX.");
+    }
+
+}; // end of propagation for Y1MUX
+
+/**Device***********************************************************************
+
+  Device    [Y1MUX]
+  
+  Author    []
+
+  Abstract  [This specified the timing model under specific configuration]
+
+  Revision History:
+
+********************************************************************************/
+timing  y1mux_tnl of Y1MUX
+{
+    Z <= (CFG == "L7")  ? L7  :
+         (CFG == "FG") ? FG :
+         (CFG == "CY")  ? CY  : 1'bx;
+};

@@ -1,0 +1,143 @@
+*****************************************************************
+
+  Device    [IOCLKDIV]
+
+  Author    [clwang]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+grid
+device IOCLKDIV
+{
+
+    parameter
+    (
+        // These are the config parameters that are used to enable formal flow. They
+        // should be present in the declaration only if a MACRO is set. In normal
+        // implementation flow they should be turned off.
+        config string GRSN_EN   = "FALSE", // "FALSE" "TRUE"
+        config string DIV_FACTOR  = "DEFAULT"        // "DEFAULT" "2" "4" "5" "3.5"
+    );
+    port
+    (
+        config  input SC_GRSN_DIS  = 1'b0 /*pragma PAP_CFG_BIT_NAME = "SC_GRSN_DIS" */,
+        config  input SC_DIV2      = 1'b0 /*pragma PAP_CFG_BIT_NAME = "SC_DIV2" */, 
+        config  input SC_DIV4      = 1'b0 /*pragma PAP_CFG_BIT_NAME = "SC_DIV4" */, 
+        config  input SC_DIV5      = 1'b0 /*pragma PAP_CFG_BIT_NAME = "SC_DIV5" */, 
+        config  input SC_DIV35     = 1'b0 /*pragma PAP_CFG_BIT_NAME = "SC_DIV35" */,              
+                
+        input   CLK  = 1'b1, 
+        input   RSTN = 1'b1,  
+        output  CLKDIVOUT
+    );
+
+}// end of device IOCLKDIV
+
+/*******************************************************************************
+
+  Device    [IOCLKDIV]
+
+  Author    []
+
+  Abstract  [The structure netlist of IOCLKDIV is described in the similar fashion 
+             as in HDL. In unit instantiation statement, the formal pin may be 
+             connected to net which is declared explicitly. 
+             
+             In Valence, the connection can also be made from formal pin to other 
+             pin or port, in which case Valence compiler shall create the net to 
+             fulfil the connection. The built-in naming convention is kicked in 
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of IOCLKDIV
+{
+    device IOCLKDIV_INST IOCLKDIV_INST
+        parameter map
+        (
+            DIV_FACTOR  => DIV_FACTOR,
+            GRSN_EN     => GRSN_EN
+        )
+        port map
+        (
+            CLK       =>   CLK,
+            RSTN      =>   RSTN,
+            CLKDIVOUT =>   CLKDIVOUT
+        );
+
+}; // end of structure netlist of IOCLKDIV
+
+/*******************************************************************************
+
+  Device    [IOCLKDIV]
+
+  Author    []
+
+  Abstract  [Configure the configuration bits based on the value of config parameter]
+
+  Revision History:
+
+********************************************************************************/
+configuration cfg of IOCLKDIV
+{
+    SC_GRSN_DIS := (GRSN_EN == "FALSE") ? 1'b1 : 1'b0;
+    
+    if (DIV_FACTOR == "2")
+    {
+        SC_DIV2   := 1'b1 ;
+        SC_DIV4   := 1'b0 ;
+        SC_DIV5   := 1'b0 ;
+        SC_DIV35  := 1'b0 ;
+    }
+    else if (DIV_FACTOR == "4")
+    {
+        SC_DIV2   := 1'b0 ;
+        SC_DIV4   := 1'b1 ;
+        SC_DIV5   := 1'b0 ;
+        SC_DIV35  := 1'b0 ;
+    }
+    else if (DIV_FACTOR == "5")
+    {
+        SC_DIV2   := 1'b0 ;
+        SC_DIV4   := 1'b0 ;
+        SC_DIV5   := 1'b1 ;
+        SC_DIV35  := 1'b0 ;
+    }    
+    else if (DIV_FACTOR == "3.5")
+    {
+        SC_DIV2   := 1'b0 ;
+        SC_DIV4   := 1'b0 ;
+        SC_DIV5   := 1'b0 ;
+        SC_DIV35  := 1'b1 ;
+    }   
+    else //if (DIV_FACTOR == "DEFAULT")
+    {
+        SC_DIV2   := 1'b0 ;
+        SC_DIV4   := 1'b0 ;
+        SC_DIV5   := 1'b0 ;
+        SC_DIV35  := 1'b0 ;
+    }
+}; // end of configuration cfg of IOCLKDIV
+
+timing tnl of IOCLKDIV
+{
+    operator V_IOCLKDIV V_IOCLKDIV
+        parameter map
+        (
+            DIV_FACTOR  => DIV_FACTOR,
+            GRS_EN      => GRSN_EN
+        )
+        port map
+        (
+            CLKIN        => CLK,
+            RST_N        => RSTN,
+            CLKDIVOUT    => CLKDIVOUT
+        );
+}

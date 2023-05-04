@@ -1,0 +1,405 @@
+*********************************************************************
+
+  Operator    [gopAM]
+  
+  Author    [jblu]
+
+  Abstract  []
+
+  Revision History:
+
+ ********************************************************************************/
+gate
+operator gopAM
+{
+    parameter
+    (
+        bit    INIT[63:0]  = 64'hFFFFFFFFFFFFFFFF ,
+        string MODE        = "ARITH"              ,      // "LUT6" "ROM" "ARITH" 
+       
+        
+        string PREMUX_SEL  = "CYX"                ,
+        string POSTMUX_SEL = "CX"                 ,
+        string RAM_LUT_DIH = "LI"                 ,
+        string RAM_LUT_DIL = "LI"                 ,
+        string MASK_LUT6   = "FALSE"              ,
+                                                  
+        string RS_MODE     = "SYNC"               ,     // "SYNC" "ASYNC" 
+        string LRS_POL     = "FALSE"              ,
+        string LRS_EN      = "FALSE"              ,     // "TRUE"   "FALSE"
+        string LCE_POL     = "FALSE"              ,
+        string LCE_EN      = "FALSE"              ,
+        string CLK_POL     = "FALSE"              ,
+        string RSMUX_SEL   = "LOCAL"              ,
+        string CEMUX_SEL   = "LOCAL"              ,
+        
+        string RAM_MODE    = "LRAM"               ,
+        string RAM32_EN    = "TRUE"               ,
+        string CE_USED     = "USED"               ,     // "USED" "UNUSED"
+        string RS_USED     = "USED"                     // "USED" "UNUSED" 
+         
+    );
+
+    port
+    (
+        input  CIN,
+        output COUT, CR
+    );
+};
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Implement this using gate device devALC_S]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devALC_S of gopAM
+{
+    // string Y0MUX_SEL       = "FG";      // "FFAB" "FG" "CY"  
+        
+    device devACL6L5Q_S gatedev
+        parameter map 
+        ( 
+            CP_INITA          => INIT                                      ,
+            CP_MODEA          => MODE                                      ,      // "LUT6" "ROM" "ARITH" 
+                                                                           
+            CP_CR0PREMUX_SEL  => PREMUX_SEL                                ,
+            CP_CR0POSTMUX_SEL => POSTMUX_SEL                               ,
+            CP_RAM_LUTA_DIH   => RAM_LUT_DIH                               ,
+            CP_RAM_LUTA_DIL   => RAM_LUT_DIL                               ,
+            CP_MASK_LUT6A     => MASK_LUT6                                 ,
+                                              
+            CP_RS_MODE        => RS_MODE                                   ,     // "SYNC" "ASYNC" 
+            CP_LRS_POL        => (RS_USED == "USED") ? LRS_POL : "FALSE"   ,
+            CP_LRS_EN         => (RS_USED == "USED") ? LRS_EN  : "FALSE"   ,
+            CP_LCE_POL        => (CE_USED == "USED") ? LCE_POL : "FALSE"   ,
+            CP_LCE_EN         => (CE_USED == "USED") ? LCE_EN  : "FALSE"   ,
+            CP_CLK_POL        => CLK_POL                                   ,
+            CP_RSMUX_SEL      => RSMUX_SEL                                 ,
+            CP_CEMUX_SEL      => CEMUX_SEL                                 ,
+            CP_RAM_MODE       => RAM_MODE                                  ,
+            CP_RAM32_EN       => RAM32_EN                                  
+          
+        )
+        port map 
+        ( 
+            CIN        => CIN,
+            FGA_COUT   => COUT, 
+            Y0         => CR
+        );
+}; // end of implementation impl_devALC_S of gopAM
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Implement this using gate device devBLC_S]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devBLC_S of gopAM
+{
+    // string Y1MUX_SEL       = "FG";      // "L7"   "FG" "CY" 
+      
+    device devBCL6L5Q_S gatedev
+        parameter map 
+        ( 
+            CP_INITB          => INIT                                      ,
+            CP_MODEB          => MODE                                      ,      // "LUT6" "ROM" "ARITH" 
+                                                                           
+            CP_CR1PREMUX_SEL  => PREMUX_SEL                                ,
+            CP_CR1POSTMUX_SEL => POSTMUX_SEL                               ,
+            CP_RAM_LUTB_DIH   => RAM_LUT_DIH                               ,
+            CP_RAM_LUTB_DIL   => RAM_LUT_DIL                               ,
+            CP_MASK_LUT6B     => MASK_LUT6                                 ,
+                                              
+            CP_RS_MODE        => RS_MODE                                   ,     // "SYNC" "ASYNC" 
+            CP_LRS_POL        => (RS_USED == "USED") ? LRS_POL : "FALSE"   ,
+            CP_LRS_EN         => (RS_USED == "USED") ? LRS_EN  : "FALSE"   ,
+            CP_LCE_POL        => (CE_USED == "USED") ? LCE_POL : "FALSE"   ,
+            CP_LCE_EN         => (CE_USED == "USED") ? LCE_EN  : "FALSE"   ,
+            CP_CLK_POL        => CLK_POL                                   ,
+            CP_RSMUX_SEL      => RSMUX_SEL                                 ,
+            CP_CEMUX_SEL      => CEMUX_SEL                                 ,
+            CP_RAM_MODE       => RAM_MODE                                  ,
+            CP_RAM32_EN       => RAM32_EN                                  
+          
+        )
+        port map 
+        (
+            FGB_CIN    => CIN,
+            FGB_COUT   => COUT, 
+            Y1         => CR
+        );
+}; // end of implementation impl_devBLC_S of gopAM
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Implement this using gate device devCLC_S]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devCLC_S of gopAM
+{
+    // string Y2MUX_SEL       = "FG";      // "FFCD" "FG" "CY" 
+         
+    device devCCL6L5Q_S gatedev
+        parameter map 
+        ( 
+            CP_INITC          => INIT                                      ,
+            CP_MODEC          => MODE                                      ,      // "LUT6" "ROM" "ARITH" 
+                                                                           
+            CP_CR2PREMUX_SEL  => PREMUX_SEL                                ,
+            CP_CR2POSTMUX_SEL => POSTMUX_SEL                               ,
+            CP_RAM_LUTC_DIH   => RAM_LUT_DIH                               ,
+            CP_RAM_LUTC_DIL   => RAM_LUT_DIL                               ,
+            CP_MASK_LUT6C     => MASK_LUT6                                 ,
+                                              
+            CP_RS_MODE        => RS_MODE                                   ,     // "SYNC" "ASYNC" 
+            CP_LRS_POL        => (RS_USED == "USED") ? LRS_POL : "FALSE"   ,
+            CP_LRS_EN         => (RS_USED == "USED") ? LRS_EN  : "FALSE"   ,
+            CP_LCE_POL        => (CE_USED == "USED") ? LCE_POL : "FALSE"   ,
+            CP_LCE_EN         => (CE_USED == "USED") ? LCE_EN  : "FALSE"   ,
+            CP_CLK_POL        => CLK_POL                                   ,
+            CP_RSMUX_SEL      => RSMUX_SEL                                 ,
+            CP_CEMUX_SEL      => CEMUX_SEL                                 ,
+            CP_RAM_MODE       => RAM_MODE                                  ,
+            CP_RAM32_EN       => RAM32_EN                                  
+          
+        )
+        port map 
+        (
+            FGC_CIN    => CIN,
+            FGC_COUT   => COUT, 
+            Y2         => CR
+        );
+}; // end of implementation impl_devCLC_S of gopAM
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Implement this using gate device devDLC_S]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devDLC_S of gopAM
+{
+    // string Y3MUX_SEL       = "FG";      // "L8"  "FG" "CY"   
+       
+    device devDCL6L5Q_S gatedev
+        parameter map 
+        ( 
+            CP_INITD          => INIT                                      ,
+            CP_MODED          => MODE                                      ,      // "LUT6" "ROM" "ARITH" 
+                                                                           
+            CP_CR3PREMUX_SEL  => PREMUX_SEL                                ,
+            CP_CR3POSTMUX_SEL => POSTMUX_SEL                               ,
+//            CP_RAM_LUTD_DIH   => "LI"                               ,
+            CP_RAM_LUTD_DIL   => RAM_LUT_DIL                               ,
+            CP_MASK_LUT6D     => MASK_LUT6                                 ,
+                                              
+            CP_RS_MODE        => RS_MODE                                   ,     // "SYNC" "ASYNC" 
+            CP_LRS_POL        => (RS_USED == "USED") ? LRS_POL : "FALSE"   ,
+            CP_LRS_EN         => (RS_USED == "USED") ? LRS_EN  : "FALSE"   ,
+            CP_LCE_POL        => (CE_USED == "USED") ? LCE_POL : "FALSE"   ,
+            CP_LCE_EN         => (CE_USED == "USED") ? LCE_EN  : "FALSE"   ,
+            CP_CLK_POL        => CLK_POL                                   ,
+            CP_RSMUX_SEL      => RSMUX_SEL                                 ,
+            CP_CEMUX_SEL      => CEMUX_SEL                                 ,
+            CP_RAM_MODE       => RAM_MODE                                  ,
+            CP_RAM32_EN       => RAM32_EN                                  
+          
+        )
+        port map 
+        (  
+            FGD_CIN    => CIN,
+            COUT       => COUT, 
+            Y3         => CR
+        );
+}; // end of implementation impl_devDLC_S of gopAM
+
+
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Implement this using gate device devALC]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devALC of gopAM
+{  
+    // string Y0MUX_SEL       = "FG" ;     // "FFAB" "FG" "CY"  
+         
+    device devACL6L5Q gatedev
+        parameter map 
+        ( 
+            CP_INITA          => INIT                                      ,
+            CP_MODEA          => MODE                                      ,      // "LUT6" "ROM" "ARITH" 
+                                                                           
+            CP_CR0PREMUX_SEL  => PREMUX_SEL                                ,
+            CP_CR0POSTMUX_SEL => POSTMUX_SEL                               ,
+                                              
+            CP_RS_MODE        => RS_MODE                                   ,     // "SYNC" "ASYNC" 
+            CP_LRS_POL        => (RS_USED == "USED") ? LRS_POL : "FALSE"   ,
+            CP_LRS_EN         => (RS_USED == "USED") ? LRS_EN  : "FALSE"   ,
+            CP_LCE_POL        => (CE_USED == "USED") ? LCE_POL : "FALSE"   ,
+            CP_LCE_EN         => (CE_USED == "USED") ? LCE_EN  : "FALSE"   ,
+            CP_CLK_POL        => CLK_POL                                   ,
+            CP_RSMUX_SEL      => RSMUX_SEL                                 ,
+            CP_CEMUX_SEL      => CEMUX_SEL                                 
+          
+        )
+        port map 
+        (   
+            CIN        => CIN,
+            FGA_COUT   => COUT, 
+            Y0         => CR
+        );
+}; // end of implementation impl_devALC of gopAM
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Implement this using gate device devBLC]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devBLC of gopAM
+{
+    // string Y1MUX_SEL       = "FG";      // "L7"   "FG" "CY"   
+     
+    device devBCL6L5Q gatedev
+        parameter map 
+        ( 
+            CP_INITB          => INIT                                      ,
+            CP_MODEB          => MODE                                      ,      // "LUT6" "ROM" "ARITH" 
+                                                                           
+            CP_CR1PREMUX_SEL  => PREMUX_SEL                                ,
+            CP_CR1POSTMUX_SEL => POSTMUX_SEL                               ,
+                                              
+            CP_RS_MODE        => RS_MODE                                   ,     // "SYNC" "ASYNC" 
+            CP_LRS_POL        => (RS_USED == "USED") ? LRS_POL : "FALSE"   ,
+            CP_LRS_EN         => (RS_USED == "USED") ? LRS_EN  : "FALSE"   ,
+            CP_LCE_POL        => (CE_USED == "USED") ? LCE_POL : "FALSE"   ,
+            CP_LCE_EN         => (CE_USED == "USED") ? LCE_EN  : "FALSE"   ,
+            CP_CLK_POL        => CLK_POL                                   ,
+            CP_RSMUX_SEL      => RSMUX_SEL                                 ,
+            CP_CEMUX_SEL      => CEMUX_SEL                                 
+          
+        )
+        port map 
+        ( 
+            FGB_CIN    => CIN,
+            FGB_COUT   => COUT, 
+            Y1         => CR
+        );
+}; // end of implementation impl_devBLC of gopAM
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Implement this using gate device devCLC]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devCLC of gopAM
+{
+    // string Y2MUX_SEL       = "FG";      // "FFCD" "FG" "CY"    
+      
+    device devCCL6L5Q gatedev
+        parameter map 
+        ( 
+            CP_INITC          => INIT                                      ,
+            CP_MODEC          => MODE                                      ,      // "LUT6" "ROM" "ARITH" 
+                                                                           
+            CP_CR2PREMUX_SEL  => PREMUX_SEL                                ,
+            CP_CR2POSTMUX_SEL => POSTMUX_SEL                               ,
+                                              
+            CP_RS_MODE        => RS_MODE                                   ,     // "SYNC" "ASYNC" 
+            CP_LRS_POL        => (RS_USED == "USED") ? LRS_POL : "FALSE"   ,
+            CP_LRS_EN         => (RS_USED == "USED") ? LRS_EN  : "FALSE"   ,
+            CP_LCE_POL        => (CE_USED == "USED") ? LCE_POL : "FALSE"   ,
+            CP_LCE_EN         => (CE_USED == "USED") ? LCE_EN  : "FALSE"   ,
+            CP_CLK_POL        => CLK_POL                                   ,
+            CP_RSMUX_SEL      => RSMUX_SEL                                 ,
+            CP_CEMUX_SEL      => CEMUX_SEL                                 
+          
+        )
+        port map 
+        (  
+            FGC_CIN    => CIN,
+            FGC_COUT   => COUT, 
+            Y2         => CR
+        );
+}; // end of implementation impl_devCLC of gopAM
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Implement this using gate device devDA]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devDLC of gopAM
+{
+    // string Y3MUX_SEL       = "FG";       // "L8"  "FG" "CY"  
+       
+    device devDCL6L5Q gatedev
+        parameter map 
+        ( 
+            CP_INITD          => INIT                                      ,
+            CP_MODED          => MODE                                      ,      // "LUT6" "ROM" "ARITH" 
+                                                                           
+            CP_CR3PREMUX_SEL  => PREMUX_SEL                                ,
+            CP_CR3POSTMUX_SEL => POSTMUX_SEL                               ,
+                                              
+            CP_RS_MODE        => RS_MODE                                   ,     // "SYNC" "ASYNC" 
+            CP_LRS_POL        => (RS_USED == "USED") ? LRS_POL : "FALSE"   ,
+            CP_LRS_EN         => (RS_USED == "USED") ? LRS_EN  : "FALSE"   ,
+            CP_LCE_POL        => (CE_USED == "USED") ? LCE_POL : "FALSE"   ,
+            CP_LCE_EN         => (CE_USED == "USED") ? LCE_EN  : "FALSE"   ,
+            CP_CLK_POL        => CLK_POL                                   ,
+            CP_RSMUX_SEL      => RSMUX_SEL                                 ,
+            CP_CEMUX_SEL      => CEMUX_SEL                                 
+          
+        )
+        port map 
+        (
+            FGD_CIN    => CIN,
+            COUT       => COUT, 
+            Y3         => CR
+        );
+}; // end of implementation impl_devDLC of gopAM
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

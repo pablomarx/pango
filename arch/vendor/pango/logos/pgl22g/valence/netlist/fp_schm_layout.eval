@@ -1,0 +1,159 @@
+
+use pgl_defs, pgl_floorplan_funcs, pgl22g_defs;
+
+floorplan
+schematic floorplan_view draw_logic_resource of device devPGL22G
+{
+    // Tile index variable
+    unsigned int tx, ty;
+    unsigned int tx_hmemc0 = 6;
+    unsigned int tx_hmemc1 = 33;
+    
+    // draw  clma tile
+    foreach tx ( L_CLMA_TILES_X )
+    {
+       foreach ty ( L_CLM_TILES_Y )
+       {
+          if(!(((tx>=CCS_TILE_X) && (tx<=CCS_TILE_X+NUM_GRID_CCS_X/NUM_GRID_X) && (ty>=CCS_TILE_Y))))
+          {
+            if(!(((tx<tx_hmemc0)||(tx>=tx_hmemc1))&&(ty<N_HMEMC_TILE)))
+            {
+              if((tx==PLL_TILE_X) && (((ty>=PLL_TILE0_Y) && (ty<=PLL_TILE0_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1))||((ty>=PLL_TILE1_Y) && (ty<=PLL_TILE1_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1))||((ty>=PLL_TILE2_Y) && (ty<=PLL_TILE2_Y + NUM_GRID_PLL_Y/NUM_GRID_Y-1))||((ty>=PLL_TILE3_Y)&&(ty<=PLL_TILE3_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1))||((ty>=PLL_TILE4_Y)&&(ty<=PLL_TILE4_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1))||((ty>=PLL_TILE5_Y)&&(ty<=PLL_TILE5_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1)))) 
+              {      
+              }  
+              else if((tx==USCM_TILE_X)&&(((ty>=USCM_TILE0_Y)&&(ty<=USCM_TILE0_Y+NUM_GRID_USCM_Y/NUM_GRID_Y-1))||((ty>=USCM_TILE1_Y)&&(ty<=USCM_TILE1_Y+NUM_GRID_USCM_Y/NUM_GRID_Y-1))))
+              {
+              }
+              else if(!((tx==RLYBUFS_TILE_X)&&(ty==RLYBUFS_TILE_Y)))
+              {
+                draw_clm_tile_fp(tx, ty, 1);
+              }
+            } 
+          }
+       }
+    }
+
+    // draw clms tile
+    foreach tx ( L_CLMS_TILES_X )
+    {
+        foreach ty ( L_CLM_TILES_Y )
+        {
+           if(!((tx>=CCS_TILE_X) && (tx<=CCS_TILE_X+NUM_GRID_CCS_X/NUM_GRID_X) && (ty>=CCS_TILE_Y)))
+          {
+            if(!(((tx<tx_hmemc0)||(tx>=tx_hmemc1))&&(ty<N_HMEMC_TILE)))
+            {
+              if((tx==PLL_TILE_X) && (((ty>=PLL_TILE0_Y) && (ty<=PLL_TILE0_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1)) || ((ty>=PLL_TILE1_Y) &&(ty<=PLL_TILE1_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1))||((ty>=PLL_TILE2_Y)&&(ty<=PLL_TILE2_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1))||((ty>=PLL_TILE3_Y)&&(ty<=PLL_TILE3_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1)) ||((ty>=PLL_TILE4_Y)&&(ty<=PLL_TILE4_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1))||((ty>=PLL_TILE5_Y) && (ty<=PLL_TILE5_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1)))) 
+              {      
+              }  
+              else if((tx == USCM_TILE_X) && (((ty >= USCM_TILE0_Y) && (ty <= USCM_TILE0_Y + NUM_GRID_USCM_Y/NUM_GRID_Y - 1)) || ((ty >= USCM_TILE1_Y) && (ty <= USCM_TILE1_Y + NUM_GRID_USCM_Y/NUM_GRID_Y - 1))))
+              {
+              }
+              else if(!((tx==RLYBUFS_TILE_X)&&(ty==RLYBUFS_TILE_Y)))
+              {
+                draw_clm_tile_fp( tx, ty, 0 );
+              }
+            }   
+          }
+        }
+    }
+    
+    draw_ccs_tile_fp(CCS_TILE_X, CCS_TILE_Y);
+    
+   // draw drm
+   foreach tx ( L_DRM_TILES_X )
+   {
+       foreach ty ( L_DRM_TILES_Y )
+       {
+          if(!((tx>=CCS_TILE_X) && (tx<=CCS_TILE_X+NUM_GRID_CCS_X/NUM_GRID_X) && (ty>=CCS_TILE_Y)))
+          {
+           draw_drm_tile_fp( tx, ty );
+          }
+       }
+   }
+   
+   // draw apm tile
+   foreach tx ( L_APM_TILES_X )
+   {
+       foreach ty ( L_APM_TILES_Y )
+       {
+           draw_apm_tile_fp( tx, ty);
+       }
+   }
+   
+    //draw pll
+    unsigned int L_PLL_TILES_X[] = {PLL_TILE_X};
+    unsigned int L_PLL_B_TILES_Y[] = {PLL_TILE0_Y,PLL_TILE2_Y,PLL_TILE4_Y};
+    unsigned int L_PLL_T_TILES_Y[] = {PLL_TILE1_Y,PLL_TILE3_Y,PLL_TILE5_Y};
+
+    foreach tx ( L_PLL_TILES_X )
+    {
+       foreach ty ( L_PLL_B_TILES_Y )
+        {
+            draw_pll_tile_fp( tx, ty);
+        }  
+        foreach ty ( L_PLL_T_TILES_Y )
+        {
+            draw_pll_tile_fp( tx, ty);
+        }      
+    } 
+    
+   // draw iol dqsiol
+   foreach tx ( L_IOL_TILES_X )
+   {
+       foreach ty ( L_IOL_TILES_Y )
+       {
+           draw_iol_tile_fp( tx, ty);
+       }  
+       foreach ty ( L_HMEMCIOL_TILES_Y )
+       {
+           draw_hmemciol_tile_fp( tx, ty);
+       }
+       foreach ty ( L_DQSL_TILES_Y )
+       {
+           draw_dqsl_tile_fp( tx, ty);
+       }
+       foreach ty ( L_HMEMCDQSL_TILES_Y )
+       {
+           draw_dqsl_tile_fp( tx, ty);
+       }
+       foreach ty ( L_IOCKGATEDLL_TILES_Y )
+       {
+           draw_iockgatedll_tile_fp( tx, ty);
+       }
+       foreach ty ( L_HMEMCIOCKGATEDLL_TILES_Y )
+       {
+           draw_hmemciockgatedll_tile_fp( tx, ty);
+       }
+   } 
+
+    // iob
+    foreach tx({L_IOB_TILES_X})
+    {
+        foreach ty ({ L_IOB_TILES_Y} )
+        {
+            draw_iob_tile_fp( tx, ty);
+        }
+    }
+    
+    // draw uscm
+    unsigned int L_USCM_TILES_X[] = {USCM_LOC_X};
+    unsigned int L_USCM_TILES_Y[] = {USCM0_LOC_Y, USCM1_LOC_Y};
+    foreach tx ( L_USCM_TILES_X )
+    {
+        foreach ty ( L_USCM_TILES_Y )
+        {
+            draw_uscm_tile_fp( tx, ty);
+        }      
+    }
+
+    foreach tx ( L_HMEMC_TILES_X )
+    {
+        foreach ty ( L_HMEMC_TILES_Y )
+        {
+            draw_hmemc_tile_fp( tx, ty);
+        }   
+    }
+     
+} // end of schematic floorplan_view draw_logic_resource of device devPGL22G
+
+

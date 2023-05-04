@@ -1,0 +1,408 @@
+*****************************************************************
+
+  Device    [devOBUFIOLQDEL]
+
+  Author    [hzhang]
+
+  Abstract  [device base on IOL, used as obuft path through to IOB
+             with OFF TFF]
+
+  Revision History:
+
+********************************************************************************/
+
+gate
+device devOBUFIOLQDEL : device IOL
+{
+    parameter
+    (
+        config string OUT_MUX_SEL      := "OFF_Q",       //" DATAIN", "ODDR_DO" "OFF_Q"
+        config string TS_MUX_SEL       := "ZERO",        //"ZERO" "TS_TSFF"  "TS_IN"
+        config string DO_SEL            = "DO",          // "DO", "DO_COMP"
+        config string DELAY_MODE    := "OUTDELAY",     //"NODELAY", "INDELAY", "OUTDELAY",
+
+        config bit    OFF_CE_EN         = 1'b0,
+        config bit    OFF_LRS_EN        = 1'b0,
+        config bit    OFF_SET           = 1'b0,      //1'b1 => set; 1'b0 => reset
+        config bit    OFF_SYNC          = 1'b0,      //1'b1 => sync; 1'b0 => async
+        config bit    OFF_LATCH         = 1'b0,      //1'b1 => latch; 1'b0 => flip flop
+
+        config bit    CLK_I_INV         = 1'b0,
+        config bit    CLK_O_INV         = 1'b0,
+        config bit    CE_INV            = 1'b0,
+        config bit    LRS_INV           = 1'b0,
+
+        config bit    OFF_USED       := 1'b1,
+        config bit    GRS_EN          = 1'b0,
+        
+        config bit    TRI_FORCE[1:0]  := 2'b11,
+        config string DELAY_SEL       = "DEFAULT",   //"DEFAULT":  offset      delay offset
+                                             //"25PS":     offset+25ps
+                                             //"50PS":     offset+50ps
+                                             //"100PS":    offset+100ps
+
+        config bit    IODLY_CTRL_EN   = 1'b0,        // The enable signal of IODLY_CTRL,  enable iol auto incr. or decr. .              
+        config bit    IODLY_STEP[6:0] = 7'b000_0000  // IOL input delay chain value control. Each delay step is ~50ps.   
+                                             // Delay value is linear increased with the binary code increase.
+                                             // 0000000: minimum input delay
+                                             // 1000000: mid point input delay
+                                             // 1111111: maximum input delay
+    );
+    port
+    (
+        input   TX_DATA[5:5],
+
+        input   SYSCLK,
+        input   CE,
+        input   LRS,
+
+        input   IODLY_CTRL[2:0],
+        output  IODLY_OV,
+
+        // from/to IOB
+
+        output  DO,
+        output  TO,
+
+        output  DO_OUT
+    );
+
+}// end of device devOBUFIOLQDEL
+
+/*******************************************************************************
+
+  Device    [devOBUFIOLQDEL]
+
+  Author    []
+
+  Abstract  [The structure netlist of devOBUFIOLQDEL is described in the similar fashion
+             as in HDL. In unit instantiation statement, the formal pin may be
+             connected to net which is declared explicitly.
+
+             In Valence, the connection can also be made from formal pin to other
+             pin or port, in which case Valence compiler shall create the net to
+             fulfil the connection. The built-in naming convention is kicked in
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devOBUFIOLQDEL
+{
+    // Wires for input ports
+
+    wire ntSYSCLK, ntCE, ntLRS;
+
+    ntSYSCLK          <= SYSCLK;
+    ntCE              <= CE;
+    ntLRS             <= LRS;
+
+
+    // Wires connecting to output ports
+    wire ntIODLY_OV;
+    wire ntOUT_DELSEL_MUX;
+
+    IODLY_OV   <= ntIODLY_OV;
+    wire  ntDO_MUX;
+
+    DO_OUT    <= ntOUT_DELSEL_MUX;
+    DO        <= ntDO_MUX; 
+
+    // Internal wires
+    wire ntLRS_MUX;
+    wire ntCE_MUX;
+    
+    wire ntSYSCLK_MUX_O;
+
+    wire ntOFF_CE_MUX;
+    wire ntOFF_LRS_MUX;
+    wire ntOFF_Q;
+
+
+    wire ntIN_OUT_DELSEL_MUX;
+    wire ntDELAY_DOUT;
+    wire ntOUTPUT_MUX;
+
+
+    device LRS_MUX LRS_MUX
+        parameter map
+        (
+            LRS_INV => LRS_INV
+        )
+        port map
+        (
+            I1  => ntLRS,
+            I0  => ntLRS,
+            Y   => ntLRS_MUX
+        );
+
+    device CE_MUX CE_MUX
+        parameter map
+        (
+            CE_INV => CE_INV
+        )
+        port map
+        (
+            I1   => ntCE,
+            I0   => ntCE,
+            Y    => ntCE_MUX
+        );
+
+
+    device SYSCLK_MUX_O SYSCLK_MUX_O
+        parameter map
+        (
+            CLK_INV => CLK_O_INV
+        )
+        port map
+        (
+            I1   => ntSYSCLK,
+            I0   => ntSYSCLK,
+            Y    => ntSYSCLK_MUX_O
+        );
+
+    // OFF
+    device OFF_CE_MUX OFF_CE_MUX
+        parameter map
+        (
+            CE_USED => OFF_CE_EN
+        )
+        port map
+        (
+            CE  => ntCE_MUX,
+            ONE => 1'b1,
+            Y   => ntOFF_CE_MUX
+        );
+
+    device OFF_LRS_MUX OFF_LRS_MUX
+        parameter map
+        (
+            LRS_USED => OFF_LRS_EN
+        )
+        port map
+        (
+            LRS  => ntLRS_MUX,
+            ZERO  => 1'b0,
+            Y     => ntOFF_LRS_MUX
+        );
+
+    device OFF OFF
+        parameter map
+        (
+           SET    => OFF_SET,    //1'b1 => set; 1'b0 => reset
+           SYNC   => OFF_SYNC,    //1'b1 => sync; 1'b0 => async
+           LATCH  => OFF_LATCH,     //1'b1 => latch; 1'b0 => flip flop
+           GRS_EN => GRS_EN,
+           LRS_EN => OFF_LRS_EN
+        )
+        port map
+        (
+           D   => TX_DATA[5],
+           CLK => ntSYSCLK_MUX_O,
+           CE  => ntOFF_CE_MUX,
+           LRS => ntOFF_LRS_MUX,
+           Q   => ntOFF_Q
+        );
+
+    // connected with OFF & ODDR
+
+    device OUTPUT_MUX OUTPUT_MUX
+        parameter map
+        (
+           OUT_SEL    => OUT_MUX_SEL
+        )
+        port map
+        (
+            I0  => ntOFF_Q,
+            Y   => ntOUTPUT_MUX
+        );
+
+   // DELAY
+
+
+    device OUT_DELSEL_MUX OUT_DELSEL_MUX
+        parameter map
+        (
+           DELAY_MODE => DELAY_MODE
+        )
+        port map
+        (
+            I0   => ntOUTPUT_MUX,
+            I1   => ntDELAY_DOUT,
+            Y    => ntOUT_DELSEL_MUX
+        );
+
+    device IN_OUT_DELSEL_MUX IN_OUT_DELSEL_MUX
+        parameter map
+        (
+           DELAY_MODE => DELAY_MODE
+        )
+        port map
+        (
+            I0  => ntOUTPUT_MUX,
+            Y   => ntIN_OUT_DELSEL_MUX
+        );
+
+   device DELAY DELAY
+       port map
+       (
+           DIN        => ntIN_OUT_DELSEL_MUX,
+           DOUT       => ntDELAY_DOUT,
+           IODLY_CTRL => IODLY_CTRL,
+           IODLY_OV   => ntIODLY_OV
+       );
+
+    device DO_MUX DO_MUX
+       parameter map
+       (
+           DO_SEL  => DO_SEL
+       )
+       port map
+       (
+           I0   => ntOUT_DELSEL_MUX,
+
+           Y    => ntDO_MUX
+       );
+
+}; // end of structure netlist of devOBUFIOLQDEL
+
+
+timing tnl of devOBUFIOLQDEL
+{
+    wire ntDLY_OUT;
+    wire ntCK_O_INV;
+    wire ntCE_INV;
+    wire ntRS_INV;
+    wire ntDLY_DIN;
+    
+    operator V_INV ckoinv
+        parameter map
+        (
+            SECTION => "IOL_CLK_O_INV"
+        )
+        port map
+        (
+            I => SYSCLK,
+            Z => ntCK_O_INV
+        );
+
+    if (CE_INV == 1'b1)
+    {
+        operator V_INV ceinv
+            parameter map
+            (
+                SECTION => "IOL_CE_INV"
+            )
+            port map
+            (
+                I => CE,
+                Z => ntCE_INV
+            );
+    }
+
+    if (LRS_INV == 1'b1)
+    {
+        operator V_INV rsinv
+            parameter map
+            (
+                SECTION => "IOL_SR_INV"
+            )
+            port map
+            (
+                I => LRS,
+                Z => ntRS_INV
+            );
+    }
+    
+    if ( OFF_LATCH == 1'b0 && OFF_SYNC == 1'b1 )   //FF SYNC
+    {
+        operator V_FFSYN OFF_FF
+            parameter map
+            (
+                GRS_EN    => (GRS_EN == 1'b1)  ? "TRUE" : "FALSE",
+                LRS_EN    => (OFF_LRS_EN == 1'b1) ? "TRUE" : "FALSE",
+                SET_RESET => (OFF_SET == 1'b1) ? "SET" : "RESET",
+                SECTION => "OFF"
+            )
+            port map 
+            (
+                Q => ntDLY_DIN,
+                D => TX_DATA[5],
+                SR => (OFF_LRS_EN == 1'b1) ? ((LRS_INV == 1'b1) ?  ntRS_INV : LRS) : 1'b0,
+                CK => (CLK_O_INV == 1'b1) ?  ntCK_O_INV : SYSCLK,
+                CE => (OFF_CE_EN == 1'b1) ? ((CE_INV == 1'b1) ?  ntCE_INV : CE) : 1'b1
+            );
+
+    } else if ( OFF_LATCH == 1'b0 && OFF_SYNC == 1'b0 )   //FF ASYNC
+    {
+        operator V_FFASYN OFF_FF
+            parameter map
+            (
+                GRS_EN    => (GRS_EN == 1'b1)  ? "TRUE" : "FALSE",
+                LRS_EN    => (OFF_LRS_EN == 1'b1) ? "TRUE" : "FALSE",
+                SET_RESET => (OFF_SET == 1'b1) ? "SET" : "RESET",
+                SECTION => "OFF" 
+            )
+            port map 
+            (
+                Q => ntDLY_DIN,
+                D => TX_DATA[5],
+                SR => (OFF_LRS_EN == 1'b1) ? ((LRS_INV == 1'b1) ?  ntRS_INV : LRS) : 1'b0,
+                CK => (CLK_O_INV == 1'b1) ?  ntCK_O_INV : SYSCLK,
+                CE => (OFF_CE_EN == 1'b1) ? ((CE_INV == 1'b1) ?  ntCE_INV : CE) : 1'b1
+            );
+
+    } else if ( OFF_LATCH == 1'b1)   //LATCH ASYNC
+    {
+        operator V_LAASYN OLATCH
+            parameter map 
+            (
+                GRS_EN    => (GRS_EN == 1'b1)  ? "TRUE" : "FALSE",
+                LRS_EN    => (OFF_LRS_EN == 1'b1) ? "TRUE" : "FALSE",
+                SET_RESET => (OFF_SET == 1'b1) ? "SET" : "RESET",
+                SECTION => "OFF" 
+            )
+            port map 
+            (
+                Q => ntDLY_DIN,
+                D => TX_DATA[5],
+                SR => (OFF_LRS_EN == 1'b1) ? ((LRS_INV == 1'b1) ?  ntRS_INV : LRS) : 1'b0,
+                CK => (CLK_O_INV == 1'b0) ?  ntCK_O_INV : SYSCLK,
+                CE => (OFF_CE_EN == 1'b1) ? ((CE_INV == 1'b1) ?  ntCE_INV : CE) : 1'b1
+            );
+    }
+    
+    operator V_IODELAY delay
+       parameter map 
+       (
+           DELAY_STEP  => IODLY_STEP,
+           DELAY_DEPTH => 7
+       )
+       port map
+       (
+           DI        => ntDLY_DIN,
+           DO        => ntDLY_OUT,
+           DIRECTION => IODLY_CTRL[0],
+           MOVE      => IODLY_CTRL[1],
+           LOAD_N    => IODLY_CTRL[2],
+           DELAY_OB  => IODLY_OV
+       );
+
+    DO_OUT <= ntDLY_OUT;
+
+    operator V_MUX V_MUX
+        parameter map
+        (
+            SECTION => "DMUX",
+            SEL     => "I0"
+        )
+        port map
+        (
+            I0  => ntDLY_OUT,
+            Y   => DO
+        );
+};
+

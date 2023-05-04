@@ -1,0 +1,61 @@
+*****************************************************************
+
+  Operator   [GTP_IDDR]
+
+  Author      []
+
+  Abstract    []
+
+  Copyright 2014 (c). SHENZHEN PANGO MICROSYSTEMS CO.,LTD.
+  All Right Reserved.
+
+  Revision History:
+     06/18/14 - Initial version.
+
+********************************************************************************/
+implementation impl of GTP_IDDR
+{
+    string IREG_SET, REG_SYNC; 
+    if (RS_TYPE == "ASYNC_SET")
+    {
+        IREG_SET = "SET";
+        REG_SYNC = "ASYNC";
+    }
+    else if (RS_TYPE == "SYNC_SET")
+    {
+        IREG_SET = "SET";
+        REG_SYNC = "SYNC";
+    }
+    else if (RS_TYPE == "ASYNC_RESET")
+    {
+        IREG_SET = "RESET";
+        REG_SYNC = "ASYNC";
+    }
+    else if (RS_TYPE == "SYNC_RESET")
+    {
+        IREG_SET = "RESET";
+        REG_SYNC = "SYNC";
+    }
+        
+    operator gopIDDR gateop
+        parameter map 
+        (
+            CP_DDR_EN    => "ENABLE",
+            CP_IREG_SET  => IREG_SET,
+            CP_ILATCH_EN => "DISABLE",
+            CP_GRS_DIS   => GRS_EN == "FALSE" ? "TRUE" : "FALSE",
+            CP_REG_SYNC  => REG_SYNC,
+            CP_ICLK_EN   => "ENABLE",
+            CP_IREG_SEL  => "FALSE",
+            CP_ISR_EN    => "ENABLE"
+        )
+        port map
+        (
+            DIN     => D,
+            CE_IREG => CE,
+            SR      => RS,
+            CLK     => CLK,
+            Q0      => Q0,
+            Q1      => Q1
+        );
+};

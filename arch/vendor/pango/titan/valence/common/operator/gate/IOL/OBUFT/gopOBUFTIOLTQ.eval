@@ -1,0 +1,117 @@
+*******************************************************************
+
+  Operator    [gopOBUFTIOLTQ]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+gate
+operator gopOBUFTIOLTQ
+{
+    parameter
+    (
+        string GRS_EN          = "FALSE",           // "TRUE" "FALSE"  
+        string TSFF_CE_EN      = "UNUSED",    //1'b0 => "UNUSED";     1'b1 => "USED"
+        string TSFF_LRS_EN     = "UNUSED",  //1'b0 => "UNUSED";   1'b1 => "USED"
+        string TSFF_SET        = "RESET",     //1'b0 => "RESET"; 1'b1 => "SET"
+        string TSFF_SYNC       = "ASYNC",     //1'b0 => "ASYNC";      1'b1 => "SYNC"    
+
+        bit    TSFF_LATCH     = 1'b0,      //1'b1 => latch; 1'b0 => flip flop
+
+        bit    CLK_O_INV      = 1'b0,
+        bit    CE_INV         = 1'b0,
+        bit    LRS_INV        = 1'b0
+
+    );
+    port
+    (
+        input   IN,
+        input   TS,
+
+        input   SYSCLK /* pragma PAP_ARC_GOP_CTRL_PIN = "GCLK|RCLK"*/,
+        input   CE /* pragma PAP_ARC_GOP_CTRL_PIN = CE*/,
+        input   LRS /* pragma PAP_ARC_GOP_CTRL_PIN = RST*/,
+
+        // from to IOB
+        output  T,
+        output  O,
+
+        output  DO_OUT,
+        output  TO_OUT
+    );
+};
+
+implementation impl of gopOBUFTIOLTQ
+{
+
+    device devOBUFTIOLTQ gate_obuftioltq
+        parameter map
+        (
+            GRS_EN        => (GRS_EN == "TRUE") ? 1'b1 : 1'b0,
+
+            TSFF_CE_EN    => (TSFF_CE_EN  == "USED")     ? 1'b1 : 1'b0,
+            TSFF_LRS_EN   => (TSFF_LRS_EN == "USED")  ? 1'b1 : 1'b0,
+            TSFF_SET      => (TSFF_SET    == "SET")    ? 1'b1 : 1'b0,
+            TSFF_SYNC     => (TSFF_SYNC   == "SYNC")     ? 1'b1 : 1'b0,
+
+            TSFF_LATCH   => TSFF_LATCH,
+
+            CLK_O_INV    =>  CLK_O_INV,
+            CE_INV       =>  CE_INV,
+            LRS_INV      =>  LRS_INV
+        )
+        port map
+        (
+            TX_DATA[5]   =>  IN,
+            TS_CTRL[0]   =>  TS,
+
+            SYSCLK         =>  SYSCLK,
+            CE           =>  CE,
+            LRS          =>  LRS,
+
+            TO           =>  T,
+            DO           =>  O,
+
+            DO_OUT       =>  DO_OUT,
+            TO_OUT       =>  TO_OUT
+        );
+};
+
+
+implementation impl_l of gopOBUFTIOLTQ
+{
+
+    device devOBUFTIOLLTQ gate_obuftiolltq
+        parameter map
+        (
+            GRS_EN        => (GRS_EN == "TRUE") ? 1'b1 : 1'b0,
+
+            TSFF_CE_EN    => (TSFF_CE_EN  == "USED")     ? 1'b1 : 1'b0,
+            TSFF_LRS_EN   => (TSFF_LRS_EN == "USED")  ? 1'b1 : 1'b0,
+            TSFF_SET      => (TSFF_SET    == "SET")    ? 1'b1 : 1'b0,
+            TSFF_SYNC     => (TSFF_SYNC   == "SYNC")     ? 1'b1 : 1'b0,
+            TSFF_LATCH   => TSFF_LATCH,
+
+            CLK_O_INV    =>  CLK_O_INV,
+            CE_INV       =>  CE_INV,
+            LRS_INV      =>  LRS_INV
+        )
+        port map
+        (
+            TX_DATA[0]   =>  IN,
+            TS_CTRL      =>  TS,
+
+            SYSCLK         =>  SYSCLK,
+            CE           =>  CE,
+            LRS          =>  LRS,
+
+            TO           =>  T,
+            DO           =>  O,
+
+            DO_OUT       =>  DO_OUT,
+            TO_OUT       =>  TO_OUT
+        );
+};
+

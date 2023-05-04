@@ -1,0 +1,51 @@
+use pgl_defs,pgl20h_defs;
+use pgl_WLSR1_TIEHI_inc, pgl_IOCK_TIEHI_inc,pgl_BLSR_TIEHI_inc, pgl_TIEHI_IN_inc;
+
+package pgl20h_funcs_logic
+{
+/****************************************************************************************************
+*****************************************************************************************************/
+function connect_hsst_input
+(
+    unsigned int tx,
+    unsigned int ty, 
+    unsigned int tx_iockdll, 
+    unsigned int ty_iockdll, 
+    unsigned int tx_wlsr2, 
+    unsigned int ty_wlsr2,
+    string dev_hsst,
+    string dev_iockdll,
+    string dev_wlsr2,
+    string sig_bus2,
+    unsigned int flag_lr    
+)
+{
+    int sx = tx * NUM_GRID_X;
+    int sy = ty * NUM_GRID_Y;
+
+    int sx_iockdll = tx_iockdll * NUM_GRID_X;
+    int sy_iockdll = ty_iockdll * NUM_GRID_Y;
+
+    int sx_wlsr2 = tx_wlsr2 * NUM_GRID_X;
+    int sy_wlsr2 = ty_wlsr2 * NUM_GRID_Y;
+
+    string hsst = dev_hsst ;
+    string iockdll = dev_iockdll ;
+    string wlsr2 = dev_wlsr2 ;
+    string bus2 = sig_bus2;
+
+    connect(<pin *bus2 of <device *hsst @[sx,sy]>> => <wire BUS2_CLK_OUT of <device *iockdll @[sx_iockdll,sy_iockdll]>>);
+
+    if(flag_lr==0)
+    {
+        connect
+        (
+            <pin CLK_PLL_ARB_IN of <device *hsst @ [sx,sy]>>     =>  <wire CLK_PLL_OUT[0] of <device *wlsr2 @[sx_wlsr2,sy_wlsr2]>>,
+            <pin CLK_PLL_0_IN of <device *hsst @ [sx,sy]>>     =>  <wire CLK_PLL_OUT[1] of <device *wlsr2 @[sx_wlsr2,sy_wlsr2]>>  
+        );      
+    }
+
+}
+
+} //end of package pgl20h_funcs_connect_logic
+

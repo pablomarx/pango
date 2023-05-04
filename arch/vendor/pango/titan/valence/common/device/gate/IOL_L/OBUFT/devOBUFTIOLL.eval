@@ -1,0 +1,198 @@
+*****************************************************************
+
+  Device    [devOBUFTIOLL]
+
+  Author    [hzhang]
+
+  Abstract  [device base on IOL, used as inout path through to IOB ]
+
+  Revision History:
+
+********************************************************************************/
+
+gate
+device devOBUFTIOLL : device IOL_L
+{
+    parameter
+    (
+        config string TS_MUX_SEL       := "TS_IN",   //" TS_TSFF", "TS_IN"
+        config string OUT_MUX_SEL       = "DATAIN",    //" DATAIN", "OFF_Q"
+        
+        config string DO_SEL            = "DO",   // "DO", "DO_COMP"
+        config string TO_SEL            = "TO",   // "TO", "TO_COMP"
+        config string DELAY_MODE        = "NODELAY",    //"NODELAY", "INDELAY", "OUTDELAY",
+        config bit    TRI_FORCE[1:0]   := 2'b11
+    );
+    port
+    (
+        input   TX_DATA[0:0],
+        input   TS_CTRL,
+
+        // from/to IOB
+        output  TO,
+        output  DO,
+
+        output  DO_OUT,
+        output  TO_OUT
+    );
+
+}// end of device devOBUFTIOLL
+
+/*******************************************************************************
+
+  Device    [devOBUFTIOLL]
+
+  Author    []
+
+  Abstract  [The structure netlist of devOBUFTIOLL is described in the similar fashion
+             as in HDL. In unit instantiation statement, the formal pin may be
+             connected to net which is declared explicitly.
+
+             In Valence, the connection can also be made from formal pin to other
+             pin or port, in which case Valence compiler shall create the net to
+             fulfil the connection. The built-in naming convention is kicked in
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devOBUFTIOLL
+{
+    wire ntTS_CTRL;
+    ntTS_CTRL         <= TS_CTRL;
+    // Wires connecting to output ports
+    wire ntTS_MUX;
+    wire ntOUT_DELSEL_MUX;
+
+
+    wire  ntDO_MUX, ntTO_MUX;
+
+    TO        <= ntTO_MUX;
+    DO        <= ntDO_MUX;
+
+    TO_OUT    <= ntTS_MUX;
+    DO_OUT    <= ntOUT_DELSEL_MUX;
+
+    wire ntOUTPUT_MUX;
+
+    device TS_MUX_L TS_MUX_L
+        parameter map
+        (
+            TS_SEL => TS_MUX_SEL
+        )
+        port map
+        (
+            I1  => ntTS_CTRL,
+            Y   => ntTS_MUX
+        );
+
+    // connected with OFF & ODDR
+
+    device OUTPUT_MUX_L OUTPUT_MUX_L
+        parameter map
+        (
+           OUT_SEL    => OUT_MUX_SEL
+        )
+        port map
+        (
+            I2  => TX_DATA[0],
+            Y   => ntOUTPUT_MUX
+        );
+
+    // DELAY
+
+    device OUT_DELSEL_MUX_L OUT_DELSEL_MUX_L
+        parameter map
+        (
+           DELAY_MODE => DELAY_MODE
+        )
+        port map
+        (
+            I0   => ntOUTPUT_MUX,
+            Y    => ntOUT_DELSEL_MUX
+        );
+
+
+    device DO_MUX_L DO_MUX_L
+       parameter map
+       (
+           DO_SEL  => DO_SEL
+       )
+       port map
+       (
+           I0   => ntOUT_DELSEL_MUX,
+
+           Y    => ntDO_MUX
+       );
+
+    device TO_MUX_L TO_MUX_L
+       parameter map
+       (
+           TO_SEL  => TO_SEL
+       )
+       port map
+       (
+           I0   => ntTS_MUX,
+
+           Y    => ntTO_MUX
+       );
+}; // end of structure netlist of devOBUFTIOLL
+
+timing tnl of devOBUFTIOLL
+{
+    wire ntDO;
+    DO_OUT <= ntDO;
+
+    operator V_BUF obuf
+        parameter map
+        (
+           SECTION => "OBUF_IOL_DO"
+        )
+        port map
+        (
+            I => TX_DATA[0],
+            Z => ntDO
+        );
+
+    operator V_MUX V_MUX_D
+        parameter map
+        (
+            SECTION => "DMUX",
+            SEL     => "I0"
+        )
+        port map
+        (
+            I0  => ntDO,
+            Y   => DO
+        );
+
+    wire ntTO;
+    TO_OUT <= ntTO;
+
+    operator V_BUF tbuf
+        parameter map
+        (
+           SECTION => "OBUF_IOL_TO"
+        )
+        port map
+        (
+            I => TS_CTRL,
+            Z => ntTO
+        );
+
+    operator V_MUX V_MUX_T
+        parameter map
+        (
+            SECTION => "TMUX",
+            SEL     => "I0"
+        )
+        port map
+        (
+            I0  => ntTO,
+            Y   => TO
+        );
+}
+

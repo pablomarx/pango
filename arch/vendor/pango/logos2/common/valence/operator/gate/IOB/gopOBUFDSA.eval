@@ -1,0 +1,72 @@
+*******************************************************************
+
+  Operator    [gopOBUFDSA]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+
+gate
+operator gopOBUFDSA
+{
+    parameter
+    (
+        string IOB_MODE                = "OBUFHR_DS",   // "OBUFHR_T_DS", "OBUFHR_DS"
+        string TERMINATED              = "NONE",    /* "NONE" , "PULLUP" , "PULLDOWN" , "KEEPER" */
+        string HOT_SOCKET              = "ON",        // ON: 1'b0; OFF: 1'b1
+        string POWER_MODE              = "ON",        // ON: 1'b0; OFF: 1'b1 ON--> POWER GUARD
+        string VCCIO                   = "3.3",       // "3.3" "2.5" "1.8" "1.5" "1.2"
+                                       
+        string SLEW_MODE               = "F",  // "F" "S"
+        string DRV_CURR_VAL            = "12",
+        string IOSTANDARD              = "MINI-LVDS",
+        string DIFF_IN_TERM_MODE       = "OFF",     // "ON" "OFF" 
+        string CP_DYN_TERM                = "OFF",
+        
+        // parameter of bkcl, just for transmit value from gui  
+        //string CP_DRV_STRENGTH_DIFF_0  = "0",
+        //string CP_DRV_STRENGTH_DIFF_1  = "0",
+        //string CP_VCM_0                = "1.25",
+        //string CP_VCM_1                = "1.25",
+        //string CP_DIFFOUT_EN_0         = "FALSE",
+        //string CP_DIFFOUT_EN_1         = "FALSE",
+        string DDR_RES                 = "50"
+        //string CP_VREF_MODE            = "EXTERNAL",
+        //string CP_VREF_SEL             = "0.5"
+    );
+    port
+    (
+        input  I,
+        input  T,
+        output DIFFO_OUT,
+        output O
+    );
+};
+
+implementation impl_D of gopOBUFDSA
+{
+    device devIOBD gate_obufds_d
+        parameter map
+        (
+            CP_IOB_MODE          =>  IOB_MODE,
+            CP_PORT_STATUS       =>  TERMINATED,
+            CP_IO_STANDARD       =>  IOSTANDARD,
+            CP_DIFFIN_TERM       =>  DIFF_IN_TERM_MODE,
+            CP_TERM_VAL          =>  DDR_RES,
+            CP_DYN_TERM          =>  CP_DYN_TERM,
+            CP_DRV_STRENGTH      =>  DRV_CURR_VAL,
+            CP_SLEW_MODE         =>  SLEW_MODE,
+            //CP_HOT_SOCKET        =>  HOT_SOCKET,
+            CP_VCCIO             =>  VCCIO
+
+        )
+        port map 
+        (
+            DO        => I,
+            DO_NDRV   => T,
+            DIFFO_OUT => DIFFO_OUT,
+            PAD       => O
+        );
+};

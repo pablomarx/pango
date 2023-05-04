@@ -1,0 +1,622 @@
+*****************************************************************
+
+  Device    [devIOMSD8IOLADEL]
+
+  Author    [hzhang]
+
+  Abstract  [devIOMSD8IOLADEL on the TOP/RIGHT/BOTTOM of Arch.]
+
+  Revision History:
+
+********************************************************************************/
+
+gate
+device devIOMSD8IOLADEL : device IOL
+{
+    parameter
+    (
+        config string TS_MUX_SEL    := "TS_ODDR",
+        config string OUT_MUX_SEL   := "ODDR_DO",
+        config string DO_SEL         = "DO",   // "DO", "DO_COMP"
+        config string TO_SEL         = "TO",   // "TO", "TO_COMP"
+        config string DELAY_MODE     = "INDELAY",      //"NODELAY", "INDELAY", "OUTDELAY",
+
+        config string IN_MUX_SEL     = "DIN",        // "DIN"     : IN_FROM_PAD
+                                                     // "DIN_CDR" : IN_PAD_FOR_CDR
+        config bit    DPI_EN         = 1'b0,
+        config bit    GRS_EN         = 1'b0,
+
+        config string DES_SER_CLK    = "IOCLK",        // "IOCLK", "SAMPLE_CLK", "PROBE_CLK"
+
+        config bit    IDDR_LRS_EN    = 1'b0,
+        config string IDDR_ICLK      = "DQSDEL",       // "DQSDEL", "DESCLK", "SYSCLK"
+        config string IDDR_MODE     := "IMDES8",       //"IGDDR", "IGDES4", "IGDES7", "IGDES8", "IGDES10"
+                                                       //"IMDDR", "IMDES4", "IMDES8", "DISABLE"
+        config bit    ODDR_LRS_EN    = 1'b0,
+        config string ODDR_OCLK      = "WCLK",         // "SERCLK", "WCLK", "WCLKDEL", "SYSCLK"
+        config string ODDR_MODE     := "OMSER8",       //"OGDDR", "OGSER4", "OGSER7", "OGSER8", "OGSER10"
+                                                       //"OMDDR", "OMSER4", "OMSER8" ,"DISABLE"
+
+        config bit    CLK_I_INV      = 1'b0,
+        config bit    CLK_O_INV      = 1'b0,
+        config bit    LRS_INV        = 1'b0,
+
+        config bit    TRI_FORCE[1:0]  := 2'b11,
+        config string DELAY_SEL       = "DEFAULT",   //"DEFAULT":  offset      delay offset
+                                                     //"25PS":     offset+25ps
+                                                     //"50PS":     offset+50ps
+                                                     //"100PS":    offset+100ps
+
+        config bit    IODLY_CTRL_EN   = 1'b0,        // The enable signal of IODLY_CTRL,  enable iol auto incr. or decr. .              
+        config bit    IODLY_STEP[6:0] = 7'b000_0000,  // IOL input delay chain value control. Each delay step is ~50ps.   
+                                                     // Delay value is linear increased with the binary code increase.
+                                                     // 0000000: minimum input delay
+                                                     // 1000000: mid point input delay
+                                                     // 1111111: maximum input delay,
+
+        config bit    WL_EXTEND       = 1'b0       // from gtp
+        
+    );
+    port
+    (
+        input   TX_DATA[5:0],
+        input   TS_CTRL[3:0],
+
+        output  RX_DATA[5:0],
+        output  RX_DATA_DD,
+        
+        input   IFIFO_WADDR[2:0],
+        input   IFIFO_RADDR[2:0],
+
+        input   IODLY_CTRL[2:0],
+        output  IODLY_OV,
+
+        input   DPI_CTRL[1:0],
+        input   DPI_STS_CLR,
+        output  DPI_STS[1:0],
+        input   IOCLK,
+
+        input   SAMPLE_CLK,
+        input   PROBE_CLK,
+
+        input   WCLK,
+        input   WCLK_DEL,
+    
+        input   DQSI_DEL,
+    
+        input   SYSCLK,
+        input   LRS,
+        input   SLIP,
+
+
+        // from/to IOB
+        output  TO,
+        input   DIN,
+        input   DIN_CDR,
+        output  DO,
+
+        input   ODDR_CIN[16:0],
+        output  IDDR_COUT[6:0],
+        input   IDDR_CIN[6:0],
+        output  ODDR_COUT[16:0],
+
+        output  DO_OUT,
+        output  TO_OUT
+    );
+
+}// end of device devIOMSD8IOLADEL
+
+/*******************************************************************************
+
+  Device    [devIOMSD8IOLADEL]
+
+  Author    []
+
+  Abstract  [The structure netlist of devIOMSD8IOLADEL is described in the similar fashion
+             as in HDL. In unit instantiation statement, the formal pin may be
+             connected to net which is declared explicitly.
+
+             In Valence, the connection can also be made from formal pin to other
+             pin or port, in which case Valence compiler shall create the net to
+             fulfil the connection. The built-in naming convention is kicked in
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devIOMSD8IOLADEL
+{
+    // Wires for input ports
+
+    wire ntSYSCLK, ntLRS;
+    wire ntDIN;
+    wire ntDIN_CDR;
+    wire ntDIN_MUX;
+    wire ntDPI_STS_CLR;
+    wire ntSAMPLE_CLK;
+    wire ntPROBE_CLK;
+    
+    wire ntWCLK;
+    wire ntWCLK_DEL;
+    
+    wire ntDQSI_DEL;
+
+    ntSYSCLK          <= SYSCLK;
+    ntLRS             <= LRS;
+    ntDIN             <= DIN;
+    ntDIN_CDR         <= DIN_CDR;
+    ntDPI_STS_CLR     <= DPI_STS_CLR;
+    ntSAMPLE_CLK      <= SAMPLE_CLK;
+    ntPROBE_CLK       <= PROBE_CLK;
+
+    ntWCLK            <= WCLK;
+    ntWCLK_DEL        <= WCLK_DEL;
+
+    ntDQSI_DEL        <= DQSI_DEL;
+
+
+
+    // Wires connecting to output ports
+    wire ntIODLY_OV;
+    wire ntIN_DELSEL_MUX;
+    RX_DATA_DD     <= ntIN_DELSEL_MUX;
+    wire ntTS_MUX;
+    wire ntOUT_DELSEL_MUX;
+
+    IODLY_OV   <= ntIODLY_OV;
+
+    wire  ntDO_MUX, ntTO_MUX;
+
+    TO_OUT    <= ntTS_MUX;
+    DO_OUT    <= ntOUT_DELSEL_MUX;
+    
+    TO        <= ntTO_MUX;
+    DO        <= ntDO_MUX;  
+
+    // Internal wires
+    wire ntLRS_MUX;
+    
+    wire ntSYSCLK_MUX_I;
+    wire ntSYSCLK_MUX_O;
+
+
+    wire ntIOCLK;
+    ntIOCLK <= IOCLK;
+
+    wire ntIDDR_DESCLK_MUX;
+    wire ntIDDR_ICLK_MUX;
+    wire ntIDDR_LRS_MUX;
+    wire ntRX_DATA0;
+    
+    wire ntODDR_SERCLK_MUX;
+    wire ntODDR_OCLK_MUX;
+    wire ntODDR_LRS_MUX;
+    wire ntODDR_TS;
+    wire ntODDR_TX;
+
+    wire ntIN_OUT_DELSEL_MUX;
+    wire ntDELAY_DOUT;
+    wire ntOUTPUT_MUX;
+
+    device DIN_MUX DIN_MUX
+        parameter map
+        (
+            SEL => IN_MUX_SEL
+        )
+        port map
+        (
+            I1  => ntDIN,
+            I0  => ntDIN_CDR,
+            Y   => ntDIN_MUX
+        );
+        
+    device LRS_MUX LRS_MUX
+        parameter map
+        (
+            LRS_INV => LRS_INV
+        )
+        port map
+        (
+            I1  => ntLRS,
+            I0  => ntLRS,
+            Y   => ntLRS_MUX
+        );
+
+    device SYSCLK_MUX_I SYSCLK_MUX_I
+        parameter map
+        (
+            CLK_INV => CLK_I_INV
+        )
+        port map
+        (
+            I1   => ntSYSCLK,
+            I0   => ntSYSCLK,
+            Y    => ntSYSCLK_MUX_I
+        );
+
+    device SYSCLK_MUX_O SYSCLK_MUX_O
+        parameter map
+        (
+            CLK_INV => CLK_O_INV
+        )
+        port map
+        (
+            I1   => ntSYSCLK,
+            I0   => ntSYSCLK,
+            Y    => ntSYSCLK_MUX_O
+        );
+
+    // ODDR
+    device ODDR_SERCLK_MUX ODDR_SERCLK_MUX
+        parameter map
+        (
+            SERCLK => DES_SER_CLK
+        )
+        port map
+        (
+            I2  => ntIOCLK,
+            I1  => ntSAMPLE_CLK,
+            I0  => ntPROBE_CLK,
+            Y   => ntODDR_SERCLK_MUX
+        );
+
+    device ODDR_OCLK_MUX ODDR_OCLK_MUX
+        parameter map
+        (
+            OCLK => ODDR_OCLK
+        )
+        port map
+        (
+            I3  => ntODDR_SERCLK_MUX,
+            I2  => ntWCLK,
+            I1  => ntWCLK_DEL,
+            I0  => ntSYSCLK_MUX_O,
+            Y   => ntODDR_OCLK_MUX
+        );
+
+    device ODDR_LRS_MUX ODDR_LRS_MUX
+        parameter map
+        (
+            LRS_USED => ODDR_LRS_EN
+        )
+        port map
+        (
+            LRS  => ntLRS_MUX,
+            ZERO  => 1'b0,
+            Y     => ntODDR_LRS_MUX
+        );
+
+    device ODDR ODDR
+        parameter map
+        (
+            ODDR_MODE => ODDR_MODE
+        )
+        port map
+        (
+            DATA         => TX_DATA,
+            TS           => TS_CTRL,
+            OCLK         => ntODDR_OCLK_MUX,
+            SYSCLK         => ntSYSCLK_MUX_O,
+            SERCLK       => ntODDR_SERCLK_MUX,
+
+            LRS          => ntODDR_LRS_MUX,
+
+            //for cascaded parts
+            CIN          => ODDR_CIN,
+            COUT         => ODDR_COUT,
+
+            DO           => ntODDR_TX,
+            TO           => ntODDR_TS
+        );
+
+    // connected with TSFF & ODDR
+    device TS_MUX TS_MUX
+        parameter map
+        (
+            TS_SEL => TS_MUX_SEL
+        )
+        port map
+        (
+            I0  => ntODDR_TS,
+            Y   => ntTS_MUX
+        );
+  
+    // connected with OFF & ODDR
+
+    device OUTPUT_MUX OUTPUT_MUX
+        parameter map
+        (
+           OUT_SEL    => OUT_MUX_SEL
+        )
+        port map
+        (
+            I1  => ntODDR_TX,
+            Y   => ntOUTPUT_MUX
+        );
+
+   // IDDR
+    device IDDR_DESCLK_MUX IDDR_DESCLK_MUX
+        parameter map
+        (
+            DESCLK => DES_SER_CLK
+        )
+        port map
+        (
+            I2  => ntIOCLK,
+            I1  => ntSAMPLE_CLK,
+            I0  => ntPROBE_CLK,
+            Y   => ntIDDR_DESCLK_MUX
+        );
+
+    device IDDR_ICLK_MUX IDDR_ICLK_MUX
+        parameter map
+        (
+            ICLK => IDDR_ICLK
+        )
+        port map
+        (
+            I2  => ntIDDR_DESCLK_MUX,
+            I1  => ntDQSI_DEL,
+            I0  => ntSYSCLK_MUX_I,
+            Y   => ntIDDR_ICLK_MUX
+        );
+
+    device IDDR_LRS_MUX IDDR_LRS_MUX
+        parameter map
+        (
+            LRS_USED => IDDR_LRS_EN
+        )
+        port map
+        (
+            LRS   => ntLRS_MUX,
+            ZERO  => 1'b0,
+            Y     => ntIDDR_LRS_MUX
+        );
+
+    device IDDR IDDR
+        parameter map
+        (
+            IDDR_MODE    => IDDR_MODE,
+             DPI_EN      => DPI_EN
+        )
+        port map
+        (
+            LRS            => ntIDDR_LRS_MUX,
+            DATAOUT        => { RX_DATA[5:1], ntRX_DATA0 },
+
+            IFIFO_WADDR    => IFIFO_WADDR,
+            IFIFO_RADDR    => IFIFO_RADDR,
+
+            DESCLK         => ntIDDR_DESCLK_MUX,
+            SYSCLK         => ntSYSCLK_MUX_I,
+
+            DATA_IN      => ntIN_DELSEL_MUX,    
+            DPI_CTRL    => DPI_CTRL,           
+            DPI_STS_CLR => DPI_STS_CLR,        
+            ICLK        => ntIDDR_ICLK_MUX,    
+            DPI_STS     => DPI_STS,            
+            
+            //for cascaded parts
+
+            COUT           => IDDR_COUT,
+            CIN            => IDDR_CIN
+        );
+
+        
+     device IDDR_IFF_MUX IDDR_IFF_MUX
+        parameter map
+        (
+           DDR_USED => IDDR_MODE
+        )
+        port map
+        (
+            IDDR => ntRX_DATA0,
+  
+            Y    => RX_DATA[0]
+        );
+
+   // DELAY
+
+    device IN_DELSEL_MUX IN_DELSEL_MUX
+        parameter map
+        (
+           DELAY_MODE => DELAY_MODE
+        )
+        port map
+        (
+            I1  => ntDELAY_DOUT,
+            I0  => ntDIN_MUX,
+            Y   => ntIN_DELSEL_MUX
+        );
+
+    device OUT_DELSEL_MUX OUT_DELSEL_MUX
+        parameter map
+        (
+           DELAY_MODE => DELAY_MODE
+        )
+        port map
+        (
+            I0   => ntOUTPUT_MUX,
+            I1   => ntDELAY_DOUT,
+            Y    => ntOUT_DELSEL_MUX
+        );
+
+    device IN_OUT_DELSEL_MUX IN_OUT_DELSEL_MUX
+        parameter map
+        (
+           DELAY_MODE => DELAY_MODE
+        )
+        port map
+        (
+            I0  => ntOUTPUT_MUX,
+            I1  => ntDIN_MUX,
+            Y   => ntIN_OUT_DELSEL_MUX
+        );
+
+   device DELAY DELAY
+       port map
+       (
+           DIN        => ntIN_OUT_DELSEL_MUX,
+           DOUT       => ntDELAY_DOUT,
+           IODLY_CTRL => IODLY_CTRL,
+           IODLY_OV   => ntIODLY_OV
+       );
+
+
+    device DO_MUX DO_MUX
+       parameter map
+       (
+           DO_SEL  => DO_SEL
+       )
+       port map
+       (
+           I0   => ntOUT_DELSEL_MUX,
+
+           Y    => ntDO_MUX
+       );
+
+    device TO_MUX TO_MUX
+       parameter map
+       (
+           TO_SEL  => TO_SEL
+       )
+       port map
+       (
+           I0   => ntTS_MUX,
+
+           Y    => ntTO_MUX
+       );
+
+}; // end of structure netlist of devIOMSD8IOLADEL
+
+
+timing tnl of devIOMSD8IOLADEL
+{
+    wire ntCK_I_INV;    
+    wire ntCK_O_INV;
+    wire ntCE_INV;
+    wire ntRS_INV;
+    wire ntDLY;
+    
+    if (CLK_I_INV == 1'b1)
+    {
+        operator V_INV ckinv_I
+            parameter map
+            (
+                SECTION => "IOL_CLK_I_INV"
+            )
+            port map
+            (
+                I => SYSCLK,
+                Z => ntCK_I_INV
+            );
+    }
+
+    if (CLK_O_INV == 1'b1)
+    {
+        operator V_INV ckinv_O
+            parameter map
+            (
+                SECTION => "IOL_CLK_O_INV"
+            )
+            port map
+            (
+                I => SYSCLK,
+                Z => ntCK_O_INV
+            );
+    }
+    
+    if (LRS_INV == 1'b1)
+    {
+        operator V_INV rsinv
+            parameter map
+            (
+                SECTION => "IOL_SR_INV"
+            )
+            port map
+            (
+                I => LRS,
+                Z => ntRS_INV
+            );
+    }
+    
+    operator V_IMDES8 imdes8
+        parameter map
+        (
+            LRS_EN      =>  ( IDDR_LRS_EN == 1'b1) ? "TRUE" : "FALSE", 
+            GRS_EN      =>  ( GRS_EN == 1'b1)      ? "TRUE" : "FALSE",
+            DPI_EN      =>  ( DPI_EN == 1'b1)      ? "TRUE" : "FALSE"  
+        )
+        port map
+        (
+            DPI_CTRL       =>   DPI_CTRL,
+            DPI_STS_CLR_N  =>   DPI_STS_CLR,  
+            DPI_STS        =>   DPI_STS,
+            PADI           =>   (DELAY_MODE == "INDELAY") ? ntDLY : DIN,
+            ICLK           =>   DQSI_DEL,
+            RCLK           =>   (CLK_I_INV == 1'b1) ?  ntCK_I_INV : SYSCLK,  
+            DESCLK         =>   ((DES_SER_CLK == "IOCLK" ) ? IOCLK : ((DES_SER_CLK == "SAMPLE_CLK") ? SAMPLE_CLK : ((DES_SER_CLK == "PROBE_CLK") ? PROBE_CLK : 1'bx))),
+            IFIFO_WADDR    =>   IFIFO_WADDR,
+            IFIFO_RADDR    =>   IFIFO_RADDR,
+            RST            =>   (LRS_INV   == 1'b1) ?  ntRS_INV   : LRS,
+            Q[7:2]         =>   RX_DATA
+        );
+
+    operator V_OMSER8 omser8
+        parameter map
+        (
+            WL_EXTEND   =>  ( WL_EXTEND == 1'b1)   ? "TRUE" : "FALSE",
+            LRS_EN      =>  ( ODDR_LRS_EN == 1'b1) ? "TRUE" : "FALSE", 
+            GRS_EN      =>  ( GRS_EN == 1'b1)      ? "TRUE" : "FALSE"
+        )
+        port map
+        (
+            D[5:0]    =>   TX_DATA,
+            T         =>   TS_CTRL,
+            RCLK      =>   (CLK_O_INV == 1'b1) ?  ntCK_O_INV : SYSCLK,
+            OCLK      =>   (ODDR_OCLK == "WCLK") ?  WCLK : WCLK_DEL,
+            SERCLK    =>   ((DES_SER_CLK == "IOCLK" ) ? IOCLK : ((DES_SER_CLK == "SAMPLE_CLK") ? SAMPLE_CLK : ((DES_SER_CLK == "PROBE_CLK") ? PROBE_CLK : 1'bx))),
+            RST       =>   (LRS_INV   == 1'b1) ?  ntRS_INV   : LRS ,  
+            PADO      =>   (DELAY_MODE == "OUTDELAY") ? ntDLY : DO,
+            PADT      =>   TO
+        ); 
+
+    operator V_IODELAY delay
+       parameter map 
+       (
+           DELAY_STEP  => IODLY_STEP,
+           DELAY_DEPTH => 7
+       )
+       port map
+       (
+           DI        => (DELAY_MODE == "INDELAY")  ? DIN : ntDLY,
+           DO        => (DELAY_MODE == "OUTDELAY") ? DO : ntDLY,
+           DIRECTION => IODLY_CTRL[0],
+           MOVE      => IODLY_CTRL[1],
+           LOAD_N    => IODLY_CTRL[2],
+           DELAY_OB  => IODLY_OV
+       );
+    operator V_BUF ibuf
+        parameter map
+        (
+           SECTION => "IBUF_IOL"
+        )
+        port map
+        (
+            I => DIN,
+            Z => RX_DATA_DD
+        );
+};
+
+
+
+
+
+
+
+
+
+

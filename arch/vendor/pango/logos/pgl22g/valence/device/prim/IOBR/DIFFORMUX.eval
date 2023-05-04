@@ -1,0 +1,80 @@
+*****************************************************************
+
+  Device    DIFFORMUX
+
+  Author    [yqtan]
+
+  Abstract  [The Prim Device For DIFFORMUX]
+
+  Revision History:
+
+********************************************************************************/
+prim
+device DIFFORMUX
+{
+    parameter
+    (
+       config string CP_IOB_MODE = "OBUFHR"  //"OBUFHR" "OBUFHR_T" "IOBUFHR" "OBUFHR_DS"
+    );
+    port
+    (
+       input   DIFFO_IN,
+       input   OBUFO_IN,
+       input   MIPI_SW_DYN,
+       output  OUT  
+    );
+
+}// end of device DIFFORMUX
+
+/**Device***********************************************************************
+
+  Device    [DIFFORMUX]
+
+  Abstract  [This specified how to propagate the input signal to the outputs based on
+             configuration]
+
+  Revision History:
+
+********************************************************************************/
+propagation pop of DIFFORMUX
+{
+    if (CP_IOB_MODE == "OBUFHR" || CP_IOB_MODE == "OBUFHR_T" || CP_IOB_MODE == "IOBUFHR")
+    {
+        propagate ( OBUFO_IN |-> OUT );
+        propagate ( DIFFO_IN |-> OUT );
+        propagate ( MIPI_SW_DYN |-> OUT );
+    }
+    else if (CP_IOB_MODE == "IOBUFHR_DS")
+    {
+        propagate ( OBUFO_IN --> OUT );
+    }
+};
+
+
+timing tnl of DIFFORMUX
+{
+    if (CP_IOB_MODE == "OBUFHR" || CP_IOB_MODE == "OBUFHR_T" || CP_IOB_MODE == "IOBUFHR")
+    {
+        operator V_MUX2 mux2
+            port map
+            (
+                I0 => OBUFO_IN,
+                I1 => DIFFO_IN,
+                SEL => MIPI_SW_DYN,
+                Z => OUT
+            );
+    }
+    else if (CP_IOB_MODE == "IOBUFHR_DS")
+    {
+        OUT <= OBUFO_IN;
+    }
+    else if (CP_IOB_MODE == "UNUSED")
+    {
+        OUT <= DIFFO_IN;
+    }
+    //else
+    //{
+    //    OUT <= 1'bz;
+    //}
+};
+

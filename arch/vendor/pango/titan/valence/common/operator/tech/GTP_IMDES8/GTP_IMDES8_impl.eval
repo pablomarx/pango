@@ -1,0 +1,66 @@
+*****************************************************************
+
+  Operator   [GTP_IMDES8]
+
+  Author      []
+
+  Abstract    []
+
+  Copyright 2014 (c). SHENZHEN PANGO MICROSYSTEMS CO.,LTD.
+  All Right Reserved.
+
+  Revision History:
+     06/18/14 - Initial version.
+
+********************************************************************************/
+//fabric
+implementation impl of GTP_IMDES8 /*@ (1,0 # 2,0)*/
+{
+    wire ntIDDR_COUT[6:0];
+    wire ntIDDR_CIN[6:0];
+    operator gopIMDES8A gateop_a
+        parameter map
+        ( 
+            LRS_EN      =>  (LRS_EN == "TRUE") ? 1'b1 : 1'b0, 
+            GRS_EN      =>  (GRS_EN == "TRUE") ? 1'b1 : 1'b0,
+            DPI_EN      =>  (DPI_EN == "TRUE") ? 1'b1 : 1'b0
+        )
+        port map
+        (
+            PADI         =>   PADI,
+            Q            =>   Q[7:2],
+
+            DPI_CTRL     =>   DPI_CTRL,
+            DPI_STS_CLR  =>   DPI_STS_CLR_N,  
+            DPI_STS      =>   DPI_STS, 
+
+            IFIFO_WADDR  =>   IFIFO_WADDR,
+            IFIFO_RADDR  =>   IFIFO_RADDR,
+
+            DESCLK       =>   DESCLK,
+            ICLK         =>   ICLK,
+            SYSCLK       =>   RCLK,
+            RESET        =>   RST,
+            SLIP         =>   1'b0,
+            IDDR_CIN    =>   ntIDDR_CIN,
+            IDDR_COUT    =>   ntIDDR_COUT
+        )/*@[0,0]*/;
+
+    operator gopIMDES8B gateop_b
+        parameter map
+        ( 
+            LRS_EN      =>  (LRS_EN == "TRUE") ? 1'b1 : 1'b0, 
+            GRS_EN      =>  (GRS_EN == "TRUE") ? 1'b1 : 1'b0 
+        )
+        port map
+        (
+            Q          =>   Q[1:0],
+            DESCLK     =>   DESCLK,
+            ICLK       =>   ICLK,
+            SYSCLK     =>   RCLK,
+            RESET      =>   RST,
+            SLIP       =>   1'b0,
+            IDDR_COUT    =>   ntIDDR_CIN,
+            IDDR_CIN   =>   ntIDDR_COUT
+        )/*@[0,1]*/;
+};

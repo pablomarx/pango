@@ -1,0 +1,1082 @@
+*****************************************************************
+
+  Operator   [GTP_ISERDES_E2]
+
+  Author      [liuwenyi]
+
+  Abstract    []
+
+  Copyright 2014 (c). SHENZHEN PANGO MICROSYSTEMS CO.,LTD.
+  All Right Reserved.
+
+  Revision History:
+     06/18/14 - Initial version.
+
+********************************************************************************/
+implementation impl of GTP_ISERDES_E2
+{   
+    string SRVAL_Q0;
+    string SRVAL_Q1;
+    string SRVAL_Q2;
+    string SRVAL_Q3;
+    
+    if ( LRS_TYPE_Q0 == "ASYNC_RESET" )
+    {
+        SRVAL_Q0 ="RESET";
+    }
+    else if ( LRS_TYPE_Q0 == "ASYNC_SET" )
+    {
+        SRVAL_Q0 ="SET";
+    }
+    else if ( LRS_TYPE_Q0 == "SYNC_RESET" )
+    {
+        SRVAL_Q0 ="RESET";
+    }
+    else if ( LRS_TYPE_Q0 == "SYNC_SET" )
+    {
+        SRVAL_Q0 ="SET";
+    }          
+     
+    if ( LRS_TYPE_Q1 == "ASYNC_RESET" || LRS_TYPE_Q1 == "SYNC_RESET" )
+    {
+        SRVAL_Q1 ="RESET";
+    }
+    else if ( LRS_TYPE_Q1 == "ASYNC_SET" || LRS_TYPE_Q1 == "SYNC_SET" )
+    {
+        SRVAL_Q1 ="SET";
+    }
+
+    if ( LRS_TYPE_Q2 == "ASYNC_RESET" || LRS_TYPE_Q2 == "SYNC_RESET" )
+    {
+        SRVAL_Q2 ="RESET";
+    }
+    else if ( LRS_TYPE_Q2 == "ASYNC_SET" || LRS_TYPE_Q2 == "SYNC_SET" )
+    {
+        SRVAL_Q2 ="SET";
+    } 
+    
+    if ( LRS_TYPE_Q3 == "ASYNC_RESET" || LRS_TYPE_Q3 == "SYNC_RESET" )
+    {
+        SRVAL_Q3 ="RESET";
+    }
+    else if ( LRS_TYPE_Q3 == "ASYNC_SET" || LRS_TYPE_Q3 == "SYNC_SET" )
+    {
+        SRVAL_Q3 ="SET";
+    }
+    
+    bit CP_GRS_DIS = (GRS_EN == "TRUE") ? 1'b0 : 1'b1;
+    bit CP_NUM_ICE = (NUM_ICE== 0) ? 1'b0 : 1'b1;
+    string CP_ISR_SYNC = (LRS_TYPE_Q0 == "ASYNC_RESET" || LRS_TYPE_Q0 == "ASYNC_SET") ? "ASYNC" : "SYNC";
+    bit CP_INIT_Q0 = (GRS_TYPE_Q0 == "RESET") ? 1'b0 : 1'b1;
+    bit CP_INIT_Q1 = (GRS_TYPE_Q1 == "RESET") ? 1'b0 : 1'b1;
+    bit CP_INIT_Q2 = (GRS_TYPE_Q2 == "RESET") ? 1'b0 : 1'b1;
+    bit CP_INIT_Q3 = (GRS_TYPE_Q3 == "RESET") ? 1'b0 : 1'b1;
+    string CP_ISERDES_MODE_DERAULT = "SDR1TO4";
+     
+    if (ISERDES_MODE == "SDR1TO2")
+    {              
+        operator gopISERDES iserdes_inst
+        parameter map
+        (
+            CP_ISERDES_MODE    => ISERDES_MODE,
+            CP_DDRI_EN         => "TRUE",
+            CP_DES_SDREN       => "TRUE",
+            CP_NETWORKING_EN   => "TRUE",                            
+            
+            CP_GRS_DIS         => CP_GRS_DIS,           
+            CP_MASTER          => CASCADE_MODE,
+            CP_BITSLIP_EN      => BITSLIP_EN,
+            CP_NUM_ICE         => CP_NUM_ICE,
+            CP_ISR_SYNC => CP_ISR_SYNC,
+            CP_INIT_Q0 => CP_INIT_Q0,
+            CP_INIT_Q1 => CP_INIT_Q1,
+            CP_INIT_Q2 => CP_INIT_Q2,
+            CP_INIT_Q3 => CP_INIT_Q3,
+            
+            CP_SRVAL_Q0 => SRVAL_Q0,
+            CP_SRVAL_Q1 => SRVAL_Q1,
+            CP_SRVAL_Q2 => SRVAL_Q2,
+            CP_SRVAL_Q3 => SRVAL_Q3,
+            
+            CP_MIPI_EN       => "FALSE",
+            CP_DYN_CLKPOL    => "FALSE",
+            CP_DYN_CLKDIVPOL => "FALSE",
+            
+            CP_CLK_POL0 => "FALSE",
+            CP_CLK_POL1 => "FALSE",
+            CP_CLK_POL2 => "FALSE",
+            CP_CLK_POL3 => "FALSE",
+            CP_OCLKPOL  => "FALSE",
+            CP_OCLKBPOL => "FALSE", 
+            CP_D_POL0   => "FALSE",
+            CP_D_POL1   => "FALSE", 
+            
+            CP_D_SEL0 => 1'b0,
+            CP_D_SEL1 => 1'b0,
+            CP_D_SEL2 => 1'b0,
+            CP_D_SEL3 => 1'b0,
+            CP_D_SEL4 => 2'b01,
+            CP_D_SEL5 => 2'b01,
+            CP_D_SEL6 => 2'b00,  
+            
+            CP_TEST_EN0 => "FALSE",
+            CP_TEST_EN1 => "FALSE",
+            CP_ISR_POL  => "FALSE",  
+            CP_ISR_EN   => "TRUE"          
+        )
+        port map
+        (                
+            ISR_IOLHR => RST,
+            ICE0      => ICE0,
+            ICE1      => ICE1,
+            OCLK      => OCLK,
+            ICLK      => ICLK,
+            ICLKDIV   => ICLKDIV,
+            DESCLK    => DESCLK,
+            DI        => DI,
+            BITSLIP   => BITSLIP,
+            RX_DATA[1:0]   => DO[1:0]
+        );                                   
+    }
+    else if (ISERDES_MODE == "SDR1TO3")
+    {              
+        operator gopISERDES iserdes_inst
+        parameter map
+        (                
+            CP_ISERDES_MODE    => ISERDES_MODE,
+            CP_DDRI_EN         => "TRUE",
+            CP_DES_SDREN       => "TRUE",
+            CP_NETWORKING_EN   => "TRUE",
+            
+            CP_GRS_DIS         => CP_GRS_DIS,  
+            CP_MASTER          => CASCADE_MODE,
+            CP_BITSLIP_EN      => BITSLIP_EN,
+            CP_NUM_ICE         => CP_NUM_ICE,
+            
+            CP_ISR_SYNC => CP_ISR_SYNC,
+            CP_INIT_Q0 => CP_INIT_Q0,
+            CP_INIT_Q1 => CP_INIT_Q1,
+            CP_INIT_Q2 => CP_INIT_Q2,
+            CP_INIT_Q3 => CP_INIT_Q3,
+            
+            CP_SRVAL_Q0 => SRVAL_Q0,
+            CP_SRVAL_Q1 => SRVAL_Q1,
+            CP_SRVAL_Q2 => SRVAL_Q2,
+            CP_SRVAL_Q3 => SRVAL_Q3,
+            
+            CP_MIPI_EN       => "FALSE",
+            CP_DYN_CLKPOL    => "FALSE",
+            CP_DYN_CLKDIVPOL => "FALSE",
+            
+            CP_CLK_POL0 => "FALSE",
+            CP_CLK_POL1 => "FALSE",
+            CP_CLK_POL2 => "FALSE",
+            CP_CLK_POL3 => "FALSE",
+            CP_OCLKPOL  => "FALSE",
+            CP_OCLKBPOL => "FALSE", 
+            CP_D_POL0   => "FALSE",
+            CP_D_POL1   => "FALSE", 
+            
+            CP_D_SEL0 => 1'b0,
+            CP_D_SEL1 => 1'b0,
+            CP_D_SEL2 => 1'b0,
+            CP_D_SEL3 => 1'b0,
+            CP_D_SEL4 => 2'b01,
+            CP_D_SEL5 => 2'b01,
+            CP_D_SEL6 => 2'b00,  
+            
+            CP_TEST_EN0 => "FALSE",
+            CP_TEST_EN1 => "FALSE",
+            CP_ISR_POL  => "FALSE",  
+            CP_ISR_EN   => "TRUE"          
+        )
+        port map
+        (  
+            ISR_IOLHR => RST,
+            ICE0      => ICE0,
+            ICE1      => ICE1,
+            OCLK      => OCLK,
+            ICLK      => ICLK,
+            ICLKDIV   => ICLKDIV,
+            DESCLK    => DESCLK,
+            DI        => DI,
+            BITSLIP   => BITSLIP,
+            RX_DATA[2:0]   => DO[2:0]
+        );                                   
+    }
+    else if (ISERDES_MODE == "DDR1TO4" || ISERDES_MODE == "SDR1TO4")
+    {              
+        operator gopISERDES iserdes_inst
+        parameter map
+        (                
+            CP_ISERDES_MODE    => ISERDES_MODE,
+            CP_DDRI_EN         => "TRUE",
+            CP_DES_DDREN       => ISERDES_MODE == "DDR1TO4" ? "TRUE" : "FALSE",
+            CP_DES_SDREN       => ISERDES_MODE == "SDR1TO4" ? "TRUE" : "FALSE",
+            CP_NETWORKING_EN   => "TRUE",
+            
+            CP_GRS_DIS         => CP_GRS_DIS,
+            CP_MASTER          => CASCADE_MODE,
+            CP_BITSLIP_EN      => BITSLIP_EN,
+            CP_NUM_ICE         => CP_NUM_ICE,
+            
+            CP_ISR_SYNC => CP_ISR_SYNC,
+            CP_INIT_Q0 => CP_INIT_Q0,
+            CP_INIT_Q1 => CP_INIT_Q1,
+            CP_INIT_Q2 => CP_INIT_Q2,
+            CP_INIT_Q3 => CP_INIT_Q3,
+            
+            CP_SRVAL_Q0 => SRVAL_Q0,
+            CP_SRVAL_Q1 => SRVAL_Q1,
+            CP_SRVAL_Q2 => SRVAL_Q2,
+            CP_SRVAL_Q3 => SRVAL_Q3,
+            
+            CP_MIPI_EN       => "FALSE",
+            CP_DYN_CLKPOL    => "FALSE",
+            CP_DYN_CLKDIVPOL => "FALSE",
+            
+            CP_CLK_POL0 => "FALSE",
+            CP_CLK_POL1 => "FALSE",
+            CP_CLK_POL2 => "FALSE",
+            CP_CLK_POL3 => "FALSE",
+            CP_OCLKPOL  => "FALSE",
+            CP_OCLKBPOL => "FALSE", 
+            CP_D_POL0   => "FALSE",
+            CP_D_POL1   => "FALSE", 
+            
+            CP_D_SEL0 => 1'b0,
+            CP_D_SEL1 => 1'b0,
+            CP_D_SEL2 => 1'b0,
+            CP_D_SEL3 => 1'b0,
+            CP_D_SEL4 => 2'b01,
+            CP_D_SEL5 => 2'b01,
+            CP_D_SEL6 => 2'b00,  
+            
+            CP_TEST_EN0 => "FALSE",
+            CP_TEST_EN1 => "FALSE",
+            CP_ISR_POL  => "FALSE",  
+            CP_ISR_EN   => "TRUE"          
+        )
+        port map
+        (  
+            ISR_IOLHR => RST,
+            ICE0      => ICE0,
+            ICE1      => ICE1,
+            OCLK      => OCLK,
+            ICLK      => ICLK,
+            ICLKDIV   => ICLKDIV,
+            DESCLK    => DESCLK,
+            DI        => DI,
+            BITSLIP   => BITSLIP,
+            RX_DATA[3:0]   => DO[3:0]
+        );                                   
+    }
+    else if (ISERDES_MODE == "SDR1TO5")
+    {              
+        operator gopISERDES iserdes_inst
+        parameter map
+        (                
+            CP_ISERDES_MODE    => ISERDES_MODE,
+            CP_DDRI_EN         => "TRUE",
+            CP_DES_SDREN       => "TRUE",
+            CP_NETWORKING_EN   => "TRUE",
+            
+            CP_GRS_DIS         => CP_GRS_DIS,
+            CP_MASTER          => CASCADE_MODE,
+            CP_BITSLIP_EN      => BITSLIP_EN,
+            CP_NUM_ICE         => CP_NUM_ICE,
+            
+            CP_ISR_SYNC => CP_ISR_SYNC,
+            CP_INIT_Q0 => CP_INIT_Q0,
+            CP_INIT_Q1 => CP_INIT_Q1,
+            CP_INIT_Q2 => CP_INIT_Q2,
+            CP_INIT_Q3 => CP_INIT_Q3,
+            
+            CP_SRVAL_Q0 => SRVAL_Q0,
+            CP_SRVAL_Q1 => SRVAL_Q1,
+            CP_SRVAL_Q2 => SRVAL_Q2,
+            CP_SRVAL_Q3 => SRVAL_Q3,
+            
+            CP_MIPI_EN       => "FALSE",
+            CP_DYN_CLKPOL    => "FALSE",
+            CP_DYN_CLKDIVPOL => "FALSE",
+            
+            CP_CLK_POL0 => "FALSE",
+            CP_CLK_POL1 => "FALSE",
+            CP_CLK_POL2 => "FALSE",
+            CP_CLK_POL3 => "FALSE",
+            CP_OCLKPOL  => "FALSE",
+            CP_OCLKBPOL => "FALSE", 
+            CP_D_POL0   => "FALSE",
+            CP_D_POL1   => "FALSE", 
+            
+            CP_D_SEL0 => 1'b0,
+            CP_D_SEL1 => 1'b0,
+            CP_D_SEL2 => 1'b0,
+            CP_D_SEL3 => 1'b0,
+            CP_D_SEL4 => 2'b01,
+            CP_D_SEL5 => 2'b01,
+            CP_D_SEL6 => 2'b00,  
+            
+            CP_TEST_EN0 => "FALSE",
+            CP_TEST_EN1 => "FALSE",
+            CP_ISR_POL  => "FALSE",  
+            CP_ISR_EN   => "TRUE"          
+        )
+        port map
+        (  
+            ISR_IOLHR => RST,
+            ICE0      => ICE0,
+            ICE1      => ICE1,
+            OCLK      => OCLK,
+            ICLK      => ICLK,
+            ICLKDIV   => ICLKDIV,
+            DESCLK    => DESCLK,
+            DI        => DI,
+            BITSLIP   => BITSLIP,
+            RX_DATA[4:0]   => DO[4:0]
+        );                                   
+    }
+    else if (ISERDES_MODE == "DDR1TO6" || ISERDES_MODE == "SDR1TO6")
+    {              
+        operator gopISERDES iserdes_inst
+        parameter map
+        (                
+            CP_ISERDES_MODE    => ISERDES_MODE,
+            CP_DDRI_EN         => "TRUE",
+            CP_DES_DDREN       => ISERDES_MODE == "DDR1TO6" ? "TRUE" : "FALSE",
+            CP_DES_SDREN       => ISERDES_MODE == "SDR1TO6" ? "TRUE" : "FALSE",
+            CP_NETWORKING_EN   => "TRUE",
+            
+            CP_GRS_DIS         => CP_GRS_DIS,
+            CP_MASTER          => CASCADE_MODE,
+            CP_BITSLIP_EN      => BITSLIP_EN,
+            CP_NUM_ICE         => CP_NUM_ICE,
+            
+            CP_ISR_SYNC => CP_ISR_SYNC,
+            CP_INIT_Q0 => CP_INIT_Q0,
+            CP_INIT_Q1 => CP_INIT_Q1,
+            CP_INIT_Q2 => CP_INIT_Q2,
+            CP_INIT_Q3 => CP_INIT_Q3,
+            
+            CP_SRVAL_Q0 => SRVAL_Q0,
+            CP_SRVAL_Q1 => SRVAL_Q1,
+            CP_SRVAL_Q2 => SRVAL_Q2,
+            CP_SRVAL_Q3 => SRVAL_Q3,
+            
+            CP_MIPI_EN       => "FALSE",
+            CP_DYN_CLKPOL    => "FALSE",
+            CP_DYN_CLKDIVPOL => "FALSE",
+            
+            CP_CLK_POL0 => "FALSE",
+            CP_CLK_POL1 => "FALSE",
+            CP_CLK_POL2 => "FALSE",
+            CP_CLK_POL3 => "FALSE",
+            CP_OCLKPOL  => "FALSE",
+            CP_OCLKBPOL => "FALSE", 
+            CP_D_POL0   => "FALSE",
+            CP_D_POL1   => "FALSE", 
+            
+            CP_D_SEL0 => 1'b0,
+            CP_D_SEL1 => 1'b0,
+            CP_D_SEL2 => 1'b0,
+            CP_D_SEL3 => 1'b0,
+            CP_D_SEL4 => 2'b01,
+            CP_D_SEL5 => 2'b01,
+            CP_D_SEL6 => 2'b00,  
+            
+            CP_TEST_EN0 => "FALSE",
+            CP_TEST_EN1 => "FALSE",
+            CP_ISR_POL  => "FALSE",  
+            CP_ISR_EN   => "TRUE"          
+        )
+        port map
+        (  
+            ISR_IOLHR => RST,
+            ICE0      => ICE0,
+            ICE1      => ICE1,
+            OCLK      => OCLK,
+            ICLK      => ICLK,
+            ICLKDIV   => ICLKDIV,
+            DESCLK    => DESCLK,
+            DI        => DI,
+            BITSLIP   => BITSLIP,
+            RX_DATA[5:0]   => DO[5:0]
+        );                                   
+    }
+    else if (ISERDES_MODE == "SDR1TO7")
+    {              
+        operator gopISERDES iserdes_inst
+        parameter map
+        (                
+            CP_ISERDES_MODE    => ISERDES_MODE,
+            CP_DDRI_EN         => "TRUE",
+            CP_DES_SDREN       => "TRUE",
+            CP_NETWORKING_EN   => "TRUE",
+            
+            CP_GRS_DIS         => CP_GRS_DIS,
+            CP_MASTER          => CASCADE_MODE,
+            CP_BITSLIP_EN      => BITSLIP_EN,
+            CP_NUM_ICE         => CP_NUM_ICE,
+            
+            CP_ISR_SYNC => CP_ISR_SYNC,
+            CP_INIT_Q0 => CP_INIT_Q0,
+            CP_INIT_Q1 => CP_INIT_Q1,
+            CP_INIT_Q2 => CP_INIT_Q2,
+            CP_INIT_Q3 => CP_INIT_Q3,
+            
+            CP_SRVAL_Q0 => SRVAL_Q0,
+            CP_SRVAL_Q1 => SRVAL_Q1,
+            CP_SRVAL_Q2 => SRVAL_Q2,
+            CP_SRVAL_Q3 => SRVAL_Q3,
+            
+            CP_MIPI_EN       => "FALSE",
+            CP_DYN_CLKPOL    => "FALSE",
+            CP_DYN_CLKDIVPOL => "FALSE",
+            
+            CP_CLK_POL0 => "FALSE",
+            CP_CLK_POL1 => "FALSE",
+            CP_CLK_POL2 => "FALSE",
+            CP_CLK_POL3 => "FALSE",
+            CP_OCLKPOL  => "FALSE",
+            CP_OCLKBPOL => "FALSE", 
+            CP_D_POL0   => "FALSE",
+            CP_D_POL1   => "FALSE", 
+            
+            CP_D_SEL0 => 1'b0,
+            CP_D_SEL1 => 1'b0,
+            CP_D_SEL2 => 1'b0,
+            CP_D_SEL3 => 1'b0,
+            CP_D_SEL4 => 2'b01,
+            CP_D_SEL5 => 2'b01,
+            CP_D_SEL6 => 2'b00,  
+            
+            CP_TEST_EN0 => "FALSE",
+            CP_TEST_EN1 => "FALSE",
+            CP_ISR_POL  => "FALSE",  
+            CP_ISR_EN   => "TRUE"          
+        )
+        port map
+        (  
+            ISR_IOLHR => RST,
+            ICE0      => ICE0,
+            ICE1      => ICE1,
+            OCLK      => OCLK,
+            ICLK      => ICLK,
+            ICLKDIV   => ICLKDIV,
+            DESCLK    => DESCLK,
+            DI        => DI,
+            BITSLIP   => BITSLIP,
+            RX_DATA[6:0]   => DO[6:0]
+        );                                   
+    }
+    else if (ISERDES_MODE == "DDR1TO8" || ISERDES_MODE == "SDR1TO8")
+    {              
+        operator gopISERDES iserdes_inst
+        parameter map
+        (                
+            CP_ISERDES_MODE    => ISERDES_MODE,
+            CP_DDRI_EN         => "TRUE",
+            CP_DES_DDREN       => ISERDES_MODE == "DDR1TO8" ? "TRUE" : "FALSE",
+            CP_DES_SDREN       => ISERDES_MODE == "SDR1TO8" ? "TRUE" : "FALSE",
+            CP_NETWORKING_EN   => "TRUE",
+            
+            CP_GRS_DIS         => CP_GRS_DIS,
+            CP_MASTER          => CASCADE_MODE,
+            CP_BITSLIP_EN      => BITSLIP_EN,
+            CP_NUM_ICE         => CP_NUM_ICE,
+            
+            CP_ISR_SYNC => CP_ISR_SYNC,
+            CP_INIT_Q0 => CP_INIT_Q0,
+            CP_INIT_Q1 => CP_INIT_Q1,
+            CP_INIT_Q2 => CP_INIT_Q2,
+            CP_INIT_Q3 => CP_INIT_Q3,
+            
+            CP_SRVAL_Q0 => SRVAL_Q0,
+            CP_SRVAL_Q1 => SRVAL_Q1,
+            CP_SRVAL_Q2 => SRVAL_Q2,
+            CP_SRVAL_Q3 => SRVAL_Q3,
+            
+            CP_MIPI_EN       => "FALSE",
+            CP_DYN_CLKPOL    => "FALSE",
+            CP_DYN_CLKDIVPOL => "FALSE",
+            
+            CP_CLK_POL0 => "FALSE",
+            CP_CLK_POL1 => "FALSE",
+            CP_CLK_POL2 => "FALSE",
+            CP_CLK_POL3 => "FALSE",
+            CP_OCLKPOL  => "FALSE",
+            CP_OCLKBPOL => "FALSE", 
+            CP_D_POL0   => "FALSE",
+            CP_D_POL1   => "FALSE", 
+            
+            CP_D_SEL0 => 1'b0,
+            CP_D_SEL1 => 1'b0,
+            CP_D_SEL2 => 1'b0,
+            CP_D_SEL3 => 1'b0,
+            CP_D_SEL4 => 2'b01,
+            CP_D_SEL5 => 2'b01,
+            CP_D_SEL6 => 2'b00,  
+            
+            CP_TEST_EN0 => "FALSE",
+            CP_TEST_EN1 => "FALSE",
+            CP_ISR_POL  => "FALSE",  
+            CP_ISR_EN   => "TRUE"          
+        )
+        port map
+        (  
+            ISR_IOLHR => RST,
+            ICE0      => ICE0,
+            ICE1      => ICE1,
+            OCLK      => OCLK,
+            ICLK      => ICLK,
+            ICLKDIV   => ICLKDIV,
+            DESCLK    => DESCLK,
+            DI        => DI,
+            BITSLIP   => BITSLIP,
+            RX_DATA   => DO
+        );                                   
+    }
+    else if (ISERDES_MODE == "DDR1TO10" || ISERDES_MODE == "DDR1TO14")
+    {              
+        operator gopISERDES iserdes_inst
+        parameter map
+        (                
+            CP_ISERDES_MODE    => ISERDES_MODE,
+            CP_DDRI_EN         => "TRUE",
+            CP_DES_DDREN       => "TRUE",
+            CP_NETWORKING_EN   => "TRUE",
+            
+            CP_GRS_DIS         => CP_GRS_DIS,
+            CP_MASTER          => CASCADE_MODE,
+            CP_BITSLIP_EN      => BITSLIP_EN,
+            CP_NUM_ICE         => CP_NUM_ICE,
+            
+            CP_ISR_SYNC => CP_ISR_SYNC,
+            CP_INIT_Q0 => CP_INIT_Q0,
+            CP_INIT_Q1 => CP_INIT_Q1,
+            CP_INIT_Q2 => CP_INIT_Q2,
+            CP_INIT_Q3 => CP_INIT_Q3,
+            
+            CP_SRVAL_Q0 => SRVAL_Q0,
+            CP_SRVAL_Q1 => SRVAL_Q1,
+            CP_SRVAL_Q2 => SRVAL_Q2,
+            CP_SRVAL_Q3 => SRVAL_Q3,
+            
+            CP_MIPI_EN       => "FALSE",
+            CP_DYN_CLKPOL    => "FALSE",
+            CP_DYN_CLKDIVPOL => "FALSE",
+            
+            CP_CLK_POL0 => "FALSE",
+            CP_CLK_POL1 => "FALSE",
+            CP_CLK_POL2 => "FALSE",
+            CP_CLK_POL3 => "FALSE",
+            CP_OCLKPOL  => "FALSE",
+            CP_OCLKBPOL => "FALSE", 
+            CP_D_POL0   => "FALSE",
+            CP_D_POL1   => "FALSE", 
+            
+            CP_D_SEL0 => 1'b0,
+            CP_D_SEL1 => 1'b0,
+            CP_D_SEL2 => 1'b0,
+            CP_D_SEL3 => 1'b0,
+            CP_D_SEL4 => 2'b01,
+            CP_D_SEL5 => 2'b01,
+            CP_D_SEL6 => 2'b00,  
+            
+            CP_TEST_EN0 => "FALSE",
+            CP_TEST_EN1 => "FALSE",
+            CP_ISR_POL  => "FALSE",  
+            CP_ISR_EN   => "TRUE"          
+        )
+        port map
+        (                
+            ISR_IOLHR  => RST,
+            ICE0       => ICE0,
+            ICE1       => ICE1,
+            OCLK       => OCLK,
+            ICLK       => ICLK,
+            ICLKDIV    => ICLKDIV,
+            DESCLK     => DESCLK,
+            DI         => DI,
+            BITSLIP    => BITSLIP,
+            ISHIFTIN0  => ISHIFTIN0,
+            ISHIFTIN1  => ISHIFTIN1,
+            ISHIFTOUT0 => ISHIFTOUT0,
+            ISHIFTOUT1 => ISHIFTOUT1,
+            RX_DATA    => DO
+        );                                   
+    }
+    else if (ISERDES_MODE == "HMDDR1TO4")
+    {              
+        operator gopISERDES iserdes_inst
+        parameter map
+        (                
+            CP_ISERDES_MODE    => "DDR1TO4",
+            CP_DDRI_EN         => "TRUE",
+            CP_DES_DDREN       => "TRUE",
+            CP_IHSMEM_EN       => "TRUE",
+            CP_IFIFO_EN        => "TRUE",
+            
+            CP_ISR_SYNC => CP_ISR_SYNC,
+            CP_GRS_DIS         => CP_GRS_DIS,
+            CP_MASTER          => CASCADE_MODE,
+            CP_BITSLIP_EN      => BITSLIP_EN,
+            CP_NUM_ICE         => CP_NUM_ICE,
+            
+            CP_INIT_Q0 => CP_INIT_Q0,
+            CP_INIT_Q1 => CP_INIT_Q1,
+            CP_INIT_Q2 => CP_INIT_Q2,
+            CP_INIT_Q3 => CP_INIT_Q3,
+            
+            CP_SRVAL_Q0 => SRVAL_Q0,
+            CP_SRVAL_Q1 => SRVAL_Q1,
+            CP_SRVAL_Q2 => SRVAL_Q2,
+            CP_SRVAL_Q3 => SRVAL_Q3,
+            
+            CP_MIPI_EN       => "FALSE",
+            CP_DYN_CLKPOL    => "FALSE",
+            CP_DYN_CLKDIVPOL => "FALSE",
+            
+            CP_CLK_POL0 => "FALSE",
+            CP_CLK_POL1 => "FALSE",
+            CP_CLK_POL2 => "FALSE",
+            CP_CLK_POL3 => "FALSE",
+            CP_OCLKPOL  => "FALSE",
+            CP_OCLKBPOL => "FALSE", 
+            CP_D_POL0   => "FALSE",
+            CP_D_POL1   => "FALSE", 
+            
+            CP_D_SEL0 => 1'b0,
+            CP_D_SEL1 => 1'b0,
+            CP_D_SEL2 => 1'b0,
+            CP_D_SEL3 => 1'b0,
+            CP_D_SEL4 => 2'b01,
+            CP_D_SEL5 => 2'b01,
+            CP_D_SEL6 => 2'b00,  
+            
+            CP_TEST_EN0 => "FALSE",
+            CP_TEST_EN1 => "FALSE",
+            CP_ISR_POL  => "FALSE",  
+            CP_ISR_EN   => "TRUE"          
+        )
+        port map
+        (                
+            ISR_IOLHR   => RST,
+            ICE0        => ICE0,
+            ICE1        => ICE1,
+            OCLK        => OCLK,
+            ICLK        => ICLK,
+            ICLKDIV     => ICLKDIV,
+            DESCLK      => DESCLK,
+            DI          => DI,
+            IFIFO_WADDR => IFIFO_WADDR,
+            IFIFO_RADDR => IFIFO_RADDR,
+            BITSLIP     => BITSLIP,
+            RX_DATA[3:0]     => DO[3:0]
+        );                                   
+    }
+    else if (ISERDES_MODE == "HMDDR1TO8")
+    {              
+        operator gopISERDES iserdes_inst
+        parameter map
+        (                
+            CP_ISERDES_MODE    => "DDR1TO8",
+            CP_DDRI_EN         => "TRUE",
+            CP_DES_DDREN       => "TRUE",
+            CP_IHSMEM_EN       => "TRUE",
+            CP_IFIFO_EN        => "TRUE",
+            
+            CP_GRS_DIS         => CP_GRS_DIS,
+            CP_MASTER          => CASCADE_MODE,
+            CP_BITSLIP_EN      => BITSLIP_EN,
+            CP_NUM_ICE         => CP_NUM_ICE,
+            
+            CP_ISR_SYNC => CP_ISR_SYNC,
+            CP_INIT_Q0 => CP_INIT_Q0,
+            CP_INIT_Q1 => CP_INIT_Q1,
+            CP_INIT_Q2 => CP_INIT_Q2,
+            CP_INIT_Q3 => CP_INIT_Q3,
+            
+            CP_SRVAL_Q0 => SRVAL_Q0,
+            CP_SRVAL_Q1 => SRVAL_Q1,
+            CP_SRVAL_Q2 => SRVAL_Q2,
+            CP_SRVAL_Q3 => SRVAL_Q3,
+            
+            CP_MIPI_EN       => "FALSE",
+            CP_DYN_CLKPOL    => "FALSE",
+            CP_DYN_CLKDIVPOL => "FALSE",
+            
+            CP_CLK_POL0 => "FALSE",
+            CP_CLK_POL1 => "FALSE",
+            CP_CLK_POL2 => "FALSE",
+            CP_CLK_POL3 => "FALSE",
+            CP_OCLKPOL  => "FALSE",
+            CP_OCLKBPOL => "FALSE", 
+            CP_D_POL0   => "FALSE",
+            CP_D_POL1   => "FALSE", 
+            
+            CP_D_SEL0 => 1'b0,
+            CP_D_SEL1 => 1'b0,
+            CP_D_SEL2 => 1'b0,
+            CP_D_SEL3 => 1'b0,
+            CP_D_SEL4 => 2'b01,
+            CP_D_SEL5 => 2'b01,
+            CP_D_SEL6 => 2'b00,  
+            
+            CP_TEST_EN0 => "FALSE",
+            CP_TEST_EN1 => "FALSE",
+            CP_ISR_POL  => "FALSE",  
+            CP_ISR_EN   => "TRUE"          
+        )
+        port map
+        (                
+            ISR_IOLHR   => RST,
+            ICE0        => ICE0,
+            ICE1        => ICE1,
+            OCLK        => OCLK,
+            ICLK        => ICLK,
+            ICLKDIV     => ICLKDIV,
+            DESCLK      => DESCLK,
+            DI          => DI,
+            IFIFO_WADDR => IFIFO_WADDR,
+            IFIFO_RADDR => IFIFO_RADDR,
+            BITSLIP     => BITSLIP,
+            RX_DATA     => DO
+        );                                   
+    }
+    else if (ISERDES_MODE == "LMDDR1TO4")
+    {              
+        operator gopISERDES iserdes_inst
+        parameter map
+        (                
+            CP_ISERDES_MODE => "DDR1TO4",
+            CP_DDRI_EN      => "TRUE",
+            CP_DES_DDREN    => "TRUE",
+            CP_LSMEM_EN     => "TRUE",
+            
+            CP_GRS_DIS         => CP_GRS_DIS,
+            CP_MASTER          => CASCADE_MODE,
+            CP_BITSLIP_EN      => BITSLIP_EN,
+            CP_NUM_ICE         => CP_NUM_ICE,
+            
+            CP_ISR_SYNC => CP_ISR_SYNC,
+            CP_INIT_Q0 => CP_INIT_Q0,
+            CP_INIT_Q1 => CP_INIT_Q1,
+            CP_INIT_Q2 => CP_INIT_Q2,
+            CP_INIT_Q3 => CP_INIT_Q3,
+            
+            CP_SRVAL_Q0 => SRVAL_Q0,
+            CP_SRVAL_Q1 => SRVAL_Q1,
+            CP_SRVAL_Q2 => SRVAL_Q2,
+            CP_SRVAL_Q3 => SRVAL_Q3,
+            
+            CP_MIPI_EN       => "FALSE",
+            CP_DYN_CLKPOL    => "FALSE",
+            CP_DYN_CLKDIVPOL => "FALSE",
+            
+            CP_CLK_POL0 => "FALSE",
+            CP_CLK_POL1 => "FALSE",
+            CP_CLK_POL2 => "FALSE",
+            CP_CLK_POL3 => "FALSE",
+            CP_OCLKPOL  => "FALSE",
+            CP_OCLKBPOL => "FALSE", 
+            CP_D_POL0   => "FALSE",
+            CP_D_POL1   => "FALSE", 
+            
+            CP_D_SEL0 => 1'b0,
+            CP_D_SEL1 => 1'b0,
+            CP_D_SEL2 => 1'b0,
+            CP_D_SEL3 => 1'b0,
+            CP_D_SEL4 => 2'b01,
+            CP_D_SEL5 => 2'b01,
+            CP_D_SEL6 => 2'b00,  
+            
+            CP_TEST_EN0 => "FALSE",
+            CP_TEST_EN1 => "FALSE",
+            CP_ISR_POL  => "FALSE",  
+            CP_ISR_EN   => "TRUE"          
+        )
+        port map
+        (                
+            ISR_IOLHR   => RST,
+            ICE0        => ICE0,
+            ICE1        => ICE1,
+            OCLK        => OCLK,
+            ICLK        => ICLK,
+            ICLKDIV     => ICLKDIV,
+            DESCLK      => DESCLK,
+            DI          => DI,
+            IFIFO_WADDR => IFIFO_WADDR,
+            IFIFO_RADDR => IFIFO_RADDR,
+            RX_DATA[3:0]     => DO[3:0]
+        );                                   
+    }
+    else if (ISERDES_MODE == "LMDDR1TO8")
+    {              
+        operator gopISERDES iserdes_inst
+        parameter map
+        (                
+            CP_ISERDES_MODE => "DDR1TO8",
+            CP_DDRI_EN      => "TRUE",
+            CP_DES_DDREN    => "TRUE",
+            CP_LSMEM_EN     => "TRUE",
+            
+            CP_GRS_DIS         => CP_GRS_DIS,
+            CP_MASTER          => CASCADE_MODE,
+            CP_BITSLIP_EN      => BITSLIP_EN,
+            CP_NUM_ICE         => CP_NUM_ICE,
+            
+            CP_ISR_SYNC => CP_ISR_SYNC,
+            CP_INIT_Q0 => CP_INIT_Q0,
+            CP_INIT_Q1 => CP_INIT_Q1,
+            CP_INIT_Q2 => CP_INIT_Q2,
+            CP_INIT_Q3 => CP_INIT_Q3,
+            
+            CP_SRVAL_Q0 => SRVAL_Q0,
+            CP_SRVAL_Q1 => SRVAL_Q1,
+            CP_SRVAL_Q2 => SRVAL_Q2,
+            CP_SRVAL_Q3 => SRVAL_Q3,
+            
+            CP_MIPI_EN       => "FALSE",
+            CP_DYN_CLKPOL    => "FALSE",
+            CP_DYN_CLKDIVPOL => "FALSE",
+            
+            CP_CLK_POL0 => "FALSE",
+            CP_CLK_POL1 => "FALSE",
+            CP_CLK_POL2 => "FALSE",
+            CP_CLK_POL3 => "FALSE",
+            CP_OCLKPOL  => "FALSE",
+            CP_OCLKBPOL => "FALSE", 
+            CP_D_POL0   => "FALSE",
+            CP_D_POL1   => "FALSE", 
+            
+            CP_D_SEL0 => 1'b0,
+            CP_D_SEL1 => 1'b0,
+            CP_D_SEL2 => 1'b0,
+            CP_D_SEL3 => 1'b0,
+            CP_D_SEL4 => 2'b01,
+            CP_D_SEL5 => 2'b01,
+            CP_D_SEL6 => 2'b00,  
+            
+            CP_TEST_EN0 => "FALSE",
+            CP_TEST_EN1 => "FALSE",
+            CP_ISR_POL  => "FALSE",  
+            CP_ISR_EN   => "TRUE"          
+        )
+        port map
+        (                
+            ISR_IOLHR   => RST,
+            ICE0        => ICE0,
+            ICE1        => ICE1,
+            OCLK        => OCLK,
+            ICLK        => ICLK,
+            ICLKDIV     => ICLKDIV,
+            DESCLK      => DESCLK,
+            DI          => DI,
+            IFIFO_WADDR => IFIFO_WADDR,
+            IFIFO_RADDR => IFIFO_RADDR,
+            RX_DATA     => DO
+        );                                   
+    }
+    else if (ISERDES_MODE == "OVERSAMPLE")
+    {              
+        operator gopISERDES iserdes_inst
+        parameter map
+        (                
+            //CP_ISERDES_MODE => CP_ISERDES_MODE_DERAULT,
+            CP_DDRI_EN       => "TRUE",
+            CP_OVERSAMPLE_EN => "TRUE",
+            
+            CP_GRS_DIS         => CP_GRS_DIS,
+            CP_MASTER          => CASCADE_MODE,
+            CP_BITSLIP_EN      => BITSLIP_EN,
+            CP_NUM_ICE         => CP_NUM_ICE,
+            
+            CP_ISR_SYNC => CP_ISR_SYNC,
+            CP_INIT_Q0 => CP_INIT_Q0,
+            CP_INIT_Q1 => CP_INIT_Q1,
+            CP_INIT_Q2 => CP_INIT_Q2,
+            CP_INIT_Q3 => CP_INIT_Q3,
+            
+            CP_SRVAL_Q0 => SRVAL_Q0,
+            CP_SRVAL_Q1 => SRVAL_Q1,
+            CP_SRVAL_Q2 => SRVAL_Q2,
+            CP_SRVAL_Q3 => SRVAL_Q3,
+            
+            CP_MIPI_EN       => "FALSE",
+            CP_DYN_CLKPOL    => "FALSE",
+            CP_DYN_CLKDIVPOL => "FALSE",
+            
+            CP_CLK_POL0 => "FALSE",
+            CP_CLK_POL1 => "FALSE",
+            CP_CLK_POL2 => "FALSE",
+            CP_CLK_POL3 => "FALSE",
+            CP_OCLKPOL  => "FALSE",
+            CP_OCLKBPOL => "FALSE", 
+            CP_D_POL0   => "FALSE",
+            CP_D_POL1   => "FALSE", 
+            
+            CP_D_SEL0 => 1'b0,
+            CP_D_SEL1 => 1'b0,
+            CP_D_SEL2 => 1'b0,
+            CP_D_SEL3 => 1'b0,
+            CP_D_SEL4 => 2'b01,
+            CP_D_SEL5 => 2'b01,
+            CP_D_SEL6 => 2'b00,  
+            
+            CP_TEST_EN0 => "FALSE",
+            CP_TEST_EN1 => "FALSE",
+            CP_ISR_POL  => "FALSE",  
+            CP_ISR_EN   => "TRUE"          
+        )
+        port map
+        (                
+            ISR_IOLHR  => RST,
+            ICE0       => ICE0,
+            ICE1       => ICE1,
+            OCLK       => OCLK,
+            ICLK       => ICLK,
+            ICLKDIV    => ICLKDIV,
+            DESCLK     => DESCLK,
+            DI         => DI,
+            RX_DATA[3:0]    => DO[3:0]
+        );                                   
+    }
+    else if (ISERDES_MODE == "ILATCH" || ISERDES_MODE == "IDFF" )//"ILATCH"  "IDFF" 
+    {              
+        operator gopISERDES iserdes_inst
+        parameter map
+        (
+            CP_ISERDES_MODE    => CP_ISERDES_MODE_DERAULT,
+            CP_ILTHEN          => ISERDES_MODE == "ILATCH" ? "TRUE" : "FALSE",
+            CP_DDRI_EN         => "FALSE",
+            CP_IDFFEN          => ISERDES_MODE == "IDFF" ? "TRUE" : "FALSE",
+            
+            CP_GRS_DIS         => CP_GRS_DIS, 
+            CP_MASTER          => CASCADE_MODE,
+            CP_BITSLIP_EN      => BITSLIP_EN,
+            CP_NUM_ICE         => CP_NUM_ICE,
+            
+            CP_ISR_SYNC => CP_ISR_SYNC,
+            CP_INIT_Q0 => CP_INIT_Q0,
+            CP_INIT_Q1 => CP_INIT_Q1,
+            CP_INIT_Q2 => CP_INIT_Q2,
+            CP_INIT_Q3 => CP_INIT_Q3,
+            
+            CP_SRVAL_Q0 => SRVAL_Q0,
+            CP_SRVAL_Q1 => SRVAL_Q1,
+            CP_SRVAL_Q2 => SRVAL_Q2,
+            CP_SRVAL_Q3 => SRVAL_Q3,
+            
+            CP_MIPI_EN       => "FALSE",
+            CP_DYN_CLKPOL    => "FALSE",
+            CP_DYN_CLKDIVPOL => "FALSE",
+            
+            CP_CLK_POL0 => "FALSE",
+            CP_CLK_POL1 => "FALSE",
+            CP_CLK_POL2 => "FALSE",
+            CP_CLK_POL3 => "FALSE",
+            CP_OCLKPOL  => "FALSE",
+            CP_OCLKBPOL => "FALSE", 
+            CP_D_POL0   => "FALSE",
+            CP_D_POL1   => "FALSE", 
+            
+            CP_D_SEL0 => 1'b0,
+            CP_D_SEL1 => 1'b0,
+            CP_D_SEL2 => 1'b0,
+            CP_D_SEL3 => 1'b0,
+            CP_D_SEL4 => 2'b01,
+            CP_D_SEL5 => 2'b01,
+            CP_D_SEL6 => 2'b00,  
+            
+            CP_TEST_EN0 => "FALSE",
+            CP_TEST_EN1 => "FALSE",
+            CP_ISR_POL  => "FALSE",  
+            CP_ISR_EN   => "TRUE"          
+        )
+        port map
+        (                
+            ISR_IOLHR => RST,
+            ICE0      => ICE0,
+            ICE1      => ICE1,
+            OCLK      => OCLK,
+            ICLK      => ICLK,
+            ICLKDIV   => ICLKDIV,
+            DESCLK    => DESCLK,
+            DI        => DI,
+            BITSLIP   => BITSLIP,
+            RX_DATA[0]   => DO[0]
+        );                                   
+    }
+    else if (ISERDES_MODE == "DDR1TO2_SAME_PIPELINED" || ISERDES_MODE == "DDR1TO2_SAME_EDGE" || ISERDES_MODE == "DDR1TO2_OPPOSITE_EDGE" )// "DDR1TO2_SAME_PIPELINED"  "DDR1TO2_SAME_EDGE"  "DDR1TO2_OPPOSITE_EDGE"
+    {              
+        operator gopISERDES iserdes_inst
+        parameter map
+        (
+            CP_ISERDES_MODE    => CP_ISERDES_MODE_DERAULT,
+            CP_DDRI_EN         => "FALSE",
+            CP_DES_DDREN       => "TRUE",
+            CP_SAMEPIPELINE_EN => ISERDES_MODE == "DDR1TO2_SAME_PIPELINED" ? "TRUE" : "FALSE",
+            CP_ISAME_EN        => ISERDES_MODE == "DDR1TO2_SAME_EDGE" ? "TRUE" : "FALSE",
+            CP_IOPPOSITE_EN    => ISERDES_MODE == "DDR1TO2_OPPOSITE_EDGE" ? "TRUE" : "FALSE",
+            
+            CP_GRS_DIS         => CP_GRS_DIS,
+            CP_MASTER          => CASCADE_MODE,
+            CP_BITSLIP_EN      => BITSLIP_EN,
+            CP_NUM_ICE         => CP_NUM_ICE,
+            
+            CP_ISR_SYNC => CP_ISR_SYNC,
+            CP_INIT_Q0 => CP_INIT_Q0,
+            CP_INIT_Q1 => CP_INIT_Q1,
+            CP_INIT_Q2 => CP_INIT_Q2,
+            CP_INIT_Q3 => CP_INIT_Q3,
+            
+            CP_SRVAL_Q0 => SRVAL_Q0,
+            CP_SRVAL_Q1 => SRVAL_Q1,
+            CP_SRVAL_Q2 => SRVAL_Q2,
+            CP_SRVAL_Q3 => SRVAL_Q3,
+            
+            CP_MIPI_EN       => "FALSE",
+            CP_DYN_CLKPOL    => "FALSE",
+            CP_DYN_CLKDIVPOL => "FALSE",
+            
+            CP_CLK_POL0 => "FALSE",
+            CP_CLK_POL1 => "FALSE",
+            CP_CLK_POL2 => "FALSE",
+            CP_CLK_POL3 => "FALSE",
+            CP_OCLKPOL  => "FALSE",
+            CP_OCLKBPOL => "FALSE", 
+            CP_D_POL0   => "FALSE",
+            CP_D_POL1   => "FALSE", 
+            
+            CP_D_SEL0 => 1'b0,
+            CP_D_SEL1 => 1'b0,
+            CP_D_SEL2 => 1'b0,
+            CP_D_SEL3 => 1'b0,
+            CP_D_SEL4 => 2'b01,
+            CP_D_SEL5 => 2'b01,
+            CP_D_SEL6 => 2'b00,  
+            
+            CP_TEST_EN0 => "FALSE",
+            CP_TEST_EN1 => "FALSE",
+            CP_ISR_POL  => "FALSE",  
+            CP_ISR_EN   => "TRUE"          
+        )
+        port map
+        (                
+            ISR_IOLHR => RST,
+            ICE0      => ICE0,
+            ICE1      => ICE1,
+            OCLK      => OCLK,
+            ICLK      => ICLK,
+            ICLKDIV   => ICLKDIV,
+            DESCLK    => DESCLK,
+            DI        => DI,
+            BITSLIP   => BITSLIP,
+            RX_DATA[1:0]   => DO[1:0]
+        );                                   
+    }
+    
+    
+};

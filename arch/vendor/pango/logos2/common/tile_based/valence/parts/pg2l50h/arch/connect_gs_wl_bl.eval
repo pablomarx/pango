@@ -1,0 +1,739 @@
+*************************************************************************
+****************************************************************************************/
+library work;
+use pg2l_defs,pg2l50h_defs,pg2l_funcs_place,pg2l_funcs_connect_gs;
+use pg2l50h_funcs_connect_wl_bl;
+
+structure arch_nl connect_bl of PG2L50H
+{
+    unsigned int l_tx[];
+
+    unsigned int rx, tx, loc_device;
+    int tx_l1 =  16;
+    int tx_l2 =  12;
+    int tx_l3 =  8;
+    int tx_l4 =  4;
+    int tx_r1 =  26;
+    int tx_r2 =  32;
+    int tx_r3 =  36;
+    int tx_r4 =  38;
+    int tx_r5 =  44;
+    int tx_r6 =  46;
+
+    foreach rx( L_REGION )
+    {
+        foreach loc_device( {0,1} )
+        {
+            l_tx = (rx==0) ? L_SRB_TILES_X_R0 :
+                   (rx==1) ? L_SRB_TILES_X_R1 :
+                   (loc_device==0) ? L_SRB_TILES_X_R2_D : L_SRB_TILES_X_R2_U;
+
+            foreach tx( l_tx )
+            {
+                connect_core_bl_input(rx, tx, CRAM_CTRL_TILE_X, CRAM_CTRL_TILE_Y, 
+                                      tx_l1, tx_l2, tx_l3, tx_l4, tx_r1, tx_r2, tx_r3, tx_r4, tx_r5, tx_r6,
+                                      loc_device, "SRB_TILE" );
+            }
+        }
+    }
+
+    foreach rx( L_REGION )
+    {
+        foreach loc_device( {0,1} )
+        {
+            l_tx = (rx==0) ? L_CLMA_TILES_X_R0 :
+                   (rx==1) ? L_CLMA_TILES_X_R1 :
+                   (loc_device==0) ? L_CLMA_TILES_X_R2_D : L_CLMA_TILES_X_R2_U;
+
+            foreach tx( l_tx )
+            {
+                connect_core_bl_input(rx, tx, CRAM_CTRL_TILE_X, CRAM_CTRL_TILE_Y, 
+                                      tx_l1, tx_l2, tx_l3, tx_l4, tx_r1, tx_r2, tx_r3, tx_r4, tx_r5, tx_r6,
+                                      loc_device, "CLMA_TILE" );
+            }
+        }
+    }
+    
+    foreach rx( L_REGION )
+    {
+        foreach loc_device( {0,1} )
+        {
+            l_tx = (rx==0) ? L_CLMS_TILES_X_R0 :
+                   (rx==1) ? L_CLMS_TILES_X_R1 :
+                   (loc_device==0) ? L_CLMS_TILES_X_R2_D : L_CLMS_TILES_X_R2_U;
+
+            foreach tx( l_tx )
+            {
+                connect_core_bl_input(rx, tx, CRAM_CTRL_TILE_X, CRAM_CTRL_TILE_Y, 
+                                      tx_l1, tx_l2, tx_l3, tx_l4, tx_r1, tx_r2, tx_r3, tx_r4, tx_r5, tx_r6,
+                                      loc_device, "CLMS_TILE" );
+            }
+        }
+    }
+
+    foreach rx( L_REGION )
+    {
+        foreach loc_device( {0,1} )
+        {
+            l_tx = (rx==0) ? L_IOL_TILES_X_R0 :
+                   (rx==1) ? L_IOL_TILES_X_R1 : L_IOL_TILES_X_R2;
+
+            foreach tx( l_tx )
+            {
+                connect_core_bl_input(rx, tx, CRAM_CTRL_TILE_X, CRAM_CTRL_TILE_Y, 
+                                      tx_l1, tx_l2, tx_l3, tx_l4, tx_r1, tx_r2, tx_r3, tx_r4, tx_r5, tx_r6,
+                                      loc_device, "IOLHR_TILE" );
+            }
+        }
+    }
+
+    foreach loc_device( {[0:1]} )
+    {
+        tx = CRAMSL2_TILE_X;
+        connect_core_bl_input(LOC_CRAMSL2_REGION, tx, CRAM_CTRL_TILE_X, CRAM_CTRL_TILE_Y, 
+                              tx_l1, tx_l2, tx_l3, tx_l4, tx_r1, tx_r2, tx_r3, tx_r4, tx_r5, tx_r6,
+                              loc_device, "CRAMSL2_TILE" );
+    }
+
+//connect_ckeb_bl_input
+
+    foreach rx( L_REGION )
+    {
+        l_tx = (rx==0) ? L_CKEB_TILES_X_R0 :
+               (rx==1) ? L_CKEB_TILES_X_R1 : L_CKEB_TILES_X_R2;
+        
+        foreach tx( l_tx )
+        {
+            connect_ckeb_bl_input(rx, tx, CRAM_CTRL_TILE_X, CRAM_CTRL_TILE_Y,
+                                  tx_l1, tx_l2, tx_l3, tx_l4, tx_r1, tx_r2, tx_r3, tx_r4, tx_r5, tx_r6, "CKEB_TILE");
+        }
+    }
+
+//  foreach rx( L_REGION )
+//  {        
+//      foreach tx( L_CKEB2_TILES_X )
+//      {
+//          connect_ckeb_bl_input(rx, tx, CRAM_CTRL_TILE_X, CRAM_CTRL_TILE_Y,
+//                                tx_l1, tx_l2, tx_l3, tx_l4, tx_r1, tx_r2, tx_r3, tx_r4, tx_r5, tx_r6, "CKEB2_TILE");
+//      }
+//  }
+
+    foreach rx( L_REGION )
+    {
+        l_tx = (rx==0) ? L_IOCK_TILES_X_R0 :
+               (rx==1) ? L_IOCK_TILES_X_R1 : L_IOCK_TILES_X_R2;
+        
+        foreach tx( l_tx )
+        {
+            connect_ckeb_bl_input(rx, tx, CRAM_CTRL_TILE_X, CRAM_CTRL_TILE_Y,
+                                  tx_l1, tx_l2, tx_l3, tx_l4, tx_r1, tx_r2, tx_r3, tx_r4, tx_r5, tx_r6, "IOCK_TILE");
+        }
+    }
+
+    foreach rx( L_REGION )
+    {
+        l_tx = (rx==0) ? L_CRAMSL0_TILES_X_R0 :
+               (rx==1) ? L_CRAMSL0_TILES_X_R1 : L_CRAMSL0_TILES_X_R2;
+        
+        foreach tx( l_tx )
+        {
+            connect_ckeb_bl_input(rx, tx, CRAM_CTRL_TILE_X, CRAM_CTRL_TILE_Y,
+                                  tx_l1, tx_l2, tx_l3, tx_l4, tx_r1, tx_r2, tx_r3, tx_r4, tx_r5, tx_r6, "CRAMSL0_TILE");
+        }
+    }
+
+    foreach rx( L_REGION )
+    {
+        l_tx = (rx==0) ? L_CRAMSL1_TILES_X_R0 :
+               (rx==1) ? L_CRAMSL1_TILES_X_R1 : L_CRAMSL1_TILES_X_R2;
+        
+        foreach tx( l_tx )
+        {
+            connect_ckeb_bl_input(rx, tx, CRAM_CTRL_TILE_X, CRAM_CTRL_TILE_Y,
+                                  tx_l1, tx_l2, tx_l3, tx_l4, tx_r1, tx_r2, tx_r3, tx_r4, tx_r5, tx_r6, "CRAMSL1_TILE");
+        }
+    }
+
+    foreach rx( L_REGION )
+    {
+        
+        foreach tx( L_CRAMSL3_TILES_X )
+        {
+            connect_ckeb_bl_input(rx, tx, CRAM_CTRL_TILE_X, CRAM_CTRL_TILE_Y,
+                                  tx_l1, tx_l2, tx_l3, tx_l4, tx_r1, tx_r2, tx_r3, tx_r4, tx_r5, tx_r6, "CRAMSL3_TILE");
+        }
+    }
+
+//function connect_uscm_bl_input
+
+    connect_uscm_bl_input(LOC_USCM_REGION, USCM_TILE_X, CRAM_CTRL_TILE_X, CRAM_CTRL_TILE_Y,
+                          tx_l1, tx_l2, tx_l3, tx_l4, tx_r1, tx_r2, tx_r3, tx_r4, tx_r5, tx_r6, "USCM_TILE");
+
+//connect_region_bl_input
+
+    foreach rx( L_REGION )
+    {
+        l_tx = (rx==0) ? L_IOB_TILES_X_R0 :
+               (rx==1) ? L_IOB_TILES_X_R1 : L_IOB_TILES_X_R2;
+
+        foreach tx( l_tx )
+        {
+            connect_region_bl_input(rx, tx, IOB_TILE_Y, CRAM_CTRL_TILE_X, CRAM_CTRL_TILE_Y,
+                                    tx_l1, tx_l2, tx_l3, tx_l4, tx_r1, tx_r2, tx_r3, tx_r4, tx_r5, tx_r6, 
+                                    "IOBHR_TILE");
+        }
+    }
+
+        connect_region_bl_input(LOC_PREGMUXC_REGION, PREGMUXC_TILE_X, PREGMUXC_TILE_Y, CRAM_CTRL_TILE_X, CRAM_CTRL_TILE_Y,
+                                tx_l1, tx_l2, tx_l3, tx_l4, tx_r1, tx_r2, tx_r3, tx_r4, tx_r5, tx_r6, 
+                                "PREGMUXC_TILE");
+
+    foreach rx( L_REGION )
+    {
+        l_tx = (rx==0) ? L_WRENHAN_TILES_X_R0 :
+               (rx==1) ? L_WRENHAN_TILES_X_R1 : L_WRENHAN_TILES_X_R2;
+        foreach tx( l_tx )
+        {
+           connect_region_bl_input(rx, tx, WRENHAN_TILE_Y, CRAM_CTRL_TILE_X, CRAM_CTRL_TILE_Y,
+                                   tx_l1, tx_l2, tx_l3, tx_l4, tx_r1, tx_r2, tx_r3, tx_r4, tx_r5, tx_r6, 
+                                    "CRAM_CTRL_WRENHAN_TILE");
+ 
+        }
+    }
+
+        connect_region_bl_input(LOC_HSST_REGION, HSST_TILE_X, HSST_TILE_Y, CRAM_CTRL_TILE_X, CRAM_CTRL_TILE_Y,
+                                tx_l1, tx_l2, tx_l3, tx_l4, tx_r1, tx_r2, tx_r3, tx_r4, tx_r5, tx_r6, 
+                                "HSSTLP_TILE");
+
+        connect_region_bl_input(LOC_CCS_REGION, CCS_TILE_X, CCS_TILE_Y, CRAM_CTRL_TILE_X, CRAM_CTRL_TILE_Y,
+                                tx_l1, tx_l2, tx_l3, tx_l4, tx_r1, tx_r2, tx_r3, tx_r4, tx_r5, tx_r6, 
+                                "CCS_TILE");
+
+//connect_half_region_bl_input
+
+    foreach rx( L_REGION )
+    {
+        l_tx = (rx==0) ? L_PLL_TILES_X_R0 : 
+               (rx==1) ? L_PLL_TILES_X_R1 : L_PLL_TILES_X_R2;
+
+        foreach tx( l_tx )
+        {
+            connect_half_region_bl_input(rx, tx, CRAM_CTRL_TILE_X, CRAM_CTRL_TILE_Y,
+                                         tx_l1, tx_l2, tx_l3, tx_l4, tx_r1, tx_r2, tx_r3, tx_r4, tx_r5, tx_r6,
+                                         0, "PPLL_TILE");
+
+            connect_half_region_bl_input(rx, tx, CRAM_CTRL_TILE_X, CRAM_CTRL_TILE_Y,
+                                         tx_l1, tx_l2, tx_l3, tx_l4, tx_r1, tx_r2, tx_r3, tx_r4, tx_r5, tx_r6,
+                                         1, "GPLL_TILE");
+
+        }
+    }
+
+     connect_half_region_bl_input(LOC_PCIE_REGION, PCIE_TILE_X, CRAM_CTRL_TILE_X, CRAM_CTRL_TILE_Y,
+                                  tx_l1, tx_l2, tx_l3, tx_l4, tx_r1, tx_r2, tx_r3, tx_r4, tx_r5, tx_r6,
+                                  0, "PCIE_TILE");
+
+// connect_wrenhan1_bl_input
+
+     connect_wrenhan1_bl_input(LOC_WRENHAN1_REGION, WRENHAN1_TILE_X, CRAM_CTRL_TILE_X, CRAM_CTRL_TILE_Y,
+                               tx_l1, tx_l2, tx_l3, tx_l4, tx_r1, tx_r2, tx_r3, tx_r4, tx_r5, tx_r6);
+
+//connect_drm_apm_bl_input
+
+    foreach rx( L_REGION )
+    {
+        foreach loc_device( {0,1} )
+        {
+            l_tx = (rx==0) ? L_DRM_TILES_X_R0 :
+                   (rx==1) ? L_DRM_TILES_X_R1 : 
+                   (loc_device==0) ? L_DRM_TILES_X_R2_D : L_DRM_TILES_X_R2_U;
+            foreach tx( l_tx )
+            {
+                connect_drm_apm_bl_input(rx, tx, CRAM_CTRL_TILE_X, CRAM_CTRL_TILE_Y,
+                                         tx_l1, tx_l2, tx_l3, tx_l4, tx_r1, tx_r2, tx_r3, tx_r4, tx_r5, tx_r6,
+                                         loc_device, "DRM_TILE");
+            }
+        }
+    }
+
+    foreach rx( L_REGION )
+    {
+        foreach loc_device( {0,1} )
+        {
+            foreach tx( L_APM_TILES_X )
+            {
+                connect_drm_apm_bl_input(rx, tx, CRAM_CTRL_TILE_X, CRAM_CTRL_TILE_Y,
+                                         tx_l1, tx_l2, tx_l3, tx_l4, tx_r1, tx_r2, tx_r3, tx_r4, tx_r5, tx_r6,
+                                         loc_device, "APM_TILE");
+            }
+        }
+    }
+
+//connect_adc_bl_input
+
+    connect_adc_bl_input(LOC_ADC_REGION, ADC_TILE_X, CRAM_CTRL_TILE_X, CRAM_CTRL_TILE_Y,
+                         tx_l1, tx_l2, tx_l3, tx_l4, tx_r1, tx_r2, tx_r3, tx_r4, tx_r5, tx_r6,
+                         "ADC_TILE");
+
+    connect_adc_bl_input(LOC_ADC_REGION, CCS_TILE_X, CRAM_CTRL_TILE_X, CRAM_CTRL_TILE_Y,
+                         tx_l1, tx_l2, tx_l3, tx_l4, tx_r1, tx_r2, tx_r3, tx_r4, tx_r5, tx_r6,
+                         "CCS_TILE");
+
+};// end of structure arch_nl connect_bl of PG2L50H
+/***************************************************************************************
+****************************************************************************************/
+library work;
+use pg2l_defs,pg2l50h_defs,pg2l_funcs_place,pg2l_funcs_connect_gs;
+use pg2l50h_funcs_connect_wl_bl;
+
+structure arch_nl connect_wl of PG2L50H
+{
+    
+    int rx, ty;
+    unsigned int l_ty[];
+
+    int tx_wl = CRAM_CTRL_TILE_X;
+    int ty_wl = CRAM_CTRL_TILE_Y;
+
+
+    string device_wl = "CRAM_CTRL_50H_TILE";
+
+//connect_srb_wl_input
+
+    foreach rx( L_REGION )
+    {
+        foreach ty( L_SRB_TILES_Y )
+        {
+            connect_srb_wl_input(rx, ty, tx_wl, ty_wl, device_wl);
+        }
+    }
+
+//connect_clma/clms_wl_input
+
+    foreach rx( L_REGION )
+    {
+        foreach ty( L_CLM_TILES_Y )
+        {
+            connect_clma_wl_input(rx, ty, tx_wl, ty_wl, device_wl);
+            connect_clms_wl_input(rx, ty, tx_wl, ty_wl, device_wl);
+        }
+    }
+
+//connect_ckeb_wl_input
+
+    foreach rx( L_REGION )
+    {
+        connect_ckeb_wl_input(rx, CKEB_TILE_Y, tx_wl, ty_wl, device_wl);
+    }
+
+//connect_iol_wl_input
+
+    string device_iol = "IOLHR_TILE";
+
+    foreach rx( L_REGION )
+    {
+
+        foreach ty ( L_IOL_TILES_Y )
+        {
+        connect_iol_wl_input(rx, ty, tx_wl, ty_wl, device_wl, device_iol);
+        }
+    }
+
+// connect_pll_wl_input
+    
+    string device_pll;
+
+    foreach rx( L_REGION )
+    {
+        foreach device_pll( { "GPLL_TILE", "PPLL_TILE" } )
+        {
+            l_ty = (device_pll == "GPLL_TILE") ? GPLL_TILE_Y : PPLL_TILE_Y;
+            foreach ty( l_ty )
+            {
+
+                connect_pll_wl_input(rx, ty, tx_wl, ty_wl, device_wl, device_pll);
+            }
+        }
+    }
+
+// connect_iob_wl_input
+
+    string device_iob = "IOBHR_TILE";
+    string device_hsst = "HSSTLP_TILE";
+
+    foreach rx( L_REGION )
+    {
+        connect_iob_wl_input(rx, tx_wl, ty_wl, device_wl, device_iob, device_hsst);
+    }
+
+//connect_cramsl2_wl_input
+
+    foreach ty( L_CRAMSL2_TILES_Y )
+    {
+        connect_cramsl2_wl_input(LOC_CRAMSL2_REGION, CRAMSL2_TILE_X, ty, tx_wl, ty_wl, device_wl);
+    }
+
+//connect_uscm_wl_input
+
+    foreach rx( {0,2} )
+    {
+        string device_uscm;
+        device_uscm = (rx==0) ? "USCM_TILE" : "PREGMUXC_TILE";
+
+        connect_uscm_wl_input(rx, USCM_TILE_X, tx_wl, ty_wl, device_wl, device_uscm);
+    }
+
+//connect_adc_wl_input
+
+    foreach rx( {LOC_ADC_REGION, LOC_CCS_REGION} )
+    {
+        string device_adc;
+        device_adc = (rx==LOC_ADC_REGION) ? "ADC_TILE" : "CCS_TILE";
+
+        connect_adc_wl_input(rx, CCS_TILE_X,  tx_wl, ty_wl, LOC_CCS_REGION, device_wl, device_adc);
+    }
+
+//connect_pcie_wl_input
+
+    string device_pcie = "PCIE_TILE";
+
+    connect_pcie_wl_input(LOC_PCIE_REGION, PCIE_TILE_X, tx_wl, ty_wl, device_wl, device_pcie);
+
+//connect_drm_wl_input
+
+    string device_drm = "DRM_TILE";
+
+    foreach rx( L_REGION )
+    {
+        foreach ty( L_DRM_TILES_Y )
+        {
+            connect_drm_wl_input(rx, ty, tx_wl, ty_wl, device_wl, device_drm);
+        }
+    }
+
+//connect_apm_wl_input
+
+    string device_apm = "APM_TILE";
+    foreach rx( L_REGION )
+    {
+        foreach ty( L_APM_TILES_Y )
+        {
+            connect_apm_wl_input(rx, ty, tx_wl, ty_wl, device_wl, device_apm);
+        }
+    }
+
+};// end of structure arch_nl connect_wl of PG2L50H
+/***************************************************************************************
+****************************************************************************************/
+library work;
+use pg2l_defs,pg2l50h_defs,pg2l_funcs_place;
+use pg2l50h_funcs_connect_wl_bl,pg2l_funcs_connect_gs;
+
+structure arch_nl connect_gs of PG2L50H
+{   
+    unsigned int rx, tx;
+    unsigned int tx_ckeb;
+    unsigned int l_tx[];
+
+    unsigned int bank;
+    unsigned int l_bank[];
+
+    int tx_bl = CRAM_CTRL_TILE_X;
+    int ty_bl = CRAM_CTRL_TILE_Y;
+    int bank_top = 3;
+    int loc_srb, loc_drm, loc_apm, loc_iol, loc_pll;
+
+    int tx_l1 =  16;
+    int tx_l2 =  12;
+    int tx_l3 =  8;
+    int tx_l4 =  4;
+    int tx_r1 =  26;
+    int tx_r2 =  32;
+    int tx_r3 =  36;
+    int tx_r4 =  38;
+    int tx_r5 =  44;
+    int tx_r6 =  46;
+
+    string type_lr;
+
+    string device_bl = "CRAM_CTRL_50H_TILE";
+    string device_iol = "IOLHR_TILE";
+    string device_iob = "IOBHR_TILE";
+    string device_wrenhan = "CRAM_CTRL_WRENHAN_TILE";
+    string device_wrenhan1 = "CRAM_CTRL_WRENHAN1_TILE";
+    string device_esd = "ESD_50HR_TILE";
+    string device_hsst = "HSSTLP_TILE";
+    string device_uscm = "USCM_TILE";
+
+//*********************************gs from common***************************************************//
+
+//connect_srb_gs_input
+
+    int tx_e = 48;
+
+    foreach rx( L_REGION )
+    {
+        foreach loc_srb( {[0:1]} )
+        {
+            l_tx = (rx==0) ? L_SRB_TILES_X_R0 : 
+                   (rx==1) ? L_SRB_TILES_X_R1 : 
+              (loc_srb==0) ? L_SRB_TILES_X_R2_D : L_SRB_TILES_X_R2_U;
+            string device_srb = "SRB_TILE";
+            foreach tx ( l_tx )
+            {        
+                tx_ckeb = (tx==48) ? tx - 1 : 
+                          (((tx<tx_bl)&&(tx%2==1))||((tx>tx_bl)&&(tx%2==0))||(tx==47)) ? tx : tx + 1;
+
+                string device_ckeb = ((tx_ckeb==CKEB2_TILE_X_L)||(tx_ckeb==CKEB2_TILE_X_R)) ? "CKEB2_TILE" : "CKEB_TILE";
+
+                connect_srb_gs_input(rx, tx, tx_ckeb, tx_bl, tx_e, device_ckeb, device_srb, loc_srb);
+            }
+        }
+    }
+
+    foreach rx( L_REGION )
+    {
+        foreach loc_srb( {[0:1]} )
+        {
+            l_tx = (rx==0) ? L_CLMS_TILES_X_R0 : 
+                   (rx==1) ? L_CLMS_TILES_X_R1 : 
+              (loc_srb==0) ? L_CLMS_TILES_X_R2_D : L_CLMS_TILES_X_R2_U;
+            string device_srb = "CLMS_TILE";
+            foreach tx ( l_tx )
+            {        
+                tx_ckeb = (tx==48) ? tx - 1 : 
+                          (((tx<tx_bl)&&(tx%2==1))||((tx>tx_bl)&&(tx%2==0))||(tx==47)) ? tx : tx + 1;
+                string device_ckeb = ((tx_ckeb==CKEB2_TILE_X_L)||(tx_ckeb==CKEB2_TILE_X_R)) ? "CKEB2_TILE" : "CKEB_TILE";
+
+                connect_srb_gs_input(rx, tx, tx_ckeb, tx_bl, tx_e, device_ckeb, device_srb, loc_srb);
+            }
+        }
+    }
+
+    foreach rx( L_REGION )
+    {
+        foreach loc_srb( {[0:1]} )
+        {
+            l_tx = (rx==0) ? L_CLMA_TILES_X_R0 : 
+                   (rx==1) ? L_CLMA_TILES_X_R1 : 
+              (loc_srb==0) ? L_CLMA_TILES_X_R2_D : L_CLMA_TILES_X_R2_U;
+            string device_srb = "CLMA_TILE";
+            foreach tx ( l_tx )
+            {        
+                tx_ckeb = (tx==48) ? tx - 1 : 
+                          (((tx<tx_bl)&&(tx%2==1))||((tx>tx_bl)&&(tx%2==0))||(tx==47)) ? tx : tx + 1;
+                string device_ckeb = ((tx_ckeb==CKEB2_TILE_X_L)||(tx_ckeb==CKEB2_TILE_X_R)) ? "CKEB2_TILE" : "CKEB_TILE";
+
+                connect_srb_gs_input(rx, tx, tx_ckeb, tx_bl, tx_e, device_ckeb, device_srb, loc_srb);
+            }
+        }
+    }
+
+
+
+//connect_drm_gs_input
+
+    foreach rx( L_REGION )
+    {
+        foreach loc_drm( {[0:1]} )
+        {
+            l_tx = (rx==0) ? L_DRM_TILES_X_R0 : 
+                   (rx==1) ? L_DRM_TILES_X_R1 : 
+              (loc_drm==0) ? L_DRM_TILES_X_R2_D : L_DRM_TILES_X_R2_U;
+            foreach tx ( l_tx )
+            {        
+                tx_ckeb = (tx==48) ? tx - 1 : 
+                          (((tx<tx_bl)&&(tx%2==1))||((tx>tx_bl)&&(tx%2==0))||(tx==47)) ? tx : tx + 1;
+                string device_ckeb = ((tx_ckeb==CKEB2_TILE_X_L)||(tx_ckeb==CKEB2_TILE_X_R)) ? "CKEB2_TILE" : "CKEB_TILE";
+                 connect_drm_gs_input(rx, tx, tx_ckeb, tx_bl, tx_e, device_ckeb, loc_drm);
+            }
+        }
+    }
+    
+//connect_apm_gs_input
+
+    foreach rx( L_REGION )
+    {
+        foreach loc_apm( {[0:1]} )
+        {
+            foreach tx ( L_APM_TILES_X )
+            {        
+                tx_ckeb = (tx==48) ? tx - 1 : 
+                          (((tx<tx_bl)&&(tx%2==1))||((tx>tx_bl)&&(tx%2==0))||(tx==47)) ? tx : tx + 1;
+                string device_ckeb = ((tx_ckeb==CKEB2_TILE_X_L)||(tx_ckeb==CKEB2_TILE_X_R)) ? "CKEB2_TILE" : "CKEB_TILE";
+                 connect_apm_gs_input(rx, tx, tx_ckeb, tx_bl, tx_e, device_ckeb, loc_apm);
+            }
+        }
+    }
+
+//connect_adc_gs_input
+
+    foreach tx( {ADC_TILE_X} )
+    {
+        tx_ckeb = 24;
+        string device_ckeb = ((tx_ckeb==CKEB2_TILE_X_L)||(tx_ckeb==CKEB2_TILE_X_R)) ? "CKEB2_TILE" : "CKEB_TILE";
+
+        connect_adc_gs_input(LOC_ADC_REGION, tx, tx_ckeb, device_ckeb);
+    }
+
+
+//connect_iol_gs_input
+
+    foreach rx( L_REGION )
+    {
+        l_tx = (rx==0) ? L_IOL_TILES_X_R0 :
+               (rx==1) ? L_IOL_TILES_X_R1 : L_IOL_TILES_X_R2;
+        foreach tx( l_tx )
+        {
+            foreach loc_iol( {[0:1]} )
+            {
+                tx_ckeb = (tx<tx_bl) ? 1 : 48;
+                connect_iol_gs_input(rx, tx, tx_ckeb, device_iol, loc_iol);
+            }
+        }
+    }
+
+//function connect_pll_gs_input
+
+    foreach rx( L_REGION )
+    {
+        l_tx = (rx==0) ? L_PLL_TILES_X_R0 :
+               (rx==1) ? L_PLL_TILES_X_R1 : L_PLL_TILES_X_R2;
+        foreach loc_pll( {[0:1]} )
+        {
+            foreach tx( l_tx )
+            {
+                tx_ckeb = (tx<tx_bl) ? 3 : 47;
+                string device_ckeb = ((tx_ckeb==CKEB2_TILE_X_L)||(tx_ckeb==CKEB2_TILE_X_R)) ? "CKEB2_TILE" : "CKEB_TILE";
+                connect_pll_gs_input(rx, tx, tx_ckeb, device_ckeb, loc_pll);
+            }
+        }
+    }
+
+//connect_iock_gs_input
+
+    foreach rx( L_REGION )
+    {
+        l_tx = (rx==0 || rx==1) ? L_IOCK_TILES_X_R0 : L_IOCK_TILES_X_R2;
+        foreach tx( l_tx )
+        {
+            connect_iock_gs_input(rx, tx);
+        }
+    }
+
+//connect_uscm_gs_input
+
+
+     string device_ckeb = ((tx_ckeb==CKEB2_TILE_X_L)||(tx_ckeb==CKEB2_TILE_X_R)) ? "CKEB2_TILE" : "CKEB_TILE";
+
+    connect_uscm_gs_input(LOC_USCM_REGION, USCM_TILE_X, 28, tx_bl, device_ckeb);
+
+//connect_pregmuxc_gs_input
+
+    connect_pregmuxc_gs_input(LOC_PREGMUXC_REGION, PREGMUXC_TILE_X, 28, tx_bl, device_ckeb);
+
+//connect_pcie_gs_input
+    
+    connect_pcie_gs_input(LOC_PCIE_REGION, PCIE_TILE_X, PCIE_TILE_X, tx_bl, device_ckeb);
+
+//connect_hsst_gs_input
+
+    connect_hsst_gs_input(LOC_HSST_REGION, HSST_TILE_X, 47, device_ckeb, device_hsst);
+
+
+//*********************************gs in defined*************************************************//
+
+//connect_ckeb_gs_input
+
+    int tx_ckeb2_l = CKEB2_TILE_X_L;
+    int tx_ckeb2_r = CKEB2_TILE_X_R;
+
+    int tx_iock_l = IOCK_TILE_X_L;
+    int tx_iock_r = IOCK_TILE_X_R;
+
+    foreach rx( L_REGION )
+    {
+        l_tx = (rx==0) ? { L_CKEB_TILES_X_R0, L_IOCK_TILES_X_R0 } : 
+               (rx==1) ? { L_CKEB_TILES_X_R1, L_IOCK_TILES_X_R1 } : { L_CKEB_TILES_X_R2, L_IOCK_TILES_X_R2 };
+
+            connect_ckeb_gs_input(rx, l_tx, tx_bl, ty_bl, 
+                                  tx_l1, tx_l2, tx_l3, tx_l4, tx_r1, tx_r2, tx_r3, tx_r4, tx_r5, tx_r6,
+                                  tx_ckeb2_l, tx_ckeb2_r, tx_iock_l, tx_iock_r, device_bl);
+    }
+
+//connect_cram_wrenhan_gs_input
+    foreach rx( L_REGION )
+    {
+        l_tx = (rx==0) ? L_WRENHAN_TILES_X_R0 : 
+               (rx==1) ? L_WRENHAN_TILES_X_R1 : L_WRENHAN_TILES_X_R2;
+
+        foreach tx( l_tx )
+        {
+            connect_cram_wrenhan_gs_input(rx, tx, tx_bl, ty_bl, 
+                                          tx_l1, tx_l2, tx_l3, tx_l4, tx_r1, tx_r2, tx_r3, tx_r4, tx_r5, tx_r6, device_bl, device_wrenhan);
+        }
+    }
+
+    connect_cram_wrenhan_gs_input(LOC_WRENHAN1_REGION, WRENHAN1_TILE_X, tx_bl, ty_bl, 
+                                  tx_l1, tx_l2, tx_l3, tx_l4, tx_r1, tx_r2, tx_r3, tx_r4, tx_r5, tx_r6, device_bl, device_wrenhan1);
+
+
+//connect_pll_iconst_input
+
+    foreach rx( L_REGION )
+    {
+        l_tx = (rx==0) ? L_PLL_TILES_X_R0 : (rx==1) ? L_PLL_TILES_X_R1 : L_PLL_TILES_X_R2;
+
+        foreach tx( l_tx )
+        {
+            connect_pll_iconst_input(rx, tx, GPLL_TILE_Y, device_iob);
+        }
+    }
+
+
+//connect_cram_ctrl_gs_input
+
+    foreach rx( L_REGION )
+    {
+        connect_cram_ctrl_gs_input(rx, tx_bl, ty_bl,
+                                   tx_l1, tx_l2, tx_l3, tx_l4, tx_r1, tx_r2, tx_r3, tx_r4, tx_r5, tx_r6,
+                                   device_bl);
+    }
+
+//connect_iob_gs
+
+    foreach type_lr( {"L", "R"} ) 
+    {
+        l_bank = (type_lr=="L") ? {[3:5]} : {[4:5]};
+        foreach bank( l_bank )
+        {
+            connect_iob_gs(type_lr, bank, bank_top, NUM_TILE_X, NUM_REGION, tx_bl, ty_bl, device_bl, device_iob);
+        }
+    }
+
+//connect_hsst_gs_input_50h
+
+    connect_hsst_gs_input_50h(HSST_TILE_X, HSST_TILE_Y, LOC_HSST_REGION, 
+                          CCS_TILE_X, CCS_TILE_Y, LOC_CCS_REGION, 
+                          tx_bl, ty_bl, 
+                          ESD_TILE_X, ESD_TILE_Y, 
+                          device_bl, device_iob, device_esd, device_hsst);
+
+};//end of structure arch_nl connect_gs of PG2L50H
+/***************************************************************************************
+****************************************************************************************/
+library work;
+use pg2l_defs,pg2l50h_defs;
+use pg2l_funcs_place,pg2l50h_funcs_place;
+use pg2l50h_funcs_connect_wl_bl;
+structure arch_nl connect_ccs of PG2L50H
+{
+    unsigned int ty_ccs, ty_adc;
+    ty_ccs = LOC_CCS_REGION * NUM_TILES_REGION + CCS_TILE_Y;
+    ty_adc = LOC_ADC_REGION * NUM_TILES_REGION + ADC_TILE_Y;
+
+    int tx_ckeb = 24;
+
+    connect_ccs_adc(CCS_TILE_X, ty_ccs, ADC_TILE_X, ty_adc, tx_ckeb, ESD_TILE_X, ESD_TILE_Y);
+
+};//end of structure arch_nl connect_bias of PG2L50H

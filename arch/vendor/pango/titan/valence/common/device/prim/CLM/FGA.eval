@@ -1,0 +1,207 @@
+*****************************************************************
+
+  Device    [FGA]
+
+  Author    [clwang]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+prim
+device FGA
+{
+    parameter
+    (
+        config bit INIT[31:0] = 32'h0000_0000,
+        config string MODE    = "LUT5"         // "LUT5" "ROM" "WMUX" "ARITH"
+    );
+
+    port
+    (
+        // Input Ports of FGA for ROM, LUT
+        input A0, A1, A2, A3, A4, A5,
+
+        // Ports for Carry Chain
+        input CIN,
+        output COUT,
+
+        // Output Ports for LUT
+        output Z
+    );
+
+};
+
+
+/**Device***********************************************************************
+
+  Device    [FGA]
+
+  Abstract  [This specified how to propagate the input signal to the outputs based on
+             configuration]
+
+  Revision History:
+
+********************************************************************************/
+propagation prop_FGA of FGA
+{
+   if (INIT == 32'hffff_ffff)
+   {
+       propagate ( 1'b1 --> Z ); 
+   }
+   else if (INIT == 32'h0000_0000)
+   {
+       propagate ( 1'b0 --> Z ); 
+   }
+   if (INIT == 32'h00000000 && MODE == "CY01")
+   {
+       propagate ( 1'b0 --> COUT ); 
+   }
+   else if (INIT == 32'hFFFF0000 && MODE == "CY01")
+   {
+       propagate ( 1'b1 --> COUT ); 
+   }
+
+    //FIXED ME
+    propagate ( A0  |-> Z );
+    propagate ( A1  |-> Z );
+    propagate ( A2  |-> Z );
+    propagate ( A3  |-> Z );
+    propagate ( A4  |-> Z );
+    propagate ( A5  |-> Z );
+    propagate ( CIN |-> Z );
+    propagate ( A0  |-> COUT );
+    propagate ( A1  |-> COUT );
+    propagate ( A2  |-> COUT );
+    propagate ( A3  |-> COUT );
+    propagate ( A4  |-> COUT );
+    propagate ( A5  |-> COUT );
+    propagate ( CIN  |-> COUT );
+
+}; // end of propagation prop_FGA of FGA
+
+
+/**Device***********************************************************************
+
+  Device    [FGA]
+
+  Abstract  [This specified the timing model under specific configuration]
+
+  Revision History:
+
+********************************************************************************/
+timing fga_tnl of FGA
+{
+    if(MODE == "LATCH")
+    {
+        string SET_RESET = "SET";
+        string LRS_EN    = "FALSE";
+
+        if (INIT == 32'hEEEE_2222) // GTP_DLATCH
+        {
+            SET_RESET = "RESET";
+            LRS_EN    = "FASLE";
+        }
+        else if (INIT == 32'h0E0E_0202) // GTP_DLATCH_C
+        {
+            SET_RESET = "RESET";
+            LRS_EN    = "TRUE";
+        }
+        else if (INIT == 32'h0E0A_020A) // GTP_DLATCH_CE
+        {
+            SET_RESET = "RESET";
+            LRS_EN    = "TRUE";
+        }
+        else if (INIT == 32'hEEAA_22AA) // GTP_DLATCH_E
+        {
+            SET_RESET = "RESET";
+            LRS_EN    = "FASLE";
+        }
+        else if (INIT == 32'hFEFE_F2F2) // GTP_DLATCH_P
+        {
+            SET_RESET = "SET";
+            LRS_EN    = "TRUE";
+        }
+        else if (INIT == 32'hFEFA_F2FA) // GTP_DLATCH_PE
+        {
+            SET_RESET = "SET";
+            LRS_EN    = "TRUE";
+        }
+
+        operator V_LAASYN V_LAASYN
+           parameter map
+           (
+               SET_RESET => SET_RESET,
+               LRS_EN    => LRS_EN
+           )
+            port map
+            (
+                Q  => Z,
+                D  => A4,
+                SR => A2,
+                CK => A1,
+                CE => A3
+            );
+    }
+    else if (MODE == "LUT5" || MODE == "ROM")
+    {
+        operator V_LUT5 V_LUT5
+            parameter map
+            (
+                INIT => INIT
+            )
+            port map
+            (
+                I0   => A0,
+                I1   => A1,
+                I2   => A2,
+                I3   => A3,
+                I4   => A4,
+                Y    => Z
+            );
+    }
+    else if (MODE == "WMUX")
+    {
+        operator V_LUT5M V_LUT5M
+        parameter map
+        (
+            INIT     => INIT
+        )
+        port map
+        (
+            I0  => A0,
+            ID  => A5,
+            I1  => A1,
+            I2  => A2,
+            I3  => A3,
+            I4  => A4,
+            Z   => Z
+        );
+    }
+    else
+    {
+        operator V_LUT5CARRY V_LUT5CARRY
+            parameter map
+            (
+                INIT        => INIT,
+                ID_TO_LUT   => (MODE == "ARITH4"  || MODE == "ARITH"   || MODE == "ARITH6"  || MODE == "CY01"    || MODE == "ARITH0" || MODE == "L5C01" || MODE == "LUT5"  || MODE == "ARITH3") ? "FALSE" : "TRUE",
+                CIN_TO_LUT  => (MODE == "WMUX"    || MODE == "ARITH9"  || MODE == "ARITH10" || MODE == "ARITH11" || MODE == "ARITH0" || MODE == "L5C01" || MODE == "LUT5"  || MODE == "ARITH3") ? "FALSE" : "TRUE",
+                I4_TO_CARRY => (MODE == "ARITH14" || MODE == "ARITH15" || MODE == "ARITH10" || MODE == "ARITH11" || MODE == "ARITH6" || MODE == "CY01"  || MODE == "LUT5"  || MODE == "ARITH3") ? "FALSE" : "TRUE",
+                I4_TO_LUT   => (MODE == "ARITH13" || MODE == "ARITH15" || MODE == "ARITH9"  || MODE == "ARITH11" || MODE == "ARITH"  || MODE == "CY01"  || MODE == "L5C01" || MODE == "ARITH3") ? "FALSE" : "TRUE"
+            )
+            port map
+            (
+               CIN  => CIN,
+               COUT => COUT,
+               I0   => A0,
+               I1   => A1,
+               I2   => A2,
+               I3   => A3,
+               I4   => A4,
+               ID   => A5,
+               S    => Z
+            );
+    }
+};
+

@@ -1,0 +1,285 @@
+*****************************************************************
+
+  Device    [devOBUFTIOLTQDEL]
+
+  Author    [yqtan]
+
+  Abstract  [device base on IOL, used as obuft path through to IOB
+             with OFF TFF]
+
+  Revision History:
+
+********************************************************************************/
+
+gate
+device devOBUFTIOLTQDEL : device IOL
+{
+    parameter
+    (
+        config string CP_OUTCLK_POL          = "FALSE",     //"FALSE": Normal; "TRUE": Inverted
+        config string CP_CE_POL              = "FALSE",     //"FALSE": Normal; "TRUE": Inverted
+        config string CP_LRS_POL             = "FALSE",     //"FALSE": Normal; "TRUE": Inverted
+        config string CP_OUTCE_EN            = "ENABLE",    //"ENABLE"; "DISABLE"
+        config string CP_OUTLRS_EN           = "ENABLE",    //"ENABLE"; "DISABLE"
+        config string CP_FF_SYNC             = "ASYNC",     //"ASYNC"; "SYNC"
+        config string CP_TSFF_SET            = "SET",       //"SET" => set; "RESET" => reset
+        config string CP_TSFF_LATCH          = "FF",        //"LATCH" => latch; "FF" => flip flop
+        config string CP_DOMODE              := "DD",       //"DD","FF","LATCH","DDR","OUT_EXT"
+        config string CP_TOMODE              := "FF",       //"DD","FF","LATCH","DDR","OUT_EXT"
+        config bit    CP_DELAY_SETTING[1:0]  := 2'b01,      //2'd0 => neither input nor output use delay unit; 2'd1 => delay unit for output; 
+                                                              //2'd2 => delay unit for input; 2'd3 => illegal setting
+        config string CP_PDIFF               := "DISABLE",    //"DISABLE" "ENABLE"
+        config bit    CP_IODLY_STEP[3:0]      = 4'b0000,      //d'0~d'15
+        config string CP_IODLY_DYN           := "TRUE",       //"TRUE", "FALSE"
+        config string CP_IODLY_DEGL           = "FALSE",      //"TRUE", "FALSE"
+        config string CP_OUTCLK_EN           := "ENABLE",    //"DISABLE", "ENABLE"
+        config string CP_GRS_DIS              = "FALSE",      //"TRUE", "FALSE"
+        config string CP_MIPI_EN              = "DISABLE"
+    );
+    port
+    (
+        input   CLK_SYS,
+        input   CE,
+        input   LRS,
+        input   TX_DATA[7:7],
+        input   TS_CTRL[0:0],
+        input   IODLY_CTRL[2:0],
+        input   MIPI_SW_DYN_I,
+        
+        output  IODLY_OV,
+        output  TO_OUT,
+        output  TO,
+        output  DO_OUT,
+        output  DO,
+        output  MIPI_SW_DYN_O
+    );
+
+}// end of device devOBUFTIOLTQDEL
+
+/*******************************************************************************
+
+  Device    [devOBUFTIOLTQDEL]
+
+  Author    []
+
+  Abstract  [The structure netlist of devOBUFTIOLTQDEL is described in the similar fashion
+             as in HDL. In unit instantiation statement, the formal pin may be
+             connected to net which is declared explicitly.
+
+             In Valence, the connection can also be made from formal pin to other
+             pin or port, in which case Valence compiler shall create the net to
+             fulfil the connection. The built-in naming convention is kicked in
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devOBUFTIOLTQDEL
+{
+    wire ntCLK_SYS;
+    wire ntCE;
+    wire ntLRS;
+    wire ntIODLY_OV;
+    wire ntTO_OUT;
+    wire ntTO;
+    wire ntDO_OUT;
+    wire ntDO;
+    
+    wire ntCE_SEL;
+    wire ntLRS_SEL;
+    wire ntCLK_SYS_FOR_OUTPUT;
+    wire ntCE_OUT;
+    wire ntLRS_OUT;
+    wire ntTS_FF_TO;
+    wire ntTX_FFDO;
+    wire ntOUTPUT_DATA_SEL;
+    wire ntOUTPUT_DATA_SEL_TMP;
+    wire ntDIN;
+    wire ntDOUT;
+    wire ntCLK_SYS_O;
+    wire ntMIPI_SW_DYN_I;
+    wire ntMIPI_SW_DYN_O;
+    
+    ntCLK_SYS <= CLK_SYS;
+    ntCE      <= CE;
+    ntLRS     <= LRS;
+    
+    IODLY_OV  <= ntIODLY_OV;
+    TO_OUT    <= ntTO_OUT;
+    TO        <= ntTO;
+    DO_OUT    <= ntDO_OUT;
+    DO        <= ntDO;
+    
+    ntMIPI_SW_DYN_I      <= MIPI_SW_DYN_I;
+    MIPI_SW_DYN_O        <= ntMIPI_SW_DYN_O;
+    
+    device MUX21_EN MIPI_EN_MUX
+        parameter map
+        (
+            CP_SEL => CP_MIPI_EN
+        )
+        port map
+        (
+            X0 => ntMIPI_SW_DYN_I,
+            X1 => 1'b0,
+            Y  => ntMIPI_SW_DYN_O
+        );
+        
+    device POLMUX CE_POL_MUX
+        parameter map
+        (
+            CP_POLARITY_INV => CP_CE_POL
+        )
+        port map
+        (
+            X => ntCE,
+            Y => ntCE_SEL
+        );
+
+    device POLMUX LRS_POL_MUX
+        parameter map
+        (
+            CP_POLARITY_INV => CP_LRS_POL
+        )
+        port map
+        (
+            X  => ntLRS,
+            Y  => ntLRS_SEL
+        );
+     
+    device MUX21_EN RCLK_EN_MUX_O 
+       parameter map
+       (
+          CP_SEL  => CP_OUTCLK_EN
+       )
+       port map
+       (
+          X0 => ntCLK_SYS,
+          X1 => 1'b0,
+          Y  => ntCLK_SYS_O
+      ); 
+    
+    device POLMUX RCLK_POL_MUX_O
+        parameter map
+        (
+            CP_POLARITY_INV => CP_OUTCLK_POL
+        )
+        port map
+        (
+            X  => ntCLK_SYS_O,
+            Y  => ntCLK_SYS_FOR_OUTPUT
+        );
+    
+    device IOL_FF U_TSFF
+        parameter map
+        (
+            CP_GRS_DIS => CP_GRS_DIS,
+            CP_SET     => CP_TSFF_SET,   //1'B1 => set; 1'b0 => reset
+            CP_SYNC    => CP_FF_SYNC,    //1'B1 => sync; 1'b0 => async
+            CP_LATCH   => CP_TSFF_LATCH
+        )
+        port map
+        (
+            D     => TS_CTRL[0],
+            CLK   => ntCLK_SYS_FOR_OUTPUT,
+            CE    => ntCE_OUT,
+            LRS   => ntLRS_OUT,
+            Q     => ntTS_FF_TO
+        );
+    
+    device OUTMUX TO_OUT_MUX
+        parameter map
+        (
+            CP_SEL => CP_TOMODE
+        )
+        port map
+        (
+            X1   => ntTS_FF_TO,
+            Y    => ntTO_OUT
+        );
+    
+    device MUX21_EN DO_PDIFF_MUX
+        parameter map
+        (
+            CP_SEL => CP_PDIFF
+        )
+        port map
+        (
+            X1   => ntDO_OUT,
+            Y    => ntDO
+        );
+        
+    device MUX21_EN TO_PDIFF_MUX
+        parameter map
+        (
+            CP_SEL => CP_PDIFF
+        )
+        port map
+        (
+            X1   => ntTO_OUT,
+            Y    => ntTO
+        );
+        
+    device OUTMUX OUTPUT_DATA_MUX
+        parameter map
+        (
+            CP_SEL => CP_DOMODE
+        )
+        port map
+        (
+            X1   => ntTX_FFDO,
+            Y    => ntOUTPUT_DATA_SEL_TMP
+        );
+    
+    device MIPI_OUT MIPI_OUT
+        port map
+        (
+            X0 => ntMIPI_SW_DYN_O,
+            X2 => ntOUTPUT_DATA_SEL_TMP,
+            Y  => ntOUTPUT_DATA_SEL
+        );
+        
+    device MUX21 IN_OUT_DELSEL_MUX
+        parameter map
+        (
+            CP_SEL => CP_DELAY_SETTING[0]
+        )
+        port map
+        (
+            X1   => ntOUTPUT_DATA_SEL,
+            Y    => ntDIN
+        );
+        
+    device DLY DELAY
+        parameter map
+        (
+            CP_IODLY_STEP => CP_IODLY_STEP,
+            CP_IODLY_DYN  => CP_IODLY_DYN,
+            CP_IODLY_DEGL => CP_IODLY_DEGL
+        )
+        port map
+        (
+            DIN        => ntDIN,
+            DOUT       => ntDOUT,
+            IODLY_CTRL => IODLY_CTRL,
+            IODLY_OV   => ntIODLY_OV
+        );
+     
+    device MUX21 OUT_DELSEL_MUX
+        parameter map
+        (
+            CP_SEL => CP_DELAY_SETTING[0]
+        )
+        port map
+        (
+            X1   => ntDOUT,
+            Y    => ntDO_OUT
+        );
+
+    
+    
+
+}; // end of structure netlist of devOBUFTIOLTQDEL

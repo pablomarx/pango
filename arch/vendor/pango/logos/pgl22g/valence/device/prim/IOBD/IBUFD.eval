@@ -1,0 +1,119 @@
+*****************************************************************
+
+  Device    [IBUFD]
+
+  Author    [yqtan]
+
+  Abstract  [The Prim Device For IBUFD
+
+  Revision History:
+
+********************************************************************************/
+prim
+device IBUFD
+{
+    parameter
+    (
+        config string CP_IO_STANDARD  = "SLVS",   //IO standard: lvcmos18 lvcmos15 lvcmos12
+        config string CP_IOB_MODE     = "IBUFHP"      //"IBUFHP" "IBUFHP_DS" "IOBUFHP" "IOBUFHP_DS"
+    );
+    port
+    (
+       input  IN, 
+       input  DIFFI_IN,
+       input  MIPI_SW_DYN,
+       output OUT 
+    );
+
+}// end of device IBUFD
+
+/**Device***********************************************************************
+
+  Device    [IBUFD]
+
+  Abstract  [This specified how to propagate the input signal to the outputs based on
+             configuration]
+
+  Revision History:
+
+********************************************************************************/
+propagation pop of IBUFD
+{
+    if((CP_IO_STANDARD == "SLVS") && (CP_IOB_MODE == "IBUFHR_DS" || CP_IOB_MODE == "IOBUFHR_DS"))
+    {
+        propagate ( MIPI_SW_DYN |-> OUT);
+        propagate ( IN |-> OUT);
+        propagate ( DIFFI_IN |-> OUT);
+    }
+    else if (CP_IOB_MODE == "IBUFHR" || CP_IOB_MODE == "IOBUFHR")
+    {
+        propagate ( IN --> OUT);
+    }
+    else if (CP_IOB_MODE == "IBUFHR_DS" || CP_IOB_MODE == "IOBUFHR_DS")
+    {
+        propagate ( IN |-> OUT);
+        propagate ( DIFFI_IN |-> OUT);
+    }
+}; // end of propagation for IBUFD
+
+/**Device***********************************************************************
+
+  Device    [IBUFD]
+  
+  Author    []
+
+  Abstract  [This specified the timing model under specific configuration]
+
+  Revision History:
+
+********************************************************************************/
+timing  ibfd_tnl of IBUFD
+{
+    if((CP_IO_STANDARD == "SLVS") && (CP_IOB_MODE == "IBUFHR_DS" || CP_IOB_MODE == "IOBUFHR_DS"))
+    {
+        operator V_INBUF_MIPI ibfmipi
+            parameter map
+            (
+                IOSTANDARD => CP_IO_STANDARD,
+                MIPI_MODE  => "MASTER"
+            )
+            port map
+            (
+                I  => IN,
+                IB => DIFFI_IN,
+                M  => MIPI_SW_DYN,
+                O  => OUT
+            );
+    }
+    else if (CP_IOB_MODE == "IBUFHR" || CP_IOB_MODE == "IOBUFHR")
+    {
+        operator V_IBUF ibuf
+            parameter map
+            (
+                IOSTANDARD => CP_IO_STANDARD
+            )
+            port map
+            (
+                I => IN,
+                O => OUT
+            );
+    }
+    else if (CP_IOB_MODE == "IBUFHR_DS" || CP_IOB_MODE == "IOBUFHR_DS")
+    {
+        operator V_IBUFDS ibufds
+            parameter map
+            (
+                IOSTANDARD => CP_IO_STANDARD
+            )
+            port map
+            (
+                I  => IN,
+                IB => DIFFI_IN,
+                O  => OUT
+            );
+    }
+    else
+    {
+        OUT <= 1'b1;
+    }
+};

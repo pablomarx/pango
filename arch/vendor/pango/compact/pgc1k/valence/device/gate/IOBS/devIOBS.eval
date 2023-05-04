@@ -1,0 +1,141 @@
+******************************************************************
+//
+//  Device    [devIOBS]
+//
+//  project   []
+//  
+//  Author    [guoxi]
+//
+//  Abstract  [ ]
+//
+//  Revision History:
+//                       
+//********************************************************************************/
+
+gate device devIOBS : device IOBS
+{
+    parameter 
+    (
+        config string CP_IOB_MODE = "UNUSED",
+        config string CP_PORT_STATUS = "PULLDW",
+        config string CP_IO_STANDARD = "DEFAULT",
+        config string CP_W_VOLT_R_IN = "NOHYS",
+        config string CP_DRV_STRENGTH = "8",
+        config string CP_SLEW_MODE = "F",
+        config string CP_HOT_SOCKET = "ON",
+        config string CP_OPENDRAIN = "OFF",
+        config string CP_VCCIO = "3.3",
+        config string CP_LP_EN = "OFF"
+    );
+    port
+    (   
+        input TS,
+        input DO,
+        input DIFFI_IN,
+        input DIFFO_IN,
+        input MIPI_SW_DYN,
+        input INBUF_DYN_DIS_N,
+        output DIN,
+        output DIFFI_OUT,
+        inout PAD
+    );
+};  // end of device devIOBS
+
+
+/*******************************************************************************
+
+  Device    [devIOBS]
+
+  Author    []
+
+  Abstract  [gate grid devIOBS. structure nestlist]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devIOBS
+{
+    wire ntTS;
+    wire ntDO;
+    wire ntDIFFI_IN;
+    wire ntDIFFO_IN;
+    wire ntMIPI_SW_DYN;
+    wire ntINBUF_DYN_DIS_N;
+    wire ntDIN;
+
+    // the interior net
+    wire ntOBUFO_IN;
+    wire ntMIPIMUX;
+    wire ntPAD;
+    
+    // the connection of all input
+    ntTS          <=  TS;
+    ntDO          <=  DO;
+    ntDIFFI_IN    <=  DIFFI_IN;
+    ntDIFFO_IN    <=  DIFFO_IN;
+    ntMIPI_SW_DYN  <=  MIPI_SW_DYN;
+    ntINBUF_DYN_DIS_N  <=  INBUF_DYN_DIS_N;
+
+    // the connection of all output
+    DIN         <=  ntDIN;
+    DIFFI_OUT   <=  ntPAD;
+    PAD         <=  ntPAD;
+    
+    device IBUFS IBUFS
+        parameter map
+        (
+            CP_IOB_MODE  =>  CP_IOB_MODE,
+            CP_IO_STANDARD  =>  CP_IO_STANDARD,
+            CP_LP_EN    =>  CP_LP_EN
+        )
+        port map
+       (
+            OUT       =>  ntDIN,
+            IN        =>  ntPAD,
+            INBUF_DYN_DIS_N  =>  ntINBUF_DYN_DIS_N,
+            DIFFI_IN  =>  ntDIFFI_IN,
+            MIPI_SW_DYN  =>  ntMIPI_SW_DYN
+       );
+
+    device OBUFS OBUFS
+        parameter map
+        (
+            CP_IOB_MODE  =>  CP_IOB_MODE,
+            CP_OPENDRAIN  =>  CP_OPENDRAIN,
+            CP_IO_STANDARD  =>  CP_IO_STANDARD
+        )
+        port map
+       (
+            OUT       =>  ntOBUFO_IN,
+            DO        =>  ntDO,
+            TS        =>  ntTS,
+            MIPI_SW_DYN  =>  ntMIPI_SW_DYN
+       );
+
+    device DIFFOSMUX DIFFOSMUX
+        parameter map
+        (
+            CP_IOB_MODE  =>  CP_IOB_MODE
+        )
+        port map
+       (
+            OUT       =>  ntPAD,
+            DIFFO_IN  =>  ntDIFFO_IN,
+            OBUFO_IN  =>  ntOBUFO_IN,
+            MIPI_SW_DYN  =>  ntMIPIMUX
+       );
+
+    device MIPIMUX MIPIMUX
+        parameter map
+        (
+            CP_IO_STANDARD => CP_IO_STANDARD
+        )
+        port map
+        (
+            X0 => ntMIPI_SW_DYN,
+            X1 => 1'b0,
+            Y  => ntMIPIMUX
+        );
+
+};  // end of structure netlist of devIOBS            
+            

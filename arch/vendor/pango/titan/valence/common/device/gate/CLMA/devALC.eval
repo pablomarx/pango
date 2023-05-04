@@ -1,0 +1,150 @@
+*****************************************************************
+
+  Device    [devALC]
+
+  Author    []
+
+  Abstract  [THE DEVICE CAN BE USED FOR ADDITION.]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devALC : device devA
+{
+    parameter
+    (
+        config bit INITA[31:0]       = 32'h0000_0000,        
+        config string FGA_MODE       = "ARITH",               // "LUT5" "ROM" "WMUX" "ARITH"
+        config string Y0MUX_SEL       = "FG"                 // "FFAB" "FG" "CY" 
+    );
+    
+    port
+    (        
+               input    A0, A1, A2, A3, A4, AD,
+               output   Y0,
+               input    CIN,
+        logic  output   FGA_COUT
+
+    );
+}; // end of device devALC
+
+
+/*******************************************************************************
+
+  Device    [devALC]
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devALC
+{
+    // Wires for input ports
+    wire ntA0, ntA1, ntA2, ntA3, ntA4, ntAD; 
+    wire ntCIN;
+
+    // Wires connecting to output ports
+
+    wire ntY0MUX;
+
+    // Internal wires
+    wire ntFGA_Z, ntCYA;
+
+    //
+    // Connection to ports
+    //
+ 
+    ntA0      <= A0;
+    ntA1      <= A1;
+    ntA2      <= A2;
+    ntA3      <= A3;
+    ntA4      <= A4;
+    ntAD      <= AD;
+
+    ntCIN     <= CIN;
+
+    Y0        <= ntY0MUX;
+      
+    FGA_COUT  <= ntCYA;
+    
+    //
+    // Instances. FGA section
+    //
+
+    device FGA FGA 
+        parameter map
+        (
+            INIT        => INITA,
+            MODE        => FGA_MODE
+        )
+        port map 
+        (
+            A0   => ntA0, A1  => ntA1, A2  => ntA2, A3  => ntA3, A4  => ntA4,       
+            A5   => ntAD,
+            CIN  => ntCIN,
+            COUT => ntCYA,
+            Z    => ntFGA_Z 
+        );
+
+    device Y0MUX Y0MUX
+        parameter map
+        (
+            CFG  => Y0MUX_SEL
+        )    
+        port map
+        (
+            FG  => ntFGA_Z, CY => ntCYA,
+            Z   => ntY0MUX
+        );
+}; // end of structure netlist of devALC
+
+timing tnl of devALC
+{
+    wire ntI0;
+    wire ntI1;
+    operator V_LUT5CARRY V_FGA
+        parameter map 
+        (
+            INIT        => INITA,
+            ID_TO_LUT   => (FGA_MODE == "ARITH4"  || FGA_MODE == "ARITH"   || FGA_MODE == "ARITH6"  || FGA_MODE == "CY01"    || FGA_MODE == "ARITH0" || FGA_MODE == "L5C01" || FGA_MODE == "LUT5"  || FGA_MODE == "ARITH3") ? "FALSE" : "TRUE",
+            CIN_TO_LUT  => (FGA_MODE == "WMUX"    || FGA_MODE == "ARITH9"  || FGA_MODE == "ARITH10" || FGA_MODE == "ARITH11" || FGA_MODE == "ARITH0" || FGA_MODE == "L5C01" || FGA_MODE == "LUT5"  || FGA_MODE == "ARITH3") ? "FALSE" : "TRUE",
+            I4_TO_CARRY => (FGA_MODE == "ARITH14" || FGA_MODE == "ARITH15" || FGA_MODE == "ARITH10" || FGA_MODE == "ARITH11" || FGA_MODE == "ARITH6" || FGA_MODE == "CY01"  || FGA_MODE == "LUT5"  || FGA_MODE == "ARITH3") ? "FALSE" : "TRUE",               
+            I4_TO_LUT   => (FGA_MODE == "ARITH13" || FGA_MODE == "ARITH15" || FGA_MODE == "ARITH9"  || FGA_MODE == "ARITH11" || FGA_MODE == "ARITH"  || FGA_MODE == "CY01"  || FGA_MODE == "L5C01" || FGA_MODE == "ARITH3") ? "FALSE" : "TRUE",
+            SECTION     => "A"
+        )
+        port map 
+        (
+           CIN  => CIN,
+           I0   => A0,
+           I1   => A1,
+           I2   => A2,
+           I3   => A3,
+           I4   => A4,
+           ID   => AD,
+           COUT => ntI0,
+           S    => ntI1
+        );
+        
+     FGA_COUT  <= ntI0;
+
+     if (Y0MUX_SEL != "FFAB")
+     {
+     operator V_MUX V_Y0MUX
+         parameter map
+         (
+             SEL  => (Y0MUX_SEL == "CY") ? "I0" : "I1",
+             SECTION     => "A"
+         )
+         port map
+         (
+             I0 => ntI0,
+             I1 => ntI1,
+             Y => Y0
+         );
+     }
+
+}

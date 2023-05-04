@@ -1,0 +1,92 @@
+*******************************************************************
+
+  Operator    [gopOGSER4EDEL]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+gate
+operator gopOGSER4EDEL
+{
+    parameter
+    (
+        string SERCLK_SRC     = "IOCLK",   //"IOCLK" "SAMPLE_CLK" "PROBE_CLK"   
+
+        bit    LRS_EN         = 1'b0,
+        bit    GRS_EN         = 1'b0,
+        bit    CLK_INV        = 1'b0,
+        bit    LRS_INV        = 1'b0,
+
+        string DELAY_SEL       = "DEFAULT",
+        bit    IODLY_CTRL_EN   = 1'b0,
+        bit    IODLY_STEP[6:0] = 7'b000_0000 
+    );
+    port
+    (
+        input   D[5:0],
+
+        input   IODLY_CTRL[2:0],
+        output  IODLY_OV,
+
+        input   SERCLK /* pragma PAP_ARC_GOP_CTRL_PIN = IOCLK*/,
+        input   SYSCLK /* pragma PAP_ARC_GOP_CTRL_PIN = "GCLK|RCLK"*/,
+        input   RESET /* pragma PAP_ARC_GOP_CTRL_PIN = RST*/,
+
+        output  PADO,
+        output  PADT,
+
+        output  DO_OUT,
+        output  TO_OUT
+    );
+};
+
+implementation impl of gopOGSER4EDEL
+{
+    // ODDR config
+
+    if((SERCLK_SRC != "SAMPLE_CLK") && (SERCLK_SRC != "PROBE_CLK") && (SERCLK_SRC != "IOCLK"))
+    {
+        error("Error config SERCLK_SRC = %s in gopIGSER4", SERCLK_SRC);
+    }
+    
+    device devOGSER4EIOLDEL gate_ogser4ioldel
+        parameter map
+        (
+            DES_SER_CLK  =>   SERCLK_SRC,
+
+            ODDR_LRS_EN  =>   LRS_EN,
+
+            GRS_EN       =>   GRS_EN,
+            CLK_O_INV    =>   CLK_INV,
+            LRS_INV      =>   LRS_INV,
+
+            DELAY_SEL       =>  DELAY_SEL,
+            IODLY_CTRL_EN   =>  IODLY_CTRL_EN,
+            IODLY_STEP      =>  IODLY_STEP
+        )
+
+        port map 
+        (
+            TX_DATA      =>   D,
+
+            IODLY_CTRL   =>   IODLY_CTRL,
+            IODLY_OV     =>   IODLY_OV,
+
+            IOCLK        =>   (SERCLK_SRC == "IOCLK") ? SERCLK : 1'bx,
+            SAMPLE_CLK   =>   (SERCLK_SRC == "SAMPLE_CLK") ? SERCLK : 1'bx,
+            PROBE_CLK    =>   (SERCLK_SRC == "PROBE_CLK") ? SERCLK : 1'bx,
+            
+            SYSCLK       =>   SYSCLK,
+            LRS          =>   RESET,
+            
+            DO           =>   PADO,    
+            TO           =>   PADT,        
+
+            DO_OUT       =>  DO_OUT,
+            TO_OUT       =>  TO_OUT
+        );
+};
+
+

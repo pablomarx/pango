@@ -1,0 +1,418 @@
+*********************************************************************
+
+  Operator    [gopL5Q]
+  
+  Author    [liujiao]
+
+  Abstract  []
+
+  Revision History:
+
+ ********************************************************************************/
+gate
+operator gopL5Q
+{
+    parameter
+    (
+        string GRS_EN         = "FALSE",           // "TRUE" "FALSE"
+        string LRS_EN         = "TRUE",            // "TRUE"   "FALSE"   
+        bit    INIT[31:0]     = 32'h0000_0000,   
+        string CEMUX_SEL      = "LOCAL",                // "CE" "CECI" 
+        string RSMUX_SEL      = "LOCAL",                // "RS" "RSCI"
+        string CLK_POS        = "FALSE",                // 1'b0: "CLK"; 1'b1: "CLK_B
+        string CE_POS         = "FALSE",                // 1'b0: "CE";  1'b1: "CE_B"
+        string RS_POS         = "FALSE",                // 1'b0: "RS";  1'b1: "RS_B"
+        string CE_USED        = "USED",              // "USED"  "UNUSED"
+        string RS_USED        = "USED",              // "USED"  "UNUSED"       
+        string SYNC_MODE      = "SYNC",              // "SYNC" "ASYNC"
+        string FF_SET         = "RESET"               // "RESET" "SET" 
+    );
+
+    port
+    (
+        input  L0, L1, L2, L3, L4,
+        input  CLK /*pragma PAP_ARC_GOP_CTRL_PIN="GCLK|RCLK"*/,
+        input  CE /*pragma PAP_ARC_GOP_CTRL_PIN="CE"*/,
+        input  RS /*pragma PAP_ARC_GOP_CTRL_PIN="RST"*/,
+        output RSOUT, CEOUT,
+        output Z, Q
+    );
+};
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devALQ_S to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devALQ_S of gopL5Q
+{
+    string MODE            = "LUT5";   // "LUT5" "MUX4" "ARITH"    
+    device devALQ_S gatedev
+        parameter map 
+        ( 
+            CP_GRS_EN      => GRS_EN,
+            CP_LRS_EN      => RS_USED == "USED" ? "TRUE" : "FALSE",
+            CP_LCE_EN      => CE_USED == "USED" ? "TRUE" : "FALSE",
+            CP_INITA       => INIT,        
+            CP_MODEA       => MODE,                                             // "LUT5" "ROM" "MUX4" "ARITH"      
+            CP_CEMUX_SEL   => CEMUX_SEL,
+            CP_RSMUX_SEL   => RSMUX_SEL,
+            CP_CLK_POL     => CLK_POS,                                          // "CLK" "CLK_B"
+            CP_LCE_POL     => (CE_USED == "USED") ? CE_POS : "FALSE",            // "CE"  "CE_B"
+            CP_LRS_POL     => (RS_USED == "USED") ? RS_POS : "TRUE",              // "RS"  "RS_B"      
+            CP_RS_MODE     => SYNC_MODE,                                        // "SYNC" "ASYNC"
+            CP_FF0_RS      => FF_SET                                            // "RESET" "SET" 
+        )
+        port map 
+        (                            
+            A0    => L0, 
+            A1    => L1, 
+            A2    => L2, 
+            A3    => L3, 
+            A4    => L4,
+            Y0    => Z, 
+            Q0    => Q,
+            RS    => (RSMUX_SEL == "LOCAL")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE    => (CEMUX_SEL == "LOCAL")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx, 
+            CLK   => CLK,
+            RSCI  => (RSMUX_SEL == "LOCAL")  ? 1'bx : RS,   
+            RSCO  => RSOUT,
+            CECI  => (CEMUX_SEL == "LOCAL")  ? 1'bx : CE,   
+            CECO  => CEOUT
+        );
+}; // end of implementation impl_devALQ_S of gopL5Q
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devBLQ_S to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devBLQ_S of gopL5Q
+{
+    string MODE            = "LUT5";   // "LUT5" "MUX4" "ARITH"    
+    device devBLQ_S gatedev
+        parameter map 
+        ( 
+            CP_GRS_EN      => GRS_EN,
+            CP_LRS_EN      => RS_USED == "USED" ? "TRUE" : "FALSE",
+            CP_LCE_EN      => CE_USED == "USED" ? "TRUE" : "FALSE",
+            CP_INITB       => INIT,        
+            CP_MODEB       => MODE,                                             // "LUT5" "ROM" "MUX4" "ARITH"      
+            CP_CEMUX_SEL   => CEMUX_SEL,
+            CP_RSMUX_SEL   => RSMUX_SEL,
+            CP_CLK_POL     => CLK_POS,                                          // "CLK" "CLK_B"
+            CP_LCE_POL     => (CE_USED == "USED") ? CE_POS : "FALSE",             // "CE"  "CE_B"
+            CP_LRS_POL     => (RS_USED == "USED") ? RS_POS : "TRUE",               // "RS"  "RS_B"      
+            CP_RS_MODE     => SYNC_MODE,                                        // "SYNC" "ASYNC"
+            CP_FF1_RS      => FF_SET                                            // "RESET" "SET" 
+        )
+        port map 
+        (                            
+            B0    => L0, 
+            B1    => L1, 
+            B2    => L2, 
+            B3    => L3, 
+            B4    => L4,
+            Y1    => Z, 
+            Q1    => Q,
+            RS    => (RSMUX_SEL == "LOCAL")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE    => (CEMUX_SEL == "LOCAL")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx, 
+            CLK   => CLK,
+            RSCI  => (RSMUX_SEL == "LOCAL")  ? 1'bx : RS,   
+            RSCO  => RSOUT,
+            CECI  => (CEMUX_SEL == "LOCAL")  ? 1'bx : CE,   
+            CECO  => CEOUT
+        );
+}; // end of implementation impl_devBLQ_S of gopL5Q
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devCLQ_S to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devCLQ_S of gopL5Q
+{
+    string MODE            = "LUT5";   // "LUT5" "MUX4" "ARITH"    
+    device devCLQ_S gatedev
+        parameter map 
+        ( 
+            CP_GRS_EN      => GRS_EN,
+            CP_LRS_EN      => RS_USED == "USED" ? "TRUE" : "FALSE",
+            CP_LCE_EN      => CE_USED == "USED" ? "TRUE" : "FALSE",
+            CP_INITC       => INIT,        
+            CP_MODEC       => MODE,                                             // "LUT5" "ROM" "MUX4" "ARITH"      
+            CP_CEMUX_SEL   => CEMUX_SEL,
+            CP_RSMUX_SEL   => RSMUX_SEL,
+            CP_CLK_POL     => CLK_POS,                                          // "CLK" "CLK_B"
+            CP_LCE_POL     => (CE_USED == "USED") ? CE_POS : "FALSE",            // "CE"  "CE_B"
+            CP_LRS_POL     => (RS_USED == "USED") ? RS_POS : "TRUE",              // "RS"  "RS_B"      
+            CP_RS_MODE     => SYNC_MODE,                                        // "SYNC" "ASYNC"
+            CP_FF2_RS      => FF_SET                                            // "RESET" "SET" 
+        )
+        port map 
+        (                            
+            C0    => L0, 
+            C1    => L1, 
+            C2    => L2, 
+            C3    => L3, 
+            C4    => L4,
+            Y2    => Z, 
+            Q2    => Q,
+            RS    => (RSMUX_SEL == "LOCAL")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE    => (CEMUX_SEL == "LOCAL")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx, 
+            CLK   => CLK,
+            RSCI  => (RSMUX_SEL == "LOCAL")  ? 1'bx : RS,   
+            RSCO  => RSOUT,
+            CECI  => (CEMUX_SEL == "LOCAL")  ? 1'bx : CE,   
+            CECO  => CEOUT
+        );
+}; // end of implementation impl_devCLQ_S of gopL5Q
+
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devDLQ_S to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devDLQ_S of gopL5Q
+{
+    string MODE            = "LUT5";   // "LUT5" "MUX4" "ARITH"    
+    device devDLQ_S gatedev
+        parameter map 
+        ( 
+            CP_GRS_EN      => GRS_EN,
+            CP_LRS_EN      => RS_USED == "USED" ? "TRUE" : "FALSE",
+            CP_LCE_EN      => CE_USED == "USED" ? "TRUE" : "FALSE",
+            CP_INITD       => INIT,        
+            CP_MODED       => MODE,                                             // "LUT5" "ROM" "MUX4" "ARITH"      
+            CP_CEMUX_SEL   => CEMUX_SEL,
+            CP_RSMUX_SEL   => RSMUX_SEL,
+            CP_CLK_POL     => CLK_POS,                                          // "CLK" "CLK_B"
+            CP_LCE_POL     => (CE_USED == "USED") ? CE_POS : "FALSE",             // "CE"  "CE_B"
+            CP_LRS_POL     => (RS_USED == "USED") ? RS_POS : "TRUE",               // "RS"  "RS_B"      
+            CP_RS_MODE     => SYNC_MODE,                                   // "SYNC" "ASYNC"
+            CP_FF3_RS      => FF_SET                                            // "RESET" "SET" 
+        )
+        port map 
+        (                            
+            D0    => L0, 
+            D1    => L1, 
+            D2    => L2, 
+            D3    => L3, 
+            D4    => L4,
+            Y3    => Z, 
+            Q3    => Q,
+            RS    => (RSMUX_SEL == "LOCAL")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE    => (CEMUX_SEL == "LOCAL")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx, 
+            CLK   => CLK,
+            RSCI  => (RSMUX_SEL == "LOCAL")  ? 1'bx : RS,   
+            RSCO  => RSOUT,
+            CECI  => (CEMUX_SEL == "LOCAL")  ? 1'bx : CE,   
+            CECO  => CEOUT
+        );
+}; // end of implementation impl_devDLQ_S of gopL5Q
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devALQ to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devALQ of gopL5Q
+{
+    string MODE            = "LUT5";   // "LUT5" "MUX4" "ARITH"    
+    device devALQ gatedev
+        parameter map 
+        ( 
+            CP_GRS_EN      => GRS_EN,
+            CP_LRS_EN      => RS_USED == "USED" ? "TRUE" : "FALSE",
+            CP_LCE_EN      => CE_USED == "USED" ? "TRUE" : "FALSE",
+            CP_INITA       => INIT,        
+            CP_MODEA       => MODE,                                             // "LUT5" "ROM" "MUX4" "ARITH"      
+            CP_CEMUX_SEL   => CEMUX_SEL,
+            CP_RSMUX_SEL   => RSMUX_SEL,
+            CP_CLK_POL     => CLK_POS,                                          // "CLK" "CLK_B"
+            CP_LCE_POL     => (CE_USED == "USED") ? CE_POS : "FALSE",             // "CE"  "CE_B"
+            CP_LRS_POL     => (RS_USED == "USED") ? RS_POS : "TRUE",               // "RS"  "RS_B"      
+            CP_RS_MODE     => SYNC_MODE,                                        // "SYNC" "ASYNC"
+            CP_FF0_RS      => FF_SET                                            // "RESET" "SET" 
+        )
+        port map 
+        (                            
+            A0    => L0, 
+            A1    => L1, 
+            A2    => L2, 
+            A3    => L3, 
+            A4    => L4,
+            Y0    => Z, 
+            Q0    => Q,
+            RS    => (RSMUX_SEL == "LOCAL")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE    => (CEMUX_SEL == "LOCAL")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx, 
+            CLK   => CLK,
+            RSCI  => (RSMUX_SEL == "LOCAL")  ? 1'bx : RS,   
+            RSCO  => RSOUT,
+            CECI  => (CEMUX_SEL == "LOCAL")  ? 1'bx : CE,   
+            CECO  => CEOUT
+        );
+}; // end of implementation impl_devALQ of gopL5Q
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devBLQ to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devBLQ of gopL5Q
+{
+    string MODE            = "LUT5";   // "LUT5" "MUX4" "ARITH"    
+    device devBLQ gatedev
+        parameter map 
+        ( 
+            CP_GRS_EN      => GRS_EN,
+            CP_LRS_EN      => RS_USED == "USED" ? "TRUE" : "FALSE",
+            CP_LCE_EN      => CE_USED == "USED" ? "TRUE" : "FALSE",
+            CP_INITB       => INIT,        
+            CP_MODEB       => MODE,                                             // "LUT5" "ROM" "MUX4" "ARITH"      
+            CP_CEMUX_SEL   => CEMUX_SEL,
+            CP_RSMUX_SEL   => RSMUX_SEL,
+            CP_CLK_POL     => CLK_POS,                                          // "CLK" "CLK_B"
+            CP_LCE_POL     => (CE_USED == "USED") ? CE_POS : "FALSE",             // "CE"  "CE_B"
+            CP_LRS_POL     => (RS_USED == "USED") ? RS_POS : "TRUE",               // "RS"  "RS_B"      
+            CP_RS_MODE     => SYNC_MODE,                                        // "SYNC" "ASYNC"
+            CP_FF1_RS      => FF_SET                                            // "RESET" "SET" 
+        )
+        port map 
+        (                            
+            B0    => L0, 
+            B1    => L1, 
+            B2    => L2, 
+            B3    => L3, 
+            B4    => L4,
+            Y1    => Z, 
+            Q1    => Q,
+            RS    => (RSMUX_SEL == "LOCAL")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE    => (CEMUX_SEL == "LOCAL")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx, 
+            CLK   => CLK,
+            RSCI  => (RSMUX_SEL == "LOCAL")  ? 1'bx : RS,   
+            RSCO  => RSOUT,
+            CECI  => (CEMUX_SEL == "LOCAL")  ? 1'bx : CE,   
+            CECO  => CEOUT
+        );
+}; // end of implementation impl_devBLQ of gopL5Q
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devCLQ to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devCLQ of gopL5Q
+{
+    string MODE            = "LUT5";   // "LUT5" "MUX4" "ARITH"    
+    device devCLQ gatedev
+        parameter map 
+        ( 
+            CP_GRS_EN      => GRS_EN,
+            CP_LRS_EN      => RS_USED == "USED" ? "TRUE" : "FALSE",
+            CP_LCE_EN      => CE_USED == "USED" ? "TRUE" : "FALSE",
+            CP_INITC       => INIT,        
+            CP_MODEC       => MODE,                                             // "LUT5" "ROM" "MUX4" "ARITH"      
+            CP_CEMUX_SEL   => CEMUX_SEL,
+            CP_RSMUX_SEL   => RSMUX_SEL,
+            CP_CLK_POL     => CLK_POS,                                          // "CLK" "CLK_B"
+            CP_LCE_POL     => (CE_USED == "USED") ? CE_POS : "FALSE",           // "CE"  "CE_B"
+            CP_LRS_POL     => (RS_USED == "USED") ? RS_POS : "TRUE",             // "RS"  "RS_B"      
+            CP_RS_MODE     => SYNC_MODE,                                        // "SYNC" "ASYNC"
+            CP_FF2_RS      => FF_SET                                            // "RESET" "SET" 
+        )
+        port map 
+        (                            
+            C0    => L0, 
+            C1    => L1, 
+            C2    => L2, 
+            C3    => L3, 
+            C4    => L4,
+            Y2    => Z, 
+            Q2    => Q,
+            RS    => (RSMUX_SEL == "LOCAL")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE    => (CEMUX_SEL == "LOCAL")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx, 
+            CLK   => CLK,
+            RSCI  => (RSMUX_SEL == "LOCAL")  ? 1'bx : RS,   
+            RSCO  => RSOUT,
+            CECI  => (CEMUX_SEL == "LOCAL")  ? 1'bx : CE,   
+            CECO  => CEOUT
+        );
+}; // end of implementation impl_devCLQ of gopL5Q
+
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devDLQ to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devDLQ of gopL5Q
+{
+    string MODE            = "LUT5";   // "LUT5" "MUX4" "ARITH"    
+    device devDLQ gatedev
+        parameter map 
+        ( 
+            CP_GRS_EN      => GRS_EN,
+            CP_LRS_EN      => RS_USED == "USED" ? "TRUE" : "FALSE",
+            CP_LCE_EN      => CE_USED == "USED" ? "TRUE" : "FALSE",
+            CP_INITD       => INIT,        
+            CP_MODED       => MODE,                                             // "LUT5" "ROM" "MUX4" "ARITH"      
+            CP_CEMUX_SEL   => CEMUX_SEL,
+            CP_RSMUX_SEL   => RSMUX_SEL,
+            CP_CLK_POL     => CLK_POS,                                          // "CLK" "CLK_B"
+            CP_LCE_POL     => (CE_USED == "USED") ? CE_POS : "FALSE",            // "CE"  "CE_B"
+            CP_LRS_POL     => (RS_USED == "USED") ? RS_POS : "TRUE",              // "RS"  "RS_B"      
+            CP_RS_MODE     => SYNC_MODE,                                        // "SYNC" "ASYNC"
+            CP_FF3_RS      => FF_SET                                            // "RESET" "SET" 
+        )
+        port map 
+        (                            
+            D0    => L0, 
+            D1    => L1, 
+            D2    => L2, 
+            D3    => L3, 
+            D4    => L4,
+            Y3    => Z, 
+            Q3    => Q,
+            RS    => (RSMUX_SEL == "LOCAL")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE    => (CEMUX_SEL == "LOCAL")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx, 
+            CLK   => CLK,
+            RSCI  => (RSMUX_SEL == "LOCAL")  ? 1'bx : RS,   
+            RSCO  => RSOUT,
+            CECI  => (CEMUX_SEL == "LOCAL")  ? 1'bx : CE,   
+            CECO  => CEOUT
+        );
+}; // end of implementation impl_devDLQ of gopL5Q

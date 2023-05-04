@@ -1,0 +1,212 @@
+*******************************************************************
+
+  Operator    [gopMUX16TO1Q]
+  
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+ ********************************************************************************/
+gate
+operator gopMUX16TO1Q
+{
+    parameter
+    (
+        string GRS_EN      = "FALSE",           // "TRUE" "FALSE"
+        string LRS_EN      = "TRUE",            // "TRUE"   "FALSE"    
+        bit    INITA[31:0] = 32'hAAF0_CCAA,
+        bit    INITB[31:0] = 32'hAAF0_CCAA,
+        bit    INITC[31:0] = 32'hAAF0_CCAA,
+        bit    INITD[31:0] = 32'hAAF0_CCAA,
+        string CEMUX_SEL  = "CE",                // "CE" "CEIN"
+        string RSMUX_SEL  = "RS",                // "RS" "RSIN"
+        bit    CLK_POS    = 1'b0,                // 1'b0: "CLK"; 1'b1: "CLK_B"
+        bit    CE_POS     = 1'b0,                // 1'b0: "CE";  1'b1: "CE_B"
+        bit    RS_POS     = 1'b0,                // 1'b0: "RS";  1'b1: "RS_B"
+        string CE_USED    = "USED",              // "USED"  "UNUSED"
+        string RS_USED    = "USED",              // "USED"  "UNUSED"
+        string SYNC_MODE  = "SYNC",              // "SYNC" "ASYNC"
+        string FF_SET    = "RESET",              // "RESET" "SET"
+        string MODEA     = "WMUX",               // "LUT5" "WMUX" "ARITH"
+        string MODEB     = "WMUX",               // "LUT5" "WMUX" "ARITH"
+        string MODEC     = "WMUX",               // "LUT5" "WMUX" "ARITH"
+        string MODED     = "WMUX"                // "LUT5" "WMUX" "ARITH"
+    );
+
+    port
+    (
+        input  I0, I1, I2, I3, I4, I5, I6, I7, 
+        input  I8, I9, I10, I11, I12, I13, I14, I15, 
+        input  S00, S01, S02, S03,S10,S11,S12,S13,S20,S21,S3,
+        input  CLK /* pragma PAP_ARC_GOP_CTRL_PIN = "GCLK|RCLK"*/,
+        input  CE /* pragma PAP_ARC_GOP_CTRL_PIN = CE*/,
+        input  RS /* pragma PAP_ARC_GOP_CTRL_PIN = RST*/,
+        output CEOUT, RSOUT,
+        output L6OUTA,L6OUTB,
+        output F, Fother, Q
+    );
+};
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Implement this using gate device devL7Q_S]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devL7Q_S of gopMUX16TO1Q
+{  
+    device devL7Q_S gatedev
+        parameter map 
+        ( 
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,
+            INITA     => INITA,
+            INITB     => INITB,
+            INITC     => INITC,
+            INITD     => INITD,
+            FGA_MODE  => MODEA,
+            FGB_MODE  => MODEB,
+            FGC_MODE  => MODEC,
+            FGD_MODE  => MODED, 
+            CEMUX_SEL => CEMUX_SEL,                           // "CE" "CEIN"
+            RSMUX_SEL => RSMUX_SEL,                           // "RS" "RSIN"
+            CLK_POS   => CLK_POS,                             // "CLK" "CLK_B"
+            CE_POS    => (CE_USED == "USED") ? CE_POS : 1'b0, 
+            RS_POS    => (RS_USED == "USED") ? RS_POS : 1'b1,  
+            SYNC_MODE => SYNC_MODE,                           // "SYNC" "ASYNC"
+            FF1_SET   => FF_SET                               // "RESET" "SET"            
+        )
+        port map 
+        (                            
+            AD   => I0,                          
+            A4   => S01,
+            A3   => S00,
+            A2   => I2,
+            A1   => I1,
+            A0   => I3,      
+            BD   => I4,                          
+            B4   => S03,                          
+            B3   => S02,                          
+            B2   => I6,                          
+            B1   => I5,                                          
+            B0   => I7,                                      
+            M0   => S20,  
+            
+            CD   => I8,                          
+            C4   => S11,
+            C3   => S10,
+            C2   => I10,
+            C1   => I9,
+            C0   => I11,      
+            DD   => I12,                          
+            D4   => S13,                          
+            D3   => S12,                          
+            D2   => I14,                          
+            D1   => I13,                                          
+            D0   => I15,     
+            M1   => S21,
+
+            M2    => S3,  
+             
+            RS    => (RSMUX_SEL == "RS")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE    => (CEMUX_SEL == "CE")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx,
+            CLK   => CLK, 
+            
+            L7OUT => Fother,  
+            RSIN  => (RSMUX_SEL == "RS")  ? 1'bx : RS,         
+            RSOUT => RSOUT,       
+            CEIN  => (CEMUX_SEL == "CE")  ? 1'bx : CE,        
+            CEOUT => CEOUT,
+            Y6AB  => L6OUTA,
+            Y6CD  => L6OUTB,
+            Y1    => F,
+            Q1    => Q
+            
+        );
+}; // end of implementation impl_devL7Q_S of gopMUX16TO1Q
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Implement this using gate device devL7Q]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devL7Q of gopMUX16TO1Q
+{   
+    device devL7Q gatedev
+        parameter map 
+        ( 
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,
+            INITA     => INITA,
+            INITB     => INITB,
+            INITC     => INITC,
+            INITD     => INITD,
+            FGA_MODE  => MODEA,
+            FGB_MODE  => MODEB,
+            FGC_MODE  => MODEC,
+            FGD_MODE  => MODED, 
+            CEMUX_SEL => CEMUX_SEL,                           // "CE" "CEIN"
+            RSMUX_SEL => RSMUX_SEL,                           // "RS" "RSIN"
+            CLK_POS   => CLK_POS,                             // "CLK" "CLK_B"
+            CE_POS    => (CE_USED == "USED") ? CE_POS : 1'b0, 
+            RS_POS    => (RS_USED == "USED") ? RS_POS : 1'b1,  
+            SYNC_MODE => SYNC_MODE,                           // "SYNC" "ASYNC"
+            FF1_SET   => FF_SET                               // "RESET" "SET"            
+        )
+        port map 
+        (                            
+            AD   => I0,                          
+            A4   => S01,
+            A3   => S00,
+            A2   => I2,
+            A1   => I1,
+            A0   => I3,      
+            BD   => I4,                          
+            B4   => S03,                          
+            B3   => S02,                          
+            B2   => I6,                          
+            B1   => I5,                                          
+            B0   => I7,                                      
+            M0   => S20,  
+            
+            CD   => I8,                          
+            C4   => S11,
+            C3   => S10,
+            C2   => I10,
+            C1   => I9,
+            C0   => I11,      
+            DD   => I12,                          
+            D4   => S13,                          
+            D3   => S12,                          
+            D2   => I14,                          
+            D1   => I13,                                          
+            D0   => I15,     
+            M1   => S21,
+            M2    => S3,
+                           
+            RS    => (RSMUX_SEL == "RS")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE    => (CEMUX_SEL == "CE")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx,
+            CLK   => CLK, 
+            
+            L7OUT => Fother,  
+            RSIN  => (RSMUX_SEL == "RS")  ? 1'bx : RS,         
+            RSOUT => RSOUT,       
+            CEIN  => (CEMUX_SEL == "CE")  ? 1'bx : CE,        
+            CEOUT => CEOUT,
+            Y6AB  => L6OUTA,
+            Y6CD  => L6OUTB,
+            Y1    => F,
+            Q1    => Q
+            
+        );
+}; // end of implementation impl_devL7Q of gopMUX16TO1Q
+

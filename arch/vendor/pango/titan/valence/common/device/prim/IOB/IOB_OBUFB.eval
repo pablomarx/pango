@@ -1,0 +1,83 @@
+*****************************************************************
+
+  Device    [IOB_OBUFB]
+
+  Author    [hzhang]
+
+  Abstract  [OUTBUT WITH NO COMP PAD OF IOB]
+
+  Revision History:
+
+********************************************************************************/
+prim
+device IOB_OBUFB
+{
+    parameter
+    (
+        config string IOB_MODE           = "UNUSED",  // "IBUF", "OBUF", "IOBUF", "OBUFT", "IBUFDS", "OBUFDS", "IOBUFDS"
+        config string SLEW_MODE          = "F",       // "F" "S"
+        config string DRV_CURR_VAL       = "4",
+        config string IOSTANDARD         = "DEFAULT"  
+    );
+    port
+    (
+        input  TS,
+        input  IN,
+        output OUT
+    );
+
+}; // end of device IOB_OBUFB
+
+
+propagation prop of IOB_OBUFB
+{
+    if (!strcmp(IOB_MODE, "OBUF"))
+    {
+        propagate ( IN |-> OUT );
+    }
+    else if (!strcmp(IOB_MODE, "IOBUF") || !strcmp(IOB_MODE, "OBUFT") || !strcmp(IOB_MODE, "IOBUFDS"))
+    {
+        propagate ( TS |-> OUT );
+        propagate ( IN |-> OUT );
+    }
+};
+
+
+timing tnl of IOB_OBUFB                        
+{   
+    if (!strcmp(IOB_MODE, "OBUF"))
+    {
+        operator V_OBUF obuf
+        parameter map
+        (
+            IOSTANDARD => IOSTANDARD,
+            SLEW_RATE  => (SLEW_MODE == "S") ? "SLOW" : "FAST",
+            DRIVE_STRENGTH => DRV_CURR_VAL
+        )
+        port map                              
+        (                                     
+            I => IN,                          
+            O => OUT                          
+        );                            
+    }
+    else if (!strcmp(IOB_MODE, "IOBUF") || !strcmp(IOB_MODE, "OBUFT") || !strcmp(IOB_MODE, "IOBUFDS"))
+    {
+        operator V_OBUFT obuft
+        parameter map
+        (
+            IOSTANDARD => IOSTANDARD,
+            SLEW_RATE  => (SLEW_MODE == "S") ? "SLOW" : "FAST",
+            DRIVE_STRENGTH => DRV_CURR_VAL
+        )
+        port map
+        (
+            I => IN,
+            T => TS,
+            O => OUT
+        );
+    } 
+    else
+    {
+        error("Config error IOB_MODE = %s ",IOB_MODE);
+    }                                                                         
+}                                   

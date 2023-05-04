@@ -1,0 +1,153 @@
+*****************************************************************
+
+  Device    [IREG]
+
+  Author    [jiang tao]
+
+  Abstract  [The Prim Device Of IOL]
+
+  Revision History:
+
+********************************************************************************/
+prim
+device IREG
+{
+    parameter
+    (
+        config string CP_GRS_DIS = "FALSE",
+        config string CP_IREG_SET  = "SET",    //1'b1 => set; 1'b0 => reset
+        config string CP_REG_SYNC  = "ASYNC",  //1'b1 => sync; 1'b0 => async
+        config string CP_DDR_EN    = "DISABLE",  //1'b1 => ddr; 1'b0 => sdr
+        config string CP_ILATCH_EN = "DISABLE"      //1'b1 => latch; 1'b0 => ff
+    );
+    port 
+    ( 
+        // Input Ports of IREG
+        input D,
+        input CLK,
+        input CE,
+        input SR,
+        
+        // Output Ports for IREG
+        output Q0,
+        output Q1
+    );
+
+};
+
+/**Device***********************************************************************
+
+  Device    [IREG]
+
+  Abstract  [This specified how to propagate the input signal to the outputs based on
+             configuration]
+
+  Revision History:
+
+********************************************************************************/
+propagation pop of IREG
+{
+    if (CP_DDR_EN == "ENABLE")
+    {
+        propagate ( CLK |-> Q0 );
+        propagate ( CLK |-> Q1 );
+        propagate ( D   |-> Q0 );
+        propagate ( D   |-> Q1 );
+        propagate ( CE  |-> Q0 );
+        propagate ( CE  |-> Q1 );
+        propagate ( SR  |-> Q0 );
+        propagate ( SR  |-> Q1 );
+    }
+    else
+    {
+        propagate ( CLK |-> Q1 );
+        propagate ( D   |-> Q1 );
+        propagate ( CE  |-> Q1 );
+        propagate ( SR  |-> Q1 );
+    }
+}; // end of propagation for IREG
+
+
+//timing ireg_tnl of IREG
+//{
+//    if (CP_DDR_EN == "ENABLE")
+//    {
+//        operator V_IDDR V_IDDR
+//            parameter map 
+//            (
+//                GRS_EN  => (CP_GRS_DIS == "FALSE") ? "TRUE"  :
+//                           (CP_GRS_DIS == "TRUE" ) ? "FALSE" : "",
+//                SYNC_RS => (CP_IREG_SET == "SET"   && CP_REG_SYNC == "ASYNC") ? "ASYNC_SET"   :
+//                           (CP_IREG_SET == "SET"   && CP_REG_SYNC == "SYNC" ) ? "SYNC_SET"    :
+//                           (CP_IREG_SET == "RESET" && CP_REG_SYNC == "ASYNC") ? "ASYNC_RESET" :
+//                           (CP_IREG_SET == "RESET" && CP_REG_SYNC == "SYNC" ) ? "SYNC_RESET"  : ""
+//            )
+//            port map
+//            (
+//                D   => D       ,
+//                CE  => CE      ,
+//                RS  => SR      ,
+//                CLK => CLK     ,
+//                Q0  => Q0      ,
+//                Q1  => Q1     
+//            );
+//    }
+//    else if (CP_ILATCH_EN == "ENABLE")
+//    {
+//        operator V_LAASYN V_LAASYN
+//            parameter map 
+//            (
+//                GRS_EN  => (CP_GRS_DIS == "FALSE") ? "TRUE"  :
+//                           (CP_GRS_DIS == "TRUE" ) ? "FALSE" : "",
+//                SET_RESET => CP_IREG_SET,
+//                LRS_EN    => "TRUE"
+//            )
+//            port map 
+//            (
+//                Q  => Q1,
+//                D  => D, 
+//                SR => SR,
+//                CK => CLK,
+//                CE => CE
+//            );
+//    }
+//    else if (CP_REG_SYNC == "ASYNC")
+//    {
+//        operator V_FFASYN  V_FFASYN
+//            parameter map 
+//            (
+//                GRS_EN  => (CP_GRS_DIS == "FALSE") ? "TRUE"  :
+//                           (CP_GRS_DIS == "TRUE" ) ? "FALSE" : "",
+//                SET_RESET => CP_IREG_SET,
+//                LRS_EN    => "TRUE"
+//            )
+//            port map 
+//            (
+//                Q  => Q1,
+//                D  => D, 
+//                SR => SR,
+//                CK => CLK,
+//                CE => CE
+//            );
+//    }
+//    else
+//    {
+//        operator V_FFSYN  V_FFSYN
+//            parameter map 
+//            (
+//                GRS_EN  => (CP_GRS_DIS == "FALSE") ? "TRUE"  :
+//                           (CP_GRS_DIS == "TRUE" ) ? "FALSE" : "",
+//                SET_RESET => CP_IREG_SET,
+//                LRS_EN    => "TRUE"
+//            )
+//            port map 
+//            (
+//                Q  => Q1,
+//                D  => D, 
+//                SR => SR,
+//                CK => CLK,
+//                CE => CE
+//            );
+//    }
+//};
+

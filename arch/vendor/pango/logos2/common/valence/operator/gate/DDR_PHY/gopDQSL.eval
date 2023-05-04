@@ -1,0 +1,126 @@
+*******************************************************************
+
+  Operator    [gopDQSL]
+
+  Author      [liujiao]
+
+  Revision History:
+
+ ********************************************************************************/
+gate
+operator gopDQSL
+{
+    parameter
+    (
+        bit RST_CTRL = 1'b0,
+        string CLKA_GATE_EN = "FALSE" ,
+        string WCLK_DELAY_SEL = "FALSE" ,
+        string DDC_MODE = "QUAD_RATE" ,
+        string R_EXTEND = "FALSE" ,
+        bit DELAY_SEL = 1'b0 ,
+        string IFIFO_GENERIC = "FALSE" ,
+        bit RADDR_INIT[2:0] = 3'b000,
+        bit DATA_RATE[1:0] = 2'b00,
+        bit EN_CTRL[4:0] = 5'b01110,
+        string FIFOMODE_SEL = "TRUE"
+    );
+
+    port
+    (
+        output WCLK,
+        output WCLK_DELAY,
+        output DQSI_DELAY,
+        output DQSIB_DELAY,
+        output DGTS,
+        output IFIFO_WADDR[2:0],
+        output IFIFO_RADDR[2:0],
+        output READ_VALID,
+        output DQS_DRIFT[1:0],
+        output DRIFT_DETECT_ERR,
+        output DQS_DRIFT_STATUS,
+        output DQS_SAMPLE,
+        input RST,
+        input RST_TRAINING_N,
+        input CLKA,
+        input CLKB,
+        input DQSI,
+        input DQSIB,
+        input DELAY_STEP0[7:0],
+        input DELAY_STEP1[7:0],
+        input DELAY_STEP2[7:0],
+        input DELAY_STEP3[7:0],
+        input DELAY_STEP4[7:0],
+        input DQS_GATE_CTRL[3:0],
+        input GATE_SEL,
+        input CLK_GATE_CTRL[1:0],
+        input CLKA_GATE
+    );
+};
+
+/**Implementation Body*******************************************************************
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl of gopDQSL
+{
+    device devDDRPHY dqsl_inst    
+        parameter map 
+        (    
+            CP_DQS_MODE      => DDC_MODE,
+            CP_IFIFO_GENERIC => IFIFO_GENERIC,
+            CP_GATE_EN       => CLKA_GATE_EN,
+            CP_WL_EXTEND     => R_EXTEND,
+            CP_RST_CTRL      => {RST_CTRL, 1'b1},
+            CP_RD_ADDR_INIT  => RADDR_INIT,
+            CP_WCLKDEL_SEL   => WCLK_DELAY_SEL,
+            CP_DLY_2X        => DELAY_SEL,
+            CP_LDO_CTRL      => DATA_RATE,
+            CP_EN_CTRL       => EN_CTRL,
+            CP_FIFOMODE_SEL  => FIFOMODE_SEL
+        )
+        port map
+        (            
+            CLK_W              => WCLK,
+            CLK_W_DEL          => WCLK_DELAY,
+            CLK_DQSI_DEL       => DQSI_DELAY,               
+            CLK_DQSIB_DEL      => DQSIB_DELAY,
+            DGTS               => DGTS,
+            IFIFO_WADDR        => IFIFO_WADDR,
+            IFIFO_RADDR        => IFIFO_RADDR,
+            READ_VALID         => READ_VALID,
+            DQS_DRIFT          => DQS_DRIFT,
+            DRIFT_DETECT_ERR   => DRIFT_DETECT_ERR,
+            DQS_DRIFT_STATUS   => DQS_DRIFT_STATUS,
+            DQS_SAMPLE         => DQS_SAMPLE,
+            RST_DQS            => RST,
+            RST_TRAINING_N     => RST_TRAINING_N,
+            PHY_CLK_B_N        => CLKA, 
+            SYSCLK             => CLKB,
+            CLK_DQSI            => DQSI,
+            CLK_DQSIB           => DQSIB,
+            WL_STEP            => DELAY_STEP0,
+            DQS_EVEN_CODE      => DELAY_STEP1,
+            DQS_ODD_CODE       => DELAY_STEP2,
+            DLL_45_STEP0       => DELAY_STEP3[0],
+            DLL_45_STEP1       => DELAY_STEP3[1],
+            DLL_45_STEP2       => DELAY_STEP3[2],
+            DLL_45_STEP3       => DELAY_STEP3[3],
+            DLL_45_STEP4       => DELAY_STEP3[4],
+            DLL_45_STEP5       => DELAY_STEP3[5],
+            DLL_45_STEP6       => DELAY_STEP3[6],
+            DLL_45_STEP7       => DELAY_STEP3[7],
+            WL_P_DLLCODE       => DELAY_STEP4,
+            DQS_GATE_CTRL      => DQS_GATE_CTRL,
+            READ_CLK_CTRL[2]   => GATE_SEL,
+            READ_CLK_CTRL[1:0] => CLK_GATE_CTRL,
+            GATEI              => CLKA_GATE    
+        );
+
+}; // end of implementation impl of gopDQSL
+
+

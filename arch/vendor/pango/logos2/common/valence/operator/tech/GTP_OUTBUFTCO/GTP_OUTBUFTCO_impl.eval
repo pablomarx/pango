@@ -1,0 +1,78 @@
+*****************************************************************
+
+  Operator   [GTP_OUTBUFTCO]
+
+  Author      []
+
+  Abstract    []
+
+  Copyright 2014 (c). SHENZHEN PANGO MICROSYSTEMS CO.,LTD.
+  All Right Reserved.
+
+  Revision History:
+     06/18/14 - Initial version.
+
+********************************************************************************/
+fabric
+implementation impl of GTP_OUTBUFTCO @ (2,0 # 2,1)
+{
+    wire ntDQ_CAS_OUT, ntTQ_CAS_OUT, ntO0, ntO1, ntT0, ntT1;
+    wire  ntDIFF_O;
+
+    operator gopOBUFDSA
+        parameter map
+        (
+            IOSTANDARD => IOSTANDARD == "DEFAULT" ? "BLVDS" : IOSTANDARD,
+            IOB_MODE     => "OBUFHR_T"
+        )        
+        port map
+        (
+            I        => ntO0,
+            T        => ntT0,            
+            O        => O,
+            DIFFO_OUT => ntDIFF_O
+        )@[1,0];
+    
+    operator gopOBUFDSB
+        parameter map
+        (
+            IOSTANDARD => IOSTANDARD == "DEFAULT" ? "BLVDS" : IOSTANDARD,
+            IOB_MODE     => "OBUFHR_T"
+        )       
+        port map
+        (
+            I        => ntO1,
+            T        => ntT1,
+            O_B      => OB,
+            DIFFO_IN => ntDIFF_O
+        )@[1,1];
+
+    operator gopIOLOTCMP
+        port map
+        (
+            IN     =>  ntDQ_CAS_OUT,
+            TS     =>  ntTQ_CAS_OUT,
+ 
+            T      =>  ntT1,
+            O      =>  ntO1
+        )@[0,1];
+
+    operator gopIOL
+        parameter map
+        (
+            BUF_MODE   => "OBUFT",
+            CP_TRI_EN  => "TRUE"
+        )
+        port map
+        (
+            TX_DATA[0]     =>  I,
+            TS_CTRL[0]     =>  T,
+
+            DO_N      =>  ntT0,
+            DO_P      =>  ntO0,
+            
+            DO_CAS_OUT => ntDQ_CAS_OUT,
+            TO_CAS_OUT => ntTQ_CAS_OUT
+        )@[0,0];
+};
+

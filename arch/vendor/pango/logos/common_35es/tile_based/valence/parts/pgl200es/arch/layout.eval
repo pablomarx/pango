@@ -1,0 +1,594 @@
+*****************************************************************
+********************************************************************************/
+library work;
+use pgl_defs, pgl200es_defs;
+use pgl200es_funcs_place;
+
+structure arch_nl layout_srb_tile of PGL200ES
+{
+    // Tile index variable
+    unsigned int tx, ty;
+    
+    foreach tx ( L_SRB_TILES_X )
+//    foreach tx ( {L_DRM_TILES_X,IOL0_TILE_X,IOL2_TILE_X,PLL_TILE_X,11} )
+    {
+        foreach ty ( L_SRB_TILES_Y )
+        {
+            if(!(tx>CCS_TILE_X && tx<=(CCS_TILE_X+NUM_GRID_CCS_X/NUM_GRID_X) && ty>=CCS_TILE_Y))
+            {
+                if(!(tx<=NUM_TILE_HSST_X&&ty>=HSST_TILE_Y&&ty<(HSST_TILE_Y+NUM_TILE_HSST_Y)))
+                {
+                    if(!(tx>IOL1_TILE_X&&ty<=(NUM_TILES_REGION*4-1)))
+                    {
+                        place_srb_tile ( tx, ty );
+                    }
+                }
+            }
+        } 
+    }
+
+};//end of structure arch_nl layout_srb_tile of PGL200ES
+
+/*******************************************************************************
+********************************************************************************/
+library work;
+use pgl_defs, pgl200es_defs;
+use pgl200es_funcs_place;
+
+structure arch_nl layout_clm_tile of PGL200ES
+{
+    // Tile index variable
+    unsigned int tx, ty;
+
+          
+    foreach tx ( L_CLMA_TILES_X )
+    {
+        foreach ty ( L_CLM_TILES_Y )
+        {
+          if(!((ty>NUM_TILES_REGION*7 + MID_TILE_REGION)&&(tx>CCS_TILE_X&&tx<CCS_TILE_X+NUM_TILE_CCS_X)))
+          {
+             if(!(ty>=HSST_TILE_Y&&ty<HSST_TILE_Y+NUM_TILE_HSST_Y&&tx<=HSST_TILE_X+NUM_TILE_HSST_X + 1))
+             {
+                 if(!(ty<=NUM_TILES_REGION*4&&tx>=IOL1_TILE_X))
+                 {
+                     if(!(tx==PLL_TILE_X))
+                     {
+                         place_clm_tile ( tx, ty, 1 );                            
+                     }
+                 }
+             }
+          }    
+        }
+    }
+
+    int rx ,ty_tmp ;
+
+    foreach rx ( {[7:0]} )
+    {
+        foreach ty_tmp ( {[30:20,10:0]} )
+        {
+            ty = ty_tmp + rx * NUM_TILES_REGION ;
+
+            if(!(ty>=USCM_TILE0_Y&&ty<USCM_TILE0_Y+NUM_TILE_USCM_Y))
+            {
+                place_clm_tile ( PLL_TILE_X, ty, 1 );                            
+            }    
+        }
+    }
+
+//for clms
+
+    foreach tx ( L_CLMS_TILES_X )
+    {
+        foreach ty ( L_CLM_TILES_Y )
+        {
+          if(!((ty>NUM_TILES_REGION*7 + MID_TILE_REGION)&&(tx>CCS_TILE_X&&tx<CCS_TILE_X+NUM_TILE_CCS_X)))
+          {
+             if(!(ty>=HSST_TILE_Y&&ty<HSST_TILE_Y+NUM_TILE_HSST_Y&&tx<=HSST_TILE_X+NUM_TILE_HSST_X+1))
+             {
+                 if(!(ty<=NUM_TILES_REGION*4&&tx>=IOL1_TILE_X))
+                 {
+                     if(!(tx==PLL_TILE_X))
+                     {
+                         place_clm_tile ( tx, ty, 0 );                            
+                     }
+                 }
+             }
+          }    
+        }
+    }
+
+}; // end of structure arch_nl layout_clm_tile of PGL200ES
+/*******************************************************************************
+********************************************************************************/
+library work;
+use pgl_defs, pgl200es_defs;
+use pgl200es_funcs_place;
+
+structure arch_nl layout_hsst_tile of PGL200ES
+{
+    
+     place_hsst_tile(HSST_TILE_X,HSST_TILE_Y,11);
+    
+};  // end of structure arch_nl layout_hsst_tile of PGL200ES
+
+/*******************************************************************************
+********************************************************************************/
+library work;
+use pgl_defs, pgl200es_defs;
+use pgl200es_funcs_place;
+
+structure arch_nl layout_ccs_tile of PGL200ES
+{
+       
+    place_ccs_tile_pgl35es(CCS_TILE_X, CCS_TILE_Y);
+
+}; // end of structure arch_nl layout_ccs_tile of PGL200ES
+
+/*******************************************************************************
+********************************************************************************/
+library work;
+use pgl_defs, pgl200es_defs;
+use pgl200es_funcs_place;
+
+structure arch_nl layout_drm_tile of PGL200ES
+{
+    unsigned int tx,ty;
+    
+    foreach tx ( L_DRM_TILES_X )
+    {
+        foreach ty ( L_DRM_TILES_Y )
+        {
+          if(!(tx>=CCS_TILE_X && tx<=(CCS_TILE_X+NUM_GRID_CCS_X/NUM_GRID_X) && ty>=CCS_TILE_Y))
+          {
+            if(!(tx<=((NUM_GRID_HSST_X-2)/NUM_GRID_X)&&ty>=HSST_TILE_Y&&ty<(HSST_TILE_Y+NUM_GRID_HSST_Y/NUM_GRID_Y)))
+            {
+                if(!(tx>=IOL1_TILE_X&&ty<=(NUM_TILES_REGION*4-1)))
+                {
+                    place_drm_tile ( tx, ty );
+                }
+            }
+          }
+        }
+    } 
+    
+};  // end of structure arch_nl layout_drm_tile of PGL200ES
+
+/*******************************************************************************
+********************************************************************************/
+library work;
+use pgl_defs, pgl200es_defs;
+use pgl200es_funcs_place;
+
+structure arch_nl layout_pll_tile of PGL200ES
+{
+    unsigned int tx,ty;
+    
+    unsigned int L_PLL_TILES_X[] = {PLL_TILE_X};
+    unsigned int L_PLL_B_TILES_Y[] = {PLL_TILE_0D_Y,PLL_TILE_1D_Y,PLL_TILE_2D_Y,PLL_TILE_3D_Y,PLL_TILE_4D_Y,PLL_TILE_5D_Y,PLL_TILE_6D_Y,PLL_TILE_7D_Y};
+    unsigned int L_PLL_T_TILES_Y[] = {PLL_TILE_0T_Y,PLL_TILE_1T_Y,PLL_TILE_2T_Y,PLL_TILE_3T_Y,PLL_TILE_4T_Y,PLL_TILE_5T_Y,PLL_TILE_6T_Y,PLL_TILE_7T_Y};
+
+    
+
+    foreach tx ( L_PLL_TILES_X )
+    {
+        foreach ty ( L_PLL_B_TILES_Y )
+        {
+            place_pll_tile( tx, ty, 0);
+        }  
+        foreach ty ( L_PLL_T_TILES_Y )
+        {
+            place_pll_tile( tx, ty, 1);
+        }    
+    } 
+    
+};  // end of structure arch_nl layout_pll_tile of PGL200ES
+/*******************************************************************************
+********************************************************************************/
+library work;
+use pgl_defs, pgl200es_defs;
+use pgl200es_funcs_place;
+
+structure arch_nl layout_uscm_tile of PGL200ES
+{
+    unsigned int tx,ty;
+
+    unsigned int L_USCM_TILES_X[] = {USCM_LOC_X};
+    unsigned int L_USCM_TILES_Y[] = {USCM0_LOC_Y, USCM1_LOC_Y};
+    int tx_srb = USCM_TILE_X;
+    
+    foreach tx ( L_USCM_TILES_X )
+    {
+        foreach ty ( L_USCM_TILES_Y )
+        {
+            int ty_srb = (ty==USCM0_LOC_Y) ? USCM_TILE0_Y : USCM_TILE1_Y;
+            place_uscm_tile( tx, ty, tx_srb, ty_srb);
+        }      
+    } 
+    
+};  // end of structure arch_nl layout_uscm_tile of PGL200ES
+/*******************************************************************************
+********************************************************************************/
+library work;
+use pgl_defs, pgl200es_defs;
+use pgl200es_funcs_place ;
+
+structure arch_nl layout_iol_tiles of PGL200ES
+{
+    unsigned int tx,ty,flag,rx,flag_use;
+    
+    foreach tx ( L_IOL0_TILES_X )
+    {
+        foreach ty ( L_IOL0_TILES_Y )
+        {
+            place_iol_tile( tx, ty);
+        }  
+        foreach ty ( L_DQSL0_TILES_Y )
+        {
+            place_dqsl_tile( tx, ty);
+        }
+        foreach ty ( L_RLYBUFS50_TILES_Y )
+        {
+            place_rlybufs5_tile( tx, ty);
+        } 
+        foreach ty ( L_CRAMSL20_TILES_Y_L )
+        {
+            flag_use =  0 ;
+
+            place_cramsl2_tile( tx, ty, flag_use);
+        } 
+
+        foreach ty ( L_IOCKGATEDLL0_TILES_Y )
+        {
+            if(!(ty==MID_TILE_REGION-1 + 3*NUM_TILES_REGION))
+            {
+                place_iockgatedll_tile( tx, ty, 0, 0, 1);
+            }
+            else
+            {
+                place_iockgatedll2_tile( tx, ty, NUM_TILE_HSST_X);
+            }
+        }
+
+    } 
+    foreach tx ( L_IOL1_TILES_X )
+    {
+        foreach ty ( L_IOL1_TILES_Y )
+        {
+            place_iol_tile( tx, ty);
+        }  
+        foreach ty ( L_DQSL1_TILES_Y )
+        {
+            place_dqsl_tile( tx, ty);
+        }
+        foreach ty ( L_RLYBUFS51_TILES_Y )
+        {
+            place_rlybufs5_tile( tx, ty);
+        } 
+        foreach ty ( L_CRAMSL21_TILES_Y_L )
+        {
+            flag_use = (ty<2*NUM_TILES_REGION) ? 0 : 1 ;
+
+            place_cramsl2_tile( tx, ty, flag_use);
+        } 
+        foreach ty ( L_IOCKGATEDLL1_TILES_Y )
+        {
+            place_iockgatedll_tile( tx, ty, 0, 0, 1);
+        }
+        foreach ty ( L_WLSRA_TILES_Y )
+        {
+            place_wlsra_tile( tx, ty);
+        }
+    }
+    foreach tx ( L_IOL2_TILES_X )
+    {
+        foreach ty ( L_IOL2_TILES_Y )
+        {
+            place_iol_tile( tx, ty);
+        }  
+        foreach ty ( L_DQSL2_TILES_Y )
+        {
+            place_dqsl_tile( tx, ty);
+        }
+        foreach ty ( L_RLYBUFS52_TILES_Y )
+        {
+            place_rlybufs5_tile( tx, ty);
+        } 
+        foreach ty ( L_CRAMSL22_TILES_Y_L )
+        {
+            place_cramsl2_tile( tx, ty, 0);
+        } 
+        foreach ty ( L_IOCKGATEDLL2_TILES_Y )
+        {
+            place_iockgatedll_tile( tx, ty, 0, 0, 1);
+        }
+
+    }
+
+        place_wlsra_tile(HSST_TILE_X+NUM_TILE_HSST_X+1 ,NUM_TILES_REGION*4+MID_TILE_REGION);    
+
+    int ty_cramsl2 ;
+
+//    tx = NUM_TILE_HSST_X + 1 ;
+//
+//    foreach rx({3,4})
+//    {
+//        foreach ty_cramsl2({[0:14,16:30]})
+//        {
+//            ty =  ty_cramsl2 + rx * NUM_TILES_REGION;
+//
+//            if(!(rx==3&&ty_cramsl2<15))
+//            {
+//                if(!(rx==4&&(ty_cramsl2==14||ty_cramsl2==16)))
+//                {
+//                    place_cramsl2noibm_tile( tx, ty,0);
+//                }
+//            }
+//        }
+//    }
+
+//    tx = IOB1_TILE_X ;
+
+//    foreach rx({2,3})
+//    {
+//        foreach ty_cramsl2({[0:13,17:30]})
+//        {
+//            ty =  ty_cramsl2 + rx  * NUM_TILES_REGION;
+//
+//            place_cramsl2noibm_tile( tx, ty,1);
+//        }
+//    }
+
+
+    foreach ty({4 * NUM_TILES_REGION,4 * NUM_TILES_REGION-1,4 * NUM_TILES_REGION-2})
+    {
+        foreach tx({L_CLMS_TILES_X,L_CLMA_TILES_X})
+        {
+            if(tx>=IOB1_TILE_X)
+            {
+                if(ty==4 * NUM_TILES_REGION)
+                {
+                    place_cramsl2_tile( tx, ty, 1);
+                }
+                else
+                {
+                    place_cramsl2noibm_tile( tx, ty, 0);
+                }
+            }
+        }
+    }
+
+};  // end of structure arch_nl layout_iol_tile of PGL200ES
+/*******************************************************************************
+********************************************************************************/
+library work;
+use pgl_defs, pgl200es_defs;
+use pgl200es_funcs_place;
+
+structure arch_nl layout_iob_tile of PGL200ES
+{
+    unsigned int tx,ty;
+
+    foreach tx(L_IOB_TILES_X)
+    {
+        if(tx==IOB0_TILE_X)
+        {
+           foreach ty ( L_IOB0_TILES_Y )
+           {
+              place_iob_tile( tx, ty);
+           }
+
+          place_iob_half_tile( tx, 3*NUM_TILES_REGION);
+        }
+        else if(tx==IOB1_TILE_X)
+        {
+           foreach ty ( L_IOB1_TILES_Y )
+           {
+              place_iob_tile( tx, ty);
+           }
+        }
+        else
+        {
+           foreach ty ( L_IOB2_TILES_Y )
+           {
+              place_iob_tile( tx, ty);
+           }
+        }
+    } 
+   
+};//end of structure arch_nl layout_iob_tiles of PGL200ES
+
+/*******************************************************************************
+********************************************************************************/
+library work;
+use pgl_defs, pgl200es_defs;
+use pgl200es_funcs_place;
+
+structure arch_nl layout_blsr_tiles of PGL200ES
+{
+    unsigned int tx,ty;
+    
+    foreach tx ( L_BLSR_TILES_X )
+    {
+        foreach ty ( L_BLSR_TILES_Y )
+        {
+            if(ty<=3)
+            {
+                place_blsr_rd_tile( tx, ty);
+            }
+            else
+            {
+                place_blsr_tile( tx, ty);
+            }
+        }  
+    } 
+    
+};  // end of structure arch_nl layout_blsr_tiles of PGL200ES
+
+/*******************************************************************************
+********************************************************************************/
+library work;
+use pgl_defs, pgl200es_defs;
+use pgl200es_funcs_place;
+
+structure arch_nl layout_wlsr_tiles of PGL200ES
+{
+    unsigned int tx,ty;
+    
+    foreach ty ( L_WLSR_TILES_Y )
+    {
+        if(ty>=MID_TILE_REGION+NUM_TILES_REGION*4)
+        {
+            foreach tx ( L_WLSR_TILES_X_U )
+            {
+                if(!(((ty==NUM_TILES_REGION*4+MID_TILE_REGION)&&(tx<=HSST_TILE_X+NUM_TILE_HSST_X + 1))||((ty<NUM_TILES_REGION*4)&&(tx>IOB1_TILE_X))))
+                {
+                    place_wlsr_tile( tx, ty);
+                }
+            }
+            foreach tx ( L_WLSR1_TILES_X_U )
+            {
+                if(tx==WLSR1_TILE_X_L0||tx==WLSR1_TILE_X_L2||tx==WLSR1_TILE_X_R0||tx==WLSR1_TILE_X_R2)
+                {
+                    place_wlsr1b_tile( tx, ty);
+                }
+                else
+                {
+                    place_wlsr1_tile( tx, ty);
+                }
+            }
+        }
+        else
+        {
+            foreach tx ( L_WLSR_TILES_X_D )
+            {
+                if(!(((ty==NUM_TILES_REGION*4+MID_TILE_REGION)&&(tx<=HSST_TILE_X+NUM_TILE_HSST_X))||((ty<NUM_TILES_REGION*4)&&(tx>IOB1_TILE_X))))
+                {
+                    place_wlsr_tile( tx, ty);
+                }
+            }
+            foreach tx ( L_WLSR1S_TILES_X_D )
+            {
+                place_wlsr1_tile( tx, ty);
+            }
+            foreach tx ( L_WLSR1B_TILES_X_D )
+            {
+                place_wlsr1b_tile( tx, ty);
+            }
+        } 
+        foreach tx ( L_WLSR2_TILES_X )
+        {
+          if(!(((ty==NUM_TILES_REGION*4+MID_TILE_REGION)&&(tx<=HSST_TILE_X+NUM_TILE_HSST_X))||((ty<NUM_TILES_REGION*4)&&(tx>IOB1_TILE_X))))
+          {
+            place_wlsr2_tile( tx, ty);
+          }
+        } 
+        foreach tx ( L_WLSRD_TILES_X )
+        {
+          if(!(((ty==NUM_TILES_REGION*4+MID_TILE_REGION)&&(tx<=HSST_TILE_X+NUM_TILE_HSST_X))||((ty<NUM_TILES_REGION*4)&&(tx>=IOL1_TILE_X))))
+          {
+            place_wlsrd_tile( tx, ty);
+          }
+        }
+    }
+
+};  // end of structure arch_nl layout_wlsr_tiles of PGL200ES
+/*******************************************************************************
+********************************************************************************/
+library work;
+use pgl_defs, pgl200es_defs;
+use pgl200es_funcs_place;
+
+structure arch_nl layout_idcode_tile of PGL200ES
+{
+     
+    place_idcode_tile( IDCODE_TILE_X, IDCODE_TILE_Y);
+       
+};//end of structure arch_nl layout_idcode_tile of PGL200ES
+/*******************************************************************************
+********************************************************************************/
+library work;
+use pgl_defs, pgl200es_defs;
+use pgl200es_funcs_place;
+
+structure arch_nl layout_esd_tiles of PGL200ES
+{
+    unsigned int tx,ty;
+    foreach ty( {ESD_PGL200ES_TILE_Y} )
+    {
+        foreach tx ( {ESD_PGL200ES_TILE_X} )
+        {
+           place_esd_tile( tx, ty);
+        }
+    }
+}
+/*******************************************************************************
+********************************************************************************/
+library work;
+use pgl_defs, pgl200es_defs;
+use pgl200es_funcs_place;
+
+structure arch_nl layout_rlybufs_tiles of PGL200ES
+{
+    int tx ;
+
+    int ty = RLYBUFS_TILE_Y;
+          
+    foreach tx(L_RLYBUFS_TILES_X)
+    {
+        place_rlybufs_tile( tx, ty);
+    }
+}
+/*******************************************************************************
+********************************************************************************/
+//library work;
+//use pgl_defs, pgl200es_defs;
+//use pgl_funcs_place, pgl200es_funcs_place;
+//
+//structure arch_nl layout_soc_tiles of PGL200ES
+//{
+//    int tx = SOC_TILE_X;
+//    int ty = SOC_TILE_Y;
+//           
+//    place_soc_tile( tx, ty);
+//}
+
+///*******************************************************************************
+//********************************************************************************/
+//library work;
+//use pgl_defs, pgl200es_defs;
+//use pgl200es_funcs_place;
+//
+//structure arch_nl layout_dio_tiles of PGL200ES
+//{
+//    place_dio_tile( DIO_TILE_X,DIO_TILE_Y);
+//}
+
+/*******************************************************************************
+********************************************************************************/
+library work;
+use pgl_defs, pgl200es_defs;
+use pgl200es_funcs_place;
+
+structure arch_nl layout_buf_tiles of PGL200ES
+{
+    int tx = BUF_PGL35IP_TILE_X;
+    int ty = BUF_PGL35IP_TILE_Y;
+           
+    place_buf_tile( tx, ty);
+}
+
+/*******************************************************************************
+********************************************************************************/
+library work;
+use pgl_defs, pgl200es_defs;
+use pgl200es_funcs_place;
+
+structure arch_nl layout_cgra_tiles of PGL200ES
+{
+    int tx = CGRA_TILE_X;
+    int ty = CGRA_TILE_Y;
+           
+    place_cgra_tile( tx, ty);
+}
+

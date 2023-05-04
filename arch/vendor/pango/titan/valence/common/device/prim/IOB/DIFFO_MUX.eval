@@ -1,0 +1,45 @@
+*****************************************************************
+
+  Device    [DIFFO_MUX]
+
+  Author    [hzhang]
+
+  Abstract  [INBUT WITH COMP PAD OF IOB]
+
+  Revision History:
+
+********************************************************************************/
+prim
+device DIFFO_MUX
+{
+    parameter
+    (
+        config string IOB_MODE = "UNUSED"  // "IBUF", "OBUF", "IOBUF", "OBUFT", "IBUFDS", "OBUFDS", "IOBUFDS"
+    );
+    port
+    (
+        input DIFFO_IN,
+        input IN,
+        output PAD
+    );
+
+}; // end of device DIFFO_MUX
+
+
+propagation prop of DIFFO_MUX
+{
+    if (!strcmp(IOB_MODE, "OBUF") || !strcmp(IOB_MODE, "IOBUF") || !strcmp(IOB_MODE, "OBUFT"))
+    {
+        propagate ( IN --> PAD );
+    }
+    else if (!strcmp(IOB_MODE, "OBUFDS") || !strcmp(IOB_MODE, "OBUFTDS") || !strcmp(IOB_MODE, "IOBUFDS"))
+    {
+        propagate ( DIFFO_IN --> PAD );
+    }  
+};
+
+timing tnl of DIFFO_MUX
+{
+    PAD <= (!strcmp(IOB_MODE, "OBUF") || !strcmp(IOB_MODE, "IOBUF") || !strcmp(IOB_MODE, "OBUFT"))  ? IN  :
+           (!strcmp(IOB_MODE, "OBUFDS") || !strcmp(IOB_MODE, "OBUFTDS") || !strcmp(IOB_MODE, "IOBUFDS")) ? DIFFO_IN : 1'bx;
+} 

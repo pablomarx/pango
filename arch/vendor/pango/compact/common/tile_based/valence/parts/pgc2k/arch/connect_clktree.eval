@@ -1,0 +1,73 @@
+*************************************************************************
+****************************************************************************************/
+library work;
+use pgc_defs,pgc2k_defs,pgc_funcs_place,pgc_funcs_connect_logic;
+//use pgc_funcs_connect_io_bank;
+use pgc_funcs_connect_clk;
+//use pgc22g_funcs;
+
+
+structure arch_nl connect_CLKTREE of devPGC2K
+{
+
+    connect_USCM_input();
+
+    connect_PLL_input();
+
+    connect_CLKDLYT_input();
+
+    connect_CLKDLYB_input();
+
+    connect_iock_input();
+
+    int tx,ty;
+    int ty_u = 22;
+    int ty_d = 8;
+    int ty_iock = 13;
+    foreach tx( L_IOLL_TILES_X )
+    {
+        foreach ty( L_IOLL_TILES_Y )
+        { 
+          connect_IOLCLK_input(tx, ty, ty_u, ty_d, ty_iock);
+        }
+    }
+
+    connect_DLLCLK_input(DLL_TILE0_X , DLL_TILE0_Y, ty_iock);
+    connect_DLLCLK_input(DLL_TILE1_X , DLL_TILE1_Y, ty_iock);
+
+
+    foreach tx( L_IOLR_TILES_X )
+    {
+        foreach ty( L_IOLR_TILES_Y )
+        { 
+          connect_IOLCLK_input(tx, ty, ty_u, ty_d, ty_iock);
+        }
+    }
+
+
+    int tx_ckebl = 5;
+    int tx_ckebr = 12;
+
+    foreach tx ( {[1:7],9,[10:15]} )
+    {
+      connect_CKEB_input(tx, CRAM_CTRL_TILE_Y, tx_ckebl, tx_ckebr, USCM_TILE_X, USCM_TILE_Y, NUM_TILE_X);
+    }
+
+    int ty_ckeb = CRAM_CTRL_TILE_Y;
+    connect_clk_buf(ty_ckeb, tx_ckebl, tx_ckebr, USCM_TILE_X, NUM_TILE_X);
+
+    foreach tx ( L_SRB_TILES_X )
+    {
+        foreach ty ( L_SRB_TILES_Y )
+        {
+           connect_SRB_CLK_input( tx, ty, tx_ckebl, tx_ckebr, USCM_TILE_X, USCM_TILE_Y, CRAM_CTRL_TILE_Y, NUM_TILE_X);
+
+        } 
+    }
+
+
+
+};//end of structure arch_nl connect_CLKTREE of devPGC2K
+
+
+

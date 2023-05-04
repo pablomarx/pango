@@ -1,0 +1,68 @@
+*****************************************************************
+
+  Device    [devCLKTHROUGH]
+
+  Author    [liujiao]
+
+  Abstract  [A Part of CLMA]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devCLKTHROUGH : device CLMA
+{
+    parameter
+    (
+        config string CP_CLK_POL = "FALSE"  
+    );   
+    port
+    (
+        output   CLKCO,
+        input    CLK
+
+    );
+}; // end of device devCLKTHROUGH
+
+
+/*******************************************************************************
+
+  Device    [devCLKTHROUGH]
+
+  Author    [liujiao]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devCLKTHROUGH
+{
+    // Wires for input ports
+    wire ntCLK;
+    wire ntCLKCO;
+    wire ntCLKR;
+
+    ntCLK     <= CLK;
+    CLKCO     <= ntCLKCO;
+
+    device CLK_POLMUX CLKPOLMUX
+        parameter map
+        (
+            CP_CLK_POL  => CP_CLK_POL
+        )      
+        port map
+        (
+            IN   => ntCLK,
+            Y    => ntCLKR
+        );
+        
+    device RAM_RS U0_NOT
+        port map
+        (
+            IN  => ntCLKR,
+            OUT => ntCLKCO
+        );
+        
+}; // end of structure netlist of devCLKTHROUGH
+

@@ -1,0 +1,195 @@
+*******************************************************************
+
+  Operator    [gopIOBUFIOLQ]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+gate
+operator gopIOBUFIOLQ
+{
+    parameter
+    (
+        string GRS_EN          = "FALSE",           // "TRUE" "FALSE"  
+        string TSFF_CE_EN      = "UNUSED",    //1'b0 => "UNUSED";     1'b1 => "USED"
+        string TSFF_LRS_EN     = "UNUSED",  //1'b0 => "UNUSED";   1'b1 => "USED"
+        string TSFF_SET        = "RESET",     //1'b0 => "RESET"; 1'b1 => "SET"
+        string TSFF_SYNC       = "ASYNC",     //1'b0 => "ASYNC";      1'b1 => "SYNC"    
+        bit    TSFF_LATCH     = 1'b0,      //1'b1 => latch; 1'b0 => flip flop
+
+        string OFF_CE_EN      = "UNUSED",    //1'b0 => "UNUSED";     1'b1 => "USED"
+        string OFF_LRS_EN     = "UNUSED",  //1'b0 => "UNUSED";   1'b1 => "USED"
+        string OFF_SET        = "RESET",     //1'b0 => "RESET"; 1'b1 => "SET"
+        string OFF_SYNC       = "ASYNC",     //1'b0 => "ASYNC";      1'b1 => "SYNC"    
+        bit    OFF_LATCH      = 1'b0,      //1'b1 => latch; 1'b0 => flip flop
+
+        string IFF_CE_EN      = "UNUSED",    //1'b0 => "UNUSED";     1'b1 => "USED"
+        string IFF_LRS_EN     = "UNUSED",  //1'b0 => "UNUSED";   1'b1 => "USED"
+        string IFF_SET        = "RESET",     //1'b0 => "RESET"; 1'b1 => "SET"
+        string IFF_SYNC       = "ASYNC",     //1'b0 => "ASYNC";      1'b1 => "SYNC"    
+        bit    IFF_LATCH      = 1'b0,      //1'b1 => latch; 1'b0 => flip flop
+
+        bit    CLK_I_INV      = 1'b0,
+        bit    CLK_O_INV      = 1'b0,
+        bit    CE_INV         = 1'b0,
+        bit    LRS_INV        = 1'b0,
+
+        string    OFF_USED       =  "UNUSED", //1'b0 => "UNUSED"; 1'b1 => "USED"
+        string    TSFF_USED      =  "UNUSED", //1'b0 => "UNUSED"; 1'b1 => "USED"
+        string    IFF_USED       =  "UNUSED"  //1'b0 => "UNUSED"; 1'b1 => "USED"
+    );
+    port
+    (
+        input   IN,
+        input   TS,
+        output  OUT,
+        output  Z,
+
+        input   SYSCLK /* pragma PAP_ARC_GOP_CTRL_PIN = "GCLK|RCLK"*/,
+        input   CE /* pragma PAP_ARC_GOP_CTRL_PIN = CE*/,
+        input   LRS /* pragma PAP_ARC_GOP_CTRL_PIN = RST*/,
+
+        // from to IOB
+        output  T,
+        input   I,
+        output  O,
+
+        output  DO_OUT,
+        output  TO_OUT
+    );
+};
+
+implementation impl of gopIOBUFIOLQ
+{
+
+    string TS_MUX_SEL     = "TS_IN"; 
+    if(TSFF_USED == "USED" )
+    {
+         TS_MUX_SEL = "TS_TSFF";
+    }
+    string OUT_MUX_SEL    = "DATAIN";
+    if(OFF_USED == "USED" )
+    {
+         OUT_MUX_SEL = "OFF_Q";
+    } 
+    
+    if(IFF_USED == "USED")
+    {
+        device devIOBUFIOLQ gate_iobufiolq
+            parameter map
+            (
+                GRS_EN         => (GRS_EN == "TRUE") ? 1'b1 : 1'b0,
+            
+                IFF_USED     =>  (IFF_USED  == "USED") ? 1'b1 : 1'b0,
+                OFF_USED     =>  (OFF_USED  == "USED") ? 1'b1 : 1'b0,
+                TSFF_USED    =>  (TSFF_USED == "USED") ? 1'b1 : 1'b0,
+            
+                TS_MUX_SEL   => TS_MUX_SEL,
+                OUT_MUX_SEL  => OUT_MUX_SEL,
+
+                TSFF_CE_EN    => (TSFF_CE_EN  == "USED")     ? 1'b1 : 1'b0,
+                TSFF_LRS_EN   => (TSFF_LRS_EN == "USED")  ? 1'b1 : 1'b0,
+                TSFF_SET      => (TSFF_SET    == "SET")    ? 1'b1 : 1'b0,
+                TSFF_SYNC     => (TSFF_SYNC   == "SYNC")     ? 1'b1 : 1'b0,        
+        
+                TSFF_LATCH   => TSFF_LATCH,
+
+
+                OFF_CE_EN    => (OFF_CE_EN  == "USED")     ? 1'b1 : 1'b0,
+                OFF_LRS_EN   => (OFF_LRS_EN == "USED")  ? 1'b1 : 1'b0,
+                OFF_SET      => (OFF_SET    == "SET")    ? 1'b1 : 1'b0,
+                OFF_SYNC     => (OFF_SYNC   == "SYNC")     ? 1'b1 : 1'b0,        
+        
+                OFF_LATCH    => OFF_LATCH,
+
+                IFF_CE_EN    => (IFF_CE_EN  == "USED")     ? 1'b1 : 1'b0,
+                IFF_LRS_EN   => (IFF_LRS_EN == "USED")  ? 1'b1 : 1'b0,
+                IFF_SET      => (IFF_SET    == "SET")    ? 1'b1 : 1'b0,
+                IFF_SYNC     => (IFF_SYNC   == "SYNC")     ? 1'b1 : 1'b0,        
+        
+                IFF_LATCH    => IFF_LATCH,
+          
+                CLK_I_INV    =>  CLK_I_INV,
+                CLK_O_INV    =>  CLK_O_INV,
+                CE_INV       =>  CE_INV,
+                LRS_INV      =>  LRS_INV
+            )
+            port map 
+            (
+                TX_DATA[5]   =>  IN,
+                TS_CTRL[0]   =>  TS,
+                RX_DATA[0]   =>  OUT,
+                RX_DATA_DD   =>  Z,
+          
+                SYSCLK       =>  SYSCLK,
+                CE           =>  CE,
+                LRS          =>  LRS,
+          
+                TO           =>  T,
+                DIN          =>  I,
+                DO           =>  O,
+          
+               DO_OUT       =>  DO_OUT,
+               TO_OUT       =>  TO_OUT
+            );
+    }    
+    else
+    {
+        device devIOBUFIOLQ gate_iobufiolq
+            parameter map
+            (
+                GRS_EN         => (GRS_EN == "TRUE") ? 1'b1 : 1'b0,
+                IFF_USED     =>  (IFF_USED  == "USED") ? 1'b1 : 1'b0,
+                OFF_USED     =>  (OFF_USED  == "USED") ? 1'b1 : 1'b0,
+                TSFF_USED    =>  (TSFF_USED == "USED") ? 1'b1 : 1'b0,
+            
+                TS_MUX_SEL   => TS_MUX_SEL,
+                OUT_MUX_SEL  => OUT_MUX_SEL,
+        
+                TSFF_CE_EN    => (TSFF_CE_EN  == "USED")     ? 1'b1 : 1'b0,
+                TSFF_LRS_EN   => (TSFF_LRS_EN == "USED")  ? 1'b1 : 1'b0,
+                TSFF_SET      => (TSFF_SET    == "SET")    ? 1'b1 : 1'b0,
+                TSFF_SYNC     => (TSFF_SYNC   == "SYNC")     ? 1'b1 : 1'b0,
+                TSFF_LATCH   => TSFF_LATCH,
+          
+
+                OFF_CE_EN    => (OFF_CE_EN  == "USED")     ? 1'b1 : 1'b0,
+                OFF_LRS_EN   => (OFF_LRS_EN == "USED")  ? 1'b1 : 1'b0,
+                OFF_SET      => (OFF_SET    == "SET")    ? 1'b1 : 1'b0,
+                OFF_SYNC     => (OFF_SYNC   == "SYNC")     ? 1'b1 : 1'b0,
+                OFF_LATCH    => OFF_LATCH,
+
+                IFF_CE_EN    => (IFF_CE_EN  == "USED")     ? 1'b1 : 1'b0,
+                IFF_LRS_EN   => (IFF_LRS_EN == "USED")  ? 1'b1 : 1'b0,
+                IFF_SET      => (IFF_SET    == "SET")    ? 1'b1 : 1'b0,
+                IFF_SYNC     => (IFF_SYNC   == "SYNC")     ? 1'b1 : 1'b0,
+                IFF_LATCH    => IFF_LATCH,
+          
+                CLK_I_INV    =>  CLK_I_INV,
+                CLK_O_INV    =>  CLK_O_INV,
+                CE_INV       =>  CE_INV,
+                LRS_INV      =>  LRS_INV
+            )
+            port map 
+            (
+                TX_DATA[5]   =>  IN,
+                TS_CTRL[0]   =>  TS,
+                RX_DATA_DD   =>  OUT,
+          
+                SYSCLK       =>  SYSCLK,
+                CE           =>  CE,
+                LRS          =>  LRS,
+          
+                TO           =>  T,
+                DIN          =>  I,
+                DO           =>  O,
+          
+               DO_OUT       =>  DO_OUT,
+               TO_OUT       =>  TO_OUT
+            );
+    }
+};        
+    
+

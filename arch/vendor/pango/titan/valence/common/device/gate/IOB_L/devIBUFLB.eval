@@ -1,0 +1,93 @@
+******************************************************************
+//
+//  Device    [devIBUFLB]
+//
+//  project   [Pango]
+//  
+//  Author    [hzhang]
+//
+//  Abstract  [ ]
+//
+//  Revision History:
+//                       
+//********************************************************************************/
+
+gate device devIBUFLB : device IOB_LB
+{
+    parameter 
+    (   
+       config string IOB_MODE           := "IBUF",
+
+        config string TERMINATED         = "UNUSED",    /* "UNUSED" , "PULLUP" , "PULLDOWN" , "KEEPER" */
+        config string HOT_SOCKET         = "ON",        // ON; OFF
+        config string POWER_MODE         = "ON",        // ON; OFF
+        config string VCCIO              = "3.3",       // "3.3" "2.5" "1.8" "1.5" "1.2"
+        
+        // ibuf
+        config string HYS_DRIVE_MODE     = "NOHYS" ,    // "NOHYS","SMHYS_I","SMHYS_II","LGHYS","OD","UD" 
+        config string VREF_MODE          = "IN"    ,    // "IN": VREF_IN; "OUT": VREF_OUT
+        config string VREF_IN_MODE       = "OFF",    // "OFF" "0.45" "0.50" "0.55"
+        config string DDR_TERM_MODE      = "ON",     // "TERM": "ON" "OFF"     
+        config string VREF_OUT_MODE      = "VREF1",  // "VREF1" "VREF2" "VREF3" "EXT_DRV"         
+        config string DIFF_IN_TERM_MODE  = "ON" ,     // "ON" "OFF"
+        config string IOSTANDARD         = "DEFAULT"
+    );
+   
+    port
+    (   
+        output DIN, 
+        input TO,
+        inout  PAD
+    );
+};  // end of device devIBUFLB
+
+
+/*******************************************************************************
+
+  Device    [devIBUFLB]
+
+  Author    []
+
+  Abstract  [gate grid devIBUFLB. structure nestlist]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devIBUFLB
+{
+    // Wires connecting to ports. 
+    wire ntPAD, ntINBUF;
+    
+    DIN <= ntINBUF;
+    PAD <= ntPAD;
+    
+    device IOB_INBUFLB INBUFLB
+        parameter map
+        (
+            IOB_MODE          => IOB_MODE,
+            DDR_TERM_MODE     => DDR_TERM_MODE,
+            DIFF_IN_TERM_MODE => DIFF_IN_TERM_MODE,
+            IOSTANDARD        => IOSTANDARD
+        )
+        port map
+        ( 
+            O  => ntINBUF,  
+            IN => ntPAD 
+        );
+            
+};  // end of structure netlist of devIBUFLB            
+            
+timing tnl of devIBUFLB
+{
+    operator V_IBUF ibuf
+        parameter map
+        (
+            IOSTANDARD => IOSTANDARD,
+            TERM_DDR   => DDR_TERM_MODE
+        )
+        port map
+        (
+            I => PAD,
+            O => DIN
+        );
+}

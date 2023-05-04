@@ -1,0 +1,123 @@
+*******************************************************************
+
+  Operator    [gopDLL]
+
+  Author    [liu jiao]
+
+  Abstract  []
+
+  Revision History:
+
+ ********************************************************************************/
+gate
+operator gopDLL
+{
+    parameter
+    (
+        int    CODE_OFFSET  = 0,            // [-4,3]                                            
+        string GRS_EN       = "FALSE",      // global reset/set enable control.
+                                            // 1'b0: "TRUE"; 1'b1 "FALSE"
+        string FAST_LOCK    = "TRUE",       // clock/osclock div. rate select
+                                            // 1'b0: "TRUE"  ; 1'b1 "FALSE" 
+        string DLL_FORCE    = "FALSE"       // 1'b0 "FALSE"  1'b1 "TRUE"
+    );
+
+    port
+    (
+        input  CLK /*pragma PAP_ARC_GOP_CTRL_PIN="IOCLK"*/,
+        input  UPDATE_N,
+        input  RST /*pragma PAP_ARC_GOP_CTRL_PIN="RST"*/,
+        input  PWD,
+        output CTRL_CODE[7:0],
+        output LOCK
+    );
+};
+
+/**Implementation Body*******************************************************************
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_dll of gopDLL
+{
+    bit CP_CODE_OFFSET[3:0];
+    //CP_CODE_OFFSET = to_unsigned(CODE_OFFSET, 4);
+    if (CODE_OFFSET == -4)
+    {
+       CP_CODE_OFFSET = 4'b1111;
+    }
+    
+    if (CODE_OFFSET == -3)
+    {
+       CP_CODE_OFFSET = 4'b1110;
+    }
+    
+    if (CODE_OFFSET == -2)
+    {
+       CP_CODE_OFFSET = 4'b1101;
+    }
+    
+    if (CODE_OFFSET == -1)
+    {
+       CP_CODE_OFFSET = 4'b1100;
+    }
+    
+    if (CODE_OFFSET == 0)
+    {
+       CP_CODE_OFFSET = 4'b0xxx;
+    }
+    
+    if (CODE_OFFSET == 1)
+    {
+       CP_CODE_OFFSET = 4'b1000;
+    }
+    
+    if (CODE_OFFSET == 2)
+    {
+       CP_CODE_OFFSET = 4'b1001;
+    }
+    
+    if (CODE_OFFSET == 3)
+    {
+       CP_CODE_OFFSET = 4'b1010;
+    }
+    
+    if (CODE_OFFSET == 4)
+    {
+       CP_CODE_OFFSET = 4'b1011;
+    }
+     
+    device DLL dll_inst
+        parameter map
+        (
+            CP_CODE_OFFSET  => CP_CODE_OFFSET,
+            CP_FAST_LOCK    => FAST_LOCK,
+            CP_DLL_CTRL     => {GRS_EN == "FALSE" ? 1'b1 : 1'b0, 1'b1, 1'b1},
+            CP_DLL_FORCE    => DLL_FORCE
+        )
+        port map
+        (
+            DLL_FREEZE          => PWD,
+            UPDATE_N            => UPDATE_N,
+            CLK_IN              => CLK,
+            RST_DLL             => RST,
+            LOCK                => LOCK,
+            CTRL_CODE           => CTRL_CODE
+        );
+
+}; // end of implementation impl_dll of gopDLL
+
+
+
+
+
+
+
+
+
+
+

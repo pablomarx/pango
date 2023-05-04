@@ -1,0 +1,124 @@
+*******************************************************************
+
+  Operator    [gopIBUFIOLQDEL]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+gate
+operator gopIBUFIOLQDEL
+{
+    parameter
+    (
+        string GRS_EN          = "FALSE",           // "TRUE" "FALSE"  
+        string DELAY_SEL       = "DEFAULT",
+        bit    IODLY_CTRL_EN   = 1'b0,
+        bit    IODLY_STEP[6:0] = 7'b000_0000,
+
+        string IFF_CE_EN      = "UNUSED",    //1'b0 => "UNUSED";     1'b1 => "USED"
+        string IFF_LRS_EN     = "UNUSED",  //1'b0 => "UNUSED";   1'b1 => "USED"
+        string IFF_SET        = "RESET",     //1'b0 => "RESET"; 1'b1 => "SET"
+        string IFF_SYNC       = "ASYNC",     //1'b0 => "ASYNC";      1'b1 => "SYNC"    
+        bit    IFF_LATCH      = 1'b0,      //1'b1 => latch; 1'b0 => flip flop
+
+        bit    CLK_I_INV      = 1'b0,
+        bit    CE_INV         = 1'b0,
+        bit    LRS_INV        = 1'b0
+    );
+    port
+    (
+        output  OUT,
+        output  Z,
+
+        input   SYSCLK /* pragma PAP_ARC_GOP_CTRL_PIN = "GCLK|RCLK"*/,
+        input   CE /* pragma PAP_ARC_GOP_CTRL_PIN = CE*/,
+        input   LRS /* pragma PAP_ARC_GOP_CTRL_PIN = RST*/,
+
+        input   IODLY_CTRL[2:0],
+        output  IODLY_OV,
+        output  T,
+
+        // from to IOB
+
+        input   I
+    );
+};
+
+implementation impl of gopIBUFIOLQDEL
+{
+
+    device devIBUFIOLQDEL gate_ibufiolqdel
+        parameter map
+        (
+            GRS_EN        => (GRS_EN == "TRUE") ? 1'b1 : 1'b0,
+            DELAY_SEL       => DELAY_SEL,
+            IODLY_CTRL_EN   => IODLY_CTRL_EN,
+            IODLY_STEP      => IODLY_STEP,
+
+            IFF_CE_EN    => (IFF_CE_EN  == "USED")     ? 1'b1 : 1'b0,
+            IFF_LRS_EN   => (IFF_LRS_EN == "USED")  ? 1'b1 : 1'b0,
+            IFF_SET      => (IFF_SET    == "SET")    ? 1'b1 : 1'b0,
+            IFF_SYNC     => (IFF_SYNC   == "SYNC")     ? 1'b1 : 1'b0,
+            IFF_LATCH    => IFF_LATCH,
+
+            CLK_I_INV    => CLK_I_INV,
+            CE_INV       => CE_INV,
+            LRS_INV      => LRS_INV
+        )
+        port map 
+        (
+            RX_DATA[0]   =>  OUT,
+            RX_DATA_DD   =>  Z,
+
+            SYSCLK         =>  SYSCLK,
+            CE           =>  CE,
+            LRS          =>  LRS,
+
+            IODLY_CTRL   =>  IODLY_CTRL,
+            IODLY_OV     =>  IODLY_OV,
+            TO           => T,
+
+            DIN           =>  I
+        );
+};        
+
+
+implementation impl_l of gopIBUFIOLQDEL
+{
+
+    device devIBUFIOLLQDEL gate_ibufiollqdel
+        parameter map
+        (
+            GRS_EN        => (GRS_EN == "TRUE") ? 1'b1 : 1'b0,
+            DELAY_SEL       => DELAY_SEL,
+            IODLY_CTRL_EN   => IODLY_CTRL_EN,
+            IODLY_STEP      => IODLY_STEP,
+
+            IFF_CE_EN    => (IFF_CE_EN  == "USED")     ? 1'b1 : 1'b0,
+            IFF_LRS_EN   => (IFF_LRS_EN == "USED")  ? 1'b1 : 1'b0,
+            IFF_SET      => (IFF_SET    == "SET")    ? 1'b1 : 1'b0,
+            IFF_SYNC     => (IFF_SYNC   == "SYNC")     ? 1'b1 : 1'b0,
+            IFF_LATCH    => IFF_LATCH,
+
+            CLK_I_INV    => CLK_I_INV,
+            CE_INV       => CE_INV,
+            LRS_INV      => LRS_INV
+        )
+        port map 
+        (
+            RX_DATA[0]   =>  OUT,
+            RX_DATA_DD   =>  Z,
+
+            SYSCLK       =>  SYSCLK,
+            CE           =>  CE,
+            LRS          =>  LRS,
+
+            IODLY_CTRL   =>  IODLY_CTRL,
+            IODLY_OV     =>  IODLY_OV,
+            TO           => T,
+
+            DIN          =>  I
+        );
+};        

@@ -1,0 +1,95 @@
+*****************************************************************
+
+  Device    [devDMUX]
+
+  Author    [liujiao]
+
+  Abstract  [THE DEVICE CAN BE USED FOR WMUX.]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devDMUX : device devD
+{
+    parameter
+    (
+        config bit CP_INITD[31:0]     = 32'h0000_0000,
+        config string CP_MODED        = "WMUX",               // "LUT5" "ROM" "WMUX" "ARITH"        
+        config string CP_Y3MUX_SEL   := "FX"                 //"FX":F3 "CYX":CYD "MF":L8   
+    );
+    
+    port
+    (
+        input    D0, D1, D2, D3, D4, DD,
+        output   Y3
+    );
+}; // end of device devDMUX
+
+
+/*******************************************************************************
+
+  Device    [devDMUX]
+
+  Author    [liujiao]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devDMUX
+{
+    // Wires for input ports
+    wire ntD0, ntD1, ntD2, ntD3, ntD4, ntDD; 
+
+    // Wires connecting to output ports
+    wire ntY3;
+    // Internal wires
+    wire ntL5D;
+    //
+    // Connection to ports
+    //
+ 
+    ntD0      <= D0;
+    ntD1      <= D1;
+    ntD2      <= D2;
+    ntD3      <= D3;
+    ntD4      <= D4;
+    ntDD      <= DD;
+        
+    Y3        <= ntY3;      
+    
+    //
+    // Instances. FGA section
+    //
+
+    device FYC FYD 
+        parameter map
+        (
+            CP_INIT => CP_INITD,
+            CP_MODE => CP_MODED
+        )
+        port map 
+        (
+            A0  => ntD0,
+            A1  => ntD1,
+            A2  => ntD2,
+            A3  => ntD3,
+            A4  => ntD4,
+            AD  => ntDD,            
+            L5  => ntL5D 
+        );
+
+    device YMUX Y3MUX
+        parameter map
+        (
+            CP_OUT_SEL  => CP_Y3MUX_SEL
+        )
+        port map
+        (           
+            FX  => ntL5D,            
+            Y   => ntY3
+        );
+}; // end of structure netlist of devDMUX
+                         

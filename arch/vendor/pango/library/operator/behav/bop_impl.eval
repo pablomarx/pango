@@ -1,0 +1,530 @@
+rator implementations *********************************
+****************************************************************************/
+
+////////////////////////////////////////////////
+// obsolete. bmsADD valence impl is now replaced by c++ modgen
+implementation modgen of bmsADD 
+{
+    // assign {COUT, Z} = A + B + CIN;
+
+    wire co [WIDTH : 0];
+    unsigned int idx;
+    string strInst;
+
+    // carry-in
+    // assign co[0] = CIN
+    sprintf(strInst, "fadd_%d", 0);
+    operator GTP_LUT5CARRY *strInst
+        parameter map
+        (
+            INIT => 32'hcccc0000,
+            I4_TO_CARRY => "FALSE",
+            CIN_TO_LUT => "FALSE"
+        )
+        port map
+        (
+            // TODO: if CIN is const, constant-propogation should free I1 input
+            //       if CIN is variable, either suck in more CIN logic, or swap I1 to I4 to free the bottom lut for COUT of different adder
+            I1 => CIN,
+            COUT => co[0]
+        );
+
+    // adder
+    for (idx = 0; idx < WIDTH; idx += 1)
+    {
+        sprintf(strInst, "fadd_%d", idx + 1);
+        operator GTP_LUT5CARRY *strInst
+            parameter map ( INIT => 32'h96963c3c )
+            port map
+            (
+                I1 => B[idx],
+                I2 => A[idx],
+                I4 => A[idx],
+                CIN => co[idx],
+                Z => Z[idx],
+                COUT => co[idx + 1]
+            );
+    }
+
+    // carry-out
+    //connect( COUT => co[WIDTH] );
+    sprintf(strInst, "fadd_%d", WIDTH + 1);
+    operator GTP_LUT5CARRY *strInst
+        parameter map
+        (
+            INIT => 32'haaaa0000
+        )
+        port map
+        (
+            CIN => co[WIDTH],
+            Z => COUT
+        );
+};
+
+////////////////////////////////////////////////////////
+implementation modgen of bmsSUB
+{
+    // assign {BOUT, Z} = A - B - BIN;
+    //                  = A + ~B + ~BIN
+
+    wire co [WIDTH : 0];
+    unsigned int idx;
+    string strInst;
+
+    // carry-in
+    // assign co[0] = ~BIN
+    sprintf(strInst, "fsub_%d", 0);
+    operator GTP_LUT5CARRY *strInst
+        parameter map
+        (
+            INIT => 32'h33330000,
+            I4_TO_CARRY => "FALSE",
+            CIN_TO_LUT => "FALSE"
+        )
+        port map
+        (
+            // TODO: if BIN is const, constant-propogation should free I1 input
+            //       if BIN is variable, the bottom lut can suck in more BIN logic
+            I1 => BIN,
+            COUT => co[0]
+        );
+
+    // subtractor, LUTa = A ^ ~B   LUTb = A ^ ~B ^ CIN
+    for (idx = 0; idx < WIDTH; idx += 1)
+    {
+        sprintf(strInst, "fsub_%d", idx + 1);
+        operator GTP_LUT5CARRY *strInst
+            parameter map ( INIT => 32'h6969c3c3 )
+            port map
+            (
+                I1 => B[idx],
+                I2 => A[idx],
+                I4 => A[idx],
+                CIN => co[idx],
+                Z => Z[idx],
+                COUT => co[idx + 1]
+            );
+    }
+
+    // carry-out LUTb = ~co[WIDTH]
+    sprintf(strInst, "fsub_%d", WIDTH + 1);
+    operator GTP_LUT5CARRY *strInst
+        parameter map
+        (
+            INIT => 32'h55550000
+        )
+        port map
+        (
+            CIN => co[WIDTH],
+            Z => BOUT
+        );
+};
+
+
+////////////////////////////////////////////////////////
+implementation modgen of bmsADDSUB
+{
+    // assign {COUT, Z} = (SUB) ? (A - B) : (A + B)
+
+    wire co [WIDTH : 0];
+    unsigned int idx;
+    string strInst;
+
+    // carry-in
+    // assign co[0] = SUB
+    sprintf(strInst, "faddsub_%d", 0);
+    operator GTP_LUT5CARRY *strInst
+        parameter map
+        (
+            INIT => 32'hcccc0000,
+            I4_TO_CARRY => "FALSE",
+            CIN_TO_LUT => "FALSE"
+        )
+        port map
+        (
+            // TODO: if SUB is const, constant-propogation should free I1 input
+            //       if SUB is variable, either suck in more SUB logic, or swap I1 to I4 to free the bottom lut for COUT of different adder
+            I1 => SUB,
+            COUT => co[0]
+        );
+
+    // subtractor, LUTa = SUB ^ A ^ B   LUTb = SUB ^ A ^ B ^ CIN
+    for (idx = 0; idx < WIDTH; idx += 1)
+    {
+        sprintf(strInst, "faddsub_%d", idx + 1);
+        operator GTP_LUT5CARRY *strInst
+            parameter map ( INIT => 32'h6996c33c )
+            port map
+            (
+                I1 => B[idx],
+                I2 => A[idx],
+                I3 => SUB,
+                I4 => A[idx],
+                CIN => co[idx],
+                Z => Z[idx],
+                COUT => co[idx + 1]
+            );
+    }
+
+    // carry-out LUTb = SUB ^ co[WIDTH]
+    sprintf(strInst, "faddsub_%d", WIDTH + 1);
+    operator GTP_LUT5CARRY *strInst
+        parameter map
+        (
+            INIT => 32'h55aa0000
+        )
+        port map
+        (
+            CIN => co[WIDTH],
+            I3 => SUB,
+            Z => COUT
+        );
+};
+
+/////////////////////////////////////////////////////
+implementation modgen of bmsEQUAL
+{
+    // assign Z = A == B;
+
+    wire co [WIDTH : 0];
+    unsigned int idx;
+    string strInst;
+
+    if (WIDTH == 1){
+        operator GTP_LUT2 eq
+            parameter map
+            (
+                INIT => 4'h9
+            )
+            port map
+            (
+                I0 => B[0],
+                I1 => A[0],
+                Z => Z
+            );
+    } else if (WIDTH == 2) {
+        operator GTP_LUT4 eq
+            parameter map
+            (
+                INIT => 16'h9009
+            )
+            port map
+            (
+                I0 => B[0],
+                I1 => A[0],
+                I2 => B[1],
+                I3 => A[1],
+                Z => Z
+            );
+    } else {
+        // first stage
+        // assign co[0] = A[1:0] == B[1:0]
+        sprintf(strInst, "eq_%d", 0);
+        operator GTP_LUT5CARRY *strInst
+            parameter map
+            (
+                INIT => 32'h90090000,
+                CIN_TO_LUT => "FALSE",
+                I4_TO_CARRY => "FALSE"
+            )
+            port map
+            (
+                I0 => B[0],
+                I1 => A[0],
+                I2 => B[1],
+                I3 => A[1],
+                COUT => co[0]
+            );
+
+        // compare two bits per stage
+        for (idx = 2; idx < WIDTH / 2 * 2; idx += 2)
+        {
+            sprintf(strInst, "eq_%d", idx/2);
+            operator GTP_LUT5CARRY *strInst
+                parameter map
+                (
+                    INIT => 32'h00009009,
+                    CIN_TO_LUT => "FALSE",
+                    I4_TO_CARRY => "FALSE"
+                )
+                port map
+                (
+                    I0 => B[idx],
+                    I1 => A[idx],
+                    I2 => B[idx + 1],
+                    I3 => A[idx + 1],
+                    CIN => co[idx - 2],
+                    COUT => co[idx]
+                );
+        }
+
+        // last stage
+        if (WIDTH % 2 == 1){
+            //connect( Z => (A[WIDTH-1] == B[WIDTH-1]) && co[WIDTH - 3])
+            sprintf(strInst, "eq_%d", WIDTH/2);
+            operator GTP_LUT5CARRY *strInst
+                parameter map
+                (
+                    INIT => 32'ha00a0000
+                )
+                port map
+                (
+                    I2  => B[WIDTH-1],
+                    I3  => A[WIDTH-1],
+                    CIN => co[WIDTH - 3],
+                    Z => Z
+                );
+        } else {
+            connect( Z => co[WIDTH - 2] );
+            /* trivial LUT buffer not needed
+            sprintf(strInst, "eq_%d", WIDTH/2);
+            operator GTP_LUT5CARRY *strInst
+                parameter map
+                (
+                    INIT => 32'haaaa0000
+                )
+                port map
+                (
+                    CIN => co[WIDTH - 2],
+                    Z => Z
+                );
+            */
+        }
+    }
+};
+
+/////////////////////////////////////////////////////
+implementation modgen of bmsLT
+{
+    // assign Z = A < B;
+
+    if (WIDTH == 1){
+        operator GTP_LUT2 lt
+            parameter map
+            (
+                INIT => 4'h2
+            )
+            port map
+            (
+                I0 => B[0],
+                I1 => A[0],
+                Z => Z
+            );
+    } else if (WIDTH == 2){
+        operator GTP_LUT4 lt
+            parameter map
+            (
+                INIT => 16'h20f2
+            )
+            port map
+            (
+                I0 => B[0],
+                I1 => A[0],
+                I2 => B[1],
+                I3 => A[1],
+                Z => Z
+            );
+    } else {
+
+        wire co [WIDTH : 0];
+        unsigned int idx;
+        string strInst;
+
+        // first stage
+        // assign co[0] = A[1:0] < B[1:0]
+        sprintf(strInst, "lt_%d", 0);
+        operator GTP_LUT5CARRY *strInst
+            parameter map
+            (
+                INIT => 32'h20f20000,
+                CIN_TO_LUT => "FALSE",
+                I4_TO_CARRY => "FALSE"
+            )
+            port map
+            (
+                I0 => B[0],
+                I1 => A[0],
+                I2 => B[1],
+                I3 => A[1],
+                COUT => co[0]
+            );
+
+        // compare two bits per stage
+        for (idx = 2; idx < WIDTH / 2 * 2; idx += 2)
+        {
+            sprintf(strInst, "lt_%d", idx/2);
+            operator GTP_LUT5CARRY *strInst
+                parameter map
+                (
+                    INIT => 32'h20f29009,
+                    CIN_TO_LUT => "FALSE",
+                    I4_TO_CARRY => "FALSE"
+                )
+                port map
+                (
+                    I0 => B[idx],
+                    I1 => A[idx],
+                    I2 => B[idx + 1],
+                    I3 => A[idx + 1],
+                    CIN => co[idx - 2],
+                    COUT => co[idx]
+                );
+        }
+
+        // last stage
+        if (WIDTH % 2 == 1){
+            //connect( Z => (A[WIDTH-1] < B[WIDTH-1]) || ((A[WIDTH-1] == B[WIDTH-1]) && co[WIDTH - 3]))
+            sprintf(strInst, "lt_%d", WIDTH/2);
+            operator GTP_LUT5CARRY *strInst
+                parameter map
+                (
+                    INIT => 32'ha0fa0000
+                )
+                port map
+                (
+                    I2  => B[WIDTH-1],
+                    I3  => A[WIDTH-1],
+                    CIN => co[WIDTH - 3],
+                    Z => Z
+                );
+        } else {
+            connect( Z => co[WIDTH - 2] );
+            /* trivial LUT buffer not needed
+            sprintf(strInst, "lt_%d", WIDTH/2);
+            operator GTP_LUT5CARRY *strInst
+                parameter map
+                (
+                    INIT => 32'haaaa0000
+                )
+                port map
+                (
+                    CIN => co[WIDTH - 2],
+                    Z => Z
+                );
+            */
+        }
+    }
+};
+
+/////////////////////////////////////////////////////
+implementation modgen of bmsSLT
+{
+    // assign Z = A < B;
+
+    if (WIDTH == 1){
+        operator GTP_LUT2 slt
+            parameter map
+            (
+                INIT => 4'h4
+            )
+            port map
+            (
+                I0 => B[0],
+                I1 => A[0],
+                Z => Z
+            );
+    } else if (WIDTH == 2){
+        operator GTP_LUT4 slt
+            parameter map
+            (
+                INIT => 16'h2f02
+            )
+            port map
+            (
+                I0 => B[0],
+                I1 => A[0],
+                I2 => B[1],
+                I3 => A[1],
+                Z => Z
+            );
+    } else {
+
+        wire co [WIDTH : 0];
+        unsigned int idx;
+        string strInst;
+
+        // first stage
+        // assign co[0] = A[1:0] < B[1:0]
+        sprintf(strInst, "slt_%d", 0);
+        operator GTP_LUT5CARRY *strInst
+            parameter map
+            (
+                INIT => 32'h20f20000,
+                CIN_TO_LUT => "FALSE",
+                I4_TO_CARRY => "FALSE"
+            )
+            port map
+            (
+                I0 => B[0],
+                I1 => A[0],
+                I2 => B[1],
+                I3 => A[1],
+                COUT => co[0]
+            );
+
+        // compare two bits per stage
+        for (idx = 2; idx < WIDTH / 2 * 2; idx += 2)
+        {
+            bit init_m[31:0];
+            if ((WIDTH % 2 == 1) || (idx != WIDTH / 2 * 2 - 2)){
+                //unsigned comparison
+                init_m = 32'h20f29009;
+            } else {
+                //signed comparison
+                init_m = 32'h2f029009;
+            }
+
+            sprintf(strInst, "slt_%d", idx/2);
+            operator GTP_LUT5CARRY *strInst
+                parameter map
+                (
+                    INIT => init_m,
+                    CIN_TO_LUT => "FALSE",
+                    I4_TO_CARRY => "FALSE"
+                )
+                port map
+                (
+                    I0 => B[idx],
+                    I1 => A[idx],
+                    I2 => B[idx + 1],
+                    I3 => A[idx + 1],
+                    CIN => co[idx - 2],
+                    COUT => co[idx]
+                );
+        }
+
+        // last stage
+        if (WIDTH % 2 == 1){
+            //connect( Z => (A[WIDTH-1] < B[WIDTH-1]) || ((A[WIDTH-1] == B[WIDTH-1]) && co[WIDTH - 3]))
+            sprintf(strInst, "slt_%d", WIDTH/2);
+            operator GTP_LUT5CARRY *strInst
+                parameter map
+                (
+                    INIT => 32'haf0a0000
+                )
+                port map
+                (
+                    I2  => B[WIDTH-1],
+                    I3  => A[WIDTH-1],
+                    CIN => co[WIDTH - 3],
+                    Z => Z
+                );
+        } else {
+            connect( Z => co[WIDTH - 2] );
+
+            /* trivial LUT buffer not needed
+            sprintf(strInst, "slt_%d", WIDTH/2);
+            operator GTP_LUT5CARRY *strInst
+                parameter map
+                (
+                    INIT => 32'haaaa0000
+                )
+                port map
+                (
+                    CIN => co[WIDTH - 2],
+                    Z => Z
+                );
+            */
+        }
+    }
+};

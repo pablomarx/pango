@@ -1,0 +1,85 @@
+*******************************************************************
+
+  Device    [IDDR]
+
+  Author    [guoxi]
+
+  Abstract  [The Prim Device Of IDDR]
+
+  Revision History:
+
+********************************************************************************/
+prim
+device IDDR
+{
+    parameter
+    (
+        config string  CP_GRS_DIS = "FALSE",
+        config string  CP_IDDR_MODE = "IGDDR" //"IGDDR", "IGDES4", "IGDES7", "IGDES8", "IGDES10"
+                                              //"IMDDR", "IMDES4", "IMDES8" 
+    );
+    port 
+    (
+        input  LRS,
+        input  IFIFO_WADDR[2:0],
+        input  IFIFO_RADDR[2:0],  
+        input  ICLK,
+        input  DESCLK,
+        input  CLK_SYS,
+        input  DIN,
+        
+        output  RX_DATA[7:0]
+    );
+
+}; // end of device IDDR
+
+propagation prop of IDDR
+{
+    propagate ( DIN |-> RX_DATA );
+    propagate ( CLK_SYS |-> RX_DATA );
+    propagate ( DESCLK |-> RX_DATA );
+    propagate ( ICLK |-> RX_DATA );
+    propagate ( IFIFO_RADDR |-> RX_DATA );
+    propagate ( IFIFO_WADDR |-> RX_DATA );
+    propagate ( LRS |-> RX_DATA );
+};
+
+/**Device***********************************************************************                  
+                                                                                                  
+  Device    [IDDR]                                                                                
+                                                                                                  
+  Author    [kongbiao]                                                                               
+                                                                                                  
+  Abstract  [This specified the timing model under specific configuration]                        
+                                                                                                  
+  Revision History:                                                                               
+                                                                                                  
+********************************************************************************/                 
+                                                                                                  
+timing  iddr_tnl of IDDR  
+{
+    operator V_ISERDES V_ISERDES
+        parameter map
+        (
+            ISERDES_MODE => (CP_IDDR_MODE == "IGDDR")  ? "IDDR"  :
+                            (CP_IDDR_MODE == "IGDES4") ? "IDES4" :
+                            (CP_IDDR_MODE == "IGDES7") ? "IDES7" :
+                            (CP_IDDR_MODE == "IGDES8") ? "IDES8" :
+                             CP_IDDR_MODE,
+            LRS_EN       => "TRUE",
+            GRS_EN       => (CP_GRS_DIS == "FALSE") ? "TRUE" : "FALSE"
+        )
+        port map
+        (
+            RST      => LRS,
+            WADDR    => IFIFO_WADDR,
+            RADDR    => IFIFO_RADDR,
+            ICLK     => ICLK,
+            DESCLK   => DESCLK,
+            RCLK     => CLK_SYS,
+            DI       => DIN,
+
+            DO       => RX_DATA
+        );
+};
+

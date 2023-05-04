@@ -1,0 +1,129 @@
+*****************************************************************
+
+  Device    [USCM]
+
+  Author    [guoxi]
+
+  Abstract  [The Grid Device USCM]
+
+  Revision History:
+
+********************************************************************************/
+//grid device started
+grid
+device USCM
+{
+    // grid_property_def_start
+    // grid_property_def_end
+
+    parameter
+    (
+        config string CP_USCM_MODE = "NEGSW"
+    );
+    port
+    (
+// configuration_body_def_on
+
+
+    config input SC_USCM_MODE[2:0] = 3'h0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_USCM_MODE[2],SC_USCM_MODE[1],SC_USCM_MODE[0]" */,
+
+// configuration_body_def_end
+
+        input CE = 1'b1,
+        input CLK_A = 1'b1,
+        input CLK_B = 1'b1,
+        input USCMSEL = 1'b1,
+        output CLK_USCM
+    );
+};
+//grid device end
+
+
+/*******************************************************************************
+
+  Device    [USCM]
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+//grid device structure netlist started
+
+structure netlist of USCM
+{
+
+}; // end of structure netlist of USCM
+//grid device structure netlist end
+
+
+floorplan
+structure fp_struct of USCM
+{
+         
+
+}; // end of structure fp_struct of USCM
+
+
+//grid device configure body started
+
+configuration cfg of USCM
+{
+
+//initial config body0 begin
+    if(CP_USCM_MODE == "NEGSW")
+    {
+        SC_USCM_MODE  :=  3'b000;
+    }
+    else if(CP_USCM_MODE == "NORSW")
+    {
+        SC_USCM_MODE  :=  3'b001;
+    }
+    else if(CP_USCM_MODE == "BUF_A")
+    {
+        SC_USCM_MODE  :=  3'b010;
+    }
+    else if(CP_USCM_MODE == "BUF_B")
+    {
+        SC_USCM_MODE  :=  3'b011;
+    }
+    else if(CP_USCM_MODE == "BUFCE_A_0")
+    {
+        SC_USCM_MODE  :=  3'b110;
+    }
+    else if(CP_USCM_MODE == "BUFCE_B_0")
+    {
+        SC_USCM_MODE  :=  3'b111;
+    }
+    else
+    {
+        SC_USCM_MODE  :=  3'b000;
+        error("MODE(%s) is not support!",CP_USCM_MODE);
+    }
+
+//initial config body0 end
+
+};
+
+//grid device configure body end
+
+timing uscm_tnl of USCM
+{
+    operator V_USCM V_USCM
+         parameter map
+         (
+             USCM_MODE => CP_USCM_MODE,
+             SIM_DEVICE => "LOGOS"
+         )
+         port map
+         (
+             CLK0     =>  CLK_A,
+             CLK1     =>  CLK_B,
+             SEL      => (CP_USCM_MODE == "BUFCE_A_0" || CP_USCM_MODE == "BUFCE_B_0") ? CE : USCMSEL,
+             CLKOUT   =>  CLK_USCM
+         );
+};
+

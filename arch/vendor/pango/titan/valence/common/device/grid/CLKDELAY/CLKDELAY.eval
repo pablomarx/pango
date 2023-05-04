@@ -1,0 +1,121 @@
+*****************************************************************
+
+  Device    [CLKDELAY]
+
+  Author    [clwang]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+grid
+device CLKDELAY
+{
+    parameter
+    (
+        config bit    DLY_CTRL_SEL       = 1'b0,          //  
+        config bit    INDELAY_CNTL[7:0]  = 8'b0000_0000
+    );
+    port
+    (
+        config input   SC_DLY_CTRL_SEL      = 1'b0        /*pragma PAP_CFG_BIT_NAME = "SC_DLY_CTRL_SEL" */,
+        config input   SC_INDELAY_CNTL[7:0] = 8'b0000_0000 /*pragma PAP_CFG_BIT_NAME = "SC_INDELAY_CNTL<7>,SC_INDELAY_CNTL<6>,SC_INDELAY_CNTL<5>,SC_INDELAY_CNTL<4>,SC_INDELAY_CNTL<3>,SC_INDELAY_CNTL<2>,SC_INDELAY_CNTL<1>,SC_INDELAY_CNTL<0>" */,       
+
+
+               input   DIRECTION = 1'b1, 
+               input   DLYIN     = 1'b1, 
+               input   LOADN     = 1'b1,
+               input   MOVE      = 1'b1,
+               output  COUT,
+               output  DLYOUT,
+
+               input   DLL_INDELAY_CNTL[7:0] = 8'hff
+    );
+} // end of device CLKDELAY
+
+/*******************************************************************************
+
+  Device    [CLKDELAY]
+
+  Author    [clwang]
+
+  Abstract  [The structure netlist of CLKDELAY is described in the similar fashion
+             as in HDL. In unit instantiation statement, the formal pin may be
+             connected to net which is declared explicitly.
+
+             In Valence, the connection can also be made from formal pin to other
+             pin or port, in which case Valence compiler shall create the net to
+             fulfil the connection. The built-in naming convention is kicked in
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+
+structure netlist of CLKDELAY
+{
+    device CLKDELAY_INST CLKDELAY_INST
+        parameter map
+        (
+           INDELAY_CNTL  => INDELAY_CNTL,
+           DLY_CTRL_SEL  => DLY_CTRL_SEL
+        )
+        port map
+        (
+            DIRECTION        => DIRECTION,
+            DLYIN            => DLYIN,
+            LOADN            => LOADN,
+            MOVE             => MOVE,
+            COUT             => COUT,
+            DLYOUT           => DLYOUT,
+
+            DLL_INDELAY_CNTL => DLL_INDELAY_CNTL
+        );
+
+}; // end of structure netlist of CLKDELAY
+
+/*******************************************************************************
+
+  Device    [CLKDELAY]
+
+  Author    [clwang]
+
+  Abstract  [Configure the configuration bits based on the value of config parameter]
+
+  Revision History:
+
+********************************************************************************/
+configuration cfg of CLKDELAY
+{
+    SC_INDELAY_CNTL    := INDELAY_CNTL;
+    //SC_DLYCODE_SRC_SEL := DLYCODE_SRC_SEL;
+    SC_DLY_CTRL_SEL    := DLY_CTRL_SEL;
+
+}; // end of configuration cfg of CLKDELAY
+
+timing tnl of CLKDELAY
+{
+    operator V_IOCLKDELAY V_IOCLKDELAY
+        parameter map
+        (
+           DELAY_STEP_VALUE => INDELAY_CNTL,
+           DELAY_STEP_SEL   => (DLY_CTRL_SEL == 1'b0) ? "PORT": "PARAMETER"
+        )
+        port map
+        (
+            CLKIN            => DLYIN,  
+            DELAY_OB         => COUT,
+            LOAD             => LOADN,
+            MOVE             => MOVE,          
+            DIRECTION        => DIRECTION, 
+
+            CLKOUT           => DLYOUT,         
+            DELAY_STEP       => DLL_INDELAY_CNTL
+        );
+};
+
+

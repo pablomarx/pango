@@ -1,0 +1,119 @@
+*******************************************************************
+
+  Operator    [gopIBUF]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+gate
+operator gopIBUF
+{
+    parameter
+    (
+        string TERMINATED              = "NONE",    /* "NONE" , "PULLUP" , "PULLDOWN" , "KEEPER" */
+        string HOT_SOCKET              = "ON",        // ON: 1'b0; OFF: 1'b1
+        string VCCIO                   = "3.3",       // "3.3" "2.5" "1.8" "1.5" "1.2"
+                                       
+        string HYS_DRIVE_MODE          = "NOHYS" ,    // "NOHYS","SMHYS_I","SMHYS_II","LGHYS","OD","UD" 
+        string CP_HYS                  = "OFF",
+        string VREF_PIN_LOC            = "NA"    ,    // "NA" "VREF1" "VREF2" "VREF3",
+                                                      // This Parameter is used for PCE and report.
+        string VREF_MODE               = "INT"    ,    // "INT": VREF_IN; "EXTERNAL": VREF_OUT
+        string VREF_IN_MODE            = "OFF",    // "OFF" "0.45" "0.50" "0.55"
+        string DDR_TERM_MODE           = "OFF",     // "TERM": "ON" "OFF"     
+        string VREF_OUT_MODE           = "VREF0",  // "VREF0"   "VREF1"       
+        string DIFF_IN_TERM_MODE       = "OFF",      // "ON" "OFF"
+        string IOSTANDARD              = "LVCMOS33",
+        string IOB_MODE                = "IBUFHR",
+        string CP_DYN_TERM                = "OFF",
+        string CP_IN_MAG                  = "UNUSED",
+        string CP_DYN_IN                  = "OFF",
+        
+        // parameter of bkcl, just for transmit value from gui  
+        //string CP_DRV_STRENGTH_DIFF_0  = "0",
+        //string CP_DRV_STRENGTH_DIFF_1  = "0",
+        //string CP_VCM_0                = "1.25",
+        //string CP_VCM_1                = "1.25",
+        //string CP_DIFFOUT_EN_0         = "FALSE",
+        //string CP_DIFFOUT_EN_1         = "FALSE",
+        string DDR_RES                 = "50"
+        //string CP_VREF_MODE            = "EXTERNAL",
+        //string CP_VREF_SEL             = "0.5"
+    );
+    port
+    (
+        input I,
+        input DO,
+        input DO_NDRV,
+        input INBUF_DYN_DIS_N,
+        //input MI,
+        //output DIFFI_OUT,
+        inout ADC_IN,
+        output O
+    );
+};
+
+
+implementation impl_D of gopIBUF
+{
+    device devIOBD gate_ibufa
+        parameter map
+        (
+            CP_IOB_MODE          =>  IOB_MODE,
+            CP_PORT_STATUS       =>  TERMINATED,
+            //CP_HOT_SOCKET        =>  HOT_SOCKET,
+            CP_IO_STANDARD       =>  IOSTANDARD,
+            CP_DIFFIN_TERM       =>  DIFF_IN_TERM_MODE,
+            CP_DDRIN_TERM        =>  DDR_TERM_MODE,
+            CP_DYN_TERM          =>  CP_DYN_TERM,
+            CP_TERM_VAL          =>  DDR_RES,
+            CP_IN_MAG            =>  CP_IN_MAG,
+            CP_HYS               =>  CP_HYS,
+            CP_VCCIO             =>  VCCIO,
+            CP_DYN_IN            =>  CP_DYN_IN
+        )
+        port map 
+        (
+            IN_DYN_EN     => INBUF_DYN_DIS_N,
+            DO            => DO,
+            DO_NDRV       => DO_NDRV,
+            PAD           => I,
+            ADC_IN        => ADC_IN,
+            DIN           => O
+            //MIPI_DYN_SW   => MI
+            //DIFFI_OUT     => DIFFI_OUT
+
+        );
+};
+
+implementation impl_S of gopIBUF
+{
+    device devIOBS gate_ibufc
+        parameter map
+        (
+            CP_IOB_MODE          =>  IOB_MODE,
+            CP_PORT_STATUS       =>  TERMINATED,
+            //CP_HOT_SOCKET        =>  HOT_SOCKET,
+            CP_IO_STANDARD       =>  IOSTANDARD,
+            CP_DDRIN_TERM        =>  DDR_TERM_MODE,
+            CP_DYN_TERM          =>  CP_DYN_TERM,
+            CP_TERM_VAL          =>  DDR_RES,
+            CP_IN_MAG            =>  CP_IN_MAG,
+            CP_HYS               =>  CP_HYS,
+            CP_VCCIO             =>  VCCIO,
+            CP_DYN_IN            =>  CP_DYN_IN
+        )
+        port map 
+        (
+            IN_DYN_EN     => INBUF_DYN_DIS_N,
+            DO            => DO,
+            DO_NDRV       => DO_NDRV,
+            PAD           => I,
+            ADC_IN        => ADC_IN,
+            DIN           => O
+            //MIPI_DYN_SW   => MI
+            //DIFFI_OUT     => DIFFI_OUT
+        );
+};

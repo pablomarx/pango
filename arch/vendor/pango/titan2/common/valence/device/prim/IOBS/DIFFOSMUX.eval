@@ -1,0 +1,60 @@
+*****************************************************************
+
+  Device    [DIFFOSMUX]
+
+  Author    [yqtan]
+
+  Abstract  [The Prim Device For DIFFOSMUX]
+
+  Revision History:
+
+********************************************************************************/
+prim
+device DIFFOSMUX
+{
+    parameter
+    (
+        config string CP_IO_STANDARD  = "LVCMOS25",   //IO standard: lvcmos18 lvcmos15 lvcmos12
+        config string CP_PORT_STATUS  = "PULLUP"  ,
+        config string CP_IOB_MODE     = "OBUFHR"      //"OBUFHR" "OBUFHP_T" "IOBUFHP" "OBUFHP_DS",
+    );
+    port
+    (
+       input   DIFFO_IN,
+       input   OBUFO_IN,
+       input   DO,
+       input   DO_NDRV,
+       input   IN,
+       output  OUT  
+    );
+
+}// end of device DIFFOSMUX
+
+/**Device***********************************************************************
+
+  Device    [DIFFOSMUX]
+
+  Abstract  [This specified how to propagate the input signal to the outputs based on
+             configuration]
+
+  Revision History:
+
+********************************************************************************/
+propagation pop of DIFFOSMUX
+{
+    if (CP_IOB_MODE == "OBUFHR")
+    {
+        propagate ( OBUFO_IN --> OUT);
+    }
+    else  if (CP_IOB_MODE == "OBUFHR_T" || CP_IOB_MODE == "IOBUFHR")
+    {
+        propagate ( DO |-> OUT);
+        propagate ( DO_NDRV |-> OUT);
+        propagate ( OBUFO_IN |-> OUT);
+    }
+    else if (CP_IOB_MODE == "UNUSED")
+    {
+        propagate ( DIFFO_IN --> OUT);
+    }
+};
+

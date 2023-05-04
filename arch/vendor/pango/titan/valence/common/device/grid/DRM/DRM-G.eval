@@ -1,0 +1,900 @@
+*****************************************************************
+
+  Device    [DRM]
+
+  Author    [clwang]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+grid
+device DRM
+{
+    property
+    (
+        // This property is created to keep track of the function being mapped onto this.
+        // Is's used to decide whether to mask the INIT_0?[255:0]
+        bool MASK_INIT = true
+    );
+    parameter
+    (
+        config bit      DRM_EN      = 1'b0,
+        config string   DRM_MODE    = "TDP",    // "TDP" : TRUE DOUBLE PORT RAM
+                                                // "SDP" : SIMPLE DOUBLE PORT RAM
+                                                // "SPR" : SINGLE PORT RAM RAM
+                                                // "ROM" : ROM
+        config bit      CS_POL_A[2:0]   = 3'b000,     
+        config bit      CE_POL_A        = 1'b0,
+        config bit      WE_POL_A        = 1'b0,
+        config bit      OCE_POL_A       = 1'b0,
+        config bit      CLK_POL_A       = 1'b1,
+        config bit      RST_POL_A       = 1'b0,
+        config bit      BEL_POL_A       = 1'b0, 
+        config bit      BEH_POL_A       = 1'b0,
+        config bit      BEL_SET_A       = 1'b0,  
+        config bit      BEH_SET_A       = 1'b0, 
+        config bit      CS2_SET_A       = 1'b0,  
+        config bit      ORCK_POL_A      = 1'b0,           // sc_ckqa_inv
+        config string   WRITE_MODE_A    = "NORMAL_WRITE", //  : No-change mode
+                                                          // "TRANSPARENT_WRITE" : Write-first mode
+                                                          // "READ_BEFORE_WRITE" : Read-first mode
+                                                          // "BW" : Byte write mode 
+        config string   WRITE_COLLISION_ARBITER = "NULL", // "NULL" "PORTA" "PORTB"
+        config int      DATA_WIDTH_A    = 18,             // 1 2 4 8/9 16/18 32/36
+        config bit      OR_USED_A       = 1'b0,           // 1'b0 : disabled
+                                                          // 1'b1 : enabled 
+
+        config bit      CS_POL_B[2:0]   = 3'b000,     
+        config bit      CE_POL_B        = 1'b0,
+        config bit      WE_POL_B        = 1'b0,
+        config bit      OCE_POL_B       = 1'b0,
+        config bit      CLK_POL_B       = 1'b0,
+        config bit      RST_POL_B       = 1'b0,
+        config bit      BEL_POL_B       = 1'b0,
+        config bit      BEH_POL_B       = 1'b0,  
+        config bit      BEL_SET_B       = 1'b0, 
+        config bit      BEH_SET_B       = 1'b0,   
+        config bit      CS2_SET_B       = 1'b0,  
+        config bit      ORCK_POL_B      = 1'b0,     // sc_ckqa_inv
+        config string   WRITE_MODE_B    = "NORMAL_WRITE", //  : No-change mode
+                                       // "TRANSPARENT_WRITE" : Write-first mode
+                                       // "READ_BEFORE_WRITE" : Read-first mode
+                                                      // "BW" : Byte write mode        
+        config int      DATA_WIDTH_B    = 18,   // 1 2 4 8/9 16/18 32/36
+        config bit      OR_USED_B       = 1'b0, // 1'b0 : disabled
+                                                // 1'b1 : enabled 
+        config string   GRS_EN          = "TRUE",
+        config string   RESET_TYPE      = "SYNC",
+        config bit      RD_PW[3:0]      = 4'b0000,
+        config bit      WR_PW[3:0]      = 4'b0000,
+        config bit      SAE_PW[3:0]     = 4'b0000,
+        config bit      SAE_DEL[3:0]    = 4'b0000,
+        config bit      INIT_00[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_01[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_02[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_03[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_04[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_05[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_06[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_07[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_08[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_09[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_0A[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_0B[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_0C[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_0D[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_0E[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_0F[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_10[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_11[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_12[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_13[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_14[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_15[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_16[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_17[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_18[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_19[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_1A[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_1B[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_1C[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_1D[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_1E[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_1F[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_20[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_21[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_22[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_23[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_24[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_25[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_26[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_27[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_28[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_29[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_2A[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_2B[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_2C[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_2D[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_2E[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_2F[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_30[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_31[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_32[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_33[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_34[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_35[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_36[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_37[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_38[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_39[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_3A[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_3B[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_3C[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_3D[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_3E[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000,
+        config bit      INIT_3F[287:0]  = 288'h000000000000000000000000000000000000000000000000000000000000000000000000            
+    );           
+                 
+    port         
+    (   
+        config input SC_DRM_EN       = 1'b0     /*pragma PAP_CFG_BIT_NAME = "SC_DRM_EN" */,
+        config input SC_PICSA[2:0]   = 3'b111   /*pragma PAP_CFG_BIT_NAME = "SC_PICSA<2>, SC_PICSA<1>, SC_PICSA<0>" */,
+        config input SC_PICEA        = 1'b0     /*pragma PAP_CFG_BIT_NAME = "SC_PICEA   " */,
+        config input SC_PIWEA        = 1'b0     /*pragma PAP_CFG_BIT_NAME = "SC_PIWEA   " */,
+        config input SC_PIOCEA       = 1'b0     /*pragma PAP_CFG_BIT_NAME = "SC_PIOCEA  " */,
+        config input SC_PICLKA       = 1'b0     /*pragma PAP_CFG_BIT_NAME = "SC_PICLKA  " */,
+        config input SC_PIRSTA       = 1'b0     /*pragma PAP_CFG_BIT_NAME = "SC_PIRSTA  " */,
+        config input SC_PIBELA       = 1'b0     /*pragma PAP_CFG_BIT_NAME = "SC_PIBELA  " */,
+        config input SC_PIBEHA       = 1'b0     /*pragma PAP_CFG_BIT_NAME = "SC_PIBEHA  " */,
+        config input SC_CSA2_SET     = 1'b0     /*pragma PAP_CFG_BIT_NAME = "SC_CSA2_SET" */,
+        config input SC_BELA_SET     = 1'b0     /*pragma PAP_CFG_BIT_NAME = "SC_BELA_SET" */,
+        config input SC_BEHA_SET     = 1'b0     /*pragma PAP_CFG_BIT_NAME = "SC_BEHA_SET" */,
+        config input SC_CKQA_INV     = 1'b0     /*pragma PAP_CFG_BIT_NAME = "SC_CKQA_INV" */,
+        config input SC_TWA          = 1'b0     /*pragma PAP_CFG_BIT_NAME = "SC_TWA     " */,
+        config input SC_RBWA         = 1'b0     /*pragma PAP_CFG_BIT_NAME = "SC_RBWA    " */,
+        config input SC_DBLWA        = 1'b0     /*pragma PAP_CFG_BIT_NAME = "SC_DBLWA   " */,
+        config input SC_CONF_ENA     = 1'b0     /*pragma PAP_CFG_BIT_NAME = "SC_CONF_ENA" */,
+        config input SC_DWA[3:0]     = 4'b0000  /*pragma PAP_CFG_BIT_NAME = "SC_DWA<3>, SC_DWA<2>, SC_DWA<1>, SC_DWA<0>" */,        
+        config input SC_OREA         = 1'b0     /*pragma PAP_CFG_BIT_NAME = "SC_OREA" */,
+        config input SC_PICSB[2:0]   = 3'b111   /*pragma PAP_CFG_BIT_NAME = "SC_PICSB<2>, SC_PICSB<1>, SC_PICSB<0>" */,
+        config input SC_PICEB        = 1'b0     /*pragma PAP_CFG_BIT_NAME = "SC_PICEB   " */,
+        config input SC_PIWEB        = 1'b0     /*pragma PAP_CFG_BIT_NAME = "SC_PIWEB   " */,
+        config input SC_PIOCEB       = 1'b0     /*pragma PAP_CFG_BIT_NAME = "SC_PIOCEB  " */,
+        config input SC_PICLKB       = 1'b0     /*pragma PAP_CFG_BIT_NAME = "SC_PICLKB  " */,
+        config input SC_PIRSTB       = 1'b0     /*pragma PAP_CFG_BIT_NAME = "SC_PIRSTB  " */,
+        config input SC_PIBELB       = 1'b0     /*pragma PAP_CFG_BIT_NAME = "SC_PIBELB  " */,
+        config input SC_PIBEHB       = 1'b0     /*pragma PAP_CFG_BIT_NAME = "SC_PIBEHB  " */,
+        config input SC_CSB2_SET     = 1'b0     /*pragma PAP_CFG_BIT_NAME = "SC_CSB2_SET" */,
+        config input SC_BELB_SET     = 1'b0     /*pragma PAP_CFG_BIT_NAME = "SC_BELB_SET" */,
+        config input SC_BEHB_SET     = 1'b0     /*pragma PAP_CFG_BIT_NAME = "SC_BEHB_SET" */,
+        config input SC_CKQB_INV     = 1'b0     /*pragma PAP_CFG_BIT_NAME = "SC_CKQB_INV" */,
+        config input SC_TWB          = 1'b0     /*pragma PAP_CFG_BIT_NAME = "SC_TWB     " */,
+        config input SC_RBWB         = 1'b0     /*pragma PAP_CFG_BIT_NAME = "SC_RBWB    " */,
+        config input SC_DBLWB        = 1'b0     /*pragma PAP_CFG_BIT_NAME = "SC_DBLWB   " */,
+        config input SC_CONF_ENB     = 1'b0     /*pragma PAP_CFG_BIT_NAME = "SC_CONF_ENB" */,
+        config input SC_DWB[3:0]     = 4'b0000  /*pragma PAP_CFG_BIT_NAME = "SC_DWB<3>, SC_DWB<2>, SC_DWB<1>, SC_DWB<0>" */,
+        config input SC_OREB         = 1'b0     /*pragma PAP_CFG_BIT_NAME = "SC_OREB    " */,
+        config input SC_GRS_DIS      = 1'b0     /*pragma PAP_CFG_BIT_NAME = "SC_GRS_DIS " */,
+        config input SC_ASYNC        = 1'b0     /*pragma PAP_CFG_BIT_NAME = "SC_ASYNC   " */,
+        config input SC_SYNC_DIS     = 1'b0     /*pragma PAP_CFG_BIT_NAME = "SC_SYNC_DIS" */,
+        config input SC_RD_PW[3:0]   = 4'b0000  /*pragma PAP_CFG_BIT_NAME = "SC_RD_PW<3>, SC_RD_PW<2>, SC_RD_PW<1>, SC_RD_PW<0>" */,
+        config input SC_WR_PW[3:0]   = 4'b0000  /*pragma PAP_CFG_BIT_NAME = "SC_WR_PW<3>, SC_WR_PW<2>, SC_WR_PW<1>, SC_WR_PW<0>" */,
+        config input SC_SAE_PW[3:0]  = 4'b0000  /*pragma PAP_CFG_BIT_NAME = "SC_SAE_PW<3>, SC_SAE_PW<2>, SC_SAE_PW<1>, SC_SAE_PW<0>" */,
+        config input SC_SAE_DEL[3:0] = 4'b0000  /*pragma PAP_CFG_BIT_NAME = "SC_SAE_DEL<3>, SC_SAE_DEL<2>, SC_SAE_DEL<1>, SC_SAE_DEL<0>" */,
+        config input SC_MASK_BIT     = 1'b0     /*pragma PAP_CFG_BIT_NAME = "SC_MASK_BIT" */,
+                 
+        input  ADA[13:0] = 14'h3fff,
+        input  ADSA      = 1'b1,
+        input  DA[17:0]  = 18'h3_ffff,
+        input  CEA       = 1'b1,
+        input  CLKA      = 1'b1,
+        input  CSA[2:0]  = 3'b111,
+        input  WEA       = 1'b1,
+        input  OCEA      = 1'b1,
+        input  RSTA      = 1'b1,
+
+        input  ADB[13:0] = 14'h3fff,
+        input  ADSB      = 1'b1,
+        input  DB[17:0]  = 18'h3_ffff,
+        input  CEB       = 1'b1,
+        input  CLKB      = 1'b1,
+        input  CSB[2:0]  = 3'b111,
+        input  WEB       = 1'b1,
+        input  OCEB      = 1'b1,
+        input  RSTB      = 1'b1,
+
+        // There are no Global Set&Reset signals Power UP, FIXED ME.
+        // config input GRSN,
+        // config input ROME,
+        // input  POR_N,
+        output WWCONF,
+
+        output QA[17:0],
+        output QB[17:0]
+    );
+
+}; // end of device DRM
+
+/*******************************************************************************
+
+  Device    [DRM]
+
+  Author    [clwang]
+
+  Abstract  [The structure netlist of CLMS is described in the similar fashion 
+             as in HDL. In unit instantiation statement, the formal pin may be 
+             connected to net which is declared explicitly. 
+             
+             In Valence, the connection can also be made from formal pin to other 
+             pin or port, in which case Valence compiler shall create the net to 
+             fulfil the connection. The built-in naming convention is kicked in 
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+
+structure netlist of DRM
+{
+    wire ntCLKA, ntCLKB, ntWEA, ntWEB, ntCEA, ntCEB, ntOCEA, ntOCEB, ntRSTA, ntRSTB;
+    wire ntCLKAINV, ntCLKBINV;
+    wire ntWEAINV, ntWEBINV;
+    wire ntCEAINV, ntCEBINV;
+    wire ntOCEAINV, ntOCEBINV;
+    wire ntRSTAINV, ntRSTBINV;
+
+    ntCLKA <= CLKA;
+    ntCLKB <= CLKB;
+    ntWEA  <= WEA;
+    ntWEB  <= WEB;
+    ntCEA  <= CEA;
+    ntCEB  <= CEB;
+    ntOCEA <= OCEA;
+    ntOCEB <= OCEB;
+    ntRSTA <= RSTA;
+    ntRSTB <= RSTB;
+
+    device DRM_POLMUX CLKAPOLMUX
+        parameter map
+        (
+            SEL => CLK_POL_A
+        )
+        port map
+        ( 
+            I   => ntCLKA,
+            I_B => ntCLKA,
+            Y   => ntCLKAINV
+        );
+
+    device DRM_POLMUX CLKBPOLMUX
+        parameter map
+        (
+            SEL => CLK_POL_B        
+        )
+        port map
+        ( 
+            I   => ntCLKB,
+            I_B => ntCLKB, 
+            Y   => ntCLKBINV
+        );
+
+    device DRM_POLMUX WEAPOLMUX
+        parameter map
+        (
+            SEL => WE_POL_A        
+        )
+        port map
+        ( 
+            I   => ntWEA,
+            I_B => ntWEA,
+            Y   => ntWEAINV
+         );
+
+    device DRM_POLMUX WEBPOLMUX
+        parameter map
+        (
+            SEL => WE_POL_B        
+        )
+        port map
+        (
+            I   => ntWEB, 
+            I_B => ntWEB, 
+            Y   => ntWEBINV
+        );
+
+    device DRM_POLMUX CEAPOLMUX
+        parameter map
+        (
+            SEL => CE_POL_A        
+        )
+        port map
+        ( 
+            I   => ntCEA,
+            I_B => ntCEA, 
+            Y   => ntCEAINV
+        );
+
+    device DRM_POLMUX CEBPOLMUX
+        parameter map
+        (
+            SEL => CE_POL_B       
+        )
+        port map
+        ( 
+            I   => ntCEB, 
+            I_B => ntCEB, 
+            Y   => ntCEBINV
+        );
+
+    device DRM_POLMUX OCEAPOLMUX
+        parameter map
+        (
+            SEL => OCE_POL_A      
+        )
+        port map
+        ( 
+            I   => ntOCEA,
+            I_B => ntOCEA, 
+            Y   => ntOCEAINV
+        );
+
+    device DRM_POLMUX OCEBPOLMUX
+        parameter map
+        (
+            SEL => OCE_POL_B      
+        )
+        port map
+        ( 
+            I   => ntOCEB, 
+            I_B => ntOCEB, 
+            Y   => ntOCEBINV
+        );
+        
+    device DRM_POLMUX RSTAPOLMUX
+        parameter map
+        (
+            SEL => RST_POL_A      
+        )
+        port map
+        ( 
+            I   => ntRSTA, 
+            I_B => ntRSTA, 
+            Y   => ntRSTAINV
+        );
+
+    device DRM_POLMUX RSTBPOLMUX
+        parameter map
+        (
+            SEL => RST_POL_B     
+        )
+        port map
+        (
+            I   => ntRSTB, 
+            I_B => ntRSTB, 
+            Y   => ntRSTBINV
+        );
+
+    device DRM_INST DRM_INST
+            parameter map
+            (
+                DRM_EN    => DRM_EN,
+                DRM_MODE  => DRM_MODE, 
+                GRS_EN    => GRS_EN,
+                CS_POL_A  => CS_POL_A,
+                CS_POL_B  => CS_POL_B,
+               
+                DATA_WIDTH_A => DATA_WIDTH_A,
+                DATA_WIDTH_B => DATA_WIDTH_B,
+               
+                WRITE_MODE_A => WRITE_MODE_A,
+                WRITE_MODE_B => WRITE_MODE_B, 
+               
+                OR_USED_A  => OR_USED_A,
+                OR_USED_B  => OR_USED_B,
+
+                RESET_TYPE   => RESET_TYPE,
+
+                WRITE_COLLISION_ARBITER => WRITE_COLLISION_ARBITER,
+
+                ORCK_POL_A => ORCK_POL_A,
+                ORCK_POL_B => ORCK_POL_B,
+               
+                INIT_00 => INIT_00,
+                INIT_01 => INIT_01,
+                INIT_02 => INIT_02,
+                INIT_03 => INIT_03,
+                INIT_04 => INIT_04,
+                INIT_05 => INIT_05,
+                INIT_06 => INIT_06,
+                INIT_07 => INIT_07,
+                INIT_08 => INIT_08,
+                INIT_09 => INIT_09,
+                INIT_0A => INIT_0A,
+                INIT_0B => INIT_0B,
+                INIT_0C => INIT_0C,
+                INIT_0D => INIT_0D,
+                INIT_0E => INIT_0E,
+                INIT_0F => INIT_0F,
+                INIT_10 => INIT_10,
+                INIT_11 => INIT_11,
+                INIT_12 => INIT_12,
+                INIT_13 => INIT_13,
+                INIT_14 => INIT_14,
+                INIT_15 => INIT_15,
+                INIT_16 => INIT_16,
+                INIT_17 => INIT_17,
+                INIT_18 => INIT_18,
+                INIT_19 => INIT_19,
+                INIT_1A => INIT_1A,
+                INIT_1B => INIT_1B,
+                INIT_1C => INIT_1C,
+                INIT_1D => INIT_1D,
+                INIT_1E => INIT_1E,
+                INIT_1F => INIT_1F,
+                INIT_20 => INIT_20,
+                INIT_21 => INIT_21,
+                INIT_22 => INIT_22,
+                INIT_23 => INIT_23,
+                INIT_24 => INIT_24,
+                INIT_25 => INIT_25,
+                INIT_26 => INIT_26,
+                INIT_27 => INIT_27,
+                INIT_28 => INIT_28,
+                INIT_29 => INIT_29,
+                INIT_2A => INIT_2A,
+                INIT_2B => INIT_2B,
+                INIT_2C => INIT_2C,
+                INIT_2D => INIT_2D,
+                INIT_2E => INIT_2E,
+                INIT_2F => INIT_2F,
+                INIT_30 => INIT_30,
+                INIT_31 => INIT_31,
+                INIT_32 => INIT_32,
+                INIT_33 => INIT_33,
+                INIT_34 => INIT_34,
+                INIT_35 => INIT_35,
+                INIT_36 => INIT_36,
+                INIT_37 => INIT_37,
+                INIT_38 => INIT_38,
+                INIT_39 => INIT_39,
+                INIT_3A => INIT_3A,
+                INIT_3B => INIT_3B,
+                INIT_3C => INIT_3C,
+                INIT_3D => INIT_3D,
+                INIT_3E => INIT_3E,
+                INIT_3F => INIT_3F
+            )
+        port map
+        (
+            ADA     =>   ADA,
+            ADSA    =>   ADSA,
+            DA      =>   DA,
+            CEA     =>   ntCEAINV,
+            CLKA    =>   ntCLKAINV,
+            CSA     =>   CSA,
+            WEA     =>   ntWEAINV,
+            OCEA    =>   ntOCEAINV,
+            RSTA    =>   ntRSTAINV,
+
+            ADB     =>   ADB,
+            ADSB    =>   ADSB,
+            DB      =>   DB,
+            CEB     =>   ntCEAINV,
+            CLKB    =>   ntCLKBINV,
+            CSB     =>   CSB,
+            WEB     =>   ntWEBINV,
+            OCEB    =>   ntOCEBINV,
+            RSTB    =>   ntRSTBINV,
+
+            WWCONF  =>   WWCONF,
+
+            QA      =>   QA,
+            QB      =>   QB
+        );
+}; // end of structure netlist of DRM
+
+
+/*******************************************************************************
+
+  Device    [DRM]
+
+  Author    [clwang]
+
+  Abstract  [Configure the configuration bits based on the value of config parameter]
+
+  Revision History:
+
+********************************************************************************/
+configuration cfg of DRM
+{      
+    SC_DRM_EN   := DRM_EN;
+
+    int i;
+    for(i = 0; i < 3; i+=1)
+    {
+        SC_PICSA[i] := CS_POL_A[i] ? 1'b0 : 1'b1;  
+        SC_PICSB[i] := CS_POL_B[i] ? 1'b0 : 1'b1;         
+    }
+    //SC_PICSA    := CS_POL_A   ;
+    SC_PICEA    := CE_POL_A   ;
+    SC_PIWEA    := WE_POL_A   ;
+    SC_PIOCEA   := OCE_POL_A  ;
+    SC_PICLKA   := CLK_POL_A  ;
+    SC_PIRSTA   := RST_POL_A  ;
+    SC_PIBELA   := BEL_POL_A  ;
+    SC_PIBEHA   := BEH_POL_A  ;
+    SC_BELA_SET := BEL_SET_A  ;
+    SC_BEHA_SET := BEH_SET_A  ;
+    SC_CSA2_SET := CS2_SET_A  ;
+    SC_CKQA_INV := ORCK_POL_A ;
+
+    SC_DWA[3]   := (DATA_WIDTH_A <= 9) ? 1'b1 : 1'b0;
+    SC_DWA[2]   := (DATA_WIDTH_A <= 4) ? 1'b1 : 1'b0;
+    SC_DWA[1]   := (DATA_WIDTH_A <= 2) ? 1'b1 : 1'b0;
+    SC_DWA[0]   := (DATA_WIDTH_A == 1) ? 1'b1 : 1'b0;
+
+    SC_OREA     := OR_USED_A  ;
+    SC_OREB     := OR_USED_B  ;
+    //SC_PICSB    := CS_POL_B   ;
+    SC_PICEB    := CE_POL_B   ;
+    SC_PIWEB    := WE_POL_B   ;
+    SC_PIOCEB   := OCE_POL_B  ;
+    SC_PICLKB   := CLK_POL_B  ;
+    SC_PIRSTB   := RST_POL_B  ;
+    SC_PIBELB   := BEL_POL_B  ;
+    SC_PIBEHB   := BEH_POL_B  ;
+    SC_BELB_SET := BEL_SET_B  ;
+    SC_BEHB_SET := BEH_SET_B  ;
+    SC_CSB2_SET := CS2_SET_B  ;
+    SC_CKQB_INV := ORCK_POL_B ;
+
+    SC_DWB[3]   := (DATA_WIDTH_B <= 9) ? 1'b1 : 1'b0;
+    SC_DWB[2]   := (DATA_WIDTH_B <= 4) ? 1'b1 : 1'b0;
+    SC_DWB[1]   := (DATA_WIDTH_B <= 2) ? 1'b1 : 1'b0;
+    SC_DWB[0]   := (DATA_WIDTH_B == 1) ? 1'b1 : 1'b0;
+
+    // Transparent-Write mode enable    1: enabled  0: disabled
+    SC_TWA  := (WRITE_MODE_A == "TRANSPARENT_WRITE") ? 1'b1 : 1'b0;
+    SC_TWB  := (WRITE_MODE_B == "TRANSPARENT_WRITE") ? 1'b1 : 1'b0;
+    // Read-before-Write mode enable    1: enabled  0: disabled
+    SC_RBWA := (WRITE_MODE_A == "READ_BEFORE_WRITE") ? 1'b1 : 1'b0;
+    SC_RBWB := (WRITE_MODE_B == "READ_BEFORE_WRITE") ? 1'b1 : 1'b0;
+
+    // Write-Write conflict write enable    0: enabled  1: disabled
+    // WRITE_COLLISION_ARBITER settings:
+    //     "NULL" : all enabled
+    //     "PORTA": PORTA enabled, PORTB disabled
+    //     "PORTB": PORTB enabled, PORTA disabled
+    SC_CONF_ENA := (WRITE_COLLISION_ARBITER == "PORTB") ? 1'b1 : 1'b0;
+    SC_CONF_ENB := (WRITE_COLLISION_ARBITER == "PORTA") ? 1'b1 : 1'b0;
+
+    // Double write port setting        1: enabled  0: disabled
+    SC_DBLWA    := (DATA_WIDTH_A > 18) ? 1'b1 : 1'b0;
+    SC_DBLWB    := (DATA_WIDTH_B > 18) ? 1'b1 : 1'b0;
+
+    // xctrl.xscbox.sc_async     |  0:sync or 1:async reset
+    // xctrl.xscbox.sc_sync_dis  |  0:sync or 1:async release
+    if (RESET_TYPE == "ASYNC") {
+        SC_SYNC_DIS := 1'b1;
+    } else {
+        SC_SYNC_DIS := 1'b0;
+        if (RESET_TYPE == "SYNC") {
+            SC_ASYNC := 1'b0;
+        } else if (RESET_TYPE == "ASYNC_SYNC_RELEASE") {
+            SC_ASYNC := 1'b1;
+        } else {
+            error("%s for RESET_TYPE of DRM is not supported!", RESET_TYPE);
+        }
+    }
+    SC_GRS_DIS  := (GRS_EN == "TRUE") ? 1'b0 : 1'b1 ;
+
+    SC_RD_PW    := RD_PW   ;
+    SC_WR_PW    := WR_PW   ;
+    SC_SAE_PW   := SAE_PW  ;
+    SC_SAE_DEL  := SAE_DEL ;
+    
+    SC_MASK_BIT := (DRM_MODE == "ROM") ? 1'b0 : 1'b1 ;
+
+}; // end of configuration cfg of DRM
+
+
+timing tnl of DRM
+{
+    wire ntCLKA, ntCLKB, ntWEA, ntWEB, ntCEA, ntCEB, ntOCEA, ntOCEB, ntRSTA, ntRSTB;
+
+    if(CLK_POL_A == 1'b1)
+    {
+        operator V_INV V_CLKAINV
+            parameter map
+            (
+                SECTION => "CLKAINV"
+            )
+            port map 
+            (
+                 I => CLKA,
+                 Z => ntCLKA
+            );
+    }
+    else
+    {
+        ntCLKA <= CLKA;
+    }
+    if(CLK_POL_B == 1'b1)
+    {
+        operator V_INV V_CLKBINV
+            parameter map
+            (
+                SECTION => "CLKBINV"
+            )
+            port map 
+            (
+                 I => CLKB,
+                 Z => ntCLKB
+            );    
+    }
+    else
+    {
+        ntCLKB <= CLKB;
+    }
+    if(RST_POL_A == 1'b1)
+    {
+        operator V_INV V_RSTAINV
+            parameter map
+            (
+                SECTION => "RSTAINV"
+            )
+            port map 
+            (
+                 I => RSTA,
+                 Z => ntRSTA
+            );    
+    }
+    else
+    {
+        ntRSTA <= RSTA;
+    }
+    if(RST_POL_B == 1'b1)
+    {
+        operator V_INV V_RSTBINV
+            parameter map
+            (
+                SECTION => "RSTBINV"
+            )
+            port map 
+            (
+                 I => RSTB,
+                 Z => ntRSTB
+            );    
+    }
+    else
+    {
+        ntRSTB <= RSTB;
+    }
+    if(CE_POL_A  == 1'b1)
+    {
+        operator V_INV V_CEAINV
+            parameter map
+            (
+                SECTION => "CEAINV"
+            )
+            port map 
+            (
+                 I => CEA,
+                 Z => ntCEA
+            );    
+    }
+    else
+    {
+        ntCEA <= CEA;
+    }
+    if(CE_POL_B  == 1'b1)
+    {
+        operator V_INV V_CEBINV
+            parameter map
+            (
+                SECTION => "CEBINV"
+            )
+            port map 
+            (
+                 I => CEB,
+                 Z => ntCEB
+            );    
+    }
+    else
+    {
+        ntCEB <= CEB;
+    }
+    if(OCE_POL_A  == 1'b1)
+    {
+        operator V_INV V_OCEAINV
+            parameter map
+            (
+                SECTION => "OCEAINV"
+            )
+            port map 
+            (
+                 I => OCEA,
+                 Z => ntOCEA
+            );
+    }
+    else
+    {
+        ntOCEA <= OCEA;
+    }
+    if(OCE_POL_B  == 1'b1)
+    {
+        operator V_INV V_OCEBINV
+            parameter map
+            (
+                SECTION => "OCEBINV"
+            )
+            port map 
+            (
+                 I => OCEB,
+                 Z => ntOCEB
+            );    
+    }
+    else
+    {
+        ntOCEB <= OCEB;
+    }
+    if(WE_POL_A  == 1'b1)
+    {
+        operator V_INV V_WEAINV
+            parameter map
+            (
+                SECTION => "WEAINV"
+            )
+            port map 
+            (
+                 I => WEA,
+                 Z => ntWEA
+            );    
+    }
+    else
+    {
+        ntWEA <= WEA;
+    }
+    if(WE_POL_B  == 1'b1)
+    {
+        operator V_INV V_WEBINV
+            parameter map
+            (
+                SECTION => "WEBINV"
+            )
+            port map 
+            (
+                 I => WEB,
+                 Z => ntWEB
+            );   
+    }
+    else
+    {
+        ntWEB <= WEB;
+    }
+
+    operator V_DRM18K V_DRM18K
+        parameter map
+        (
+            GRS_EN    => GRS_EN,
+            CSA_MASK  => CS_POL_A,
+            CSB_MASK  => CS_POL_B,
+           
+            DATA_WIDTH_A => DATA_WIDTH_A,
+            DATA_WIDTH_B => DATA_WIDTH_B,
+           
+            WRITE_MODE_A => WRITE_MODE_A,
+            WRITE_MODE_B => WRITE_MODE_B, 
+
+            DOA_REG      => (OR_USED_A == 1'b1) ? 1 : 0,
+            DOB_REG      => (OR_USED_B == 1'b1) ? 1 : 0,
+
+            RST_TYPE     => RESET_TYPE,
+
+            WRITE_COLLISION_ARBITER => WRITE_COLLISION_ARBITER,
+
+            DOA_REG_CLKINV => ORCK_POL_A == 1'b1 ? 1 : 0,
+            DOB_REG_CLKINV => ORCK_POL_B == 1'b1 ? 1 : 0,
+
+            RAM_MODE       => (DRM_MODE == "SDP" || DATA_WIDTH_A > 18 || DATA_WIDTH_B > 18) ? "SIMPLE_DUAL_PORT" : "TRUE_DUAL_PORT",
+            SIM_DEVICE     => "TITAN",
+
+            INIT_00 => INIT_00,
+            INIT_01 => INIT_01,
+            INIT_02 => INIT_02,
+            INIT_03 => INIT_03,
+            INIT_04 => INIT_04,
+            INIT_05 => INIT_05,
+            INIT_06 => INIT_06,
+            INIT_07 => INIT_07,
+            INIT_08 => INIT_08,
+            INIT_09 => INIT_09,
+            INIT_0A => INIT_0A,
+            INIT_0B => INIT_0B,
+            INIT_0C => INIT_0C,
+            INIT_0D => INIT_0D,
+            INIT_0E => INIT_0E,
+            INIT_0F => INIT_0F,
+            INIT_10 => INIT_10,
+            INIT_11 => INIT_11,
+            INIT_12 => INIT_12,
+            INIT_13 => INIT_13,
+            INIT_14 => INIT_14,
+            INIT_15 => INIT_15,
+            INIT_16 => INIT_16,
+            INIT_17 => INIT_17,
+            INIT_18 => INIT_18,
+            INIT_19 => INIT_19,
+            INIT_1A => INIT_1A,
+            INIT_1B => INIT_1B,
+            INIT_1C => INIT_1C,
+            INIT_1D => INIT_1D,
+            INIT_1E => INIT_1E,
+            INIT_1F => INIT_1F,
+            INIT_20 => INIT_20,
+            INIT_21 => INIT_21,
+            INIT_22 => INIT_22,
+            INIT_23 => INIT_23,
+            INIT_24 => INIT_24,
+            INIT_25 => INIT_25,
+            INIT_26 => INIT_26,
+            INIT_27 => INIT_27,
+            INIT_28 => INIT_28,
+            INIT_29 => INIT_29,
+            INIT_2A => INIT_2A,
+            INIT_2B => INIT_2B,
+            INIT_2C => INIT_2C,
+            INIT_2D => INIT_2D,
+            INIT_2E => INIT_2E,
+            INIT_2F => INIT_2F,
+            INIT_30 => INIT_30,
+            INIT_31 => INIT_31,
+            INIT_32 => INIT_32,
+            INIT_33 => INIT_33,
+            INIT_34 => INIT_34,
+            INIT_35 => INIT_35,
+            INIT_36 => INIT_36,
+            INIT_37 => INIT_37,
+            INIT_38 => INIT_38,
+            INIT_39 => INIT_39,
+            INIT_3A => INIT_3A,
+            INIT_3B => INIT_3B,
+            INIT_3C => INIT_3C,
+            INIT_3D => INIT_3D,
+            INIT_3E => INIT_3E,
+            INIT_3F => INIT_3F
+        )
+        port map
+        (
+            ADDRA      => ADA,
+            ADDRA_HOLD => ADSA,
+            DIA        => DA,
+            CEA        => ntCEA,
+            CLKA       => ntCLKA,
+            CSA        => CSA,
+            WEA        => ntWEA,
+            ORCEA      => ntOCEA,
+            RSTA       => ntRSTA,
+      
+            ADDRB      => ADB,
+            ADDRB_HOLD => ADSB,
+            DIB        => DB,
+            CEB        => ntCEB,
+            CLKB       => ntCLKB,
+            CSB        => CSB,
+            WEB        => ntWEB,
+            ORCEB      => ntOCEB,
+            RSTB       => ntRSTB,
+   
+            DOA        => QA,
+            DOB        => QB,
+            WWCONF     => WWCONF
+      ); 
+};
+
+

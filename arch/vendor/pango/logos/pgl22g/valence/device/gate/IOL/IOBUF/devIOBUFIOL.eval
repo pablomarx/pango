@@ -1,0 +1,179 @@
+*****************************************************************
+
+  Device    [devIOBUFIOL]
+
+  Author    [yqtan]
+
+  Abstract  [device base on IOL, used as inout path through to IOB ]
+
+  Revision History:
+
+********************************************************************************/
+
+gate
+device devIOBUFIOL : device IOL
+{
+    parameter
+    (
+        config string CP_DOMODE           = "DD",         //"DD","FF","LATCH","DDR","OUT_EXT"
+        config string CP_TOMODE          := "DD",
+        config bit CP_DELAY_SETTING[1:0] := 2'b00,        //2'd0 => neither input nor output use delay unit; 2'd1 => delay unit for output; 
+                                                          //2'd2 => delay unit for input; 2'd3 => illegal setting
+        config string CP_PDIFF           := "DISABLE",      //"DISABLE" "ENABLE"
+        config string CP_MIPI_EN          = "DISABLE"       //"DISABLE", "ENABLE"
+    );
+    port
+    (
+        input   TX_DATA[7:7],
+        input   TS_CTRL[0:0],
+        input   DI,
+        input   MIPI_SW_DYN_I,
+        input   OUT_EXT,
+  logic input   MIPI_IN,
+  logic output  MIPI_OUT,
+        
+        output  RX_DATA_DD,
+        output  TO_OUT,
+        output  TO,
+        output  DO_OUT,
+        output  DO,
+        output  MIPI_SW_DYN_O,
+        output  INCK
+    );
+
+}// end of device devIOBUFIOL
+
+/*******************************************************************************
+
+  Device    [devIOBUFIOL]
+
+  Author    []
+
+  Abstract  [The structure netlist of devIOBUFIOL is described in the similar fashion
+             as in HDL. In unit instantiation statement, the formal pin may be
+             connected to net which is declared explicitly.
+
+             In Valence, the connection can also be made from formal pin to other
+             pin or port, in which case Valence compiler shall create the net to
+             fulfil the connection. The built-in naming convention is kicked in
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devIOBUFIOL
+{       
+    // Wires connecting to output ports
+    wire ntDI;
+    wire ntDO_IN;
+    wire ntRX_DATA_DD;
+    wire ntDO_OUT;
+    wire ntDO;
+    wire ntMIPI_SW_DYN_O;
+    wire ntOUTPUT_DATA_SEL;
+    wire ntOUTPUT_DATA_SEL_TMP;
+    wire ntMIPI_SW_DYN_I;
+    wire ntOUT_EXT;
+    wire ntTO_OUT;
+    wire ntTO;
+    ntOUT_EXT            <= OUT_EXT;
+    ntDI                 <= DI;
+    ntMIPI_SW_DYN_I      <= MIPI_SW_DYN_I;
+    RX_DATA_DD           <= ntRX_DATA_DD;
+    DO_OUT               <= ntDO_OUT;
+    DO                   <= ntDO;
+    MIPI_SW_DYN_O        <= ntMIPI_SW_DYN_O;
+    TO_OUT               <= ntTO_OUT;     
+    TO                   <= ntTO;   
+    
+    device MUX21_EN MIPI_EN_MUX
+        parameter map
+        (
+            CP_SEL => CP_MIPI_EN
+        )
+        port map
+        (
+            X0 => ntMIPI_SW_DYN_I,
+            X1 => 1'b0,
+            Y  => ntMIPI_SW_DYN_O
+        );
+    
+    device MUX21_EN DO_PDIFF_MUX
+        parameter map
+        (
+            CP_SEL => CP_PDIFF
+        )
+        port map
+        (
+            X1   => ntDO_OUT,
+            Y    => ntDO
+        );
+        
+    device OUTMUX OUTPUT_DATA_MUX
+        parameter map
+        (
+            CP_SEL => CP_DOMODE
+        )
+        port map
+        (
+            X0   => TX_DATA[7],
+            X3   => ntOUT_EXT,
+            Y    => ntOUTPUT_DATA_SEL_TMP
+        );
+    
+    device MIPI_OUT MIPI_OUT
+        port map
+        (
+            X0 => ntMIPI_SW_DYN_O,
+            X2 => ntOUTPUT_DATA_SEL_TMP,
+            Y  => ntOUTPUT_DATA_SEL
+        );
+        
+    device MUX21  OUT_DELSEL_MUX
+        parameter map
+        (
+            CP_SEL => CP_DELAY_SETTING[0]
+        )
+        port map
+        (
+            X0   => ntOUTPUT_DATA_SEL,
+            Y    => ntDO_OUT
+        );
+    
+    device MUX21  IN_DELSEL_MUX
+        parameter map
+        (
+            CP_SEL => CP_DELAY_SETTING[1]
+        )
+        port map
+        (
+            X0   => ntDI,
+            Y    => ntRX_DATA_DD
+        );
+    
+    device OUTMUX TO_OUT_MUX
+        parameter map
+        (
+            CP_SEL => CP_TOMODE
+        )
+        port map
+        (
+            X0   => TS_CTRL[0],
+            Y    => ntTO_OUT
+        );
+    
+    device MUX21_EN TO_PDIFF_MUX
+        parameter map
+        (
+            CP_SEL => CP_PDIFF
+        )
+        port map
+        (
+            X1   => ntTO_OUT,
+            Y    => ntTO
+        ); 
+}; // end of structure netlist of devIOBUFIOL
+

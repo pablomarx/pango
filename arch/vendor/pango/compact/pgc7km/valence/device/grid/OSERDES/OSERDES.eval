@@ -1,0 +1,167 @@
+tarted
+grid
+device OSERDES
+{
+    // grid_property_def_start
+    // grid_property_def_end
+
+    parameter
+    (
+        config string CP_GRS_DIS = "FALSE",
+        config string CP_ODDR_MODE = "DISABLE",
+        config string CP_RSTA_EN = "DISABLE",
+        config string CP_RSTC_EN = "DISABLE"
+    );
+    port
+    (
+// configuration_body_def_on
+
+
+    config input SC_GRS_DIS = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_GRS_DIS" */,
+
+    config input SC_ODDR_MODE[1:0] = 2'h0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_ODDR_MODE[1],SC_ODDR_MODE[0]" */,
+
+    config input SC_RSTA_EN = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_RSTA_EN" */,
+
+    config input SC_RSTC_EN = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_RSTC_EN" */,
+
+// configuration_body_def_end
+
+        input TX_DATA[7:0] = 8'b1111_1111,
+        input CLK_IO_A = 1'b1,
+        input CLK_IO_C = 1'b1,
+        input CLK_SYS_A = 1'b1,
+        input CLK_SYS_C = 1'b1,
+        input RST_OSERDES_A = 1'b1,
+        input RST_OSERDES_C = 1'b1,
+        output DO_C,
+        output DO_A
+    );
+};
+//grid device end
+
+//grid device structure netlist started
+structure netlist of OSERDES
+{
+    //dummy instances for constraint editor
+     device OSERDES_INST OSERDESA ;
+     device OSERDES_INST OSERDESC ;
+};
+//grid device structure netlist end
+
+//grid device configure body started
+
+configuration cfg of OSERDES
+{
+
+//initial config body0 begin
+    if(CP_GRS_DIS == "FALSE")
+    {
+        SC_GRS_DIS  :=  1'b0;
+    }
+    else if(CP_GRS_DIS =="TRUE")
+    {
+        SC_GRS_DIS  :=  1'b1;
+    }
+    else
+    {
+        SC_GRS_DIS  :=  1'bx;
+        error("illegal setting for CP_GRS_DIS  :=  %s", CP_GRS_DIS);
+    }
+
+//initial config body0 end
+
+
+//initial config body1 begin
+    if(CP_ODDR_MODE == "DISABLE")
+    {
+        SC_ODDR_MODE  :=  2'b00;
+    }
+    else if(CP_ODDR_MODE =="OSER4")
+    {
+        SC_ODDR_MODE  :=  2'b01;
+    }
+    else if(CP_ODDR_MODE == "OSER8")
+    {
+        SC_ODDR_MODE  :=  2'b10;
+    }
+    else if(CP_ODDR_MODE == "OSER7")
+    {
+        SC_ODDR_MODE  :=  2'b11;
+    }
+    else
+    {
+        SC_ODDR_MODE  :=  2'bx;
+        error("illegal setting for CP_ODDR_MODE  :=  %s", CP_ODDR_MODE);
+    }
+
+//initial config body1 end
+
+
+//initial config body2 begin
+    if(CP_RSTA_EN == "DISABLE")
+    {
+        SC_RSTA_EN  :=  1'b0;
+    }
+    else if(CP_RSTA_EN == "ENABLE")
+    {
+        SC_RSTA_EN  :=  1'b1;
+    }
+    else
+    {
+        SC_RSTA_EN  :=  1'bx;
+        error("illegal setting for CP_RSTA_EN  :=  %s", CP_RSTA_EN);
+    }
+
+//initial config body2 end
+
+
+//initial config body3 begin
+    if(CP_RSTC_EN == "DISABLE")
+    {
+        SC_RSTC_EN  :=  1'b0;
+    }
+    else if(CP_RSTC_EN == "ENABLE")
+    {
+        SC_RSTC_EN  :=  1'b1;
+    }
+    else
+    {
+        SC_RSTC_EN  :=  1'bx;
+        error("illegal setting for CP_RSTC_EN  :=  %s", CP_RSTC_EN);
+    }
+
+//initial config body3 end
+
+};
+
+//grid device configure body end
+
+
+timing  oserdes_tnl of OSERDES
+{
+    operator V_OSERDES_E1 V_OSERDES_E1
+        parameter map 
+        (
+            OSERDES_MODE =>  CP_ODDR_MODE,
+            GRS_EN       => (CP_GRS_DIS== "FALSE") ? "TRUE"  :
+                            (CP_GRS_DIS== "TRUE" ) ? "FALSE" : ""
+        )
+        port map
+        (
+            DOC    => DO_C         ,
+            RCLKC  => CLK_SYS_C    ,
+            OCLKC  => CLK_IO_C     ,
+            RSTC   => RST_OSERDES_C,
+            DOA    => DO_A         ,
+            RCLKA  => CLK_SYS_A    ,
+            OCLKA  => CLK_IO_A     ,
+            RSTA   => RST_OSERDES_A,
+            DI     => TX_DATA      
+            
+        );
+};

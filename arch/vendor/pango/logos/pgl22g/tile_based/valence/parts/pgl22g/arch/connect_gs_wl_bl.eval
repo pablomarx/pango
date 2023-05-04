@@ -1,0 +1,538 @@
+*************************************************************************
+****************************************************************************************/
+library work;
+use pgl_defs,pgl22g_defs,pgl_funcs_place,pgl_funcs_connect_gs_wl;
+use pgl_funcs_connect_blsr;
+
+structure arch_nl connect_gs_wl of devPGL22G
+{   
+    unsigned int l_regions[] = {[0:2]};
+    unsigned int rx,tx;
+    
+    unsigned int l_tx_wlsrs[];
+    unsigned int l_tx_wlsr[];
+    unsigned int l_tx_wlsr1[] = L_WLSR1_TILES_X;
+    unsigned int l_tx_wlsr2[] = L_WLSR2_TILES_X;
+    unsigned int l_tx_dll[] = L_IOCKGATEDLL_TILES_X;
+    unsigned int l_tx_wlsra[];
+    unsigned int l_tx_wlsrd[] = L_WLSRD_TILES_X;
+    unsigned int l_tx_rckb[] = {0};
+    
+    unsigned int tx_blsr = 18;
+    unsigned int tx_hmemc0 = 5;
+    unsigned int tx_hmemc1 = 33;
+
+    unsigned int ty,tmp_ty;
+    foreach rx( l_regions )
+    {
+      l_tx_wlsrs = (rx==0) ? {[5:17,19:33]} : {[2:17,19:36]};
+      l_tx_wlsr = (rx==0) ? {6,7,9,[11:14,16:17],19,[21:26],28,31,32} : {[2:7],9,[11:14,16:17],19,[21:26],28,[31:36]};
+      l_tx_wlsra = (rx==0) ? {5,27,33} : {27};
+      connect_WLSR_gs_wl(rx, tx_blsr, l_tx_wlsrs, l_tx_wlsr, l_tx_wlsr1, l_tx_wlsr2, l_tx_wlsra, l_tx_wlsrd, tx_hmemc0);
+     
+      foreach tx( L_SRB_TILES_X)
+      {
+          connect_SRB_gs_addr_input(tx, rx,  CCS_TILE_X, CCS_TILE_Y, tx_hmemc0, tx_hmemc1, S_HMEMC_TILE, N_HMEMC_TILE,
+                                    l_tx_wlsr1, l_tx_wlsr2, l_tx_wlsra, l_tx_wlsrd, l_tx_dll, l_tx_rckb);
+      }
+
+
+      foreach ty( {[0:14],[16:30]} )
+      {
+        tmp_ty = rx * NUM_TILES_REGION + ty;
+        foreach tx( L_CLMA_TILES_X )
+        {
+          if(!((tx>=CCS_TILE_X) && (tx<=(CCS_TILE_X+NUM_GRID_CCS_X/NUM_GRID_X)) && (tmp_ty>=CCS_TILE_Y)))
+          {
+            if((tx==PLL_TILE_X) && (((tmp_ty>=PLL_TILE0_Y) && (tmp_ty<=PLL_TILE0_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1))||((tmp_ty >= PLL_TILE1_Y) && (tmp_ty<=PLL_TILE1_Y+NUM_GRID_PLL_Y/NUM_GRID_Y - 1))||((tmp_ty>=PLL_TILE2_Y) && (tmp_ty<=PLL_TILE2_Y + NUM_GRID_PLL_Y/NUM_GRID_Y - 1)) || ((tmp_ty>=PLL_TILE3_Y) && (tmp_ty<=PLL_TILE3_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1))||((tmp_ty>=PLL_TILE4_Y)&&(tmp_ty<=PLL_TILE4_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1))||((tmp_ty>=PLL_TILE5_Y)&&(tmp_ty<=PLL_TILE5_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1)))) 
+            {      
+            }  
+            else if((tx==USCM_TILE_X)&&(((tmp_ty >= USCM_TILE0_Y) && (tmp_ty<=USCM_TILE0_Y+NUM_GRID_USCM_Y/NUM_GRID_Y-1))||((tmp_ty>=USCM_TILE1_Y) && (tmp_ty<=USCM_TILE1_Y+NUM_GRID_USCM_Y/NUM_GRID_Y-1))))
+            {
+            }
+            else if(((tx<=tx_hmemc0)||(tx>=tx_hmemc1))&&(tmp_ty<N_HMEMC_TILE))
+            {
+            }
+            else if(!((tx==RLYBUFS_TILE_X)&&(tmp_ty==RLYBUFS_TILE_Y)))
+            {
+              connect_CLM_gs_addr_input(rx, tx, ty, l_tx_wlsr1, l_tx_wlsr2, 1);
+            }
+          }   
+        }
+        foreach tx( L_CLMS_TILES_X )
+        {
+          if(!((tx>=CCS_TILE_X) && (tx<=(CCS_TILE_X+NUM_GRID_CCS_X/NUM_GRID_X)) && (tmp_ty>=CCS_TILE_Y)))
+          {
+            if((tx==PLL_TILE_X)&&(((tmp_ty>=PLL_TILE0_Y) && (tmp_ty<=PLL_TILE0_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1))||((tmp_ty>=PLL_TILE1_Y)&&(tmp_ty<=PLL_TILE1_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1))||((tmp_ty>=PLL_TILE2_Y) && (tmp_ty<=PLL_TILE2_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1))||((tmp_ty>=PLL_TILE3_Y)&&(tmp_ty<=PLL_TILE3_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1))||((tmp_ty>=PLL_TILE4_Y) && (tmp_ty<=PLL_TILE4_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1))||((tmp_ty>=PLL_TILE5_Y)&&(tmp_ty<=PLL_TILE5_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1)))) 
+            {      
+            }  
+            else if((tx==USCM_TILE_X) && (((tmp_ty>=USCM_TILE0_Y) && (tmp_ty <= USCM_TILE0_Y+NUM_GRID_USCM_Y/NUM_GRID_Y-1))||((tmp_ty>=USCM_TILE1_Y)&&(tmp_ty<=USCM_TILE1_Y+NUM_GRID_USCM_Y/NUM_GRID_Y-1))))
+            {
+            }
+            else if(((tx<=tx_hmemc0)||(tx>=tx_hmemc1))&&(tmp_ty<N_HMEMC_TILE))
+            {
+            }
+            else if(!((tx==RLYBUFS_TILE_X)&&(tmp_ty==RLYBUFS_TILE_Y)))
+            {
+              connect_CLM_gs_addr_input(rx, tx, ty, l_tx_wlsr1, l_tx_wlsr2, 0);
+            }
+          }
+        }
+      }
+     
+      foreach ty( {0,5,10,16,21,26} )
+      {
+        tmp_ty = rx * NUM_TILES_REGION + ty;
+        foreach tx( L_DRM_TILES_X )
+        {
+          if(!((tx>=CCS_TILE_X) && (tx<=(CCS_TILE_X+NUM_GRID_CCS_X/NUM_GRID_X)) && (tmp_ty>=CCS_TILE_Y)))
+          {
+            connect_DRM_gs_addr_input(rx,tx,ty);
+          }
+        }
+      }
+
+      foreach tx( L_APM_TILES_X )
+      {
+          connect_APM_gs_addr_input(rx,tx);
+      }
+    }
+    
+    unsigned int L_PLL_TILES_X[] = {PLL_TILE_X};
+    unsigned int L_PLL_TILES_Y[] = {PLL_TILE0_Y,PLL_TILE1_Y,PLL_TILE2_Y,PLL_TILE3_Y,PLL_TILE4_Y,PLL_TILE5_Y};
+
+    foreach tx ( L_PLL_TILES_X )
+    {
+        foreach ty ( L_PLL_TILES_Y )
+        {
+            connect_PLL_gs_addr_input( tx, ty);
+        }     
+    } 
+
+    unsigned int L_USCM_TILES_X[] = {USCM_LOC_X};
+    unsigned int L_USCM_TILES_Y[] = {USCM0_LOC_Y, USCM1_LOC_Y};    
+    int tx_wlsr = USCM_TILE_X;
+    
+
+    foreach tx ( L_USCM_TILES_X )
+    {
+        foreach ty ( L_USCM_TILES_Y )
+        {
+            connect_USCM_gs_addr_input( tx, ty, tx_wlsr);
+        }      
+    } 
+
+    int s_hmemc = S_HMEMC_TILE;
+    int n_hmemc = N_HMEMC_TILE;
+    foreach tx( L_IOL_TILES_X )
+    {
+      foreach ty( L_IOL_TILES_Y )
+      {
+         connect_iol_gs_addr_input(tx, ty, s_hmemc, n_hmemc, "IOL_TILE", 1);
+      }
+      foreach ty( L_HMEMCIOL_TILES_Y )
+      {
+         connect_iol_gs_addr_input(tx, ty, s_hmemc, n_hmemc, "HMEMCIOL_TILE", 1);
+      }
+      foreach ty( L_DQSL_TILES_Y )
+      {
+         connect_iol_gs_addr_input(tx, ty, s_hmemc, n_hmemc, "DQSL_TILE", 1);
+      }
+      foreach ty( L_HMEMCDQSL_TILES_Y )
+      {
+         connect_iol_gs_addr_input(tx, ty, s_hmemc, n_hmemc, "HMEMCDQSL_TILE", 1);
+      }
+      foreach ty( L_CRAMSL2_TILES_Y )
+      {
+         connect_cramsl2_addr_input(tx, ty, s_hmemc, n_hmemc, "CRAMSL2_TILE", 1);
+      }
+      foreach ty( L_RLYBUFS5_TILES_Y )
+      {
+         connect_cramsl2_addr_input(tx, ty, s_hmemc, n_hmemc, "RLYBUFS5_TILE", 1);
+      }
+
+
+      foreach rx( l_regions )
+      {
+         connect_iockgatedll_gs_input(tx, rx, tx_hmemc0, tx_hmemc1, ESD_PGL22G_TILE_X, NUM_REGION, "ESD_PGL22G_TILE", 1);
+      }
+
+    }
+
+    connect_HMEMC_gs_addr_input(tx_hmemc0, tx_hmemc1, 2, 0, 0);
+    connect_HMEMC_gs_addr_input(tx_hmemc0, tx_hmemc1, 33, 0, 1);
+
+    foreach rx( l_regions )
+    {
+      foreach tx( L_IOB_TILES_X )
+      {
+        connect_iob_gs_input(tx, rx, 1);
+      }
+    }
+
+
+};//end of structure arch_nl connect_global_sig of devPGL22G
+
+/***************************************************************************************
+****************************************************************************************/
+library work;
+use pgl_defs,pgl22g_defs,pgl_funcs_place,pgl_funcs_connect_gs_wl;
+use pgl_funcs_connect_blsr;
+
+structure arch_nl connect_blsr_output of devPGL22G
+{
+    unsigned int l_regions[] = {[0:2]};
+    unsigned int tx_blsr = 18;
+    unsigned int tx_hmemc0 = 5;
+    unsigned int tx_hmemc1 = 33;
+
+    unsigned int rx,tx;
+    string device_wlsr;
+    int tx_wlsr1_l = 10;
+    int tx_wlsr1_r = 29;
+    int tx_dll_l = 1;
+    int tx_dll_r = 37;
+
+
+    foreach rx( l_regions )
+    {
+        foreach tx( L_WLSR_TILES_X )
+        {
+          if(!((rx==0)&&((tx<tx_hmemc0)||(tx>tx_hmemc1))))
+          {
+           device_wlsr = ((rx==0) && ((tx==tx_hmemc0) || (tx==tx_hmemc1))) ? "WLSRA_TILE" : "WLSR_TILE";
+           connect_blsr_gs_output(rx, tx, tx_blsr, CCS_TILE_X, CCS_TILE_Y, device_wlsr);
+          }
+        } 
+
+        foreach tx( L_WLSR1_TILES_X )
+        {
+          connect_blsr_gs_output(rx, tx, tx_blsr, CCS_TILE_X, CCS_TILE_Y, "WLSR1_TILE");
+        }
+
+        foreach tx( L_WLSR2_TILES_X )
+        {
+          connect_blsr_gs_output(rx, tx, tx_blsr, CCS_TILE_X, CCS_TILE_Y, "WLSR2_TILE");
+        }
+
+        foreach tx( L_WLSRA_TILES_X )
+        {
+          connect_blsr_gs_output(rx, tx, tx_blsr, CCS_TILE_X, CCS_TILE_Y, "WLSRA_TILE");
+        }
+
+        foreach tx( L_WLSRD_TILES_X )
+        {
+          connect_blsr_gs_output(rx, tx, tx_blsr, CCS_TILE_X, CCS_TILE_Y, "WLSRD_TILE");
+        }
+
+        foreach tx( L_IOCKGATEDLL_TILES_X )
+        {
+          device_wlsr = (rx==0) ? "HMEMCIOCKGATEDLL_TILE" : "IOCKGATEDLL_TILE";
+          connect_blsr_gs_output(rx, tx, tx_blsr, CCS_TILE_X, CCS_TILE_Y, device_wlsr);
+        }
+
+        foreach tx( L_IOB_TILES_X )
+        {
+          connect_blsr_gs_output(rx, tx, tx_blsr, CCS_TILE_X, CCS_TILE_Y, "IOB_TILE");
+        }
+
+
+
+        connect_blsr_gs_output1(rx, tx_blsr, tx_wlsr1_l, tx_wlsr1_r, tx_dll_l, tx_dll_r, 1);
+    }
+
+};//end of structure arch_nl connect_blsr of devPGL22G
+
+/***************************************************************************************
+****************************************************************************************/
+library work;
+use pgl_defs,pgl22g_defs,pgl_funcs_place,pgl_funcs_connect_gs_wl;
+use pgl_funcs_connect_blsr,pgl22g_funcs;
+
+structure arch_nl connect_col_addr of devPGL22G
+{
+    unsigned int l_regions[] = {[0:2]};
+    unsigned int l_tx_l[];
+    unsigned int l_tx_r[];
+    unsigned int tx_blsr = 18;
+    unsigned int tx_hmemc0 = 5;
+    unsigned int tx_hmemc1 = 33;
+    unsigned int rx;
+
+    foreach rx( l_regions )
+    {
+        l_tx_l = (rx==0) ? {0,1,[5:17]} : {[0:17]};
+        l_tx_r = (rx==0) ? {[19:33],37,38} : {[19:38]};
+        connect_col_addr( rx, tx_blsr, l_tx_l, l_tx_r, tx_hmemc0, tx_hmemc1);
+    }
+
+};//end of structure arch_nl connect_blsr of devPGL22G
+
+/***************************************************************************************
+****************************************************************************************/
+library work;
+use pgl_defs,pgl22g_defs,pgl_funcs_place;//pgl_funcs_connect_gs_wl;
+use pgl_funcs_connect_blsr;//pgl22g_funcs;
+
+structure arch_nl connect_bl of devPGL22G
+{
+    unsigned int l_regions[] = {[0:2]};
+    unsigned int tx_blsr = 18;    
+    unsigned int tx_ccs = 8;
+    unsigned int ty_ccs = 78;
+    unsigned int l_tx_srb[] = L_SRB_TILES_X;  
+    unsigned int tx_hmemc0 = 5;
+    unsigned int tx_hmemc1 = 33;
+
+    unsigned int tx, rx, ty_int, ty;
+    string device_wlsr;
+
+    foreach rx( l_regions )
+    {
+      foreach tx( l_tx_srb )
+      {
+        if((rx==0)&&((tx<tx_hmemc0)||(tx>tx_hmemc1)))
+        {
+        }
+        else if((rx==1)&&((tx<tx_hmemc0)||(tx>tx_hmemc1)))
+        {
+          connect_SRB_bl_input( tx, rx, tx_blsr, 1);
+        }  
+        else if((rx==2)&&(tx>CCS_TILE_X)&&(tx<=(CCS_TILE_X+NUM_GRID_CCS_X/NUM_GRID_X)))
+        {
+          connect_SRB_bl_input( tx, rx, tx_blsr, 0);
+        }
+        else
+        {
+          connect_SRB_bl_input( tx, rx, tx_blsr, 0);
+          connect_SRB_bl_input( tx, rx, tx_blsr, 1);
+        }
+      }
+
+      foreach tx( L_CLMA_TILES_X )
+      {
+        foreach ty_int( {[0:14],[16:60]} )
+        {
+           ty = ty_int + rx * NUM_TILES_REGION;
+           if(!(((tx>=CCS_TILE_X) && (tx<=CCS_TILE_X+NUM_GRID_CCS_X/NUM_GRID_X) && (ty>=CCS_TILE_Y))))
+           {
+             if((tx==PLL_TILE_X)&&(((ty>=PLL_TILE0_Y)&&(ty<=PLL_TILE0_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1))||((ty>=PLL_TILE1_Y)&&(ty<=PLL_TILE1_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1))||((ty>=PLL_TILE2_Y) && (ty<=PLL_TILE2_Y + NUM_GRID_PLL_Y/NUM_GRID_Y - 1))||((ty>=PLL_TILE3_Y)&&(ty<=PLL_TILE3_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1))||((ty>=PLL_TILE4_Y)&&(ty<=PLL_TILE4_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1))||((ty>=PLL_TILE5_Y)&&(ty<=PLL_TILE5_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1))))
+             {      
+             }  
+             else if((tx == USCM_TILE_X)&&(((ty >= USCM_TILE0_Y)&&(ty<=USCM_TILE0_Y+NUM_GRID_USCM_Y/NUM_GRID_Y-1))||((ty >= USCM_TILE1_Y)&&(ty <= USCM_TILE1_Y + NUM_GRID_USCM_Y/NUM_GRID_Y-1))))
+             {
+             }
+             else if(((tx<=tx_hmemc0)||(tx>=tx_hmemc1))&&(ty>=S_HMEMC_TILE)&&(ty<=N_HMEMC_TILE))
+             {
+             }
+             else if(!((tx==RLYBUFS_TILE_X)&&(ty==RLYBUFS_TILE_Y)))
+             {
+               connect_CLM_bl_input( rx, tx, ty_int, tx_blsr, 1);
+             }
+           }  
+        }
+      }
+
+      foreach tx( L_CLMS_TILES_X )
+      {
+        foreach ty_int( {[0:14],[16:60]} )
+        {
+           ty = ty_int + rx * NUM_TILES_REGION;
+           if(!(((tx>=CCS_TILE_X) && (tx<=CCS_TILE_X+NUM_GRID_CCS_X/NUM_GRID_X) && (ty>=CCS_TILE_Y))))
+           {
+             if((tx==PLL_TILE_X) && (((ty>=PLL_TILE0_Y) && (ty<=PLL_TILE0_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1))||((ty>=PLL_TILE1_Y) && (ty<=PLL_TILE1_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1))||((ty>=PLL_TILE2_Y) && (ty<=PLL_TILE2_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1))||((ty>=PLL_TILE3_Y)&&(ty<=PLL_TILE3_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1)) || ((ty>=PLL_TILE4_Y) && (ty<=PLL_TILE4_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1))||((ty>=PLL_TILE5_Y)&&(ty<=PLL_TILE5_Y+NUM_GRID_PLL_Y/NUM_GRID_Y-1))))
+             {      
+             }  
+             else if((tx==USCM_TILE_X)&&(((ty>=USCM_TILE0_Y)&&(ty<=USCM_TILE0_Y+NUM_GRID_USCM_Y/NUM_GRID_Y-1))||((ty>=USCM_TILE1_Y)&&(ty<=USCM_TILE1_Y+NUM_GRID_USCM_Y/NUM_GRID_Y-1))))
+             {
+             }
+             else if(((tx<=tx_hmemc0)||(tx>=tx_hmemc1))&&(ty>=S_HMEMC_TILE)&&(ty<=N_HMEMC_TILE))
+             {
+             }
+             else if(!((tx==RLYBUFS_TILE_X)&&(ty==RLYBUFS_TILE_Y)))
+             {
+               connect_CLM_bl_input( rx, tx, ty_int, tx_blsr, 0);
+             }
+           }  
+        }
+      }
+
+      foreach ty_int( {0,5,10,16,21,26} )
+      {
+        ty = rx * NUM_TILES_REGION + ty;
+        foreach tx( L_DRM_TILES_X )
+        {
+          ty = ty_int + rx * NUM_TILES_REGION;
+          if(!(((tx>=CCS_TILE_X) && (tx<=CCS_TILE_X+NUM_GRID_CCS_X/NUM_GRID_X) && (ty>=CCS_TILE_Y))))
+          {
+            connect_DRM_bl_input( rx, tx, ty_int, tx_blsr);
+          }
+        }
+      }
+
+      foreach tx( L_APM_TILES_X )
+      {      
+        connect_APM_bl_input( rx, tx, tx_blsr);
+      }
+
+        foreach tx( L_IOL_TILES_X)
+        {
+          connect_IOL_bl_input( tx, rx, tx_blsr, L_IOL_TILES_Y, L_HMEMCIOL_TILES_Y, L_DQSL_TILES_Y, L_HMEMCDQSL_TILES_Y, 
+                                L_IOCKGATEDLL_TILES_Y, L_HMEMCIOCKGATEDLL_TILES_Y, L_CRAMSL2_TILES_Y, L_RLYBUFS5_TILES_Y);
+        }
+
+
+        foreach tx( L_IOB_TILES_X)
+        {
+          connect_IOB_bl_input( rx, tx, tx_blsr);
+        }
+
+        foreach tx( L_WLSR_TILES_X )
+        {
+          if(!((rx==0)&&((tx<tx_hmemc0)||(tx>tx_hmemc1))))
+          {
+           device_wlsr = ((rx==0) && ((tx==tx_hmemc0) || (tx==tx_hmemc1))) ? "WLSRA_TILE" : "WLSR_TILE";
+           connect_WLSR_bl_input(rx, tx, tx_blsr, device_wlsr);
+          }
+        }
+
+        foreach tx( L_WLSR1_TILES_X )
+        {
+          connect_WLSR_bl_input(rx, tx, tx_blsr, "WLSR1_TILE");
+        }
+
+        foreach tx( L_WLSR2_TILES_X )
+        {
+          connect_WLSR_bl_input(rx, tx, tx_blsr, "WLSR2_TILE");
+        }
+
+        foreach tx( L_WLSRA_TILES_X )
+       {
+          connect_WLSR_bl_input(rx, tx, tx_blsr, "WLSRA_TILE");
+        }
+
+        foreach tx( L_WLSRD_TILES_X )
+        {
+          connect_WLSR_bl_input(rx, tx, tx_blsr, "WLSRD_TILE");
+        }
+    } 
+
+    int tx_pll = 20;
+    connect_PLL_bl_input( 0, 11, tx_pll, tx_blsr);
+    connect_PLL_bl_input( 0, 16, tx_pll, tx_blsr);
+    connect_PLL_bl_input( 1, 11, tx_pll, tx_blsr);
+    connect_PLL_bl_input( 1, 16, tx_pll, tx_blsr);
+    connect_PLL_bl_input( 2, 11, tx_pll, tx_blsr);
+    connect_PLL_bl_input( 2, 16, tx_pll, tx_blsr);
+
+
+    connect_USCM_bl_input( 0, USCM0_LOC_Y, 29, USCM_LOC_X, tx_blsr);
+    connect_USCM_bl_input( 1, USCM1_LOC_Y, 0, USCM_LOC_X, tx_blsr);
+
+};//end of structure arch_nl connect_bl of devPGL22G
+/***************************************************************************************
+****************************************************************************************/
+library work;
+use pgl_defs,pgl22g_defs;
+use pgl_funcs_place,pgl_funcs_connect_gs_wl;
+use pgl_funcs_connect_blsr,pgl22g_funcs;
+
+structure arch_nl connect_blsr_input of devPGL22G
+{
+  unsigned int L_REGIONS[] = {[0:2]};
+  unsigned int tx_wlsr1_l = 10;
+  unsigned int tx_wlsr1_r = 29;
+  unsigned int tx_blsr = 18;
+  unsigned int tx_ccs = 8;
+  unsigned int ty_ccs = 78;
+  unsigned int tx_wlsr2 = 20;
+
+  int rx;
+  foreach rx( L_REGIONS )
+  {
+    connect_BLSR_input_pgl( rx, tx_wlsr1_l, tx_wlsr1_r, tx_blsr, tx_ccs, ty_ccs, tx_wlsr2, NUM_REGION, NUM_TILE_X, 1);
+  }
+
+  connect_BLSR_input_pgl22g();
+
+};//end of structure arch_nl connect_BLSR_input of devPGL22
+/***************************************************************************************
+****************************************************************************************/
+library work;
+use pgl_defs,pgl22g_defs;
+use pgl_funcs_place,pgl_funcs_connect_gs_wl;
+use pgl_funcs_connect_blsr,pgl22g_funcs;
+
+structure arch_nl connect_ccs_tile of devPGL22G
+{
+  int ty_blsr_t = 2;
+  int ty_pll_t = PLL_TILE4_Y;
+  int ty_iob_so = NUM_TILE_Y - 1;
+  int tx_iockgate = 1;
+  int ty_iockgate_t = 77;
+  int tx_idcode = IDCODE_TILE_X;
+  int ty_idcode = IDCODE_TILE_Y;
+
+  int tx_wlsr1 = 10;
+
+  connect_CCS_input(CCS_TILE_X,CCS_TILE_Y,
+                    tx_iockgate,ty_iockgate_t,
+                    ty_blsr_t, tx_idcode, ty_idcode, ESD_PGL22G_TILE_X,tx_wlsr1);
+
+};//end of structure arch_nl connect_ccs_tile of devPGL22G
+/***************************************************************************************
+****************************************************************************************/
+library work;
+use pgl_defs,pgl22g_defs;
+use pgl_funcs_place,pgl_funcs_connect_gs_wl;
+use pgl_funcs_connect_blsr,pgl22g_funcs;
+
+structure arch_nl connect_esd_tile of devPGL22G
+{
+  int tx,ty;
+
+  foreach tx( {ESD_PGL22G_TILE_X} )
+  {
+    foreach ty( {ESD_PGL22G_TILE_Y} )
+    {
+      connect_esd_tile( tx, ty);
+    }
+  }
+
+
+};//end of structure arch_nl connect_ccs_tile of devPGL22G
+/***************************************************************************************
+****************************************************************************************/
+library work;
+use pgl_defs,pgl22g_defs;
+use pgl_funcs_place,pgl_funcs_connect_gs_wl;
+use pgl_funcs_connect_blsr,pgl22g_funcs;
+
+structure arch_nl connect_blint_pulldown of devPGL22G
+{
+  int tx_hmemc0 = 2;
+  int tx_hmemc1 = 33;
+  int ty_hmemc = 0;
+  int tx_blsr = 18;
+
+  connect_blint_pulldown(tx_hmemc0, ty_hmemc, tx_blsr);
+  connect_blint_pulldown(tx_hmemc1, ty_hmemc, tx_blsr);
+
+};//end of structure arch_nl connect_blint_pulldown of devPGL22G
+/***************************************************************************************
+****************************************************************************************/
+library work;
+use pgl_defs,pgl22g_defs;
+use pgl_funcs_place,pgl_funcs_connect_gs_wl;
+use pgl_funcs_connect_blsr,pgl22g_funcs;
+structure arch_nl connect_bias of devPGL22G
+{
+    string LR;
+    foreach LR({"L","R"})
+    {
+      connect_bias_iob( LR );
+    }
+
+    connect_bias_pll();
+
+};//end of structure arch_nl connect_bias of devPGL22G

@@ -1,0 +1,349 @@
+*******************************************************************************
+
+  Vendor    [Logos2]
+
+  Author    [XIAWEI]
+
+  Abstract  [This defines all chips supported in family 'Logos2']
+
+  Revision History:
+
+********************************************************************************************/
+
+family Logos2 of pango
+{
+    string pango_path = "/arch/vendor/pango/";
+
+    file ( "technology operator library" ) // pragma PAP_ARC_LOAD_ON_DEMAND="tech_operator_lib"
+    {
+        ( "/arch/vendor/pango/logos2/common/lib/gtp_lib.v -format verilog -library tech_operator_lib" ),
+        ( "/arch/lib/bms/verilog/bmsPrim.v -format verilog -library behav_operator_lib" )
+    }
+
+    file ( "technology operator (valence) library" ) // pragma PAP_ARC_LOAD_ON_DEMAND="valence_tech_operator"
+    {
+        ( *pango_path + "logos2/common/list/gtps_decl_list.eval -e -format tcl" )
+    }
+
+
+    // The PG2L25H architecture
+    device ( PG2L25H )
+    {
+        string logos2_path = "/arch/vendor/pango/logos2/";
+        string pg2l25h_path  = "/arch/vendor/pango/logos2/pg2l25h/";
+        string pg2l_tile_based_path = "/arch/vendor/pango/logos2/common/tile_based/";
+
+
+        file ( "operator packing rules" ) // pragma PAP_ARC_LOAD_ON_DEMAND="packing_rules"
+        {
+            ( *logos2_path + "common/packingrule/packingrules.txt -format packing_rule" )
+        }
+
+        file ( "common defs" )
+        {
+            ( *logos2_path + "common/valence/pg_defs.eval -e -format valence" ),
+            ( *pg2l_tile_based_path + "valence/common/pkgs/pg2l_defs.eval -e -format valence" ),
+            ( *pg2l_tile_based_path + "valence/common/site/stARCH/stARCH.eval -e -format valence" )
+        } // file ( "common defs" )
+
+
+        file ( "prim grid devices" ) // pragma PAP_ARC_LOAD_ON_DEMAND="prim_grid_device"
+        {
+            ( *pg2l25h_path + "valence/list/prim_grid_devices_list.eval -e -format tcl" )
+        }
+        
+        file ( "prim grid device symbols" ) // pragma PAP_ARC_LOAD_ON_DEMAND="prim_grid_device_symbol"
+        {
+            ( *pg2l25h_path + "valence/list/prim_grid_devices_symbol_list.eval -e -format tcl" )
+        }
+        
+        file ( "gate devices" ) // pragma PAP_ARC_LOAD_ON_DEMAND="gate_device"
+        {
+            ( *pg2l25h_path + "valence/list/gate_devices_list.eval -e -format tcl" )
+        }
+        
+        file ( "gate operators" ) // pragma PAP_ARC_LOAD_ON_DEMAND="gate_operator"
+        {
+            ( *pg2l25h_path + "valence/list/gops_list.eval -e -format tcl" )
+        }
+        
+        file ( "tech operator impls" ) // pragma PAP_ARC_LOAD_ON_DEMAND="tech_operator_impl"
+        {
+            ( *pg2l25h_path + "valence/list/gtps_impl_list.eval -e -format tcl" )
+        }
+
+
+        file
+        {
+            ( *pg2l_tile_based_path + "valence/parts/pg2l25h/pkgs/pg2l25h_defs.eval -e -format valence" ),
+            ( *pg2l_tile_based_path + "valence/parts/pg2l25h/arch/generate_grid.eval -e -format valence" ),
+            ( *pg2l25h_path + "valence/netlist/schm_funcs.eval -e -format valence" ),
+            ( *pg2l25h_path + "valence/netlist/floorplan_funcs.eval -e -format valence" ),
+            ( *pg2l25h_path + "valence/netlist/floorplan.eval -e -format valence" ),
+            ( *pg2l25h_path + "valence/netlist/logic_view.eval -e -format valence" ),
+            ( *pg2l25h_path + "valence/netlist/floorplan_view.eval -e -format valence" ),
+
+            // 1) arch
+            ( *pg2l25h_path + "db/arch_lp.eadf -e -format adif -model_layer logic_device_layout" ),
+            ( *pg2l25h_path + "db/arch_nt.eadf -e -format adif -model_layer logic_device_net" ),
+
+            // 2) arch view
+            //( *pg2l25h_path + "valence/netlist/logic_schm_layout.eval -e -format valence" ),
+            ( *pg2l25h_path + "db/arch_schm.eadf -e -format adif -model_layer logic_schematic" ),
+
+            // 3) floorplan
+             //( *pg2l25h_path + "valence/netlist/layout_fp.eval -e -format valence" ),
+            ( *pg2l25h_path + "db/fp_arch_lp.eadf -e -format adif -model_layer fp_device_layout" ),
+
+            // 4) floorplan view
+            //( *pg2l25h_path + "valence/netlist/fp_schm_layout.eval -e -format valence" ),
+            ( *pg2l25h_path + "db/fp_arch_schm.eadf -e -format adif -model_layer fp_schematic" ),
+
+            
+            // 5) others
+            ( *pg2l25h_path + "data/paramanager.txt -format param_manager" )
+        }
+
+        packaging ( SBG238 )
+        {
+           file
+            {
+                ( *pg2l_tile_based_path + "valence/parts/pg2l25h/pkgs/pg2l25h_sbg238_spec.eval -e -format valence -package" ),
+                ( *pg2l25h_path + "package/sbg238.eval -e -format valence" )
+            }
+        }
+        packaging ( MBG325 )
+        {
+           file
+            {
+                ( *pg2l_tile_based_path + "valence/parts/pg2l25h/pkgs/pg2l25h_mbg325_spec.eval -e -format valence -package" ),
+                ( *pg2l25h_path + "package/mbg325.eval -e -format valence" )
+            }
+        }
+    } // end of PG2L25H
+
+
+    // The PG2L50H architecture
+    device ( PG2L50H )
+    {
+        string logos2_path = "/arch/vendor/pango/logos2/";
+        string pg2l50h_path  = "/arch/vendor/pango/logos2/pg2l50h/";
+        string pg2l_tile_based_path = "/arch/vendor/pango/logos2/common/tile_based/";
+
+
+        file ( "operator packing rules" ) // pragma PAP_ARC_LOAD_ON_DEMAND="packing_rules"
+        {
+            ( *logos2_path + "common/packingrule/packingrules.txt -format packing_rule" )
+        }
+
+        file ( "common defs" )
+        {
+            ( *logos2_path + "common/valence/pg_defs.eval -e -format valence" ),
+            ( *pg2l_tile_based_path + "valence/common/pkgs/pg2l_defs.eval -e -format valence" ),
+            ( *pg2l_tile_based_path + "valence/common/site/stARCH/stARCH.eval -e -format valence" )
+        } // file ( "common defs" )
+
+
+        file ( "prim grid devices" ) // pragma PAP_ARC_LOAD_ON_DEMAND="prim_grid_device"
+        {
+            ( *pg2l50h_path + "valence/list/prim_grid_devices_list.eval -e -format tcl" )
+        }
+        
+        file ( "prim grid device symbols" ) // pragma PAP_ARC_LOAD_ON_DEMAND="prim_grid_device_symbol"
+        {
+            ( *pg2l50h_path + "valence/list/prim_grid_devices_symbol_list.eval -e -format tcl" )
+        }
+        
+        file ( "gate devices" ) // pragma PAP_ARC_LOAD_ON_DEMAND="gate_device"
+        {
+            ( *pg2l50h_path + "valence/list/gate_devices_list.eval -e -format tcl" )
+        }
+        
+        file ( "gate operators" ) // pragma PAP_ARC_LOAD_ON_DEMAND="gate_operator"
+        {
+            ( *pg2l50h_path + "valence/list/gops_list.eval -e -format tcl" )
+        }
+        
+        file ( "tech operator impls" ) // pragma PAP_ARC_LOAD_ON_DEMAND="tech_operator_impl"
+        {
+            ( *pg2l50h_path + "valence/list/gtps_impl_list.eval -e -format tcl" )
+        }
+
+
+        file
+        {
+            ( *pg2l_tile_based_path + "valence/parts/pg2l50h/pkgs/pg2l50h_defs.eval -e -format valence" ),
+            ( *pg2l_tile_based_path + "valence/parts/pg2l50h/arch/generate_grid.eval -e -format valence" ),
+            ( *pg2l50h_path + "valence/netlist/schm_funcs.eval -e -format valence" ),
+            ( *pg2l50h_path + "valence/netlist/floorplan_funcs.eval -e -format valence" ),
+            ( *pg2l50h_path + "valence/netlist/floorplan.eval -e -format valence" ),
+            ( *pg2l50h_path + "valence/netlist/logic_view.eval -e -format valence" ),
+            ( *pg2l50h_path + "valence/netlist/floorplan_view.eval -e -format valence" ),
+
+            // 1) arch
+            ( *pg2l50h_path + "db/arch_lp.eadf -e -format adif -model_layer logic_device_layout" ),
+            ( *pg2l50h_path + "db/arch_nt.eadf -e -format adif -model_layer logic_device_net" ),
+
+            // 2) arch view
+            //( *pg2l50h_path + "valence/netlist/logic_schm_layout.eval -e -format valence" ),
+            ( *pg2l50h_path + "db/arch_schm.eadf -e -format adif -model_layer logic_schematic" ),
+
+            // 3) floorplan
+             //( *pg2l50h_path + "valence/netlist/layout_fp.eval -e -format valence" ),
+            ( *pg2l50h_path + "db/fp_arch_lp.eadf -e -format adif -model_layer fp_device_layout" ),
+
+            // 4) floorplan view
+            //( *pg2l50h_path + "valence/netlist/fp_schm_layout.eval -e -format valence" ),
+            ( *pg2l50h_path + "db/fp_arch_schm.eadf -e -format adif -model_layer fp_schematic" ),
+
+            
+            // 5) others
+            ( *pg2l50h_path + "data/paramanager.txt -format param_manager" )
+        }
+
+        packaging ( FBG484 )
+        {
+           file
+            {
+                ( *pg2l_tile_based_path + "valence/parts/pg2l50h/pkgs/pg2l50h_fbg484_spec.eval -e -format valence -package" ),
+                ( *pg2l50h_path + "package/fbg484.eval -e -format valence" )
+            }
+        }
+
+    } // end of PG2L50H
+    
+    
+    // The PG2L100H architecture
+    device ( PG2L100H )
+    {
+        string logos2_path = "/arch/vendor/pango/logos2/";
+        string pg2l100h_path  = "/arch/vendor/pango/logos2/pg2l100h/";
+        string pg2l_tile_based_path = "/arch/vendor/pango/logos2/common/tile_based/";
+
+
+        file ( "operator packing rules" ) // pragma PAP_ARC_LOAD_ON_DEMAND="packing_rules"
+        {
+            ( *logos2_path + "common/packingrule/packingrules.txt -format packing_rule" )
+        }
+
+        file ( "common defs" )
+        {
+            ( *logos2_path + "common/valence/pg_defs.eval -e -format valence" ),
+            ( *pg2l_tile_based_path + "valence/common/pkgs/pg2l_defs.eval -e -format valence" ),
+            ( *pg2l_tile_based_path + "valence/common/site/stARCH/stARCH.eval -e -format valence" )
+        } // file ( "common defs" )
+
+
+        file ( "prim grid devices" ) // pragma PAP_ARC_LOAD_ON_DEMAND="prim_grid_device"
+        {
+            ( *pg2l100h_path + "valence/list/prim_grid_devices_list.eval -e -format tcl" )
+        }
+        
+        file ( "prim grid device symbols" ) // pragma PAP_ARC_LOAD_ON_DEMAND="prim_grid_device_symbol"
+        {
+            ( *pg2l100h_path + "valence/list/prim_grid_devices_symbol_list.eval -e -format tcl" )
+        }
+        
+        file ( "gate devices" ) // pragma PAP_ARC_LOAD_ON_DEMAND="gate_device"
+        {
+            ( *pg2l100h_path + "valence/list/gate_devices_list.eval -e -format tcl" )
+        }
+        
+        file ( "gate operators" ) // pragma PAP_ARC_LOAD_ON_DEMAND="gate_operator"
+        {
+            ( *pg2l100h_path + "valence/list/gops_list.eval -e -format tcl" )
+        }
+        
+        file ( "tech operator impls" ) // pragma PAP_ARC_LOAD_ON_DEMAND="tech_operator_impl"
+        {
+            ( *pg2l100h_path + "valence/list/gtps_impl_list.eval -e -format tcl" )
+        }
+
+
+        file
+        {
+            ( *pg2l_tile_based_path + "valence/parts/pg2l100h/pkgs/pg2l100h_defs.eval -e -format valence" ),
+            ( *pg2l_tile_based_path + "valence/parts/pg2l100h/arch/generate_grid.eval -e -format valence" ),
+            ( *pg2l100h_path + "valence/netlist/schm_funcs.eval -e -format valence" ),
+            ( *pg2l100h_path + "valence/netlist/floorplan_funcs.eval -e -format valence" ),
+            ( *pg2l100h_path + "valence/netlist/floorplan.eval -e -format valence" ),
+            ( *pg2l100h_path + "valence/netlist/logic_view.eval -e -format valence" ),
+            ( *pg2l100h_path + "valence/netlist/floorplan_view.eval -e -format valence" ),
+
+            // 1) arch
+            ( *pg2l100h_path + "db/arch_lp.eadf -e -format adif -model_layer logic_device_layout" ),
+            ( *pg2l100h_path + "db/arch_nt.eadf -e -format adif -model_layer logic_device_net" ),
+
+            // 2) arch view
+            //( *pg2l100h_path + "valence/netlist/logic_schm_layout.eval -e -format valence" ),
+            ( *pg2l100h_path + "db/arch_schm.eadf -e -format adif -model_layer logic_schematic" ),
+
+            // 3) floorplan
+           // ( *pg2l100h_path + "valence/netlist/layout_fp.eval -e -format valence" ),
+            ( *pg2l100h_path + "db/fp_arch_lp.eadf -e -format adif -model_layer fp_device_layout" ),
+
+            // 4) floorplan view
+            // ( *pg2l100h_path + "valence/netlist/fp_schm_layout.eval -e -format valence" ),
+            ( *pg2l100h_path + "db/fp_arch_schm.eadf -e -format adif -model_layer fp_schematic" ),
+
+            
+            // 5) others
+            ( *pg2l100h_path + "data/paramanager.txt -format param_manager" )
+        }
+
+        packaging ( FBG676 )
+        {
+           file
+            {
+                ( *pg2l_tile_based_path + "valence/parts/pg2l100h/pkgs/pg2l100h_fbg676_spec.eval -e -format valence -package" ),
+                ( *pg2l100h_path + "package/fbg676.eval -e -format valence" )
+            }
+        }
+
+        packaging ( MBG324 )
+        {
+           file
+            {
+                ( *pg2l_tile_based_path + "valence/parts/pg2l100h/pkgs/pg2l100h_mbg324_spec.eval -e -format valence -package" ),
+                ( *pg2l100h_path + "package/mbg324.eval -e -format valence" )
+            }
+        }
+
+        packaging ( FBG484 )
+        {
+           file
+            {
+                ( *pg2l_tile_based_path + "valence/parts/pg2l100h/pkgs/pg2l100h_fbg484_spec.eval -e -format valence -package" ),
+                ( *pg2l100h_path + "package/fbg484.eval -e -format valence" )
+            }
+        }
+    
+        packaging ( FBG256 )
+        {
+           file
+            {
+                ( *pg2l_tile_based_path + "valence/parts/pg2l100h/pkgs/pg2l100h_fbg256_spec.eval -e -format valence -package" ),
+                ( *pg2l100h_path + "package/fbg256.eval -e -format valence" )
+            }
+        }
+
+    } // end of PG2L100H
+
+
+    // Speedgrade,common to all device in the family
+    speedgrade ( sg5 ) /* pragma display_name="-5" oem_name="-5" */
+    {
+    }
+
+    default speedgrade ( sg6 ) /* pragma display_name="-6" oem_name="-6" */
+    {
+    }
+
+    speedgrade ( sg7 ) /* pragma display_name="-7" oem_name="-7" */
+    {
+    }
+
+
+} // family Logos2
+
+

@@ -1,0 +1,567 @@
+*****************************************************************
+
+  Device    [CIM]
+
+  Author    [clwang]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+grid
+device CIM
+{
+    parameter
+    (
+        config string  TEST_MODE    = "OFF",            // "OFF" "ON"
+        config string  CE_S         = "NOMAL",          // 0: NOMAL 1: INV; PICE[1:0] => {s_ce,a_ce}  
+        config string  CE_A         = "NOMAL",          // 0: NOMAL 1: INV; PICE[1:0] => {s_ce,a_ce}                
+        config string  CLK_S        = "NOMAL",          // 0: NOMAL 1: INV; PICLK[1:0] => {s_iclk,a_iclk}          
+        config string  CLK_A        = "NOMAL",          // 0: NOMAL 1: INV; PICLK[1:0] => {s_iclk,a_iclk}       
+         
+        config string  TCLK_SEL     = "DISABLE",        // "DISABLE": 00, "A_CLK": 01, "S_CLK": 10,"ILLEGAL": 11 
+        config string  TCE_SEL      = "DISABLE",        // "DISABLE": 00, "A_CE": 01, "S_CE": 10,"ILLEGAL": 11 
+        
+        config string  TESTQ7       = "S_IQ<3>",        // 0: from "S_IQ<3>"; 1: from "TY<7>";
+        config string  TESTQ6       = "S_IQ<2>",        // 0: from "S_IQ<2>"; 1: from "TY<6>";
+        config string  TESTQ5       = "S_IQ<1>",        // 0: from "S_IQ<1>"; 1: from "TY<5>";
+        config string  TESTQ4       = "S_IQ<0>",        // 0: from "S_IQ<0>"; 1: from "TY<4>";
+        config string  TESTQ3       = "A_IQ<3>",        // 0: from "A_IQ<3>"; 1: from "TY<3>";
+        config string  TESTQ2       = "A_IQ<2>",        // 0: from "A_IQ<2>"; 1: from "TY<2>";
+        config string  TESTQ1       = "A_IQ<1>",        // 0: from "A_IQ<1>"; 1: from "TY<1>";
+        config string  TESTQ0       = "A_IQ<0>",        // 0: from "A_IQ<0>"; 1: from "TY<0>";
+        
+        config string  TSEL_YQ7     = "SCOUT",          // 0: From "SCOUT"; 1: From "TY<7>"   
+        config string  TSEL_YQ6     = "SCOUT",          // 0: From "SCOUT"; 1: From "TY<6>" 
+        config string  TSEL_YQ5     = "SCOUT",          // 0: From "SCOUT"; 1: From "TY<5>" 
+        config string  TSEL_YQ4     = "SCOUT",          // 0: From "SCOUT"; 1: From "TY<4>" 
+        config string  TSEL_YQ3     = "SCOUT",          // 0: From "SCOUT"; 1: From "TY<3>" 
+        config string  TSEL_YQ2     = "SCOUT",          // 0: From "SCOUT"; 1: From "TY<2>" 
+        config string  TSEL_YQ1     = "SCOUT",          // 0: From "SCOUT"; 1: From "TY<1>" 
+        config string  TSEL_YQ0     = "SCOUT",          // 0: From "SCOUT"; 1: From "TY<0>" 
+        
+        config string  TY7_MOD      = "XOR",            // 0: XOR; 1: "XNOR" 
+        config string  TY6_MOD      = "XOR",            // 0: XOR; 1: "XNOR" 
+        config string  TY5_MOD      = "XOR",            // 0: XOR; 1: "XNOR" 
+        config string  TY4_MOD      = "XOR",            // 0: XOR; 1: "XNOR" 
+        config string  TY3_MOD      = "XOR",            // 0: XOR; 1: "XNOR" 
+        config string  TY2_MOD      = "XOR",            // 0: XOR; 1: "XNOR" 
+        config string  TY1_MOD      = "XOR",            // 0: XOR; 1: "XNOR" 
+        config string  TY0_MOD      = "XOR",            // 0: XOR; 1: "XNOR" 
+        
+        config string  TESTY6_3     = "S_IY6CD",        // 0: From "S_IY6CD"; 1: From "TY<7>"; 
+        config string  TESTY6_2     = "S_IY6AB",        // 0: From "S_IY6AB"; 1: From "TY<4>"; 
+        config string  TESTY6_1     = "A_IY6CD",        // 0: From "A_IY6CD"; 1: From "TY<3>"; 
+        config string  TESTY6_0     = "A_IY6AB",        // 0: From "A_IY6AB"; 1: From "TY<0>"; 
+        
+        config string  SRIN         = "LOC_M",          // Shift Register initial input source selector;0: Local initial input("LOC_M") ;1: From scin(SCIN)
+        config string  TRS_SEL      = "A_RS",           // Shift Register shift enable selector;0: From "A_RS"; 1: From "S_RS"
+        config string  TM_SEL       = "A_M<0>"          // Local shift register initial input source selector
+                                                        // 00000000: "A_M<0>";  00000011: "A_M<1>"; 00000101: "A_M<2>"; 00001001: "A_M<3>"
+                                                        // 00010001: "S_M<0>";  00100001: "S_M<1>"; 01000001: "S_M<2>"; 10000001: "S_M<3>"
+    );
+    port
+    (
+        config input SC_PICE[1:0]            = 2'b00           /*pragma PAP_CFG_BIT_NAME = "SC_PICE<1>, SC_PICE<0>" */, 
+        config input SC_PICLK[1:0]           = 2'b00           /*pragma PAP_CFG_BIT_NAME = "SC_PICLK<1>, SC_PICLK<0>" */, 
+        config input SC_TCE_SEL[1:0]         = 2'b00           /*pragma PAP_CFG_BIT_NAME = "SC_TCE_SEL<1>, SC_TCE_SEL<0>" */, 
+        
+        config input SC_TY_MOD[7:0]          = 8'b0000_0000    /*pragma PAP_CFG_BIT_NAME = "SC_TY_MOD<7>, SC_TY_MOD<6>, SC_TY_MOD<5>, SC_TY_MOD<4>, SC_TY_MOD<3>, SC_TY_MOD<2>, SC_TY_MOD<1>, SC_TY_MOD<0>" */, 
+        config input SC_TCLK_SEL[1:0]        = 2'b00           /*pragma PAP_CFG_BIT_NAME = "SC_TCLK_SEL<1>, SC_TCLK_SEL<0>" */, 
+        config input SC_TRS_SEL[1:0]         = 2'b00           /*pragma PAP_CFG_BIT_NAME = "SC_TRS_SEL<1>, SC_TRS_SEL<0>" */, 
+        config input SC_TSEL_YQ[7:0]         = 8'b0000_0000    /*pragma PAP_CFG_BIT_NAME = "SC_TSEL_YQ<7>, SC_TSEL_YQ<6>, SC_TSEL_YQ<5>, SC_TSEL_YQ<4>, SC_TSEL_YQ<3>, SC_TSEL_YQ<2>, SC_TSEL_YQ<1>, SC_TSEL_YQ<0>" */, 
+        config input SC_TESTQ[7:0]           = 8'b0000_0000    /*pragma PAP_CFG_BIT_NAME = "SC_TESTQ<7>, SC_TESTQ<6>, SC_TESTQ<5>, SC_TESTQ<4>, SC_TESTQ<3>, SC_TESTQ<2>, SC_TESTQ<1>, SC_TESTQ<0>" */, 
+        config input SC_TESTY[7:0]           = 8'b0000_0000    /*pragma PAP_CFG_BIT_NAME = "SC_TESTY<7>, SC_TESTY<6>, SC_TESTY<5>, SC_TESTY<4>, SC_TESTY<3>, SC_TESTY<2>, SC_TESTY<1>, SC_TESTY<0>" */,  
+        config input SC_TESTY6[3:0]          = 4'b0000         /*pragma PAP_CFG_BIT_NAME = "SC_TESTY6<3>, SC_TESTY6<2>, SC_TESTY6<1>, SC_TESTY6<0>" */, 
+        config input SC_TMSEL[7:0]           = 8'b0000_0000    /*pragma PAP_CFG_BIT_NAME = "SC_TMSEL<7>, SC_TMSEL<6>, SC_TMSEL<5>, SC_TMSEL<4>, SC_TMSEL<3>, SC_TMSEL<2>, SC_TMSEL<1>, SC_TMSEL<0>" */,  
+        config input SC_SRIN                 = 1'b0            /*pragma PAP_CFG_BIT_NAME = "SC_SRIN" */,         
+        //==========================================//
+        //                INPUT                     //
+        //==========================================//
+        input S_DD  = 1'b1,   
+        input S_D4  = 1'b1,
+        input S_D3  = 1'b1,
+        input S_D2  = 1'b1,
+        input S_D1  = 1'b1,
+        input S_D0  = 1'b1,
+        input S_M3  = 1'b1,
+        input S_CD  = 1'b1,
+        input S_C4  = 1'b1,
+        input S_C3  = 1'b1,
+        input S_C2  = 1'b1,
+        input S_C1  = 1'b1,
+        input S_C0  = 1'b1,
+        input S_M2  = 1'b1,
+        input S_BD  = 1'b1,
+        input S_B4  = 1'b1,
+        input S_B3  = 1'b1,
+        input S_B2  = 1'b1,
+        input S_B1  = 1'b1,
+        input S_B0  = 1'b1,
+        input S_M1  = 1'b1,
+        input S_AD  = 1'b1,
+        input S_A4  = 1'b1,
+        input S_A3  = 1'b1,
+        input S_A2  = 1'b1,
+        input S_A1  = 1'b1,
+        input S_A0  = 1'b1,
+        input S_M0  = 1'b1,
+        input S_CE  = 1'b1,
+        input S_RS  = 1'b1,
+        input S_CLK = 1'b1,
+        
+        input A_DD  = 1'b1,
+        input A_D4  = 1'b1,
+        input A_D3  = 1'b1,
+        input A_D2  = 1'b1,
+        input A_D1  = 1'b1,
+        input A_D0  = 1'b1,
+        input A_M3  = 1'b1,
+        input A_CD  = 1'b1,
+        input A_C4  = 1'b1,
+        input A_C3  = 1'b1,
+        input A_C2  = 1'b1,
+        input A_C1  = 1'b1,
+        input A_C0  = 1'b1,
+        input A_M2  = 1'b1,
+        input A_BD  = 1'b1,
+        input A_B4  = 1'b1,
+        input A_B3  = 1'b1,
+        input A_B2  = 1'b1,
+        input A_B1  = 1'b1,
+        input A_B0  = 1'b1,
+        input A_M1  = 1'b1,
+        input A_AD  = 1'b1,
+        input A_A4  = 1'b1,
+        input A_A3  = 1'b1,
+        input A_A2  = 1'b1,
+        input A_A1  = 1'b1,
+        input A_A0  = 1'b1,
+        input A_M0  = 1'b1,
+        input A_CE  = 1'b1,
+        input A_RS  = 1'b1,
+        input A_CLK = 1'b1,
+        
+        input S_IY0   = 1'b1,
+        input S_IY1   = 1'b1,
+        input S_IY2   = 1'b1,
+        input S_IY3   = 1'b1,
+        input S_IQ0   = 1'b1,
+        input S_IQ1   = 1'b1,
+        input S_IQ2   = 1'b1,
+        input S_IQ3   = 1'b1,
+        input S_IY6AB = 1'b1,
+        input S_IY6CD = 1'b1,
+                      
+        input A_IY0   = 1'b1,
+        input A_IY1   = 1'b1,
+        input A_IY2   = 1'b1,
+        input A_IY3   = 1'b1,
+        input A_IQ0   = 1'b1,
+        input A_IQ1   = 1'b1,
+        input A_IQ2   = 1'b1,
+        input A_IQ3   = 1'b1,
+        input A_IY6AB = 1'b1,
+        input A_IY6CD = 1'b1,
+                           
+        //==========================================//
+        //                OUTPUT                    //
+        //==========================================//
+        
+        output  S_IDD   ,
+        output  S_ID4   ,
+        output  S_ID3   ,
+        output  S_ID2   ,
+        output  S_ID1   ,
+        output  S_ID0   ,
+        output  S_IM3   ,
+        output  S_ICD   ,
+        output  S_IC4   ,
+        output  S_IC3   ,
+        output  S_IC2   ,
+        output  S_IC1   ,
+        output  S_IC0   ,
+        output  S_IM2   ,
+        output  S_IBD   ,
+        output  S_IB4   ,
+        output  S_IB3   ,
+        output  S_IB2   ,
+        output  S_IB1   ,
+        output  S_IB0   ,
+        output  S_IM1   ,
+        output  S_IAD   ,
+        output  S_IA4   ,
+        output  S_IA3   ,
+        output  S_IA2   ,
+        output  S_IA1   ,
+        output  S_IA0   ,
+        output  S_IM0   ,
+        output  S_ICE   ,
+        output  S_IRS   ,
+        output  S_ICLK  ,
+                        
+        output  A_IDD   ,
+        output  A_ID4   ,
+        output  A_ID3   ,
+        output  A_ID2   ,
+        output  A_ID1   ,
+        output  A_ID0   ,
+        output  A_IM3   ,
+        output  A_ICD   ,
+        output  A_IC4   ,
+        output  A_IC3   ,
+        output  A_IC2   ,
+        output  A_IC1   ,
+        output  A_IC0   ,
+        output  A_IM2   ,
+        output  A_IBD   ,
+        output  A_IB4   ,
+        output  A_IB3   ,
+        output  A_IB2   ,
+        output  A_IB1   ,
+        output  A_IB0   ,
+        output  A_IM1   ,
+        output  A_IAD   ,
+        output  A_IA4   ,
+        output  A_IA3   ,
+        output  A_IA2   ,
+        output  A_IA1   ,
+        output  A_IA0   ,
+        output  A_IM0   ,
+        output  A_ICE   ,
+        output  A_IRS   ,
+        output  A_ICLK  ,
+                
+        output  S_Y0   ,
+        output  S_Y1   ,
+        output  S_Y2   ,
+        output  S_Y3   ,
+        output  S_Q0   ,
+        output  S_Q1   ,
+        output  S_Q2   ,
+        output  S_Q3   ,
+        output  S_Y6AB ,
+        output  S_Y6CD ,
+                
+        output  A_Y0   ,
+        output  A_Y1   ,
+        output  A_Y2   ,
+        output  A_Y3   ,
+        output  A_Q0   ,
+        output  A_Q1   ,
+        output  A_Q2   ,
+        output  A_Q3   ,
+        output  A_Y6AB ,
+        output  A_Y6CD 
+    );
+} // end of device CIM
+
+/*******************************************************************************
+
+  Device    [CIM]
+
+  Author    [clwang]
+
+  Abstract  [The structure netlist of CIM is described in the similar fashion
+             as in HDL. In unit instantiation statement, the formal pin may be
+             connected to net which is declared explicitly.
+
+             In Valence, the connection can also be made from formal pin to other
+             pin or port, in which case Valence compiler shall create the net to
+             fulfil the connection. The built-in naming convention is kicked in
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+
+structure netlist of CIM
+{
+    // Routing arc specification
+    routing
+    {
+        ( S_DD     -->   S_IDD     ) = 150 ;
+        ( S_D4     -->   S_ID4     ) = 150 ;
+        ( S_D3     -->   S_ID3     ) = 150 ;
+        ( S_D2     -->   S_ID2     ) = 150 ;
+        ( S_D1     -->   S_ID1     ) = 150 ;
+        ( S_D0     -->   S_ID0     ) = 150 ;
+        ( S_M3     -->   S_IM3     ) = 150 ;
+        ( S_CD     -->   S_ICD     ) = 150 ;
+        ( S_C4     -->   S_IC4     ) = 150 ;
+        ( S_C3     -->   S_IC3     ) = 150 ;
+        ( S_C2     -->   S_IC2     ) = 150 ;
+        ( S_C1     -->   S_IC1     ) = 150 ;
+        ( S_C0     -->   S_IC0     ) = 150 ;
+        ( S_M2     -->   S_IM2     ) = 150 ;
+        ( S_BD     -->   S_IBD     ) = 150 ;
+        ( S_B4     -->   S_IB4     ) = 150 ;
+        ( S_B3     -->   S_IB3     ) = 150 ;
+        ( S_B2     -->   S_IB2     ) = 150 ;
+        ( S_B1     -->   S_IB1     ) = 150 ;
+        ( S_B0     -->   S_IB0     ) = 150 ;
+        ( S_M1     -->   S_IM1     ) = 150 ;
+        ( S_AD     -->   S_IAD     ) = 150 ;
+        ( S_A4     -->   S_IA4     ) = 150 ;
+        ( S_A3     -->   S_IA3     ) = 150 ;
+        ( S_A2     -->   S_IA2     ) = 150 ;
+        ( S_A1     -->   S_IA1     ) = 150 ;
+        ( S_A0     -->   S_IA0     ) = 150 ;
+        ( S_M0     -->   S_IM0     ) = 150 ;
+        ( S_CE     -->   S_ICE     ) = 150 ;
+        ( S_RS     -->   S_IRS     ) = 150 ;
+        ( S_CLK    -->   S_ICLK    ) = 150 ;
+        
+        ( A_DD     -->   A_IDD     ) = 150 ;
+        ( A_D4     -->   A_ID4     ) = 150 ;
+        ( A_D3     -->   A_ID3     ) = 150 ;
+        ( A_D2     -->   A_ID2     ) = 150 ;
+        ( A_D1     -->   A_ID1     ) = 150 ;
+        ( A_D0     -->   A_ID0     ) = 150 ;
+        ( A_M3     -->   A_IM3     ) = 150 ;
+        ( A_CD     -->   A_ICD     ) = 150 ;
+        ( A_C4     -->   A_IC4     ) = 150 ;
+        ( A_C3     -->   A_IC3     ) = 150 ;
+        ( A_C2     -->   A_IC2     ) = 150 ;
+        ( A_C1     -->   A_IC1     ) = 150 ;
+        ( A_C0     -->   A_IC0     ) = 150 ;
+        ( A_M2     -->   A_IM2     ) = 150 ;
+        ( A_BD     -->   A_IBD     ) = 150 ;
+        ( A_B4     -->   A_IB4     ) = 150 ;
+        ( A_B3     -->   A_IB3     ) = 150 ;
+        ( A_B2     -->   A_IB2     ) = 150 ;
+        ( A_B1     -->   A_IB1     ) = 150 ;
+        ( A_B0     -->   A_IB0     ) = 150 ;
+        ( A_M1     -->   A_IM1     ) = 150 ;
+        ( A_AD     -->   A_IAD     ) = 150 ;
+        ( A_A4     -->   A_IA4     ) = 150 ;
+        ( A_A3     -->   A_IA3     ) = 150 ;
+        ( A_A2     -->   A_IA2     ) = 150 ;
+        ( A_A1     -->   A_IA1     ) = 150 ;
+        ( A_A0     -->   A_IA0     ) = 150 ;
+        ( A_M0     -->   A_IM0     ) = 150 ;
+        ( A_CE     -->   A_ICE     ) = 150 ;
+        ( A_RS     -->   A_IRS     ) = 150 ;
+        ( A_CLK    -->   A_ICLK    ) = 150 ;    
+        
+        ( S_IY0    -->   S_Y0      ) = 150 ;
+        ( S_IY1    -->   S_Y1      ) = 150 ;
+        ( S_IY2    -->   S_Y2      ) = 150 ;
+        ( S_IY3    -->   S_Y3      ) = 150 ;
+        ( S_IQ0    -->   S_Q0      ) = 150 ;
+        ( S_IQ1    -->   S_Q1      ) = 150 ;
+        ( S_IQ2    -->   S_Q2      ) = 150 ;
+        ( S_IQ3    -->   S_Q3      ) = 150 ;
+        ( S_IY6AB  -->   S_Y6AB    ) = 150 ;
+        ( S_IY6CD  -->   S_Y6CD    ) = 150 ;
+        
+        ( A_IY0    -->   A_Y0      ) = 150 ;
+        ( A_IY1    -->   A_Y1      ) = 150 ;
+        ( A_IY2    -->   A_Y2      ) = 150 ;
+        ( A_IY3    -->   A_Y3      ) = 150 ;
+        ( A_IQ0    -->   A_Q0      ) = 150 ;
+        ( A_IQ1    -->   A_Q1      ) = 150 ;
+        ( A_IQ2    -->   A_Q2      ) = 150 ;
+        ( A_IQ3    -->   A_Q3      ) = 150 ;
+        ( A_IY6AB  -->   A_Y6AB    ) = 150 ;
+        ( A_IY6CD  -->   A_Y6CD    ) = 150 ;    
+    }
+
+}; // end of structure netlist of CIM
+
+/*******************************************************************************
+
+  Device    [CIM]
+
+  Author    [clwang]
+
+  Abstract  [Configure the configuration bits based on the value of config parameter]
+
+  Revision History:
+
+********************************************************************************/
+configuration cfg of CIM
+{
+   if (TEST_MODE == "ON")
+   {
+       if (CE_S == "NOMAL")
+       {
+           SC_PICE[1]    := 1'b0 ;
+       }
+       else //if (CE_S == "INV")
+       {
+           SC_PICE[1]    := 1'b1 ;
+       }
+       
+       if (CE_A == "NOMAL")
+       {
+           SC_PICE[0]    := 1'b0 ;
+       }
+       else //if (CE_A == "INV")
+       {
+           SC_PICE[0]    := 1'b1 ;
+       }
+
+       if (CLK_S == "NOMAL")
+       {
+           SC_PICLK[1]    := 1'b0 ;
+       }
+       else //if (CLK_S == "INV")
+       {
+           SC_PICLK[1]    := 1'b1 ;
+       }
+       
+       if (CLK_A == "NOMAL")
+       {
+           SC_PICLK[0]    := 1'b0 ;
+       }
+       else //if (CLK_A == "INV")
+       {
+           SC_PICLK[0]    := 1'b1 ;
+       }
+       
+       if (TCLK_SEL == "DISABLE")
+       {
+           SC_TCLK_SEL := 2'b00  ;
+       }
+       else if (TCLK_SEL == "A_CLK")
+       {
+           SC_TCLK_SEL := 2'b01  ;
+       }
+       else if (TCLK_SEL == "S_CLK")
+       {
+           SC_TCLK_SEL := 2'b10  ;
+       }     
+       else
+       {
+           error("TCLK_SEL = %s is not support!",TCLK_SEL);
+       }  
+
+       if (TCE_SEL == "DISABLE")
+       {
+           SC_TCE_SEL := 2'b00  ;
+       }
+       else if (TCE_SEL == "A_CE")
+       {
+           SC_TCE_SEL := 2'b01  ;
+       }
+       else if (TCE_SEL == "S_CE")
+       {
+           SC_TCE_SEL := 2'b10  ;
+       }     
+       else
+       {
+           error("TCE_SEL = %s is not support!",TCE_SEL);
+       }        
+
+       bit TESTQ_B [7:0] = 8'b0000_0000;
+       TESTQ_B[7]  = (TESTQ7 == "S_IQ<3>") ? 1'b0 : 1'b1;
+       TESTQ_B[6]  = (TESTQ6 == "S_IQ<2>") ? 1'b0 : 1'b1;
+       TESTQ_B[5]  = (TESTQ5 == "S_IQ<1>") ? 1'b0 : 1'b1;
+       TESTQ_B[4]  = (TESTQ4 == "S_IQ<0>") ? 1'b0 : 1'b1;
+       TESTQ_B[3]  = (TESTQ3 == "A_IQ<3>") ? 1'b0 : 1'b1;
+       TESTQ_B[2]  = (TESTQ2 == "A_IQ<2>") ? 1'b0 : 1'b1;
+       TESTQ_B[1]  = (TESTQ1 == "A_IQ<1>") ? 1'b0 : 1'b1;
+       TESTQ_B[0]  = (TESTQ0 == "A_IQ<0>") ? 1'b0 : 1'b1;
+       SC_TESTQ    := TESTQ_B     ;
+       
+       bit TSEL_YQ_B [7:0] = 8'b0000_0000;
+       TSEL_YQ_B[7]  = (TSEL_YQ7 == "SCOUT") ? 1'b0 : 1'b1;
+       TSEL_YQ_B[6]  = (TSEL_YQ6 == "SCOUT") ? 1'b0 : 1'b1;
+       TSEL_YQ_B[5]  = (TSEL_YQ5 == "SCOUT") ? 1'b0 : 1'b1;
+       TSEL_YQ_B[4]  = (TSEL_YQ4 == "SCOUT") ? 1'b0 : 1'b1;
+       TSEL_YQ_B[3]  = (TSEL_YQ3 == "SCOUT") ? 1'b0 : 1'b1;
+       TSEL_YQ_B[2]  = (TSEL_YQ2 == "SCOUT") ? 1'b0 : 1'b1;
+       TSEL_YQ_B[1]  = (TSEL_YQ1 == "SCOUT") ? 1'b0 : 1'b1;
+       TSEL_YQ_B[0]  = (TSEL_YQ0 == "SCOUT") ? 1'b0 : 1'b1;                
+       SC_TSEL_YQ  := TSEL_YQ_B   ;
+       
+       bit TY_MOD_B [7:0] = 8'b0000_0000; 
+       TY_MOD_B[7]  = (TY7_MOD == "XOR") ? 1'b0 : 1'b1;
+       TY_MOD_B[6]  = (TY6_MOD == "XOR") ? 1'b0 : 1'b1;
+       TY_MOD_B[5]  = (TY5_MOD == "XOR") ? 1'b0 : 1'b1;
+       TY_MOD_B[4]  = (TY4_MOD == "XOR") ? 1'b0 : 1'b1;
+       TY_MOD_B[3]  = (TY3_MOD == "XOR") ? 1'b0 : 1'b1;
+       TY_MOD_B[2]  = (TY2_MOD == "XOR") ? 1'b0 : 1'b1;
+       TY_MOD_B[1]  = (TY1_MOD == "XOR") ? 1'b0 : 1'b1;
+       TY_MOD_B[0]  = (TY0_MOD == "XOR") ? 1'b0 : 1'b1; 
+       SC_TY_MOD   := TY_MOD_B    ;
+       
+       bit TESTY6_B [3:0] = 4'b0000;
+       TESTY6_B[3]  = (TESTY6_3 == "S_IY6CD") ? 1'b0 : 1'b1;
+       TESTY6_B[2]  = (TESTY6_2 == "S_IY6AB") ? 1'b0 : 1'b1;
+       TESTY6_B[1]  = (TESTY6_1 == "A_IY6CD") ? 1'b0 : 1'b1;
+       TESTY6_B[0]  = (TESTY6_0 == "A_IY6AB") ? 1'b0 : 1'b1; 
+              
+       SC_TESTY6   := TESTY6_B    ;
+       
+       if (SRIN == "LOC_M")
+       {
+           SC_SRIN     := 1'b0      ; 
+       }
+       else if (SRIN == "SCIN")
+       {
+           SC_SRIN     := 1'b1      ;
+       }
+       else
+       {
+           error("SRIN = %s is not support!",SRIN);
+       }
+   
+       if (TRS_SEL == "A_RS")
+       {
+           SC_TRS_SEL     := 1'b0      ; 
+       }
+       else if (TRS_SEL == "S_RS")
+       {
+           SC_TRS_SEL     := 1'b1      ;
+       }
+       else
+       {
+           error("TRS_SEL = %s is not support!",TRS_SEL);
+       }
+
+       if ( TM_SEL == "A_M<0>" )
+       {
+           SC_TMSEL    := 8'b00000000    ;  
+       }
+       else if (TM_SEL == "A_M<1>")
+       {
+           SC_TMSEL    := 8'b00000011    ;
+       }
+       else if (TM_SEL == "A_M<2>")
+       {
+           SC_TMSEL    := 8'b00000101    ;
+       }
+       else if (TM_SEL == "A_M<3>")
+       {
+           SC_TMSEL    := 8'b00001001    ;
+       }
+       else if (TM_SEL == "S_M<0>")
+       {
+           SC_TMSEL    := 8'b00010001    ;
+       }
+       else if (TM_SEL == "S_M<1>")
+       {
+           SC_TMSEL    := 8'b00100001    ;
+       }
+       else if (TM_SEL == "S_M<2>")
+       {
+           SC_TMSEL    := 8'b01000001    ;
+       }
+       else if (TM_SEL == "S_M<3>")
+       {
+           SC_TMSEL    := 8'b10000001    ;
+       } 
+       else
+       {
+           error("TM_SEL = %s is not support!",TM_SEL);
+       }      
+        
+   } 
+}; // end of configuration cfg of CIM
+                        

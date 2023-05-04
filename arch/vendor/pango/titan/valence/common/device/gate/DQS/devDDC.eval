@@ -1,0 +1,134 @@
+*****************************************************************
+
+  Device    [devDDC]
+
+  Author    []
+
+  Abstract  [DQS_DDC]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devDDC : device DQS
+{
+    parameter
+    (
+        config string APP_MODE               := "DDC",          // "DDC" ; "DCC" 
+        config string GRS_EN                 = "TRUE",          // "TRUE"  "FALSE"
+        config string CLK_GATE_EN            = "TRUE",          // "TRUE"  "FALSE" 
+        config bit    LRS_POL                = 1'b0,            // 1'b0: noinv; 1'b1: inv
+        config string READ_EN               := "TRUE",          // "TRUE" "FALSE"
+        config string DQS_MODE               = "FULL_RATE",     // "FULL_RATE" "HALF_RATE" "QUAD_RATE"  
+        config string CDR_EN                := "FALSE",         // "TRUE"  "FALSE"
+        config string WL_CTRL_EN             = "FALSE",         // "TRUE"  "FALSE"
+        config bit    CLK_DELAY_STEP[8:0]    = 9'b0_0000_0000,  // 
+        config string CLK_EN                 = "TRUE",          // "TRUE" : 1'b1; "FALSE" : 1'b0
+        config string CLKDIV_FACTOR         := "2",             // "2", "3.5", "4", "5" 
+        config string DQS_DEL_EN            := "TRUE",          // "TRUE"  "FALSE" 
+        config string RDEL_CTRL_EN           = "TRUE",          // "TRUE"  "FALSE"
+        config bit    DQS_DELAY_STEP[8:0]    = 9'b0_0000_0000,  // "DEFAULT"
+        config string DQS_DLL_IN_EN          = "TRUE",          // "TRUE" "FALSE" 
+        config bit    MARGIN                 = 1'b0,            
+        config string FIFO_EN               := "TRUE",          // "TRUE" "FALSE"   
+        config string FIFO_MODE              = "MDDR",          // "MDDR" : DDR MEM; "GDDR" : GENERIC DDR
+        config bit    FIF0_ADDR_INIT[2:0]    = 3'b000,               
+        config bit    FIFOMODE_SEL          := 1'b1,            
+        //config string DLLCODESEL           = "CODE0",         // "CODE0" "CODE1" "CODE2" "CODE3", TB only used "CODE0"(DLL0) "CODE1"(DLL1)
+        config string DQSI_SEL               = "DQSI0"//,         // "DQSI0" "DQSI1" 
+        
+        //config int    CLK_DELAY_STEP_INT     = 0,
+        //config int    DQS_DELAY_STEP_INT     = 0
+    );
+    
+    port
+    ( 
+
+        input   DQSI[1:0],
+        input   WL_STEP[7:0],
+        input   CLK1_STEP[7:0],
+        input   CLKGATE,
+        input   WL_CTRL[2:0],
+        output  WL_OV,
+        input   DQS_GATE_CTRL[3:0],
+        input   READ_CLK_CTRL[2:0],
+        output  DQS_GATE_TRAINING_STATUS,
+        output  READ_VALID,
+        input   RDEL_CTRL[2:0],
+        output  RDEL_OV,
+        input   RST,
+        input   SYSCLK, 
+        input   DLL_CODE[7:0],                  
+        input   IOCLK[0:0],
+        output  WCLK,
+        output  WCLK_DEL,        
+        output  DQSI_DEL,
+        output  IFIFO_RADDR[2:0],
+        output  IFIFO_WADDR[2:0]
+    );
+}; // end of device devDDC
+
+
+/*******************************************************************************
+
+  Device    [devDDC]
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devDDC
+{
+
+}; // end of structure netlist of devDDC
+
+timing tnl of devDDC
+{
+    operator V_DDC DDC
+        parameter map
+        (
+            GRS_EN               => GRS_EN,
+            CLKA_GATE_EN         => CLK_GATE_EN,
+            DDC_MODE             => DQS_MODE,
+            W_MOVE_EN            => WL_CTRL_EN,
+            WCLK_DELAY_OFFSET    => CLK_DELAY_STEP,
+            R_MOVE_EN            => RDEL_CTRL_EN,
+            DQSI_DELAY_OFFSET    => DQS_DELAY_STEP,
+            R_DELAY_STEP_EN      => DQS_DLL_IN_EN,
+            R_EXTEND             => (MARGIN == 1'b1) ? "TRUE" : "FALSE",
+            IFIFO_GENERIC        => (FIFO_MODE == "GDDR") ? "TRUE" : "FALSE",
+            RADDR_INIT           =>  FIF0_ADDR_INIT
+        )
+        port map
+        (
+            RST           => RST,
+            CLKB          => SYSCLK,
+            CLKA          => IOCLK[0],            
+            CLKA_GATE     => CLKGATE,
+            DELAY_STEP1   => DLL_CODE,    
+            DELAY_STEP0   => WL_STEP,
+            W_LOAD_N      => WL_CTRL[0],
+            W_MOVE        => WL_CTRL[1],
+            W_DIRECTION   => WL_CTRL[2],
+            WDELAY_OB     => WL_OV,
+            WCLK          => WCLK,
+            WCLK_DELAY    => WCLK_DEL,          
+            DQS_GATE_CTRL => DQS_GATE_CTRL,
+            READ_CLK_CTRL => READ_CLK_CTRL,
+            DQSI          => (DQSI_SEL == "DQSI0") ? DQSI[0] : DQSI[1] ,
+            R_LOAD_N      => RDEL_CTRL[0],    
+            R_MOVE        => RDEL_CTRL[1],    
+            R_DIRECTION   => RDEL_CTRL[2],    
+            RDELAY_OB     => RDEL_OV,           
+            DQSI_DELAY    => DQSI_DEL,          
+            DGTS          => DQS_GATE_TRAINING_STATUS,              
+            READ_VALID    => READ_VALID,        
+            IFIFO_WADDR   => IFIFO_WADDR,  
+            IFIFO_RADDR   => IFIFO_RADDR   
+        );
+
+};
+

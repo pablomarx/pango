@@ -1,0 +1,681 @@
+use pg2l_defs;
+
+package pg2l_funcs_connect_gs
+{
+/*******************************************************************
+********************************************************************/
+function connect_srb_gs_input
+(
+    unsigned int rx,
+    unsigned int tx,
+    unsigned int tx_ckeb,
+    unsigned int tx_cram_ctrl,
+    unsigned int tx_e,
+    string device_ckeb,
+    string device_srb,
+    unsigned int loc_srb      //loc_srb = 0,bottom half region;loc_srb = 1, top half region
+)
+{
+    int sx,sx_ckeb,sy;
+    sx = tx * NUM_GRID_X;
+    sx_ckeb = tx_ckeb * NUM_GRID_X;
+
+    string ckeb = device_ckeb;
+    string srb = device_srb;
+    int sy_ckeb = (rx*NUM_TILES_REGION+25) * NUM_GRID_Y;      
+
+    int l_ty_srb[] = (loc_srb==0) ? {[0:24]} : {[26:50]};
+    int ty;
+    
+    foreach ty( l_ty_srb )
+    {
+      sy = (rx*NUM_TILES_REGION+ty)*NUM_GRID_Y;
+      if((tx!=tx_e)&&(tx!=(tx_e-1)))
+      {
+        connect
+          (
+            <pin PU_N of <device *srb @ [sx,sy]>>    => (tx==tx_ckeb) ? <wire PUP_REL_N_OUT_1 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+                                                                      : <wire PUP_REL_N_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>,
+
+            <pin GLOGEN of <device *srb @ [sx,sy]>>  => (tx==tx_ckeb) ? <wire GLOGEN_SRB_1 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+                                                                      : <wire GLOGEN_SRB_0 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+
+          );
+        if((device_srb=="CLMA_TILE")||(device_srb=="CLMS_TILE"))
+        {
+          connect
+            (
+              <pin GRS_N of <device *srb @ [sx,sy]>>   => (tx==tx_ckeb) ? <wire GRS_N_OUT_1 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+                                                                        : <wire GRS_N_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>,
+
+              <pin GWE of <device *srb @ [sx,sy]>>     => (tx==tx_ckeb) ? <wire GWEN_OUT_1 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+                                                                        : <wire GWEN_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+          );
+        }
+        if(device_srb=="CLMS_TILE")
+        {
+          connect
+            (
+             <pin RST_N of <device *srb @ [sx,sy]>>    => (tx==tx_ckeb) ? <wire RST_N_OUT_1 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+                                                                        : <wire RST_N_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+            );
+         
+        }
+      }
+      else
+      {
+        connect
+          (
+            <pin PU_N of <device *srb @ [sx,sy]>>    => (tx==tx_ckeb) ? <wire PUP_REL_N_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+                                                                      : <wire PUP_REL_N_OUT_1 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>,
+
+            <pin GLOGEN of <device *srb @ [sx,sy]>>  => (tx==tx_ckeb) ? <wire GLOGEN_SRB_0 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+                                                                      : <wire GLOGEN_SRB_1 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+
+        );  
+        if((device_srb=="CLMA_TILE")||(device_srb=="CLMS_TILE"))
+        {
+          connect
+            (
+              <pin GRS_N of <device *srb @ [sx,sy]>>   => (tx==tx_ckeb) ? <wire GRS_N_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+                                                                        : <wire GRS_N_OUT_1 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>,
+
+              <pin GWE of <device *srb @ [sx,sy]>>     => (tx==tx_ckeb) ? <wire GWEN_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+                                                                        : <wire GWEN_OUT_1 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+          );
+        } 
+        if(device_srb=="CLMS_TILE")
+        {
+          connect
+            (
+              <pin RST_N of <device *srb @ [sx,sy]>>    => (tx==tx_ckeb) ? <wire RST_N_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+                                                                         : <wire RST_N_OUT_1 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+            );
+         
+        }
+      }
+    } 
+   
+}//end of function connect_WLSR_global_sig
+/***********************************************************************************************************************
+************************************************************************************************************************/
+function connect_drm_gs_input
+(
+    unsigned int rx,
+    unsigned int tx,
+    unsigned int tx_ckeb,
+    unsigned int tx_cram_ctrl,
+    unsigned int tx_e,
+    string device_ckeb,
+    unsigned int loc_drm      //loc_drm = 0,bottom half region;loc_drm = 1, top half region
+)
+{
+    int sx,sx_ckeb,sy;
+    sx = tx * NUM_GRID_X + 3;
+    sx_ckeb = tx_ckeb * NUM_GRID_X;
+
+    string ckeb = device_ckeb;
+
+    int sy_ckeb = (rx*NUM_TILES_REGION+25) * NUM_GRID_Y;      
+    int l_ty_drm[] = (loc_drm==0) ? {0,5,10,15,20} : {26,31,36,41,46};
+    int ty;
+    
+    foreach ty( l_ty_drm )
+    {
+      sy = (rx*NUM_TILES_REGION+ty)*NUM_GRID_Y;
+      if((tx!=tx_e)&&(tx!=(tx_e-1)))
+      {
+        connect
+          (
+            <pin GRS_N of <device DRM_TILE @ [sx,sy]>>    => (tx==tx_ckeb) ? <wire GRS_N_OUT_1 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+                                                                           : <wire GRS_N_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>,
+
+            <pin GLOGEN of <device DRM_TILE @ [sx,sy]>>  => (tx==tx_ckeb) ? <wire GLOGEN_OUT_1 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+                                                                          : <wire GLOGEN_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>,
+
+            <pin POR_N of <device DRM_TILE @ [sx,sy]>>    => (tx==tx_ckeb) ? <wire POR_N_OUT_1 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+                                                                           : <wire POR_N_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>,
+
+            <pin GWEN of <device DRM_TILE @ [sx,sy]>>    => (tx==tx_ckeb) ? <wire GWEN_OUT_1 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+                                                                          : <wire GWEN_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+          );
+      }
+      else
+      {
+        connect
+          (
+            <pin GRS_N of <device DRM_TILE @ [sx,sy]>>    => (tx==tx_ckeb) ? <wire GRS_N_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+                                                                           : <wire GRS_N_OUT_1 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>,
+
+            <pin GLOGEN of <device DRM_TILE @ [sx,sy]>>  => (tx==tx_ckeb) ? <wire GLOGEN_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+                                                                          : <wire GLOGEN_OUT_1 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>,
+
+            <pin POR_N of <device DRM_TILE @ [sx,sy]>>    => (tx==tx_ckeb) ? <wire POR_N_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+                                                                           : <wire POR_N_OUT_1 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>,
+
+            <pin GWEN of <device DRM_TILE @ [sx,sy]>>    => (tx==tx_ckeb) ? <wire GWEN_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+                                                                          : <wire GWEN_OUT_1 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+
+
+        );  
+      }
+    } 
+   
+}//end of function connect_drm_gs_input
+/***********************************************************************************************************************
+************************************************************************************************************************/
+function connect_apm_gs_input
+(
+    unsigned int rx,
+    unsigned int tx,
+    unsigned int tx_ckeb,
+    unsigned int tx_cram_ctrl,
+    unsigned int tx_e,
+    string device_ckeb,
+    unsigned int loc_apm      //loc_apm = 0,bottom half region;loc_apm = 1, top half region
+)
+{
+    int sx,sx_ckeb,sy;
+    sx = tx * NUM_GRID_X + 3;
+    sx_ckeb = tx_ckeb * NUM_GRID_X;
+
+    string ckeb = device_ckeb;
+
+    int sy_ckeb = (rx*NUM_TILES_REGION+25) * NUM_GRID_Y;      
+    int l_ty_apm[] = (loc_apm==0) ? {0,5,10,15,20} : {26,31,36,41,46};
+    int ty;
+    
+    foreach ty( l_ty_apm )
+    {
+      sy = (rx*NUM_TILES_REGION+ty)*NUM_GRID_Y;
+      if((tx!=tx_e)&&(tx!=(tx_e-1)))
+      {
+        connect
+          (
+            <pin GRS_N of <device APM_TILE @ [sx,sy]>>       => (tx==tx_ckeb) ? <wire GRS_N_OUT_1 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+                                                                              : <wire GRS_N_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>,
+
+            <pin GLOGEN of <device APM_TILE @ [sx,sy]>>     => (tx==tx_ckeb) ? <wire GLOGEN_OUT_1 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+                                                                             : <wire GLOGEN_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+          );
+      }
+      else
+      {
+        connect
+          (
+            <pin GRS_N of <device APM_TILE @ [sx,sy]>>      => (tx==tx_ckeb) ? <wire GRS_N_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+                                                                             : <wire GRS_N_OUT_1 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>,
+
+            <pin GLOGEN of <device APM_TILE @ [sx,sy]>>  => (tx==tx_ckeb) ? <wire GLOGEN_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+                                                                          : <wire GLOGEN_OUT_1 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+        );  
+      }
+    } 
+   
+}//end of function connect_apm_gs_input
+/***********************************************************************************************************************
+************************************************************************************************************************/
+function connect_adc_gs_input
+(
+    unsigned int rx,
+    unsigned int tx,
+    unsigned int tx_ckeb,
+    string device_ckeb
+)
+{
+    int sx,sx_ckeb,sy;
+    sx = tx * NUM_GRID_X + 3;
+    sx_ckeb = tx_ckeb * NUM_GRID_X;
+
+    string ckeb = device_ckeb;
+
+    int sy_ckeb = (rx*NUM_TILES_REGION+25) * NUM_GRID_Y;      
+    sy = (rx*NUM_TILES_REGION)*NUM_GRID_Y;
+
+
+
+    connect
+      (
+        <pin POR_N_1P8V of <device ADC_TILE @ [sx,sy]>>  =>  <wire POR_N_1P8_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>,
+
+        <pin POR_N of <device ADC_TILE @ [sx,sy]>>       =>  <wire POR_N_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>,
+
+        <pin GLOGEN of <device ADC_TILE @ [sx,sy]>>      => <wire GLOGEN_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>,
+
+        <pin GWEN of <device ADC_TILE @ [sx,sy]>>        => <wire GWEN_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+      );  
+   
+    
+   
+}//end of function connect_adc_gs_input
+/***********************************************************************************************************************
+************************************************************************************************************************/
+function connect_iol_gs_input
+(
+    unsigned int rx,
+    unsigned int tx,
+    unsigned int tx_ckeb,
+    string device_iol,
+    unsigned int loc_iol      //loc_iol = 0,bottom half region;loc_iol = 1, top half region
+)
+{
+    int sx,sx_ckeb,sy;
+    sx = tx * NUM_GRID_X + 3;
+    sx_ckeb = tx_ckeb * NUM_GRID_X;
+
+    string ckeb = "IOCK_TILE";
+    string iol = device_iol;
+
+    int sy_ckeb = (rx*NUM_TILES_REGION+25) * NUM_GRID_Y;      
+    int l_ty_iol[] = (loc_iol==0) ? {[0:24]} : {[26:50]};
+    int ty;
+    
+    foreach ty( l_ty_iol )
+    {
+      sy = (rx*NUM_TILES_REGION+ty)*NUM_GRID_Y;
+
+        connect
+          (
+            <pin GRS_N of <device *iol @ [sx,sy]>>    =>  <wire GRS_N_OUT of <device *ckeb @ [sx_ckeb,sy_ckeb]>>,
+            <pin GWEN of <device *iol @ [sx,sy]>>    =>   <wire GWEN_OUT of <device *ckeb @ [sx_ckeb,sy_ckeb]>>,
+            <pin POR_N of <device *iol @ [sx,sy]>>    =>  <wire RST_N_OUT of <device *ckeb @ [sx_ckeb,sy_ckeb]>>,
+            <pin GLOGEN of <device *iol @ [sx,sy]>>  =>  <wire GLOGEN_OUT of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+          );
+
+
+    } 
+   
+}//end of function connect_iol_gs_input
+
+/***********************************************************************************************************************
+************************************************************************************************************************/
+function connect_iol_hp_gs_input
+(
+    unsigned int rx,
+    unsigned int tx,
+    unsigned int tx_ckeb,
+    string device_iol,
+    unsigned int loc_iol      //loc_iol = 0,bottom half region;loc_iol = 1, top half region
+)
+{
+    int sx,sx_ckeb,sy;
+    sx = tx * NUM_GRID_X + 3;
+    sx_ckeb = tx_ckeb * NUM_GRID_X;
+
+    string ckeb = "IOCK_HP_TILE";
+    string iol = device_iol;
+
+    int sy_ckeb = (rx*NUM_TILES_REGION+25) * NUM_GRID_Y;      
+    int l_ty_iol[] = (loc_iol==0) ? {[0:24]} : {[26:50]};
+    int ty;
+    
+    foreach ty( l_ty_iol )
+    {
+      sy = (rx*NUM_TILES_REGION+ty)*NUM_GRID_Y;
+
+        connect
+          (
+            <pin GRS_N of <device *iol @ [sx,sy]>>    =>  <wire GRS_N_OUT of <device *ckeb @ [sx_ckeb,sy_ckeb]>>,
+            <pin GWEN of <device *iol @ [sx,sy]>>    =>   <wire GWEN_OUT of <device *ckeb @ [sx_ckeb,sy_ckeb]>>,
+            <pin POR_N of <device *iol @ [sx,sy]>>    =>  <wire RST_N_OUT of <device *ckeb @ [sx_ckeb,sy_ckeb]>>,
+            <pin GLOGEN of <device *iol @ [sx,sy]>>  =>  <wire GLOGEN_OUT of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+          );
+
+
+    } 
+   
+}//end of function connect_iol_hp_gs_input
+
+
+/***********************************************************************************************************************
+************************************************************************************************************************/
+function connect_pll_gs_input
+(
+    unsigned int rx,
+    unsigned int tx,
+    unsigned int tx_ckeb,
+    string device_ckeb,
+    unsigned int loc_pll
+)
+{
+    int sx,sx_ckeb;
+    sx = tx * NUM_GRID_X;
+    sx_ckeb = tx_ckeb * NUM_GRID_X;
+
+    string ckeb = device_ckeb;
+    string pll = (loc_pll==0) ? "PPLL_330H_TILE" : "GPLL_330H_TILE";
+
+    int sy_ckeb = (rx*NUM_TILES_REGION+25) * NUM_GRID_Y;      
+    int ty = (loc_pll==0) ? 0 : 26;
+    int sy = (rx*NUM_TILES_REGION+ty)*NUM_GRID_Y;
+
+
+    
+
+    connect
+      (
+        <pin GRS_N of <device *pll @ [sx,sy]>>     => (tx==1) ? <wire GRS_N_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+                                                              : <wire GRS_N_OUT_1 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>,                             
+        <pin GWEN of <device *pll @ [sx,sy]>>      => (tx==1) ? <wire GWEN_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+                                                              : <wire GWEN_OUT_1 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>,
+        <pin POR_N of <device *pll @ [sx,sy]>>     => (tx==1) ? <wire POR_N_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+                                                              : <wire POR_N_OUT_1 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>,
+        <pin GLOGEN of <device *pll @ [sx,sy]>>    => (tx==1) ? <wire GLOGEN_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+                                                              : <wire GLOGEN_OUT_1 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>,
+        <pin POR_N_1P8 of <device *pll @ [sx,sy]>> => (tx==1) ? <wire POR_N_1P8_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+                                                              : <wire POR_N_1P8_OUT_1 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>,
+        <pin RST_N of <device *pll @ [sx,sy]>>     => (tx==1) ? <wire RST_N_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+                                                              : <wire RST_N_OUT_1 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+      );
+
+   
+}//end of function connect_pll_gs_input
+
+/***********************************************************************************************************************
+************************************************************************************************************************/
+function connect_pll_hp_gs_input
+(
+    unsigned int rx,
+    unsigned int tx,
+    unsigned int tx_ckeb,
+    string device_ckeb,
+    unsigned int loc_pll
+)
+{
+    int sx,sx_ckeb;
+    sx = tx * NUM_GRID_X;
+    sx_ckeb = tx_ckeb * NUM_GRID_X;
+
+    string ckeb = device_ckeb;
+    string pll = (loc_pll==0) ? "PPLL_HP_TILE" : "GPLL_HP_TILE";
+
+    int sy_ckeb = (rx*NUM_TILES_REGION+25) * NUM_GRID_Y;      
+    int ty = (loc_pll==0) ? 0 : 26;
+    int sy = (rx*NUM_TILES_REGION+ty)*NUM_GRID_Y;
+
+
+    
+
+    connect
+      (
+        <pin GRS_N of <device *pll @ [sx,sy]>>     => (tx==1) ? <wire GRS_N_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+                                                              : <wire GRS_N_OUT_1 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>,                             
+        <pin GWEN of <device *pll @ [sx,sy]>>      => (tx==1) ? <wire GWEN_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+                                                              : <wire GWEN_OUT_1 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>,
+        <pin POR_N of <device *pll @ [sx,sy]>>     => (tx==1) ? <wire POR_N_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+                                                              : <wire POR_N_OUT_1 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>,
+        <pin GLOGEN of <device *pll @ [sx,sy]>>    => (tx==1) ? <wire GLOGEN_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+                                                              : <wire GLOGEN_OUT_1 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>,
+        <pin POR_N_1P8 of <device *pll @ [sx,sy]>> => (tx==1) ? <wire POR_N_1P8_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+                                                              : <wire POR_N_1P8_OUT_1 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>,
+        <pin RST_N of <device *pll @ [sx,sy]>>     => (tx==1) ? <wire RST_N_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+                                                              : <wire RST_N_OUT_1 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+      );
+
+   
+}//end of function connect_pll_gs_input
+
+
+/***********************************************************************************************************************
+************************************************************************************************************************/
+function connect_iock_gs_input
+(
+    unsigned int rx,
+    unsigned int tx
+)
+{
+    int sx,sx_ckeb;
+    sx = tx * NUM_GRID_X;
+    int sy = (rx*NUM_TILES_REGION+25)*NUM_GRID_Y;
+
+
+    connect
+      (
+        <pin GRS of <device IOCK_TILE @ [sx,sy]>>      =>  <wire GRS_N_OUT of <device IOCK_TILE @ [sx,sy]>>,                        
+        <pin GLOGEN of <device IOCK_TILE @ [sx,sy]>>   =>  <wire GLOGEN_OUT of <device IOCK_TILE @ [sx,sy]>>
+      );
+
+   
+}//end of function connect_iock_gs_input
+
+/***********************************************************************************************************************
+************************************************************************************************************************/
+function connect_iock_hp_gs_input
+(
+    unsigned int rx,
+    unsigned int tx
+)
+{
+    int sx,sx_ckeb;
+    sx = tx * NUM_GRID_X;
+    int sy = (rx*NUM_TILES_REGION+25)*NUM_GRID_Y;
+
+
+    connect
+      (
+        <pin GRS of <device IOCK_HP_TILE @ [sx,sy]>>      =>  <wire GRS_N_OUT of <device IOCK_HP_TILE @ [sx,sy]>>,
+        <pin GLOGEN of <device IOCK_HP_TILE @ [sx,sy]>>   =>  <wire GLOGEN_OUT of <device IOCK_HP_TILE @ [sx,sy]>>
+      );
+
+
+}//end of function connect_iock_hp_gs_input
+
+
+/***********************************************************************************************************************
+************************************************************************************************************************/
+function connect_uscm_gs_input
+(
+    unsigned int rx,
+    unsigned int tx,
+    unsigned int tx_ckeb,
+    unsigned int tx_cram_ctrl,
+    string device_ckeb
+)
+{
+    int sx,sx_ckeb;
+    sx = tx * NUM_GRID_X + 3;
+    sx_ckeb = tx_ckeb * NUM_GRID_X;
+
+    string ckeb = device_ckeb;
+    int sy = (rx*NUM_TILES_REGION)*NUM_GRID_Y;
+    int sy_ckeb_d = (rx*NUM_TILES_REGION+25)*NUM_GRID_Y;
+    int sy_ckeb_u = ((rx+1)*NUM_TILES_REGION+25)*NUM_GRID_Y;
+
+
+//    if(tx>tx_cram_ctrl)
+//    {
+      connect
+        (
+          <pin GLOGEN_D of <device USCM_TILE @ [sx,sy]>> => (tx==tx_ckeb) ?  <wire GLOGEN_OUT_1 of <device *ckeb @ [sx_ckeb,sy_ckeb_d]>>
+                                                                          :  <wire GLOGEN_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb_d]>>,   
+
+//          <pin GRS_N of <device USCM_TILE @ [sx,sy]>>    => (tx==tx_ckeb) ?  <wire GRS_N_OUT_1 of <device *ckeb @ [sx_ckeb,sy_ckeb_u]>>
+//                                                                          :  <wire GRS_N_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb_u]>>,
+         
+          <pin GLOGEN_U of <device USCM_TILE @ [sx,sy]>> => (tx==tx_ckeb) ?  <wire GLOGEN_OUT_1 of <device *ckeb @ [sx_ckeb,sy_ckeb_u]>>
+                                                                          :  <wire GLOGEN_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb_u]>>
+      );
+//    }
+//    else
+//    {
+//      connect
+//        (
+//          <pin GLOGEN_D of <device USCM_TILE @ [sx,sy]>> => (tx==tx_ckeb) ?  <wire GLOGEN_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb_d]>>
+//                                                                          :  <wire GLOGEN_OUT_1 of <device *ckeb @ [sx_ckeb,sy_ckeb_d]>>,   
+
+//          <pin GLOGEN_U of <device USCM_TILE @ [sx,sy]>> => (tx==tx_ckeb) ?  <wire GLOGEN_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb_u]>>
+//                                                                          :  <wire GLOGEN_OUT_1 of <device *ckeb @ [sx_ckeb,sy_ckeb_u]>>         
+//      );
+//    }
+
+}//end of function connect_uscm_gs_input
+/***********************************************************************************************************************
+************************************************************************************************************************/
+function connect_pregmuxc_gs_input
+(
+    unsigned int rx,
+    unsigned int tx,
+    unsigned int tx_ckeb,
+    unsigned int tx_cram_ctrl,
+    string device_ckeb
+)
+{
+    int sx,sx_ckeb;
+    sx = tx * NUM_GRID_X + 3;
+    sx_ckeb = tx_ckeb * NUM_GRID_X;
+
+    string ckeb = device_ckeb;
+    int sy = (rx*NUM_TILES_REGION)*NUM_GRID_Y;
+    int sy_ckeb = (rx*NUM_TILES_REGION+25)*NUM_GRID_Y;
+
+//    if(tx>tx_cram_ctrl)
+//    {
+      connect
+        (
+          <pin GLOGEN of <device PREGMUXC_TILE @ [sx,sy]>> => (tx==tx_ckeb) ?  <wire GLOGEN_OUT_1 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+                                                                            :  <wire GLOGEN_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+      );
+//    }
+//    else
+//    {
+//      connect
+ //       (
+//          <pin GLOGEN of <device PREGMUXC_TILE @ [sx,sy]>> => (tx==tx_ckeb) ?  <wire GLOGEN_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+//                                                                            :  <wire GLOGEN_OUT_1 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>      
+//      );
+//    }
+
+}//end of function connect_pregmuxc_gs_input
+/***********************************************************************************************************************
+************************************************************************************************************************/
+function connect_pcie_gs_input
+(
+    unsigned int rx,
+    unsigned int tx,
+    unsigned int tx_ckeb,
+    unsigned int tx_cram_ctrl,
+    string device_ckeb
+)
+{
+    int sx,sx_ckeb;
+    sx = tx * NUM_GRID_X + 3;
+    sx_ckeb = tx_ckeb * NUM_GRID_X;
+
+    string ckeb = device_ckeb;
+    int sy = (rx*NUM_TILES_REGION)*NUM_GRID_Y;
+    int sy_ckeb = (rx*NUM_TILES_REGION+25)*NUM_GRID_Y;
+
+
+    connect
+      (
+        <pin GRSN of <device PCIE_TILE @ [sx,sy]>>   => (tx==tx_ckeb) ?  <wire GRS_N_OUT_1 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+                                                                          :  <wire GRS_N_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>,
+        <pin GLOGEN of <device PCIE_TILE @ [sx,sy]>> => (tx==tx_ckeb) ?  <wire GLOGEN_OUT_1 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+                                                                          :  <wire GLOGEN_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+      );
+
+
+}//end of function connect_pregmuxc_gs_input
+
+
+/***********************************************************************************************************************
+************************************************************************************************************************/
+function connect_pciegen3_gs_input
+(
+
+    unsigned int rx,
+    unsigned int tx,
+    unsigned int tx_ckeb,
+    unsigned int tx_cram_ctrl,
+    string device_ckeb
+)
+{
+    int sx,sx_ckeb;
+    sx = tx * NUM_GRID_X + 3;
+    sx_ckeb = tx_ckeb * NUM_GRID_X;
+
+    int mid_tile = MID_TILE_REGION;
+    string ckeb = device_ckeb;
+    int sy = (rx*NUM_TILES_REGION)*NUM_GRID_Y;
+//    int sy_ckeb = (rx*NUM_TILES_REGION+25)*NUM_GRID_Y;
+    int sy_ckeb = (4*NUM_TILES_REGION+25)*NUM_GRID_Y;
+
+
+    connect
+      (
+        <pin GRSN of <device PCIEGEN3_TILE @ [555,1074]>>   => (tx==tx_ckeb) ?  <wire GRS_N_OUT_1 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+                                                                          :  <wire GRS_N_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>,
+        <pin GLOGEN of <device PCIEGEN3_TILE @ [555,1074]>> => (tx==tx_ckeb) ?  <wire GLOGEN_OUT_1 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+                                                                          :  <wire GLOGEN_OUT_0 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+      );
+
+}//end of function connect_pregmuxc_gs_input
+
+/***********************************************************************************************************************
+************************************************************************************************************************/
+function connect_hsst_gs_input
+(
+    unsigned int rx,
+    unsigned int tx,
+    unsigned int tx_ckeb,
+    string device_ckeb,
+    string device_hsst
+)
+{
+    int sx,sx_ckeb;
+    sx = tx * NUM_GRID_X + 3;
+    sx_ckeb = tx_ckeb * NUM_GRID_X;
+
+    string ckeb = device_ckeb;
+    int sy = rx*NUM_TILES_REGION*NUM_GRID_Y;
+    int sy_ckeb = (rx*NUM_TILES_REGION+25)*NUM_GRID_Y;
+    string hsst = device_hsst;
+
+    connect
+      (
+        <pin GRSN of <device *hsst @ [sx,sy]>>     =>  <wire GRS_N_OUT_1 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>,                        
+        <pin GLOGEN of <device *hsst @ [sx,sy]>>   =>  <wire GLOGEN_OUT_1 of <device *ckeb @ [sx_ckeb,sy_ckeb]>>
+      );
+
+   
+}//end of function connect_iock_gs_input
+
+///********************************************************************************************
+//*********************************************************************************************/
+//function connect_cramsl2_addr_input(unsigned int tx,ty,s_hmemc,n_hmemc, string device_name, unsigned int flag)
+//{
+//    int rx = 0;
+//    int ty_tmp,ty_int;
+//    for(ty_tmp=ty-NUM_TILES_REGION;ty_tmp>=0;ty_tmp=ty_tmp-NUM_TILES_REGION)
+//    {
+//        rx = rx + 1;
+//    }
+//
+//    ty_int = ty_tmp + NUM_TILES_REGION;
+//    
+//    int ty_wlsr = rx * NUM_TILES_REGION + MID_TILE_REGION;
+//    int sx,sy;
+// 
+//    sx = tx * NUM_GRID_X;   
+//    sy = (ty_int>MID_TILE_REGION) ? (ty-1)*NUM_GRID_Y+NUM_GRID_WLSR_Y : ty*NUM_GRID_Y;
+//
+//   string device_dll = ((ty_wlsr>=s_hmemc)&&(ty_wlsr<n_hmemc)&&((flag==1)||(tx!=1))) ? "HMEMCIOCKGATEDLL_TILE" : "IOCKGATEDLL_TILE";
+//
+//
+//   int sx_wlsr =  sx + 2;
+//   int sy_wlsr =  rx * ((NUM_TILES_REGION-1)*NUM_GRID_Y+NUM_GRID_WLSR_Y) + (MID_TILE_REGION-1)*NUM_GRID_Y;
+//   string name = device_name;
+//
+//   connect 
+//      (
+//          <pin ADDR of <device *name @ [sx+2,sy]>> => (device_dll=="HMEMCIOCKGATEDLL_TILE") ? <wire ADDR of <device *device_dll @ [sx_wlsr,sy_wlsr]>>
+//                                                                                            : <wire ADDR[19:18] of <device *device_dll @ [sx_wlsr,sy_wlsr]>>
+//      );
+//}// end of function connect_cramsl2_addr_input
+//
+///********************************************************************************************
+//*********************************************************************************************/
+
+
+}//end of package pgl_funcs_connect_global_sig
+

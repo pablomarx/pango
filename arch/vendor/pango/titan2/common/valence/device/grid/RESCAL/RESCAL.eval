@@ -1,0 +1,155 @@
+tarted
+grid
+device RESCAL
+{
+    // grid_property_def_start
+    // grid_property_def_end
+
+    parameter
+    (
+        config string CP_VCCIO = "1.2V",
+        config real CP_VREF_RATIO = 0.5,
+        config string CP_CAL_ENABLE = "FALSE",
+        config string CP_CAL_CASCADE = "LOCAL"
+    );
+    port
+    (
+// configuration_body_def_on
+
+
+    config input SC_PCODE[4:0] = 5'h0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_PCODE[4],SC_PCODE[3],SC_PCODE[2],SC_PCODE[1],SC_PCODE[0]" */,
+
+    config input SC_NCODE[4:0] = 5'h0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_NCODE[4],SC_NCODE[3],SC_NCODE[2],SC_NCODE[1],SC_NCODE[0]" */,
+
+    config input SC_VREF[2:0] = 3'h0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_VREF[2],SC_VREF[1],SC_VREF[0]" */,
+
+    config input SC_CBIAS[2:0] = 3'h0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_CBIAS[2],SC_CBIAS[1],SC_CBIAS[0]" */,
+
+    config input SC_EN = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_EN" */,
+
+    config input SC_RES_CASC[1:0] = 2'h0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_RES_CASC[1],SC_RES_CASC[0]" */,
+
+    config input SC_EN_CASC_H = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_EN_CASC_H" */,
+
+    config input SC_EN_CASC_V = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_EN_CASC_V" */,
+
+// configuration_body_def_end
+
+        input PCODE[4:0] = 5'b1111_1,
+        input NCODE[4:0] = 5'b1111_1,
+        input SAMPLE = 1'b1,
+        input EN_SOFT = 1'b1,
+        input CODE_SEL_SOFT = 1'b1,
+        input RST_CAL = 1'b1,
+        output PCODE_SOFT[4:0],
+        output NCODE_SOFT[4:0],
+        output SAMPLE_SOFT
+    );
+};
+//grid device end
+
+//grid device structure netlist started
+structure netlist of RESCAL
+{
+};
+//grid device structure netlist end
+//grid device configure body started
+
+configuration cfg of RESCAL
+{
+
+ // assign config body begin
+    SC_VREF       :=  3'b010;
+    SC_CBIAS      :=  3'b010;
+    SC_EN_CASC_H  :=  1'b0;
+    SC_EN_CASC_V  :=  1'b1;
+// assign config body end
+
+//initial config body0 begin
+    if(CP_VCCIO == "1.2V" && CP_VREF_RATIO==0.5)
+    {
+        SC_PCODE  :=  5'h0f;
+        SC_NCODE  :=  5'h0f;
+    }
+    else if(CP_VCCIO == "1.35V" && CP_VREF_RATIO==0.5)
+    {
+        SC_PCODE  :=  5'h10;
+        SC_NCODE  :=  5'h0e;
+    }
+    else if(CP_VCCIO == "1.5V" && CP_VREF_RATIO==0.5)
+    {
+        SC_PCODE  :=  5'h11;
+        SC_NCODE  :=  5'h0e;
+    }
+    else if(CP_VCCIO == "1.8V" && CP_VREF_RATIO==0.5)
+    {
+        SC_PCODE  :=  5'h11;
+        SC_NCODE  :=  5'h0e;
+    }
+    else if(CP_VCCIO == "1.2V" && CP_VREF_RATIO==0.75)
+    {
+        SC_PCODE  :=  5'h0f;
+        SC_NCODE  :=  5'h11;
+    }
+    else
+    {
+        SC_PCODE  :=  5'hxx;
+        SC_NCODE  :=  5'hxx;
+        error("illegal setting for CP_VCCIO  :=  %s",CP_VCCIO);
+        error("illegal setting for CP_VREF_RATIO  :=  %d",CP_VREF_RATIO);
+    }
+
+//initial config body0 end
+
+
+//initial config body1 begin
+    if(CP_CAL_ENABLE == "FALSE")
+    {
+        SC_EN  :=  1'b0;
+    }
+    else if(CP_CAL_ENABLE == "TRUE")
+    {
+        SC_EN  :=  1'b1;
+    }
+    else
+    {
+        SC_EN  :=  1'bx;
+        error("illegal setting for CP_CAL_ENABLE  :=  %s",CP_CAL_ENABLE);
+    }
+
+//initial config body1 end
+
+
+//initial config body2 begin
+    if(CP_CAL_CASCADE == "LOCAL")
+    {
+        SC_RES_CASC  :=  2'b00;
+    }
+    else if(CP_CAL_CASCADE == "UP")
+    {
+        SC_RES_CASC  :=  2'b10;
+    }
+    else if(CP_CAL_CASCADE == "DN")
+    {
+        SC_RES_CASC  :=  2'b11;
+    }
+    else
+    {
+        SC_RES_CASC  :=  2'bxx;
+        error("illegal setting for CP_CAL_CASCADE  :=  %s",CP_CAL_CASCADE);
+    }
+
+//initial config body2 end
+
+};
+
+//grid device configure body end
+

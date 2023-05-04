@@ -1,0 +1,301 @@
+*********************************************************************
+
+  Operator    [gopLATCH]
+  
+  Author    [liujiao]
+
+  Abstract  []
+
+  Revision History:
+
+ ********************************************************************************/
+gate
+operator gopLATCH
+{
+    parameter
+    (        
+        string LATCH_MODE       = "LATCH",          // Only set 1 for IOL
+        string LATCH_SET        = "RESET",       // USED it when place it in IOL
+        string FF_SYNC          = "ASYNC",       //1'b0 => "ASYNC";      1'b1 => "SYNC"    
+        bit    LUT_INIT[31:0]   = 32'h0000_0000, // USED it when place it in CLM 
+        
+        string FF_CE_EN      = "UNUSED",    //1'b0 => "UNUSED";   1'b1 => "USED"
+        string FF_LRS_EN     = "UNUSED",    //1'b0 => "UNUSED";   1'b1 => "USED"
+        string CLK_INV       = "FALSE",
+        string CE_INV        = "FALSE",
+        string LRS_INV       = "FALSE",
+        string GRS_EN        = "FALSE"           // "TRUE" "FALSE"
+    );
+
+    port
+    (        
+        input  L0, G, ASC, EN, D, // ASC: ASET(DLATCH_AS_EN);ACLR(DLATCH_AC_EN)
+        output Q
+    );
+};
+
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devBL_S to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devBL_S of gopLATCH
+{
+    string MODE      = "LATCH";   // "LATCH" "MUX4" "ARITH"     
+    device devBL_S gatedev
+        parameter map 
+        ( 
+            CP_INITB         => LUT_INIT, 
+            //LATCH_SETB       => LATCH_SET,
+            //LATCH_CE_EN_B    => FF_CE_EN,
+            //LATCH_LRS_EN_B   => FF_LRS_EN,
+            CP_MODEB         => MODE
+        )
+        port map 
+        (
+            B4 => D,
+            B3 => EN,
+            B2 => ASC,
+            B1 => G,
+            B0 => L0,
+            Y1 => Q
+        );
+}; // end of implementation impl_devBL_S of gopLATCH
+
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devDL_S to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devDL_S of gopLATCH
+{
+    string MODE            = "LATCH";   // "LATCH" "MUX4" "ARITH"     
+    device devDL_S gatedev
+        parameter map 
+        ( 
+            CP_INITD         => LUT_INIT,
+            //LATCH_SETD       => LATCH_SET,
+            //LATCH_CE_EN_D    => FF_CE_EN,
+            //LATCH_LRS_EN_D   => FF_LRS_EN,
+            CP_MODED         => MODE
+        )
+        port map 
+        (            
+            D4 => D,
+            D3 => EN,
+            D2 => ASC,
+            D1 => G,
+            D0 => L0,
+            Y3 => Q
+        );
+}; // end of implementation impl_devDL_S of gopLATCH
+
+
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devBL to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devBL of gopLATCH
+{
+    string MODE      = "LATCH";   // "LATCH" "MUX4" "ARITH" 
+    
+    device devBL gatedev
+        parameter map 
+        ( 
+            CP_INITB            => LUT_INIT, 
+            //LATCH_SETB       => LATCH_SET,
+            //LATCH_CE_EN_B    => FF_CE_EN,
+            //LATCH_LRS_EN_B   => FF_LRS_EN,
+            CP_MODEB         => MODE
+        )
+        port map 
+        (
+            B4          => D,
+            B3          => EN,
+            B2          => ASC,
+            B1          => G,
+            B0          => L0,
+            Y1          => Q
+        );
+}; // end of implementation impl_devBL of gopLATCH
+
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devDL to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devDL of gopLATCH
+{
+    string MODE      = "LATCH";   // "LATCH" "MUX4" "ARITH" 
+    
+    device devDL gatedev
+        parameter map 
+        ( 
+            CP_INITD            => LUT_INIT, 
+            //LATCH_SETD       => LATCH_SET,
+            //LATCH_CE_EN_D    => FF_CE_EN,
+            //LATCH_LRS_EN_D   => FF_LRS_EN,
+            CP_MODED         => MODE
+        )
+        port map 
+        (
+            D4 => D,
+            D3 => EN,
+            D2 => ASC,
+            D1 => G,
+            D0 => L0,
+            Y3 => Q
+        );
+}; // end of implementation impl_devDL of gopLATCH
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devAL_S to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devAL_S of gopLATCH
+{
+    string MODE            = "LATCH";   // "LATCH" "MUX4" "ARITH"     
+    device devAL_S gatedev
+        parameter map
+        ( 
+            CP_INITA       => LUT_INIT,   
+            //LATCH_SETA     => LATCH_SET,
+            //LATCH_CE_EN_A  => FF_CE_EN,
+            //LATCH_LRS_EN_A => FF_LRS_EN,
+            CP_MODEA       => MODE              
+        )
+        port map 
+        (                            
+            A4        => D,
+            A3        => EN,
+            A2        => ASC,
+            A1        => G,
+            A0        => L0,
+            Y0        => Q
+        );
+}; // end of implementation impl_devAL_S of gopLATCH
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devCL_S to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devCL_S of gopLATCH
+{
+    string MODE            = "LATCH";   // "LATCH" "MUX4" "ARITH"
+    device devCL_S gatedev
+        parameter map 
+        ( 
+            CP_INITC         => LUT_INIT,  
+            //LATCH_SETC       => LATCH_SET,
+            //LATCH_CE_EN_C    => FF_CE_EN,
+            //LATCH_LRS_EN_C   => FF_LRS_EN,
+            CP_MODEC         => MODE
+        )
+        port map 
+        (            
+            C4 => D,
+            C3 => EN,
+            C2 => ASC,
+            C1 => G,
+            C0 => L0,
+            Y2 => Q
+        );
+}; // end of implementation impl_devCL_S of gopLATCH
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devAL to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devAL of gopLATCH
+{
+    string MODE      = "LATCH";   // "LATCH" "MUX4" "ARITH" 
+    
+    device devAL gatedev
+        parameter map 
+        ( 
+            CP_INITA           => LUT_INIT,
+            //LATCH_SETA       => LATCH_SET,
+            //LATCH_CE_EN_A    => FF_CE_EN,
+            //LATCH_LRS_EN_A   => FF_LRS_EN,
+            CP_MODEA         => MODE
+        )
+        port map 
+        (         
+            A4         => D,
+            A3         => EN,
+            A2         => ASC,
+            A1         => G,
+            A0         => L0,
+            Y0         => Q
+        );
+}; // end of implementation impl_devAL of gopLATCH
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devCL to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devCL of gopLATCH
+{   
+    string MODE      = "LATCH";   // "LATCH" "MUX4" "ARITH"  
+    device devCL gatedev
+        parameter map 
+        (
+            CP_INITC            => LUT_INIT, 
+            //LATCH_SETC       => LATCH_SET,
+            //LATCH_CE_EN_C    => FF_CE_EN,
+            //LATCH_LRS_EN_C   => FF_LRS_EN,
+            CP_MODEC         => MODE
+        )
+        port map 
+        (
+            C4 => D,
+            C3 => EN,
+            C2 => ASC,
+            C1 => G,
+            C0 => L0,
+            Y2 => Q
+        );
+}; // end of implementation impl_devCL of gopLATCH
+
+

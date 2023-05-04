@@ -1,0 +1,178 @@
+use pg2l_defs, pg2l50h_defs, pg2l_funcs_place, pg2l_funcs_connect_logic;
+use pg2l_funcs_connect_clk;
+//use pg2l50h_funcs_connect_clk;
+
+structure arch_nl connect_CLKTREE of PG2L50H
+{
+    unsigned int rx, tx, ty;
+    unsigned int tx_iock;
+    unsigned int tx_ckeb;
+    unsigned int tx_iol;
+    unsigned int tx_pll;
+    unsigned int loc_srb;
+    unsigned int ty_uscm;
+
+    unsigned int l_rx[];
+    unsigned int l_tx[];
+    unsigned int l_tx_ckeb2[];
+    unsigned int l_tx_ckeb[];
+ 
+    int tx_wl = CRAM_CTRL_TILE_X;
+    int tx_ckeb2_l = CKEB2_TILE_X_L;
+    int tx_ckeb2_r = CKEB2_TILE_X_R;
+    int tx_uscm = USCM_TILE_X;
+    int tx_hsst = HSST_TILE_X;
+
+    int rx_uscm = LOC_USCM_REGION;
+
+    string type_lr;
+    string device_iol = "IOLHR_TILE";
+    string device_ckeb = "CKEB_TILE";
+
+//connect_iolclk_input
+
+    foreach type_lr( {"L", "R"} )
+    {
+        l_rx = (type_lr=="L") ? L_REGION : {[0:1]};
+        foreach rx( l_rx )
+        {
+            connect_iolclk_input(type_lr, rx, NUM_TILE_X, device_iol);
+        }
+    } 
+
+
+//connect_pregmuxc_horizontal
+
+    foreach rx( L_REGION )
+    {
+        string device_uscm = (rx==LOC_PREGMUXC_REGION) ? "PREGMUXC_TILE" : "USCM_TILE";
+        ty_uscm = (rx==2) ? rx * NUM_TILES_REGION : 0;
+        connect_pregmuxc_horizontal(rx, tx_ckeb2_l, tx_ckeb2_r, tx_uscm, ty_uscm, device_uscm);
+    }
+
+//connect_pregmuxc_vertical
+
+    foreach rx( L_REGION )
+    {
+        connect_pregmuxc_vertical(rx, tx_uscm, rx_uscm, NUM_REGION);
+    }
+
+//connect_ckeb_buf1 & connect_ckeb_buf2
+
+    foreach rx( L_REGION )
+    {
+        foreach type_lr( {"L", "R"} )
+        {
+            l_tx_ckeb2 = (type_lr == "L") ? tx_ckeb2_l : tx_ckeb2_r;
+            tx_iock = ((rx==2)&&(type_lr == "R")) ? 0 :
+                                (type_lr == "L") ? 1 : NUM_TILE_X - 3;  
+            l_tx_ckeb = (((rx==0)||(rx==1))&&(type_lr=="L")) ? CKEB_TILES_X_R0_L :
+                        (((rx==0)||(rx==1))&&(type_lr=="R")) ? CKEB_TILES_X_R0_R :
+                                   ((rx==2)&&(type_lr=="L")) ? CKEB_TILES_X_R2_L : CKEB_TILES_X_R2_R;
+
+            int ty_uscm = ((rx==rx_uscm) || (rx==(rx_uscm + 1))) ? rx_uscm * NUM_TILES_REGION : rx * NUM_TILES_REGION;
+            string device_uscm = (rx==LOC_PREGMUXC_REGION) ? "PREGMUXC_TILE" : "USCM_TILE";
+            
+             connect_ckeb_buf1(rx, l_tx_ckeb2, l_tx_ckeb, tx_uscm, tx_iock, tx_hsst);
+             connect_ckeb_buf2(rx, l_tx_ckeb2, l_tx_ckeb, tx_uscm, ty_uscm, device_uscm);
+        }
+    }
+
+//connect_srb_clk_input
+
+    foreach rx( L_REGION )
+    {
+        foreach loc_srb( {[0:1]} )
+        {
+            l_tx = (rx==0) ? L_SRB_TILES_X_R0 : 
+                   (rx==1) ? L_SRB_TILES_X_R1 : 
+              (loc_srb==0) ? L_SRB_TILES_X_R2_D : L_SRB_TILES_X_R2_U;
+            string device_srb = "SRB_TILE";
+
+            foreach tx( l_tx )
+            {
+                tx_ckeb = (tx==48) ? tx - 1 : 
+                          (((tx<tx_wl)&&(tx%2==1))||((tx>tx_wl)&&(tx%2==0))||(tx==47)) ? tx : tx + 1;
+
+                connect_srb_clk_input(rx, tx, tx_ckeb, device_ckeb, device_srb, loc_srb);
+            }
+        }
+    }
+
+    foreach rx( L_REGION )
+    {
+        foreach loc_srb( {[0:1]} )
+        {
+            l_tx = (rx==0) ? L_CLMS_TILES_X_R0 : 
+                   (rx==1) ? L_CLMS_TILES_X_R1 : 
+              (loc_srb==0) ? L_CLMS_TILES_X_R2_D : L_CLMS_TILES_X_R2_U;
+            string device_srb = "CLMS_TILE";
+
+            foreach tx( l_tx )
+            {
+                tx_ckeb = (tx==48) ? tx - 1 : 
+                          (((tx<tx_wl)&&(tx%2==1))||((tx>tx_wl)&&(tx%2==0))||(tx==47)) ? tx : tx + 1;
+
+                connect_srb_clk_input(rx, tx, tx_ckeb, device_ckeb, device_srb, loc_srb);
+            }
+        }
+    }
+
+    foreach rx( L_REGION )
+    {
+        foreach loc_srb( {[0:1]} )
+        {
+            l_tx = (rx==0) ? L_CLMA_TILES_X_R0 : 
+                   (rx==1) ? L_CLMA_TILES_X_R1 : 
+              (loc_srb==0) ? L_CLMA_TILES_X_R2_D : L_CLMA_TILES_X_R2_U;
+            string device_srb = "CLMA_TILE";
+
+            foreach tx( l_tx )
+            {
+                tx_ckeb = (tx==48) ? tx - 1 : 
+                          (((tx<tx_wl)&&(tx%2==1))||((tx>tx_wl)&&(tx%2==0))||(tx==47)) ? tx : tx + 1;
+
+                connect_srb_clk_input(rx, tx, tx_ckeb, device_ckeb, device_srb, loc_srb);
+            }
+        }
+    }
+    
+
+    //tx_ckeb =                                                   (tx==48) ? tx - 1 :
+    //          (((tx<tx_wl)&&(tx%2=1))||((tx>tx_wl)&&(tx%2=0))||(tx==47)) ? tx :
+    //                    (((tx<tx_wl)&&(tx%2=0))||((tx>tx_wl)&&(tx%2=1))) ? tx + 1;
+
+
+//connect_iock_pclk_input
+
+   foreach rx( L_REGION )
+    {
+        l_tx = (rx==0) ? L_IOCK_TILES_X_R0 :
+               (rx==1) ? L_IOCK_TILES_X_R1 : L_IOCK_TILES_X_R2;
+        foreach tx( l_tx )
+        {
+            tx_pll = (tx < tx_wl) ? tx    : tx + 1;
+            tx_iol = (tx < tx_wl) ? tx +1 : tx;
+            connect_iock_pclk_input(rx, tx, tx_iol, tx_pll, device_iol);
+        } 
+    } 
+
+//connect_iock_pll_clk
+
+    foreach rx( L_REGION )
+    {
+        l_tx = (rx==0) ? L_IOCK_TILES_X_R0 :
+               (rx==1) ? L_IOCK_TILES_X_R1 : L_IOCK_TILES_X_R2;
+        foreach tx( l_tx )
+        {
+            int rx_u, rx_d;
+            rx_u = (tx<tx_wl) ? 2 : 1;
+            rx_d = 0;
+            tx_pll = (tx<tx_wl) ? tx : tx + 1; 
+            connect_iock_pll_clk(rx, tx, tx_pll, rx_d, rx_u);
+            
+        }
+    }
+
+
+};//end of structure arch_nl connect_CLKTREE of PG2L50H

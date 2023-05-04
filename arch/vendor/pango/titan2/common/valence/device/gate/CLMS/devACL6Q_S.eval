@@ -1,0 +1,259 @@
+evACL6Q_S.val
+ * @brief .
+ * @author zpfeng(file creator)
+ * @date 2019/07/18
+ * @copyright (c) Copyright 2013~2019 - PANGO MICROSYSTEMS, INC.
+ * ALL RIGHTS RESERVED.
+ *
+ * THE SOURCE CODE CONTAINED HEREIN IS PROPRIETARY TO PANGO MICROSYSTEMS, INC.
+ * IT SHALL NOT BE REPRODUCED OR DISCLOSED IN WHOLE OR IN PART OR USED BY PARTIES
+ * WITHOUT WRITTEN AUTHORIZATION FROM THE OWNER.
+ */
+
+
+gate
+device devACL6Q_S : device CLMS
+{
+
+    parameter
+    (
+        config bit CP_INITA[63:0] = 64'hFFFFFFFFFFFFFFFF,
+        config string CP_MODEA = "LUT6",
+        config string CP_FF0_RS = "SET",
+        config bit CP_FF0_INIT = 1'b1,
+        config string CP_Q0MUX_SEL = "YX",
+        config string CP_RAM_LUTA_DIH = "LI",
+        config string CP_RAM_LUTA_DIL = "LI",
+        config string CP_MASK_LUT6A = "FALSE",
+        config string CP_RS_MODE = "SYNC",
+        config string CP_LRS_POL = "FALSE",
+        config string CP_LRS_EN = "FALSE",
+        config string CP_LCE_POL = "FALSE",
+        config string CP_LCE_EN = "FALSE",
+        config string CP_CLK_POL = "FALSE",
+        config string CP_RSMUX_SEL = "LOCAL",
+        config string CP_CEMUX_SEL = "LOCAL",
+        config string CP_GRS_EN = "TRUE",
+        config string CP_LATCH_EN = "FALSE",
+        config string CP_RAM_MODE = "LRAM",
+        config string CP_RAM32_EN = "TRUE",
+        config string CP_CR0PREMUX_SEL = "YX",
+        config string CP_CR0POSTMUX_SEL = "CX"
+    );
+    port
+    (
+        input A0,
+        input A1,
+        input A2,
+        input A3,
+        input A4,
+        input A5,
+        output Y0,
+        output Q0,
+        output CR0,
+        
+        input RS,
+        input CE,
+        input CLK,
+        input RSCI,
+        output RSCO,
+        input CECI,
+        output CECO,
+        input  CIN,
+  logic output FGA_COUT
+    );
+}; // end of device devACL6Q_S
+
+
+structure netlist of devACL6Q_S
+{
+
+    wire  ntA5      ;
+    wire  ntA4      ;
+    wire  ntA3      ;
+    wire  ntA2      ;
+    wire  ntA1      ;
+    wire  ntA0      ;
+    wire  ntQ0      ;
+    wire  ntCYA     ;
+    wire  ntL6A     ;
+    wire  ntQD0     ;
+    wire  ntCYD     ;
+    wire  ntRS      ;
+    wire  ntCE      ;
+    wire  ntCLK     ;
+    wire  ntRSCI    ;
+    wire  ntCECI    ;
+    wire  ntCIN     ;
+    wire  ntCECO    ;
+    wire  ntRSCO    ;
+    wire ntCLKR;
+    wire ntCE_P;
+    wire ntRS_P;
+    wire  ntL5A     ;
+    wire  ntQC0     ;
+    wire  ntCR0     ;
+    
+    ntA5        <= A5      ;
+    ntA4        <= A4      ;
+    ntA3        <= A3      ;
+    ntA2        <= A2      ;
+    ntA1        <= A1      ;
+    ntA0        <= A0      ;
+    Y0          <= ntL6A   ;
+    Q0          <= ntQ0    ;
+    ntRS        <= RS      ;
+    ntCE        <= CE      ;
+    ntCLK       <= CLK     ;
+    ntRSCI      <= RSCI    ;
+    RSCO        <= ntRSCO  ;
+
+    ntCECI      <= CECI    ;
+    CECO        <= ntCECO  ;
+    ntCIN       <= CIN     ;
+    FGA_COUT    <= ntCYA   ;
+    CR0         <= ntCR0   ;
+    
+    device LUT6S FYA
+    parameter map
+    (
+        CP_INIT         => CP_INITA       ,
+        CP_MODE         => CP_MODEA       ,
+        CP_MASK_LUT6    => CP_MASK_LUT6A  ,
+        CP_RAM_LUT_DIL  => CP_RAM_LUTA_DIL,
+        CP_RAM_LUT_DIH  => CP_RAM_LUTA_DIH,
+        CP_M1_SEL       => 1'b0,
+        CP_M2_SEL       => 1'b0,
+        CP_RAM32_EN     => CP_RAM32_EN    ,
+        CP_RAM_MODE     => CP_RAM_MODE
+    )
+    port map
+    (
+        A0      => ntA0                                 ,
+        A1      => ntA1                                 ,
+        A2      => ntA2                                 ,
+        A3      => ntA3                                 ,
+        A4      => ntA4                                 ,
+        A5      => ntA5                                 ,
+        CIN     => ntCIN                                ,
+        COUT    => ntCYA                                ,
+        L5      => ntL5A                                ,
+        L6      => ntL6A
+    );
+    
+      device CLK_POLMUX CLKPOLMUX
+      parameter map
+      (
+           CP_CLK_POL   =>   CP_CLK_POL
+      )
+      port map
+      (    Y            =>   ntCLKR,
+           DIN1         =>   ntCLK,
+           DIN0         =>   ntCLK
+      );
+      device LCE_POLMUX LCEPOLMUX
+      parameter map
+      (
+          CP_LCE_EN    =>    CP_LCE_EN,
+          CP_LCE_POL   =>    CP_LCE_POL
+      )
+      port map
+      (
+          Y           =>     ntCE_P,
+          DIN2        =>     1'b1,
+          DIN1        =>     ntCE,
+          DIN0        =>     ntCE
+      );
+      device LRS_POLMUX LRSPOLMUX
+      parameter map
+      (
+          CP_LRS_EN    =>    CP_LRS_EN,
+          CP_LRS_POL   =>    CP_LRS_POL
+      )
+      port map
+      (
+          Y            =>    ntRS_P,
+          DIN2         =>    1'b0,
+          DIN1         =>    ntRS,
+          DIN0         =>    ntRS
+      );
+
+      device  MUX2_P  CEMUX
+      parameter map
+      (
+          SEL      =>     CP_CEMUX_SEL
+      )
+      port map
+      (
+          DOUT     =>     ntCECO,
+          DI0      =>     ntCECI,
+          DI1      =>     ntCE_P
+      );
+      device  MUX2_P  RSMUX
+      parameter map
+      (
+          SEL      =>     CP_RSMUX_SEL
+      )
+      port map
+      (
+          DOUT     =>     ntRSCO,
+          DI0      =>     ntRSCI,
+          DI1      =>     ntRS_P
+      );
+    device QMUX  Q0MUX
+     parameter map
+     (
+         CP_QMUX_SEL  =>   CP_Q0MUX_SEL
+     )
+     port map
+     (
+         Q        =>     ntQD0,
+         YX       =>     ntL6A
+     );
+
+    device MAINFF FF0
+    parameter map
+    (
+        CP_RS_MODE           =>    CP_RS_MODE,
+        CP_GRS_EN            =>    CP_GRS_EN,
+        CP_FF_RS             =>    CP_FF0_RS,
+        CP_FF_INIT           =>    CP_FF0_INIT,
+        CP_LATCH_EN          =>    CP_LATCH_EN
+    )
+    port map
+    (
+        Q                    =>    ntQ0,
+        D                    =>    ntQD0,
+        CE                   =>    ntCECO,
+        CLK                  =>    ntCLKR,
+        RS                   =>    ntRSCO
+
+    );
+    
+    device CRPREMUX CR0PREMUX
+    parameter map
+    (
+        CP_CRPREMUX_SEL     =>    CP_CR0PREMUX_SEL
+    )
+    port map
+    (
+        YX                  =>    ntL5A,
+        CYX                 =>    ntCYA,
+        Q                   =>    ntQC0
+    );
+    
+    device CRPOSTMUX CR0POSTMUX
+    parameter map
+    (
+        CP_CRPOSTMUX_SEL     =>    CP_CR0POSTMUX_SEL
+    )
+    port map
+    (
+        CX                   =>    ntQC0,
+        Q                    =>    ntCR0
+    );
+    
+}; // end of structure netlist of devACL6Q_S
+
+
+

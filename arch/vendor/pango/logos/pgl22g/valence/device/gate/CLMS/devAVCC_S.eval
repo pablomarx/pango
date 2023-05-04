@@ -1,0 +1,83 @@
+*****************************************************************
+
+  Device    [devAVCC_S]
+
+  Author    [guoxi]
+
+  Abstract  [THE DEVICE CAN BE USED FOR LUT.]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devAVCC_S : device devA_S
+{
+    parameter
+    (
+        config bit     CP_INITA[31:0] := 32'hffff_ffff,
+        config string  CP_MODEA       := "LUT5",         //"LUT5" "ROM" "WMUX" "RAM" "ARITH" "PRIENC" "MUX4" "XOR" "COMP" "RAM"
+        config string  CP_MASK      := "FALSE",        
+        config string  CP_Y0MUX_SEL   := "FX"            //"FX":F0 "CYX":CYA "MF":QP0
+    );
+    
+    port
+    (
+        output   Y0
+    );
+}; // end of device devAVCC_S
+
+
+/*******************************************************************************
+
+  Device    [devAVCC_S]
+
+  Author    [guoxi]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devAVCC_S
+{
+    // Wires connecting to output ports
+
+    wire ntY0;
+
+    // Internal wires
+    wire ntL5A;
+
+    //
+    // Connection to ports
+    //
+
+    Y0 <= ntY0;
+    //
+    // Instances. FGA section
+    //
+
+    device FYS FYA
+        parameter map
+        (
+            CP_INIT   => CP_INITA,
+            CP_MODE   => CP_MODEA,
+            CP_MASK   => CP_MASK 
+         )
+         port map
+         (
+            L5   => ntL5A
+         );
+ 
+    device YMUX  Y0MUX
+        parameter map
+        (
+            CP_OUT_SEL => CP_Y0MUX_SEL
+        )
+        port map
+        (
+            Y    => ntY0,
+            FX   => ntL5A
+        );
+
+}; // end of structure netlist of devAVCC_S
+

@@ -1,0 +1,116 @@
+******************************************************************
+//
+//  Device    [devIOBR]
+//
+//  project   []
+//  
+//  Author    [guoxi]
+//
+//  Abstract  [ ]
+//
+//  Revision History:
+//                       
+//********************************************************************************/
+
+gate device devIOBR : device IOBR
+{
+    parameter 
+    (
+        config string CP_IOB_MODE = "UNUSED",
+        config string CP_PORT_STATUS = "PULLDW",
+        config string CP_IO_STANDARD = "DEFAULT",
+        config string CP_DIFFIN_TERM = "OFF",
+        config string CP_W_VOLT_R_IN = "NOHYS",
+        config string CP_DRV_STRENGTH = "8",
+        config string CP_SLEW_MODE = "F",
+        config string CP_HOT_SOCKET = "ON",
+        config string CP_OPENDRAIN = "OFF",
+        config string CP_LP_EN = "OFF",
+        config string CP_VCCIO = "3.3"
+    
+    );
+   port
+    (   
+        input TS,
+        input DO,
+        input DIFFI_IN,
+        input MIPI_SW_DYN,
+        input INBUF_DYN_DIS_N,
+        output DIN,
+        output DIN_MIPI_LP,
+        output DIFFI_OUT,
+        inout PAD
+     );
+};  // end of device devIOBR
+
+
+/*******************************************************************************
+
+  Device    [devIOBR]
+
+  Author    []
+
+  Abstract  [gate grid devIOBR. structure nestlist]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devIOBR
+{
+    wire ntTS;
+    wire ntDO;
+    wire ntDIFFI_IN;
+    wire ntMIPI_SW_DYN;
+    wire ntINBUF_DYN_DIS_N;
+    wire ntDIN;
+    wire ntPAD;
+    wire ntDIN_MIPI_LP;
+
+    // the connection of all input
+    ntTS          <=  TS;
+    ntDO          <=  DO;
+    ntDIFFI_IN    <=  DIFFI_IN;
+    ntMIPI_SW_DYN  <=  MIPI_SW_DYN;
+    ntINBUF_DYN_DIS_N  <=  INBUF_DYN_DIS_N;
+
+    // the connection of all output
+    DIN         <=  ntDIN;
+    DIFFI_OUT   <=  ntPAD;
+    PAD         <=  ntPAD;
+    
+    device IBUFR IBUFR
+        parameter map
+        (
+            CP_IOB_MODE  =>  CP_IOB_MODE,
+            CP_LP_EN    =>  CP_LP_EN,
+            CP_IO_STANDARD  =>  CP_IO_STANDARD
+        )
+        port map
+       (
+            OUT              =>  ntDIN,
+            OUT_MIPI_LP      =>  ntDIN_MIPI_LP,
+            IN               =>  ntPAD,
+            TS               =>  ntTS,
+            INBUF_DYN_DIS_N  =>  ntINBUF_DYN_DIS_N,
+            DIFFI_IN         =>  ntDIFFI_IN,
+            MIPI_SW_DYN      =>  ntMIPI_SW_DYN
+       );
+
+    device OBUFR OBUFR
+        parameter map
+        (
+            CP_IOB_MODE  =>  CP_IOB_MODE,
+            CP_OPENDRAIN  =>  CP_OPENDRAIN,
+            CP_IO_STANDARD  =>  CP_IO_STANDARD
+        )
+        port map
+       (
+            OUT       =>  ntPAD,
+            DO        =>  ntDO,
+            TS        =>  ntTS,
+            MIPI_SW_DYN  =>  ntMIPI_SW_DYN
+       );
+
+
+};  // end of structure netlist of devIOBR            
+

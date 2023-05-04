@@ -1,0 +1,130 @@
+*****************************************************************
+
+  Device    [devAAE_S]
+
+  Author    []
+
+  Abstract  [THE DEVICE MODELLED FOR THE END OF CARRY CHAIN. FOR THE OUTPUT PORT 
+             HAD BEEN USED BY SUM OF CARRY CHAIN, SIGNAL OF THE PORT COUT CAN NOT
+             PASS TO IT DERECTLY.]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devAAE_S : device devA_S
+{
+    parameter
+    (
+        config bit INITA[31:0]       = 32'h0000_ffff,        
+        config string FGA_MODE       = "CYE",               // "LUT5" "ROM" "WMUX" "ARITH" "CYE"
+        config string RAM_LUT_SEL    := "LUT",               // "RAM"  "LUT" 
+        config string Y0MUX_SEL      := "CY"                 // "FFAB" "FG" "CY" 
+    );
+    
+    port
+    (
+        output   Y0,
+        input    CIN
+    );
+}; // end of device devAAE_S
+
+
+/*******************************************************************************
+
+  Device    [devAAE_S]
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devAAE_S
+{
+    // Wires for input ports
+    wire ntCIN;
+
+    // Wires connecting to output ports
+    wire ntY0MUX;
+
+    // Internal wires
+    wire ntCYA;
+
+    //
+    // Connection to ports
+    //
+
+    ntCIN     <= CIN;
+    Y0        <= ntY0MUX;
+    
+    //
+    // Instances. FGA section
+    //
+
+    device FGS FGA 
+        parameter map
+        (
+            INIT        => INITA,
+            MODE        => FGA_MODE,
+            RAM_LUT_SEL => RAM_LUT_SEL
+        )
+        port map 
+        (
+            CIN  => ntCIN,
+            COUT => ntCYA
+        );
+
+    device Y0MUX Y0MUX
+        parameter map
+        (
+            CFG  => Y0MUX_SEL
+        )    
+        port map
+        (
+            CY => ntCYA,
+            Z   => ntY0MUX
+        );
+}; // end of structure netlist of devAAE_S
+
+timing tnl of devAAE_S
+{    
+     wire ntI0;
+     operator V_LUT5CARRY V_FGA 
+         parameter map
+         (
+             INIT        => INITA,
+             ID_TO_LUT   => "FALSE",
+             CIN_TO_LUT  => (FGA_MODE == "L5C01") ? "FALSE" : "TRUE",
+             I4_TO_CARRY => (FGA_MODE == "CY01")  ? "FALSE" : "TRUE",
+             SECTION  => "A"
+         )
+         port map
+         (
+             I0  => 1'b0,  
+             I1  => 1'b0,
+             I2  => 1'b0,
+             I3  => 1'b0,
+             I4  => 1'b0,
+             ID  => 1'b0,
+             CIN => CIN,
+             COUT => ntI0
+         );
+         
+     if (Y0MUX_SEL != "FFAB")
+     {         
+     operator V_MUX V_Y0MUX
+         parameter map
+         (
+             SEL  => (Y0MUX_SEL == "CY") ? "I0" : "I1",
+             SECTION  => "A"
+         )
+         port map
+         (
+             I0 => ntI0,
+             I1 => 1'B0,
+             Y => Y0
+         ); 
+    }
+}

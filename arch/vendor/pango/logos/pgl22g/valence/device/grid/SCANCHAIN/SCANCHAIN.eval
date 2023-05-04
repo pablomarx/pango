@@ -1,0 +1,129 @@
+*****************************************************************
+
+  Device    [SCANCHAIN]
+
+  Author    [guoxi]
+
+  Abstract  [The Grid Device SCANCHAIN]
+
+  Revision History:
+
+********************************************************************************/
+//grid device started
+grid
+device SCANCHAIN
+{
+    // grid_property_def_start
+    // grid_property_def_end
+
+    parameter
+    (
+        config string CP_USER_EN_JTAG = "DISABLE"
+    );
+    port
+    (
+// configuration_body_def_on
+
+
+    config input SC_USER_EN_JTAG = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_USER_EN_JTAG" */,
+
+// configuration_body_def_end
+
+        input TDO_USER = 1'b1,
+        output FLG_USER,
+        output TDI,
+        output TMS,
+        output TCK,
+        output JRTI,
+        output JRST,
+        output CLOCKDR,
+        output CAPTUREDR,
+        output SHIFTDR,
+        output UPDATEDR
+    );
+};
+//grid device end
+
+
+/*******************************************************************************
+
+  Device    [SCANCHAIN]
+
+  Author    []
+
+  Abstract  [The structure netlist of SCANCHAIN is described in the similar fashion 
+             as in HDL. In unit instantiation statement, the formal pin may be 
+             connected to net which is declared explicitly. 
+             
+             In Valence, the connection can also be made from formal pin to other 
+             pin or port, in which case Valence compiler shall create the net to 
+             fulfil the connection. The built-in naming convention is kicked in 
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+//grid device structure netlist started
+
+structure netlist of SCANCHAIN
+{
+
+}; // end of structure netlist of SCANCHAIN
+//grid device structure netlist end
+
+
+floorplan
+structure fp_struct of SCANCHAIN
+{
+    
+
+}; // end of structure fp_struct of SCANCHAIN
+
+//grid device configure body started
+
+configuration cfg of SCANCHAIN
+{
+
+//initial config body0 begin
+    if(CP_USER_EN_JTAG == "ENABLE")
+    {
+        SC_USER_EN_JTAG  :=  1'b1;
+    }
+    else if(CP_USER_EN_JTAG == "DISABLE")
+    {
+        SC_USER_EN_JTAG  :=  1'b0;
+    }
+    else
+    {
+        SC_USER_EN_JTAG  :=  1'bx;
+        error ("illegal setting for CP_USER_EN_JTAG := %s",CP_USER_EN_JTAG);
+    }
+
+//initial config body0 end
+
+};
+
+//grid device configure body end
+
+timing scanchain_tnl of SCANCHAIN
+{   
+    operator V_SCANCHAIN_E1 V_SCANCHAIN_E1
+        port map
+        (
+            TDO_USER => TDO_USER ,
+            JCLK     => CLOCKDR  ,
+            UPDR     => UPDATEDR ,
+            SHFTDR   => SHIFTDR  ,
+            FLG_USER => FLG_USER ,
+            CAPDR    => CAPTUREDR,
+            RST      => JRST     ,
+            JRTI     => JRTI     ,
+            TCK_USER => TCK      ,
+            TMS_USER => TMS      ,
+            TDI_USER => TDI      
+        );
+};

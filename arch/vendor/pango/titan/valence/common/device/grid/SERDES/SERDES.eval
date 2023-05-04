@@ -1,0 +1,158 @@
+*****************************************************************
+
+  Device    [SERDES]
+
+  Author    [clwang]
+
+  Abstract  [HSST]
+
+  Revision History:
+
+********************************************************************************/
+grid
+device SERDES
+{
+    parameter
+    (
+
+    );
+    port
+    (
+        //not go through fabric, fromto pad directly
+        input   REFCLK_PLL0_P = 1'b1,
+        input   REFCLK_PLL0_N = 1'b1,
+        input   REFCLK_PLL1_P = 1'b1,
+        input   REFCLK_PLL1_N = 1'b1,
+        input   RXD_CH0_P     = 1'b1,
+        input   RXD_CH0_N     = 1'b1,
+        input   RXD_CH1_P     = 1'b1,
+        input   RXD_CH1_N     = 1'b1,
+        input   RXD_CH2_P     = 1'b1,
+        input   RXD_CH2_N     = 1'b1,
+        input   RXD_CH3_P     = 1'b1,
+        input   RXD_CH3_N     = 1'b1,
+
+        output  TXD_CH0_P,
+        output  TXD_CH0_N,
+        output  TXD_CH1_P,
+        output  TXD_CH1_N,
+        output  TXD_CH2_P,
+        output  TXD_CH2_N,
+        output  TXD_CH3_P,
+        output  TXD_CH3_N,
+        
+        //////////////////////////////////////////////////////////////////////////////////
+        input  HSST_RST_N = 1'b1,               //active low to reset whole 
+        
+        //interface between fabric and pma
+        //pll0
+        input  FABRIC_PLL0_REFCLK = 1'b1,       //fabric reference clk for pll0
+        input  PLL0_RST_N         = 1'b1,       //active low for pll0 reset
+        input  PLL0_PD_N          = 1'b1,       //active low to power down pll0
+        input  PLL0_HALF_SPEED    = 1'b1,
+
+        output PLL0_LOCK,                //active high to indicate pll0 is locked
+        output PAD_PLL0_REFCLK,          //pad reference clock for pll0, passed to fabric 
+        
+        //pll1
+        input  FABRIC_PLL1_REFCLK = 1'b1,       //fabric reference clk for pll1
+        input  PLL1_RST_N         = 1'b1,       //active low for pll1 reset
+        input  PLL1_PD_N          = 1'b1,       //active low to power down pll1
+        input  PLL1_HALF_SPEED    = 1'b1,
+
+        output PLL1_LOCK,                //active high to indicate pll1 is locked
+        output PAD_PLL1_REFCLK,          //pad reference clock for pll1, passed to fabric
+        
+        //per channel pma control signals
+        input  PMA_TX_RST_N[3:0] = 4'b1111,
+        input  PMA_TX_PD_N[3:0]  = 4'b1111,
+        input  PMA_RX_RST_N[3:0] = 4'b1111,
+        input  PMA_RX_PD_N[3:0]  = 4'b1111,
+
+        output PMA_LOSS_SIGNAL[3:0],
+        output PMA_CDR_LOCK[3:0],
+        
+        input  PMA_PCIEDET_STROBE[3:0] = 4'b1111,
+
+        output PMA_PCIEDET_READY[3:0],
+        output PMA_PCIEDET_RESULT[3:0],
+        
+        input  PMA_TX_LOW_SPEED[3:0]    = 4'b1111,
+        input  PMA_TX_LOW_SPEED_EN[3:0] = 4'b1111,
+
+        output PMA_RX_LOW_SPEED[3:0],
+
+        input  PMA_FAREND_LOOP[3:0]  = 4'b1111,
+                                     
+        input  PMA_NEAREND_LOOP[3:0] = 4'b1111,
+        
+        input  PMA_TX_DEEMPH[3:0]   = 4'b1111,
+        input  PMA_TX_MARGIN_0[2:0] = 3'b111,
+        input  PMA_TX_MARGIN_1[2:0] = 3'b111,
+        input  PMA_TX_MARGIN_2[2:0] = 3'b111,
+        input  PMA_TX_MARGIN_3[2:0] = 3'b111,
+        input  PMA_TX_SWING[3:0]    = 4'b1111,
+        
+        //interface BETWEEN PCS AND FABRIC
+        output TCLK2FABRIC[3:0],
+
+        input  TCLK[3:0]         = 4'b1111,
+        input  PCS_TX_RST_N[3:0] = 4'b1111,
+        input  TDATA_0 [43:0] = 44'hfff_ffff_ffff,
+        input  TDATA_1 [43:0] = 44'hfff_ffff_ffff,
+        input  TDATA_2 [43:0] = 44'hfff_ffff_ffff,
+        input  TDATA_3 [43:0] = 44'hfff_ffff_ffff,
+
+        output RCLK2FABRIC[3:0],
+
+        input  RCLK[3:0]         = 4'b1111,
+        input  PCS_RX_RST_N[3:0] = 4'b1111,
+
+        output RDATA_0 [46:0],
+        output RDATA_1 [46:0],
+        output RDATA_2 [46:0],
+        output rdata_3 [46:0],
+
+        input  PCS_WORD_ALIGN_EN[3:0] = 4'b1111,
+
+        output PCS_LSM_SYNCED[3:0],
+        output PCS_RX_MCB_STATUS[3:0],
+
+        input  PCS_FAREND_LOOP[3:0]    = 4'b111,
+        input  PCS_NEAREND_LOOP[3:0]   = 4'b111,
+        input  RX_POLARITY_INVERT[3:0] = 4'b111,
+        input  PCS_TX_ELEC_IDLE[3:0]   = 4'b111,
+
+        output PCS_RX_ELEC_IDLE[3:0],
+
+        input  PCS_TX_BEACON[3:0] = 4'b1111,
+
+        output PCS_RX_BEACON[3:0],
+        
+        //configuration interface
+        input  CFG_RST_N      = 1'b1,
+        input  CFG_CLK        = 1'b1,
+        input  CFG_CE         = 1'b1,
+        input  CFG_ENABLE     = 1'b1,
+        input  CFG_ADDR[15:0] = 16'hffff,
+        input  CFG_WRITE      = 1'b1,
+        
+        output CFG_READY,
+        
+        input  CFG_WDATA[7:0] = 8'hff,
+        
+        output CFG_RDATA[7:0],
+        output CFG_INT,
+        
+        //test pin
+        input  SCAN_CLK = 1'b1,
+        input  SCAN_IN  = 1'b1,
+        
+        output SCAN_OUT,
+        
+        input  SCAN_EN   = 1'b1,
+        input  SCAN_MODE = 1'b1
+
+    );
+
+}// end of device SERDES

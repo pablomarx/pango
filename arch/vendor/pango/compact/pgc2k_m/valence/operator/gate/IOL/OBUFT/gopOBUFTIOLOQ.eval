@@ -1,0 +1,96 @@
+*******************************************************************
+
+  Operator    [gopOBUFTIOLOQ]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+gate
+operator gopOBUFTIOLOQ
+{
+    parameter
+    (
+        string GRS_EN         = "FALSE",           // "TRUE" "FALSE"  
+        string OFF_CE_EN      = "UNUSED",   
+        string OFF_LRS_EN     = "UNUSED",   
+        string OFF_SET        = "RESET",     
+        string OFF_SYNC       = "ASYNC",     
+        string OFF_LATCH      = "FF",        
+
+        string CLK_O_INV      = "FALSE",    
+        string CE_O_INV       = "FALSE",    
+        string LRS_INV        = "FALSE",
+        string CP_MIPI_EN      = "DISABLE",
+
+        string CP_PDIFF  =  "DISABLE",
+        string CP_TQMODE = "DD",
+        bit CP_DQMODE[1:0] = 2'b01
+    );
+    port
+    (
+        input   IN,
+        input   TS,
+
+        input   SYSCLK /*pragma PAP_ARC_GOP_CTRL_PIN="GCLK|RCLK"*/,
+        input   CE /*pragma PAP_ARC_GOP_CTRL_PIN="CE"*/,
+        input   LRS /*pragma PAP_ARC_GOP_CTRL_PIN="RST"*/,
+        
+        input   MI,
+        output  MO,
+        
+        // from to IOB
+        output  T,
+        output  O,
+
+        //output  DO_OUT,
+        //output  TO_OUT,
+        
+        output  DQ_CAS_OUT,
+        output  TQ_CAS_OUT
+    );
+};
+
+implementation impl of gopOBUFTIOLOQ
+{
+    device IOL gate_obuftioloq
+        parameter map
+        (
+            CP_OCLK_EN      => "ENABLE",
+            CP_GRS_DIS      => GRS_EN == "TRUE" ? "FALSE" : "TRUE",
+            //CP_OUTCE_EN    => OFF_CE_EN == "USED" ? "ENABLE" : "DISABLE",       
+            CP_OSR_EN   => OFF_LRS_EN == "USED" ? "ENABLE" : "DISABLE",      
+            CP_OREG_SET     => OFF_SET,         
+            CP_REG_SYNC     => OFF_SYNC,         
+            //CP_OFF_LATCH    => OFF_LATCH,
+
+            CP_CLK_POL   =>  CLK_O_INV,      
+            //CP_CE_POL       =>  CE_INV,         
+            CP_SR_POL      =>  LRS_INV,
+            
+            CP_MIPI_EN => CP_MIPI_EN,
+            CP_DQMODE  => CP_DQMODE,
+            CP_TQMODE  => CP_TQMODE,
+            CP_PDIFF   => CP_PDIFF
+        )
+        port map
+        (
+            D0       =>  IN,
+            TD0      =>  TS,
+
+            CLK         =>  SYSCLK,
+            CE_OREG     =>  CE,
+            SR          =>  LRS,
+
+            TQ            =>  T,
+            DQ            =>  O,
+
+            MIPI_SW_DYN_I       =>  MI,
+            MIPI_SW_DYN_O   =>  MO,
+           
+            DQ_CAS_OUT      =>  DQ_CAS_OUT,
+            TQ_CAS_OUT      =>  TQ_CAS_OUT
+        );
+};
+

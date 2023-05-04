@@ -1,0 +1,156 @@
+*****************************************************************
+
+  Device    [devAL]
+
+  Author    []
+
+  Abstract  [THE DEVICE CAN BE USED FOR LUT.]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devAL : device devA
+{
+    parameter
+    (
+        config bit INITA[31:0]       = 32'h0000_0000,        
+        config string FGA_MODE       = "LUT5",              // "LUT5" "ROM" "WMUX" "ARITH"  
+        config string LATCH_SETA     = "RESET",             // USED it when place it in IOL
+        // Used these parameter for CLM     
+        config string LATCH_CE_EN_A  = "USED",               // "UNUSED" "USED"
+        config string LATCH_LRS_EN_A = "USED",              // "UNUSED" "USED"
+                
+        config string Y0MUX_SEL      := "FG"                // "FFAB" "FG" "CY" 
+    );
+    
+    port
+    (
+        input    A0, A1, A2, A3, A4, AD,
+        output   Y0
+    );
+}; // end of device devAL
+
+
+/*******************************************************************************
+
+  Device    [devAL]
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devAL
+{
+    // Wires for input ports
+    wire ntA0,ntA1,ntA2,ntA3,ntA4,ntAD; 
+
+    // Wires connecting to output ports
+
+    wire ntY0MUX;
+
+    // Internal wires
+    wire ntFGA_Z;
+
+    //
+    // Connection to ports
+    //
+ 
+    ntA0      <= A0;
+    ntA1      <= A1;
+    ntA2      <= A2;
+    ntA3      <= A3;
+    ntA4      <= A4;
+    ntAD      <= AD;
+    Y0        <= ntY0MUX;
+    
+    //
+    // Instances. FGA section
+    //
+
+    device FGA FGA 
+        parameter map
+        (
+            INIT        => INITA,
+            MODE        => FGA_MODE
+        )
+        port map 
+        (
+            A0  => ntA0,A1  => ntA1,A2  => ntA2,A3  => ntA3,A4  => ntA4,A5  => ntAD,
+            Z    => ntFGA_Z 
+        );
+
+    device Y0MUX Y0MUX
+        parameter map
+        (
+            CFG  => Y0MUX_SEL
+        )       
+        port map
+        (
+            FG  => ntFGA_Z,
+            Z   => ntY0MUX
+        );
+}; // end of structure netlist of devAL
+timing tnl of devAL
+{
+    if(FGA_MODE == "LATCH")
+    {
+        operator V_LAASYN V_FGA
+           parameter map 
+           (
+               SET_RESET => LATCH_SETA,
+               GRS_EN    => "FALSE",
+               LRS_EN    => (LATCH_LRS_EN_A == "USED") ? "TRUE" : "FALSE",
+               SECTION   => "A"
+           )
+            port map 
+            (
+                Q  => Y0,
+                D  => A4,
+                SR => (LATCH_LRS_EN_A == "USED") ? A2 : 1'b0,
+                CK => A1,
+                CE => (LATCH_CE_EN_A == "USED") ? A3 : 1'b1
+            );
+    }
+    else if (FGA_MODE == "WMUX")
+    {
+       operator V_LUT5M V_FGA   
+           parameter map 
+           (
+               INIT => INITA,
+               SECTION  => "A"
+           )
+           port map
+           (
+               I0   => A0,
+               I1   => A1,
+               I2   => A2,
+               I3   => A3,
+               I4   => A4,
+               ID   => AD,
+               Z    => Y0
+           );
+   }
+    else
+    {
+       operator V_LUT5 V_FGA   
+           parameter map 
+           (
+               INIT => INITA,
+               SECTION  => "A"
+           )
+           port map
+           (
+               I0   => A0,
+               I1   => A1,
+               I2   => A2,
+               I3   => A3,
+               I4   => A4,
+               Y    => Y0
+           );
+   }
+
+}

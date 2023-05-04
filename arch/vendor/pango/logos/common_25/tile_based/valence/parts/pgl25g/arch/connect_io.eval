@@ -1,0 +1,82 @@
+*************************************************************************
+****************************************************************************************/
+library work;
+use pgl_defs,pgl25g_defs;
+use pgl25g_funcs_connect_io_bank,pgl_funcs_connect_io_bank;
+
+structure arch_nl connect_IOB_TILES of PGL25G
+{
+
+    connect_pad_bank( "B", "IOB3_TILE",IOB3_TILE_X, IOB3_TILE_Y, 3);
+    connect_pad_bank( "B", "IOB1_TILE",IOB1_TILE_X, IOB1_TILE_Y, 1);
+    connect_pad_bank( "B", "IOB2_TILE",IOB2_TILE_X, IOB2_TILE_Y, 2);
+    connect_pad_bank( "B", "IOB0_TILE",IOB0_TILE_X, IOB0_TILE_Y, 0);
+
+    connect_IOB_SCANCHAIN_BANK(CCS_TILE_X, CCS_TILE_Y, IOB0_TILE_X, IOB0_TILE_Y, IOB1_TILE_X, IOB1_TILE_Y, IOB2_TILE_X, IOB2_TILE_Y, IOB3_TILE_X, IOB3_TILE_Y,0,0,0);
+ 
+};
+//
+/***************************************************************************************
+****************************************************************************************/
+library work;
+use pgl_defs,pgl25g_defs;
+use pgl_funcs_connect_io_bank;
+
+structure arch_nl connect_IOL_TILES of PGL25G
+{
+    unsigned int ty_dqs0 = 25;
+    unsigned int ty_dqs1 = 14;
+    unsigned int ty_dqs2 = 7;
+    unsigned int ty_iol_comp0 = 30;
+    unsigned int ty_iol_comp1 = 10;
+    unsigned int ty_iol_pll0_out = 20;
+    unsigned int ty_iol_pll1_out = 12;
+
+    unsigned int l_ty_dqs0[] = {22,23,[26:30]};
+    unsigned int l_ty_dqs1[] = {[11:13,19:21]};
+    unsigned int l_ty_dqs2[] = {[2:6],9,10};
+
+    unsigned int rx,tx;
+    string type_lr;
+
+    foreach rx({0,1})
+    {
+        foreach tx({IOL_TILE_X_L,IOL_TILE_X_R})
+        {
+          connect_iol_BANK(rx, tx, ty_dqs0, l_ty_dqs0, ty_iol_comp0, ty_iol_comp1, ty_iol_pll0_out, ty_iol_pll1_out);
+          connect_iol_BANK(rx, tx, ty_dqs1, l_ty_dqs1, ty_iol_comp0, ty_iol_comp1, ty_iol_pll0_out, ty_iol_pll1_out);
+          connect_iol_BANK(rx, tx, ty_dqs2, l_ty_dqs2, ty_iol_comp0, ty_iol_comp1, ty_iol_pll0_out, ty_iol_pll1_out);
+        }
+    }
+    foreach tx(L_IOL_TILES_X_D)
+    {
+      connect_iol_BANK_h(tx, IOL_TILE_Y_D, "IOLTB_TILE");
+    }
+    foreach tx(L_IOL_TILES_X_U)
+    {
+      connect_iol_BANK_h(tx, IOL_TILE_Y_U, "IOLTB_TILE");
+    }
+
+
+    connect_dqs_BANK(0, IOL_TILE_X_L, 1, 7, 14, 25, NUM_REGION, 0, 1);
+    connect_dqs_BANK(1, IOL_TILE_X_L, 1, 7, 14, 25, NUM_REGION, 1, 1);
+    connect_dqs_BANK(0, IOL_TILE_X_R, 1, 7, 14, 25, NUM_REGION, 0, 0);
+    connect_dqs_BANK(1, IOL_TILE_X_R, 1, 7, 14, 25, NUM_REGION, 1, 0);
+
+};
+
+/***************************************************************************************
+****************************************************************************************/
+library work;
+use pgl_defs,pgl25g_defs;
+use pgl25g_funcs_connect_io_bank,pgl_funcs_connect_io_bank;
+
+structure arch_nl connect_iob_iol of PGL25G
+{
+
+    connect_iob_iol_h_u(IOB0_TILE_X, IOB0_TILE_Y,  "IOB0_TILE");
+    connect_iob_iol_h_d(IOB2_TILE_X, IOB2_TILE_Y,  "IOB2_TILE");
+    connect_iob_iol_v(IOB3_TILE_X, IOB3_TILE_Y, "IOL_TILE", 1);
+    connect_iob_iol_v(IOB1_TILE_X, IOB1_TILE_Y, "IOL_TILE", 0);
+
+};

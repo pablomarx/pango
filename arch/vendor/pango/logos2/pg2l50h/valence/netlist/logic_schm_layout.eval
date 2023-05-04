@@ -1,0 +1,267 @@
+
+use pg2l_defs, pg2l_schm_funcs, pg2l50h_defs;
+
+schematic schm_view draw_logic_resource of device PG2L50H
+{
+
+    // Tile index variable
+    unsigned int rx,tx, ty;
+    int ty_tmp;
+    int l_tx[];
+    
+    //draw srb
+    foreach rx({[0:1]})
+    {
+        l_tx = (rx==1) ? L_SRB_TILES_X_R1 : L_SRB_TILES_X_R0;
+        foreach tx ( l_tx )
+        {
+            foreach ty ( L_SRB_TILES_Y )
+            {
+                ty_tmp = rx * NUM_TILES_REGION + ty;
+                draw_srb_tile ( tx, ty_tmp );
+            } 
+        }
+    }
+
+    foreach tx ( L_SRB_TILES_X_R2_U )
+    {
+        foreach ty ( L_SRB_TILES_Y_U )
+        {
+            rx = 2;
+            ty_tmp = rx * NUM_TILES_REGION + ty;
+            draw_srb_tile ( tx, ty_tmp );
+        } 
+    }
+
+    foreach tx ( L_SRB_TILES_X_R2_D )
+    {
+        foreach ty ( L_SRB_TILES_Y_D )
+        {
+            rx = 2;
+            ty_tmp = rx * NUM_TILES_REGION + ty;
+            draw_srb_tile ( tx, ty_tmp );
+        } 
+    }
+    
+    //draw clm
+    foreach rx({[0:1]})
+    {
+        l_tx = (rx==0) ? L_CLMS_TILES_X_R0 : L_CLMS_TILES_X_R1;
+        foreach tx ( l_tx )
+        {
+            foreach ty ( L_CLM_TILES_Y )
+            {
+                ty_tmp = rx * NUM_TILES_REGION + ty;
+                draw_clm_tile ( tx, ty_tmp, 1);
+            } 
+        }
+    }
+
+    foreach tx ( L_CLMS_TILES_X_R2_U )
+    {
+        foreach ty ( L_SRB_TILES_Y_U )
+        {
+            rx = 2;
+            ty_tmp = rx * NUM_TILES_REGION + ty;
+            draw_clm_tile ( tx, ty_tmp, 1);
+        } 
+    }
+
+    foreach tx ( L_CLMS_TILES_X_R2_D )
+    {
+        foreach ty ( L_SRB_TILES_Y_D )
+        {
+            rx = 2;
+            ty_tmp = rx * NUM_TILES_REGION + ty;
+            draw_clm_tile ( tx, ty_tmp, 1);
+        } 
+    }
+
+    foreach rx({[0:1]})
+    {
+        l_tx = (rx==0) ? L_CLMA_TILES_X_R0 : L_CLMA_TILES_X_R1;
+        foreach tx ( l_tx )
+        {
+            foreach ty ( L_CLM_TILES_Y )
+            {
+                ty_tmp = rx * NUM_TILES_REGION + ty;
+                draw_clm_tile ( tx, ty_tmp, 0);
+            } 
+        }
+    }
+
+    foreach tx ( L_CLMA_TILES_X_R2_U )
+    {
+        foreach ty ( L_SRB_TILES_Y_U )
+        {
+            rx = 2;
+            ty_tmp = rx * NUM_TILES_REGION + ty;
+            draw_clm_tile ( tx, ty_tmp, 0);
+        } 
+    }
+
+    foreach tx ( L_CLMA_TILES_X_R2_D )
+    {
+        foreach ty ( L_SRB_TILES_Y_D )
+        {
+            rx = 2;
+            ty_tmp = rx * NUM_TILES_REGION + ty;
+            draw_clm_tile ( tx, ty_tmp, 0);
+        } 
+    }
+    
+    //draw adc
+    foreach ty( {ADC_TILE_Y} )
+    {
+        rx = LOC_ADC_REGION;
+        int ty_tmp = rx * NUM_TILES_REGION + ty; 
+
+        draw_adc_tile(ADC_TILE_X,ty_tmp);
+    }
+    
+    //draw drm
+    foreach rx( {[0:2]} )
+    {
+        foreach ty ( L_DRM_TILES_Y )
+        {
+            l_tx = (rx==0) ? L_DRM_TILES_X_R0 : 
+                (rx==1) ? L_DRM_TILES_X_R1 : 
+                (ty<25) ? L_DRM_TILES_X_R2_D : L_DRM_TILES_X_R2_U;
+            foreach tx ( l_tx )
+            {             
+                int ty_tmp = rx * NUM_TILES_REGION + ty;
+                draw_drm_tile( tx, ty_tmp);
+            }
+        } 
+    } 
+
+    //draw iock
+    foreach rx( {[0:2]} )
+    {
+        foreach ty ( {IOCK_TILE_Y} )
+        {
+            l_tx = ((rx==0)||(rx==1)) ? L_IOCK_TILES_X_R0 : L_IOCK_TILES_X_R2;
+            foreach tx ( l_tx )
+            {
+              int ty_tmp = rx * NUM_TILES_REGION + ty;
+              draw_iock_tile( tx, ty_tmp);
+            }
+        } 
+    } 
+    
+    //draw apm
+    foreach rx( {[0:2]} )
+    {
+        foreach tx ( L_APM_TILES_X )
+        {
+            foreach ty ( L_APM_TILES_Y )
+            {
+                int ty_tmp = rx * NUM_TILES_REGION + ty;
+                draw_apm_tile( tx, ty_tmp);
+            }
+        } 
+    }
+    
+    foreach ty ( {HSST_TILE_Y} )
+    {
+        rx =  LOC_HSST_REGION;
+        int ty_tmp = rx * NUM_TILES_REGION + ty;
+
+        draw_hsst_tile( HSST_TILE_X, ty_tmp);
+    }
+    
+    foreach rx( {LOC_PCIE_REGION} )
+    {            
+        foreach ty( {PCIE_TILE_Y} )
+        {
+            int ty_tmp = rx * NUM_TILES_REGION + ty;
+            draw_pcie_tile( PCIE_TILE_X, ty_tmp);
+        }
+    }
+    
+    foreach rx( {[0:2]} )
+    {
+        l_tx = ((rx==0)||(rx==1)) ? L_PLL_TILES_X_R0 : L_PLL_TILES_X_R2;
+        foreach tx ( l_tx )
+        {
+            foreach ty ( {GPLL_TILE_Y} )
+            {
+                int ty_tmp = rx * NUM_TILES_REGION + ty;
+                draw_pll_tile( tx, ty_tmp, 0);
+            }
+        } 
+    }
+
+    foreach rx( {[0:2]} )
+    {
+        l_tx = ((rx==0)||(rx==1)) ? L_PLL_TILES_X_R0 : L_PLL_TILES_X_R2;
+        foreach tx ( l_tx )
+        {
+            foreach ty ( {PPLL_TILE_Y} )
+            {
+                int ty_tmp = rx * NUM_TILES_REGION + ty;
+                draw_pll_tile( tx, ty_tmp, 1);
+            }
+        } 
+    }
+    
+    
+    draw_uscm_tile( USCM_TILE_X, LOC_USCM_REGION * NUM_TILES_REGION + USCM_TILE_Y);
+    
+    
+    draw_pregmuxc_tile( PREGMUXC_TILE_X, LOC_PREGMUXC_REGION * NUM_TILES_REGION + PREGMUXC_TILE_Y);
+    
+    foreach rx( {[0:2]} )
+    {
+        l_tx = ((rx==0)||(rx==1)) ? L_IOL_TILES_X_R0 : L_IOL_TILES_X_R2;
+        foreach tx ( l_tx )
+        {
+            foreach ty ( L_IOL_TILES_Y )
+            {
+                int ty_tmp = rx * NUM_TILES_REGION + ty;
+                draw_iol_tile( tx, ty_tmp);
+            }
+        } 
+    }
+    
+    foreach rx( {[0:2]} )
+    {
+        l_tx = ((rx==0)||(rx==1)) ? L_IOB_TILES_X_R0 : L_IOB_TILES_X_R2;
+        foreach tx ( l_tx )
+        {
+            ty = rx * NUM_TILES_REGION;
+            draw_iob_tile( tx, ty);   
+        } 
+    }
+    
+    
+    foreach rx( {[0:2]} )
+    {
+        l_tx = ((rx==0)||(rx==1)) ? L_CKEB_TILES_X_R0 : L_CKEB_TILES_X_R2;
+        foreach tx ( l_tx )
+        {
+            ty = CKEB_TILE_Y;
+            int ty_tmp = rx * NUM_TILES_REGION + ty;
+            draw_ckeb_tile( tx, ty_tmp);
+        } 
+    }
+
+    foreach rx( {[0:2]} )
+    {
+        foreach tx ( L_CKEB2_TILES_X )
+        {
+            foreach ty ( {CKEB_TILE_Y} )
+            {
+                int ty_tmp = rx * NUM_TILES_REGION + ty;
+                draw_ckeb2_tile( tx, ty_tmp);
+            }
+        } 
+    }
+    
+    foreach ty ({CCS_TILE_Y})
+    {
+        rx = LOC_CCS_REGION;
+        int ty_tmp = rx * NUM_TILES_REGION + ty;
+        draw_ccs_tile( CCS_TILE_X, CCS_TILE_Y);
+    }
+};

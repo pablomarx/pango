@@ -1,0 +1,77 @@
+*******************************************************************
+
+  Operator    [gopIPAL]
+
+  Abstract  []
+
+  Revision History:
+
+ ********************************************************************************/
+gate
+operator gopIPAL
+{
+    parameter
+    (
+        string CP_USER_EN_RBCRC  = "ENABLE",
+        string CP_USER_EN_SEU    = "ENABLE",
+        string CP_USER_EN_IPAL   = "ENABLE", //ENABLE/DISABLE //ipal user used enable
+        string CP_IPAL_M        = "X8",
+        bit    JTAG_IDCODE[31:0] = 32'hAAAA5555,
+        int    MEM_DEPTH         = 1616
+    );
+
+    port
+    (
+        output RBCRC_ERR,
+        output RBCRC_VALID,
+        output ECC_VALID,
+        output ECC_INDEX[11:0],
+        output SERROR,
+        output DERROR,
+        output BUSY,
+        output DO[31:0],
+        
+        input DI[31:0],
+        input CLK /*pragma PAP_ARC_GOP_CTRL_PIN="GCLK|RCLK"*/,
+        input CS_N,
+        input RW_SEL
+    );
+};
+
+/**Implementation Body*******************************************************************
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_IPAL of gopIPAL
+{
+    device IPAL IPAL_inst
+        parameter map
+        (
+            CP_IPAL_M        => CP_IPAL_M,
+            CP_USER_EN_RBCRC => CP_USER_EN_RBCRC,
+            CP_USER_EN_SEU   => CP_USER_EN_SEU,
+            CP_USER_EN_IPAL  => CP_USER_EN_IPAL
+        )
+        port map
+        (
+            IPAL_CLK    => CLK,
+            IPAL_CS_N   => CS_N,
+            IPAL_RDWR_N => RW_SEL,
+            IPAL_DIN    => DI,
+            IPAL_DOUT   => DO,
+            IPAL_BUSY   => BUSY,
+            RBCRC_ERR   => RBCRC_ERR,
+            RBCRC_VALID => RBCRC_VALID,
+            SEU_VALID   => ECC_VALID,
+            SEU_INDEX   => ECC_INDEX,
+            SEU_SEC     => SERROR,
+            SEU_DED     => DERROR
+        );
+        
+}; // end of implementation impl_IPAL of gopIPAL
+

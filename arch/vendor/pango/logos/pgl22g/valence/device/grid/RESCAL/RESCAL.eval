@@ -1,0 +1,204 @@
+*****************************************************************
+
+  Device    [RESCAL]
+
+  Author    [guoxi]
+
+  Abstract  [The Grid Device RESCAL]
+
+  Revision History:
+
+********************************************************************************/
+//grid device started
+grid
+device RESCAL
+{
+    // grid_property_def_start
+    // grid_property_def_end
+
+    parameter
+    (
+        config bit CP_SC_CODE[19:0] = 20'hFFE10,
+        config string CP_CAL_MODE = "SC_CODE_MODE",
+        config string CP_DDR_RES = "50"
+    );
+    port
+    (
+// configuration_body_def_on
+
+
+    config input SC_DRV_SEL[2:0] = 3'h0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_DRV_SEL[2],SC_DRV_SEL[1],SC_DRV_SEL[0]" */,
+
+    config input SC_TERM_SEL[2:0] = 3'h0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_TERM_SEL[2],SC_TERM_SEL[1],SC_TERM_SEL[0]" */,
+
+    config input SC_TERM[2:0] = 3'h0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_TERM[2],SC_TERM[1],SC_TERM[0]" */,
+
+    config input SC_DRVN[4:0] = 5'h0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_DRVN[4],SC_DRVN[3],SC_DRVN[2],SC_DRVN[1],SC_DRVN[0]" */,
+
+    config input SC_DRVP[4:0] = 5'h0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_DRVP[4],SC_DRVP[3],SC_DRVP[2],SC_DRVP[1],SC_DRVP[0]" */,
+
+    config input SC_TERMN[4:0] = 5'h0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_TERMN[4],SC_TERMN[3],SC_TERMN[2],SC_TERMN[1],SC_TERMN[0]" */,
+
+    config input SC_TERMP[4:0] = 5'h0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_TERMP[4],SC_TERMP[3],SC_TERMP[2],SC_TERMP[1],SC_TERMP[0]" */,
+
+// configuration_body_def_end
+
+        input USR_DRVN[4:0] = 5'b1111_1,
+        input USR_DRVP[4:0] = 5'b1111_1,
+        input USR_TERMN[4:0] = 5'b1111_1,
+        input USR_TERMP[4:0] = 5'b1111_1,
+        input CLK_OSC = 1'b1,
+        input REQ_USR = 1'b1,
+        output NL[4:0],
+        output PL[4:0],
+        output TNL[4:0],
+        output TPL[4:0],
+        output CAL_ACT_N
+    );
+};
+//grid device end
+
+
+/*******************************************************************************
+
+  Device    [RESCAL]
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+//grid device structure netlist started
+
+structure netlist of RESCAL
+{
+}; // end of structure netlist of RESCAL
+//grid device structure netlist end
+
+
+/*******************************************************************************
+
+  Device    [RESCAL]
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+//grid device configure body started
+
+configuration cfg of RESCAL
+{
+
+ // assign config body begin
+    SC_DRVP       :=  CP_SC_CODE[19:15];
+    SC_DRVN       :=  CP_SC_CODE[14:10];
+    SC_TERMP      :=  CP_SC_CODE[9:5];
+    SC_TERMN      :=  CP_SC_CODE[4:0];
+// assign config body end
+
+//initial config body0 begin
+    if(CP_CAL_MODE == "SC_CODE_MODE") // CP_CAL_MODE: "SC_CODE_MODE", "USR_CODE_MODE", "CAL_CODE_MODE"
+    {
+        SC_DRV_SEL    :=  3'b001;
+        SC_TERM_SEL   :=  3'b001;
+    }
+    else if(CP_CAL_MODE == "USR_CODE_MODE")
+    {
+        SC_DRV_SEL    :=  3'b010;
+        SC_TERM_SEL   :=  3'b010;
+    }
+    else if(CP_CAL_MODE == "CAL_CODE_MODE")
+    {
+        SC_DRV_SEL    :=  3'b100;
+        SC_TERM_SEL   :=  3'b000;
+    }
+    else if(CP_CAL_MODE == "CAL_CODE_MODE2")
+    {
+        SC_DRV_SEL    :=  3'b100;
+        SC_TERM_SEL   :=  3'b100;
+    }
+    else
+    {
+        SC_DRV_SEL    :=  3'b000;
+        SC_TERM_SEL   :=  3'b000;
+        error("illegal setting for CP_CAL_MODE := %s",CP_CAL_MODE);
+    }
+    if(CP_DDR_RES == "120") // CP_DDR_RES: "120","75","60","50","40","54.5","46","66.5"
+    {
+        SC_TERM    :=  3'b000;
+    }
+    else if(CP_DDR_RES == "75")
+    {
+        SC_TERM    :=  3'b001;
+    }
+    else if(CP_DDR_RES == "60")
+    {
+        SC_TERM    :=  3'b010;
+    }
+    else if(CP_DDR_RES == "50")
+    {
+        SC_TERM    :=  3'b011;
+    }
+    else if(CP_DDR_RES == "40")
+    {
+        SC_TERM    :=  3'b100;
+    }
+    else if(CP_DDR_RES == "54.5")
+    {
+        SC_TERM    :=  3'b101;
+    }
+    else if(CP_DDR_RES == "46")
+    {
+        SC_TERM    :=  3'b110;
+    }
+    else if(CP_DDR_RES == "66.5")
+    {
+        SC_TERM    :=  3'b111;
+    }
+    else
+    {
+        SC_TERM       :=  3'b000;
+        error("illegal setting for CP_DDR_RES := %s",CP_DDR_RES);
+    }
+
+//initial config body0 end
+
+};
+
+//grid device configure body end
+
+timing rescal_tnl of RESCAL
+{
+   operator V_RES_CAL V_RES_CAL
+        parameter map
+        (
+            CAL_CODE => CP_SC_CODE[19:0],
+            CAL_MODE => CP_CAL_MODE,
+            DDR_RES  => CP_DDR_RES
+        )
+        port map
+        (
+            CAL_REQ    =>  REQ_USR   ,
+            USR_DRVN   =>  USR_DRVN  ,
+            USR_DRVP   =>  USR_DRVP  ,
+            USR_TERMN  =>  USR_TERMN ,
+            USR_TERMP  =>  USR_TERMP ,
+            CAL_DONE   =>  CAL_ACT_N ,
+            NL         =>  NL        ,
+            PL         =>  PL        ,
+            TNL        =>  TNL       ,
+            TPL        =>  TPL       
+        );
+};

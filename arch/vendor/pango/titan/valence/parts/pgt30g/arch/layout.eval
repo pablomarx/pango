@@ -1,0 +1,536 @@
+use pango_defs, pg30_defs;
+use pg_funcs,pg30_funcs;
+
+/*******************************************************************************
+
+  Author    [Zhang min]
+
+  Abstract  [Place the logic tile. The logic tiles are placed in column-by-column
+             fashion. This is a convenient place to hook up all vertical logic 
+             interconnections]
+
+  Revision History:
+
+********************************************************************************/
+structure arch_nl layout_logic_tile of devPGT30G
+{
+    // Tile index variable
+    unsigned int tx, ty;
+    
+    // CLM indication (CLMS + CLMA) clm_flag = 1, (CLMA + CLMA) clm_flag = 0
+    unsigned int clm_flag;
+   
+    // Regulate area
+    const unsigned int l_tile_y[] = { [1:19, 21:40, 41:60, 62:80] };
+    const unsigned int l_tile_x[] = { [1:4, 6:13, 15:22, 25:32, 34:41, 43:46] };
+
+    clm_flag = 1;
+    
+    foreach tx ( l_tile_x )
+    {
+        foreach ty ( l_tile_y )
+        {
+            if(clm_flag == 1)
+            {
+                place_logic_aa_tile (tx, ty);
+            }
+            else
+            {
+                place_logic_sa_tile (tx, ty);
+            }
+        }
+        
+        clm_flag = (clm_flag == 1) ? 0 : 1;
+    }
+
+}; // end of structure arch_nl layout_logic_tile of devPGT30G
+
+
+library work;
+use pango_defs, pg30_defs;
+use pg_funcs,pg30_funcs;
+
+/*******************************************************************************
+
+  Author    []
+
+  Abstract  [Lay out the APM tiles]
+
+  Revision History:
+
+********************************************************************************/
+structure arch_nl layout_APM of devPGT30G
+{
+    // Tile index variable
+    unsigned int tx, ty;
+
+    // These define the tiles in which APM tiles are placed
+    const unsigned int r_tile_x[] = { 14, 33 };
+    const unsigned int r_tile_y[] = { [8:19, 21:40, 41:60, 62:73 +:4] };
+
+    foreach tx ( r_tile_x )
+    {
+        foreach ty ( r_tile_y )
+        {
+            place_apm_tile (tx, ty);
+        }
+    }
+
+}; // end of structure arch_nl layout_APM of devPGT30G
+
+
+library work;
+use pango_defs, pg30_defs;
+use pg_funcs,pg30_funcs;
+
+/*******************************************************************************
+
+  Author    []
+
+  Abstract  [Lay out the DRM tiles]
+
+  Revision History:
+
+********************************************************************************/
+structure arch_nl layout_DRM of devPGT30G
+{
+    // Tile index variable
+    unsigned int tx, ty;
+
+    // These define the tiles in which DRM tiles are placed
+    const unsigned int r_tile_x0[] = { 5 };
+    const unsigned int r_tile_y0[] = { [0:19, 21:60, 62:81 +:5] };
+
+    foreach tx ( r_tile_x0 )
+    {
+        foreach ty ( r_tile_y0 )
+        {
+            place_drm_tile (tx, ty);
+        }
+    }
+    
+    const unsigned int r_tile_x1[] = { 23 };
+    const unsigned int r_tile_y1[] = { [0:19, 21:35, 46:60, 62:81 +:5] };
+
+    foreach tx ( r_tile_x1 )
+    {
+        foreach ty ( r_tile_y1 )
+        {
+            place_drm_tile (tx, ty);
+        }
+    }
+
+    const unsigned int r_tile_x2[] = { 42};
+    const unsigned int r_tile_y2[] = { [0:19, 21:60, 62:81 +:5] };
+
+    foreach tx ( r_tile_x2 )
+    {
+        foreach ty ( r_tile_y2 )
+        {
+            place_drm_tile (tx, ty);
+        }
+    }
+    
+    const unsigned int r_tile_x3[] = { 23};
+    const unsigned int r_tile_y3[] = { [36:45] };
+
+    foreach tx ( r_tile_x3 )
+    {
+        foreach ty ( r_tile_y3 )
+        {
+            place_base_tile (tx, ty);
+        }
+    }
+    
+    place_drm0_tile(23, 36);
+    
+    place_drm1_tile(23, 41);
+    
+}; // end of structure arch_nl layout_DRM of devPGT30G
+
+library work;
+use pango_defs, pg30_defs;
+use pg_funcs,pg30_funcs;
+
+/*******************************************************************************
+
+  Author    []
+
+  Abstract  [Lay out the IO tiles]
+
+  Revision History:
+
+********************************************************************************/
+structure arch_nl layout_IO of devPGT30G
+{
+    // Site index variable
+    unsigned int sx, sy;
+    
+    // Tile index variable
+    unsigned int tx, ty; 
+    
+    //------------------------------//
+    //      place base tile (IO)        //
+    //------------------------------//
+    const unsigned int base_tile_x0[] = { [1:4], [6:13], [15:22], [25:32], [34:41], [43:46] };
+    const unsigned int base_tile_y0[] = { 0,81 };
+    
+    foreach ty ( base_tile_y0 )
+    {
+        foreach tx ( base_tile_x0 )
+        {
+            place_base_tile (tx, ty);
+        }
+    }
+    
+    const unsigned int base_tile_x1[] = { 0,47 };
+    const unsigned int base_tile_y1[] = { [0:19], [21:60], [62:81] };
+    
+    foreach tx ( base_tile_x1 )
+    {
+        foreach ty ( base_tile_y1 )
+        {
+            place_base_tile (tx, ty);
+        }
+    }
+    
+    //------------------------------//
+    //   place io_n and io_s tiles  //
+    //------------------------------//
+    sy = NUM_TILE_Y - 1;
+
+    const unsigned int r_tile_x0[] = { 6, 15, 25, 34};
+    const unsigned int r_tile_y0[] = { 0, sy };
+    
+    unsigned int shift = 0;
+    
+    foreach ty ( r_tile_y0 )
+    {
+        foreach tx ( r_tile_x0 )
+        {
+            if((tx == 6) || (tx == 25) || (tx == 34))
+            {
+                shift = 1;
+            }
+            else if(tx == 15)
+            {
+                shift = 2;
+            }
+            
+            place_io_8cim_h_tile (tx, ty, shift);
+        }
+    }
+
+    const unsigned int r_tile_x1[] = { 1 };
+    const unsigned int r_tile_y1[] = { 0, sy };
+    
+    foreach ty ( r_tile_y1 )
+    {
+        foreach tx ( r_tile_x1 )
+        {
+            place_io_4cim_6io_ttfftt_h_tile (tx, ty);
+        }
+    }
+
+    const unsigned int r_tile_x2[] = { 43 };
+    const unsigned int r_tile_y2[] = { 0, sy };
+    
+    foreach ty ( r_tile_y2 )
+    {
+        foreach tx ( r_tile_x2 )
+        {
+            place_io_4cim_6io_ffttff_h_tile (tx, ty);
+        }
+    }
+    
+    //------------------------------//
+    //     place io_w tiles         //
+    //------------------------------//
+    place_io_l_b_2cim_v_tile(0, 73);
+    
+    place_io_l_3cim_4io_v_u_tile (0, 72);
+    
+    const unsigned int r_tile_x3[] = { 0 };
+    const unsigned int r_tile_y3[] = { [69:62, 60:21, 19:4 -:4] }; 
+    
+    foreach tx ( r_tile_x3 )
+    {
+        foreach ty ( r_tile_y3 )
+        {
+            place_io_l_4cim_6io_v_tile (tx, ty);
+        }
+    }
+
+    place_io_l_3cim_4io_v_d_tile (0, 3);
+    
+    //------------------------------//
+    //     place io_e tiles         //
+    //------------------------------//   
+    sx = NUM_TILE_X-1;
+
+    place_io_9cim_v_u_tile(47, 80);
+
+    const unsigned int r_tile_x4[] = { 47 };
+    const unsigned int r_tile_y4[] = { 71, 60, 50, 40, 30, 19 };
+    
+    unsigned int cnt = 0;
+    
+    foreach tx ( r_tile_x4 )
+    {
+        foreach ty ( r_tile_y4 )
+        {
+            if(cnt %2 == 0)
+            {
+                place_io_10cim_v_tile (tx, ty, 0);
+            }
+            else
+            {
+                place_io_10cim_v_tile (tx, ty, 1);
+            }
+            
+            cnt = cnt + 1;
+        }
+    }
+
+    place_io_9cim_v_d_tile(47, 9);
+    
+    //------------------------------//
+    // place clk_delay tiles (E, W) //
+    //------------------------------//   
+    const unsigned int r_tile_x5[] = { 47 };
+    const unsigned int r_tile_y5[] = { 62, 60, 21, 19 };
+    
+    foreach tx ( r_tile_x5 )
+    {
+        foreach ty ( r_tile_y5 )
+        {
+            place_clk_delay_tile (tx, ty);
+        }
+    }  
+    
+    //------------------------------//
+    // place clk_delay tiles (T, B) //
+    //------------------------------//   
+    const unsigned int r_tile_x6[] = { 22, 25 };
+    const unsigned int r_tile_y6[] = { 0, 81 };
+    
+    foreach ty ( r_tile_y6 )
+    {
+        foreach tx ( r_tile_x6 )
+        {
+            place_clk_delay_tile (tx, ty);
+        }
+    } 
+    
+    
+};
+
+library work;
+use pango_defs, pg30_defs;
+use pg_funcs,pg30_funcs;
+
+/*******************************************************************************
+
+  Author    []
+
+  Abstract  [Lay out the DLL tiles]
+
+  Revision History:
+
+********************************************************************************/
+structure arch_nl layout_DLL of devPGT30G
+{  
+    place_dll_tile (DLL_TILE_X0, DLL_TILE_Y0);
+    
+    place_dll_tile (DLL_TILE_X1, DLL_TILE_Y1);
+};
+
+library work;
+use pango_defs, pg30_defs;
+use pg_funcs,pg30_funcs;
+
+/*******************************************************************************
+
+  Author    []
+
+  Abstract  [Lay out the PLL tiles]
+
+  Revision History:
+
+********************************************************************************/
+structure arch_nl layout_PLL of devPGT30G
+{  
+    place_pll_tile (PLL_TILE_X0, PLL_TILE_Y0, -1); //North
+    
+    place_pll_tile (PLL_TILE_X1, PLL_TILE_Y1, -1);
+    
+    place_pll_tile (PLL_TILE_X2, PLL_TILE_Y2, 1); //Sourth
+    
+    place_pll_tile (PLL_TILE_X3, PLL_TILE_Y3, 1);
+
+};
+
+library work;
+use pango_defs, pg30_defs;
+use pg_funcs,pg30_funcs;
+
+/*******************************************************************************
+
+  Author    []
+
+  Abstract  [Lay out the CLOCK tiles]
+
+  Revision History:
+
+********************************************************************************/
+structure arch_nl layout_CLK of devPGT30G
+{  
+    //Global clk
+    place_pre_gmux_l_tile (PRE_GMUX_CLK_L_TILE_X, PRE_GMUX_CLK_L_TILE_Y);    //LEFT
+    
+    place_pre_gmux_r_tile (PRE_GMUX_CLK_R_TILE_X, PRE_GMUX_CLK_R_TILE_Y);    //RIGHT
+    
+    place_pre_gmux_tb_tile (PRE_GMUX_CLK_T_TILE_X, PRE_GMUX_CLK_T_TILE_Y);   //TOP
+    
+    place_pre_gmux_tb_tile (PRE_GMUX_CLK_B_TILE_X, PRE_GMUX_CLK_B_TILE_Y);   //BOTTOM
+    
+    place_post_gmux_tile (POST_GMUX_CLK_TILE_X, POST_GMUX_CLK_TILE_Y);       //POST_GMUX
+    
+    const unsigned int r_tile_x[] = { 24};
+    const unsigned int r_tile_y[] = { [37:40, 42:45] };
+
+    unsigned int tx, ty, uscm_idx, tile_num;
+    
+    foreach tx ( r_tile_x )
+    {
+        foreach ty ( r_tile_y )
+        {
+            if(ty == 45)
+            {
+                uscm_idx  = 0;
+                tile_num = 0;
+            }
+            else if(ty == 44)
+            {
+                uscm_idx  = 0;
+                tile_num = 1;
+            }
+            else if(ty == 43)
+            {
+                uscm_idx  = 1;
+                tile_num = 0;
+            }
+            else if(ty == 42)
+            {
+                uscm_idx  = 1;
+                tile_num = 1;
+            }
+            else if(ty == 40)
+            {
+                uscm_idx  = 3;
+                tile_num = 0;
+            }
+            else if(ty == 39)
+            {
+                uscm_idx  = 3;
+                tile_num = 1;
+            }            
+            else if(ty == 38)
+            {
+                uscm_idx  = 2;
+                tile_num = 0;
+            }   
+            else if(ty == 37)
+            {
+                uscm_idx  = 2;
+                tile_num = 1;
+            }
+                     
+            place_uscm_tile (tx, ty, uscm_idx, tile_num);   //USCM
+        }
+    }
+
+    //Regional clk
+    place_reg_hmux_tile (REG_HMUX03_CLK_TILE_X, REG_HMUX03_CLK_TILE_Y);       //HMUX0, HMUX3
+    
+    place_reg_hmux_tile (REG_HMUX12_CLK_TILE_X, REG_HMUX12_CLK_TILE_Y);       //HMUX1, HMUX2
+    
+    place_reg_vmux_tile (REG_VMUX0_CLK_TILE_X, REG_VMUX0_CLK_TILE_Y);       //VMUX0
+    
+    place_reg_vmux_tile (REG_VMUX1_CLK_TILE_X, REG_VMUX1_CLK_TILE_Y);       //VMUX1
+    
+    place_reg_vmux_tile (REG_VMUX2_CLK_TILE_X, REG_VMUX2_CLK_TILE_Y);       //VMUX2
+
+    place_reg_vmux_tile (REG_VMUX3_CLK_TILE_X, REG_VMUX3_CLK_TILE_Y);       //VMUX3
+    
+    //IO clk
+    place_ioclkgen_tile (IOCLKGEN_T_TILE_X, IOCLKGEN_T_TILE_Y, 0);   //TOP IOCLKGEN
+    
+    place_ioclkgen_tile (IOCLKGEN_B_TILE_X, IOCLKGEN_B_TILE_Y, 1);   //BOTTOM IOCLKGEN
+    
+    place_ioclkgen_tile (IOCLKGEN_R_TILE_X, IOCLKGEN_R_TILE_Y, 2);   //RIGHT IOCLKGEN
+    
+    place_ioclk_bridge_tile (IO_CLK_BRIDGE_X, IO_CLK_BRIDGE_Y);   //IO CLK BRIDGE
+    
+    //clk buf
+    const unsigned int r_tile_x1[] = { [0:23] , [25:47] };
+    const unsigned int r_tile_y1[] = { 20, 61 };
+    
+    foreach ty ( r_tile_y1 )
+    {
+        foreach tx ( r_tile_x1 )
+        {
+            place_clk_buf_tile(tx, ty);
+        }
+    }
+    
+    
+};
+
+
+library work;
+use pango_defs, pg30_defs;
+use pg_funcs,pg30_funcs;
+
+/*******************************************************************************
+
+  Author    []
+
+  Abstract  [Lay out the CCS tiles]
+
+  Revision History:
+
+********************************************************************************/
+structure arch_nl layout_CCS of devPGT30G
+{ 
+    place_start_tile(START_X, START_Y);
+    
+    place_grs_tile(START_X, START_Y);
+    
+    place_efusecode_tile(EFUSECODE_X, EFUSECODE_Y);
+    
+    place_scanchain_tile(SCANCHAIN1_X, SCANCHAIN1_Y);
+    
+    place_scanchain_tile(SCANCHAIN0_X, SCANCHAIN0_Y);
+    
+    place_ipal_tile(IPAL_X, IPAL_Y);
+    
+}
+
+library work;
+use pango_defs, pg30_defs;
+use pg_funcs,pg30_funcs;
+
+/*******************************************************************************
+
+  Author    []
+
+  Abstract  [Lay out the LLC tiles]
+
+  Revision History:
+
+********************************************************************************/
+structure arch_nl layout_LLC of devPGT30G
+{ 
+    place_osc_tile(OSC_X, OSC_Y); 
+}

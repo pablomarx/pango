@@ -1,0 +1,154 @@
+*****************************************************************
+
+  Device    [devBL]
+
+  Author    []
+
+  Abstract  [THE DEVICE CAN BE USED FOR LUT.]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devBL : device devB
+{
+    parameter
+    (
+        config bit INITB[31:0]       = 32'h0000_0000,
+        config string FGB_MODE       = "LUT5",                // "LUT5" "ROM" "WMUX" "ARITH"        
+        config string LATCH_SETB     = "RESET",             // USED it when place it in IOL      
+        // Used these parameter for CLM     
+        config string LATCH_CE_EN_B  = "USED",              // "UNUSED" "USED"
+        config string LATCH_LRS_EN_B = "USED",              // "UNUSED" "USED"        
+         
+        config string Y1MUX_SEL      := "FG"                  // "L7"   "FG" "CY"
+    );
+    
+    port
+    (
+        input    B0, B1, B2, B3, B4, BD,
+        output   Y1
+    );
+}; // end of device devBL
+
+
+/*******************************************************************************
+
+  Device    [devBL]
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devBL
+{
+    // Wires for input ports
+    wire ntB0,ntB1,ntB2,ntB3,ntB4,ntBD; 
+
+    // Wires connecting to output ports
+    wire ntY1MUX;
+    // Internal wires  
+    wire ntFGB_Z;
+    //
+    // Connection to ports
+    //
+ 
+    ntB0      <= B0;
+    ntB1      <= B1;
+    ntB2      <= B2;
+    ntB3      <= B3;
+    ntB4      <= B4;
+    ntBD      <= BD;
+
+    Y1        <= ntY1MUX;
+    //
+    // Instances. FGA section
+    //
+
+    device FGA FGB 
+        parameter map
+        (
+            INIT        => INITB,
+            MODE        => FGB_MODE
+        )
+        port map 
+        (
+            A0  => ntB0,A1  => ntB1,A2  => ntB2,A3  => ntB3,A4  => ntB4,A5  => ntBD,
+            Z    => ntFGB_Z 
+        );
+
+    device Y1MUX Y1MUX
+        parameter map
+        (
+            CFG  => Y1MUX_SEL
+        )       
+        port map
+        (
+            FG => ntFGB_Z,
+            Z   => ntY1MUX
+        );    
+}; // end of structure netlist of devBL
+
+timing tnl of devBL        
+{
+    if(FGB_MODE == "LATCH")
+    {
+        operator V_LAASYN V_FGB
+            parameter map 
+           (
+               SET_RESET => LATCH_SETB,
+               GRS_EN    => "FALSE",
+               LRS_EN    => (LATCH_LRS_EN_B == "USED") ? "TRUE" : "FALSE",
+               SECTION  => "B"
+           )
+            port map 
+            (
+                Q  => Y1,
+                D  => B4,
+                SR => (LATCH_LRS_EN_B == "USED") ? B2 : 1'b0,
+                CK => B1,
+                CE => (LATCH_CE_EN_B == "USED") ? B3 : 1'b1
+            );
+    }
+    else if (FGB_MODE == "WMUX")
+    {
+       operator V_LUT5M V_FGB   
+           parameter map 
+           (
+               INIT => INITB,
+               SECTION  => "B"
+           )
+           port map
+           (
+               I0   => B0,
+               I1   => B1,
+               I2   => B2,
+               I3   => B3,
+               I4   => B4,
+               ID   => BD,
+               Z    => Y1
+           );
+   }
+    else
+    {
+       operator V_LUT5 V_FGB   
+          parameter map         
+          (                 
+              INIT => INITB,
+              SECTION  => "B"
+          )                 
+          port map              
+          (                 
+              I0  => B0,     
+              I1  => B1,     
+              I2  => B2,     
+              I3  => B3,     
+              I4  => B4,                   
+              Y   => Y1      
+          );
+    }
+                          
+}                          

@@ -1,0 +1,105 @@
+*****************************************************************
+
+  Device    [IOB_OBUFA]
+
+  Author    [hzhang]
+
+  Abstract  [OUTBUT WITH COMP PAD OF IOB]
+
+  Revision History:
+
+********************************************************************************/
+prim
+device IOB_OBUFA
+{
+    parameter
+    (
+        config string IOB_MODE           = "UNUSED",  // "IBUF", "OBUF", "IOBUF", "OBUFT", "IBUFDS", "OBUFDS", "IOBUFDS"
+        config string SLEW_MODE          = "F",       // "F" "S"
+        config string DRV_CURR_VAL       = "4",
+        config string IOSTANDARD         = "DEFAULT"  
+    );
+    port
+    (
+        input  TS,
+        input  IN,
+        output OUT,
+        output DIFFO_OUT
+    );
+
+}; // end of device IOB_OBUFA
+
+
+propagation prop of IOB_OBUFA
+{
+    if (!strcmp(IOB_MODE, "OBUF"))
+    {
+        propagate ( IN |-> OUT );
+    }
+    else if (!strcmp(IOB_MODE, "IOBUF") || !strcmp(IOB_MODE, "OBUFT"))
+    {
+        propagate ( TS |-> OUT );
+        propagate ( IN |-> OUT );
+    }
+    else if (!strcmp(IOB_MODE, "OBUFDS"))
+    {
+        propagate ( IN |-> OUT );
+        propagate ( IN |-> DIFFO_OUT );
+    }    
+    else if (!strcmp(IOB_MODE, "IOBUFDS"))
+    {
+        propagate ( TS |-> OUT );
+        propagate ( IN |-> OUT );
+        propagate ( IN |-> DIFFO_OUT );
+    }
+};
+
+
+timing tnl of IOB_OBUFA
+{
+    if (!strcmp(IOB_MODE, "OBUF"))
+    {
+        operator V_OBUF obuf
+        parameter map
+        (
+            IOSTANDARD => IOSTANDARD,
+            SLEW_RATE  => (SLEW_MODE == "S") ? "SLOW" : "FAST",
+            DRIVE_STRENGTH => DRV_CURR_VAL
+        )
+        port map
+        (
+            I => IN,
+            O => OUT
+        );
+    }
+    else if (!strcmp(IOB_MODE, "IOBUF") || !strcmp(IOB_MODE, "OBUFT"))
+    {
+        operator V_OBUFT obuft
+        parameter map
+        (
+            IOSTANDARD => IOSTANDARD,
+            SLEW_RATE  => (SLEW_MODE == "S") ? "SLOW" : "FAST",
+            DRIVE_STRENGTH => DRV_CURR_VAL
+        )
+        port map
+        (
+            I => IN,
+            T => TS,
+            O => OUT
+        );
+    }
+    else if (!strcmp(IOB_MODE, "OBUFDS") || !strcmp(IOB_MODE, "IOBUFDS"))
+    {
+        operator V_OBUFDS obufds
+        port map
+        (
+            I  => IN,
+            O  => OUT,
+            OB => DIFFO_OUT
+        );
+    } 
+    else
+    {
+        error("Config error IOB_MODE = %s ",IOB_MODE);
+    }    
+} 

@@ -1,0 +1,174 @@
+*****************************************************************
+
+  Operator   [GTP_LUT5CARRY]
+
+  Author      []
+
+  Abstract    []
+
+  Copyright 2014 (c). SHENZHEN PANGO MICROSYSTEMS CO.,LTD.
+  All Right Reserved.
+
+  Revision History:
+     06/18/14 - Initial version.
+
+********************************************************************************/
+implementation impl of GTP_LUT5CARRY
+{
+ 
+    bit INIT_B[31:0] = INIT;
+    string MODE      = "ARITH";
+    
+    if ( ID_TO_LUT   == "TRUE"     /* TRUE: AD to LUT4.1.I0, A0 Break. */
+      && CIN_TO_LUT  == "TRUE"     /* TRUE: CIN to LUT4.0.I0, A0 Break. */
+      && I4_TO_CARRY == "TRUE"     /* TRUE: I4 to COUT, LUT4.0.Z Break. */
+      && I4_TO_LUT   == "TRUE" )   /* TRUE: I4 is for select out of LUT4.0 or LUT4.1. */
+    {  
+         // {U4_MUX, U5_MUX, U6_MUX, U8_MUX} = 4'b1100;
+         MODE = "ARITH12";    //not support    
+          
+    }
+    else if ( ID_TO_LUT   == "TRUE" 
+           && CIN_TO_LUT == "TRUE"
+           && I4_TO_CARRY == "TRUE" 
+           && I4_TO_LUT  == "FALSE" ) 
+    {  
+         // {U4_MUX, U5_MUX, U6_MUX, U8_MUX} = 4'b1101;
+         MODE = "ARITH13";
+         
+    }
+    else if ( ID_TO_LUT   == "TRUE" 
+           && CIN_TO_LUT  == "TRUE"
+           && I4_TO_CARRY == "FALSE" 
+           && I4_TO_LUT  == "TRUE" ) 
+    {  
+        // {U4_MUX, U5_MUX, U6_MUX, U8_MUX} = 4'b1110;
+        MODE = "ARITH14";    //not support 
+        
+    }
+    else if ( ID_TO_LUT   == "TRUE"
+           && CIN_TO_LUT == "TRUE"
+           && I4_TO_CARRY == "FALSE" 
+           && I4_TO_LUT  == "FALSE" ) 
+    {  
+        // {U4_MUX, U5_MUX, U6_MUX, U8_MUX} = 4'b1111;
+        MODE = "ARITH15";        
+    }    
+    else if ( ID_TO_LUT   == "TRUE" 
+           && CIN_TO_LUT == "FALSE"
+           && I4_TO_CARRY == "TRUE" 
+           && I4_TO_LUT  == "TRUE" ) 
+    {  
+        // {U4_MUX, U5_MUX, U6_MUX, U8_MUX} = 4'b1000;
+        MODE = "WMUX";
+    }    
+    else if ( ID_TO_LUT   == "TRUE" 
+           && CIN_TO_LUT == "FALSE"
+           && I4_TO_CARRY == "TRUE"
+           && I4_TO_LUT  == "FALSE" ) 
+    {  
+        // {U4_MUX, U5_MUX, U6_MUX, U8_MUX} = 4'b1001;
+        MODE = "ARITH9";
+    }    
+    else if ( ID_TO_LUT   == "TRUE" 
+           && CIN_TO_LUT == "FALSE"
+           && I4_TO_CARRY == "FALSE"
+           && I4_TO_LUT  == "TRUE" ) 
+    {  
+        // {U4_MUX, U5_MUX, U6_MUX, U8_MUX} = 4'b1010;
+        MODE = "ARITH10";    //not support         
+        
+    }    
+    else if ( ID_TO_LUT   == "TRUE" 
+           && CIN_TO_LUT == "FALSE"
+           && I4_TO_CARRY == "FALSE" 
+           && I4_TO_LUT  == "FALSE" ) 
+    {  
+        // {U4_MUX, U5_MUX, U6_MUX, U8_MUX} = 4'b1011;
+        MODE = "ARITH11";
+    }    
+    else if ( ID_TO_LUT   == "FALSE"
+           && CIN_TO_LUT  == "TRUE"
+           && I4_TO_CARRY == "TRUE" 
+           && I4_TO_LUT  == "TRUE" ) 
+    {  
+        // {U4_MUX, U5_MUX, U6_MUX, U8_MUX} = 4'b0100;
+        MODE = "ARITH4";    //not support
+        
+    }    
+    else if ( ID_TO_LUT   == "FALSE" 
+           && CIN_TO_LUT == "TRUE"
+           && I4_TO_CARRY == "TRUE" 
+           && I4_TO_LUT  == "FALSE" ) 
+    {  
+        // {U4_MUX, U5_MUX, U6_MUX, U8_MUX} = 4'b0101;
+        MODE = "ARITH";
+    }    
+    else if ( ID_TO_LUT   == "FALSE" 
+           && CIN_TO_LUT  == "TRUE"
+           && I4_TO_CARRY == "FALSE" 
+           && I4_TO_LUT  == "TRUE" ) 
+    {  
+        // {U4_MUX, U5_MUX, U6_MUX, U8_MUX} = 4'b0110;
+        MODE = "ARITH6";    //not support
+    }
+    else if ( ID_TO_LUT   == "FALSE" 
+           && CIN_TO_LUT == "TRUE"
+           && I4_TO_CARRY == "FALSE" 
+           && I4_TO_LUT  == "FALSE" ) 
+    {  
+        // {U4_MUX, U5_MUX, U6_MUX, U8_MUX} = 4'b0111;
+        MODE = "CY01";
+    }
+    else if ( ID_TO_LUT   == "FALSE" 
+           && CIN_TO_LUT == "FALSE"
+           && I4_TO_CARRY == "TRUE" 
+           && I4_TO_LUT  == "TRUE" ) 
+    { 
+        // {U4_MUX, U5_MUX, U6_MUX, U8_MUX} = 4'b0000; 
+        MODE = "ARITH0";    //not support
+    }
+    else if ( ID_TO_LUT   == "FALSE" 
+           && CIN_TO_LUT == "FALSE"
+           && I4_TO_CARRY == "TRUE" 
+           && I4_TO_LUT  == "FALSE" ) 
+    { 
+        // U{U4_MUX, U5_MUX, U6_MUX, U8_MUX} = 4'b0001; 
+        MODE = "L5C01"; 
+    }
+    else if ( ID_TO_LUT   == "FALSE" 
+           && CIN_TO_LUT == "FALSE"
+           && I4_TO_CARRY == "FALSE" 
+           && I4_TO_LUT  == "TRUE" ) 
+    { 
+         // {U4_MUX, U5_MUX, U6_MUX, U8_MUX} = 4'b0010;  
+         MODE = "LUT5"; 
+    }
+    else if ( ID_TO_LUT   == "FALSE" 
+           && CIN_TO_LUT == "FALSE"
+           && I4_TO_CARRY == "FALSE" 
+           && I4_TO_LUT  == "FALSE" ) 
+    {  
+        // {U4_MUX, U5_MUX, U6_MUX, U8_MUX} = 4'b0011; 
+        MODE = "ARITH3";
+    }  
+    
+    operator gopA gateop
+    parameter map 
+    ( 
+        INIT      => INIT_B,
+        MODE      => MODE
+    )
+    port map
+    (
+        I0       => I0, 
+        I1       => I1, 
+        I2       => I2, 
+        I3       => I3, 
+        I4       => I4, 
+        I0X      => ID,
+        Cin      => CIN,
+        Cout     => COUT,   
+        Y        => Z
+    );
+};

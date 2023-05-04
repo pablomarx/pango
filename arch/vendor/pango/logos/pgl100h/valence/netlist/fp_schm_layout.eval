@@ -1,0 +1,206 @@
+
+use pgl_defs, pgl_floorplan_funcs, pgl100h_defs;
+
+floorplan
+schematic floorplan_view draw_logic_resource of device PGL100H
+{
+   unsigned int tx, ty;
+ 
+ //CLM       
+    foreach tx ( L_CLMA_TILES_X )
+    {
+        foreach ty ( L_CLM_TILES_Y )
+        {
+            if(!(tx>=HSST_TILE_D_L_X && tx<HSST_TILE_D_R_X && (ty<=HSST_TILE_D_R_Y || ty>=HSST_TILE_U_L_Y - 1)))
+            {
+                if(!(tx>=PCIE_TILE_L_X && tx<=PCIE_TILE_R_X && ty>=PCIE_TILE_L_Y && ty<PCIE_TILE_R_Y))
+                {
+                    if(!(tx==IOL_TILE_X_R -1 && ty < 4))
+                    {
+                        draw_clma_tile_fp( tx, ty );
+                    }
+                }
+            }
+        }
+    }
+    foreach tx ( L_CLMS_TILES_X )
+    {
+        foreach ty ( L_CLM_TILES_Y )
+        {
+            if(!(tx>=HSST_TILE_D_L_X && tx<HSST_TILE_D_R_X && (ty<=HSST_TILE_D_R_Y || ty>=HSST_TILE_U_L_Y - 1)))
+            {
+                if(!(tx>=PCIE_TILE_L_X && tx<=PCIE_TILE_R_X && ty>=PCIE_TILE_L_Y && ty<PCIE_TILE_R_Y))
+                {
+                    if(!(tx==PLL_TILE_X))
+                    {
+                        draw_clms_tile_fp( tx, ty );
+                    }
+                }
+            }
+        }
+    }
+
+    int rx ,ty_tmp ;
+
+    foreach rx ( {[3:1]} )
+    {
+        foreach ty_tmp ( {[31:21,11:1]} )
+        {
+            ty = ty_tmp + rx * NUM_TILES_REGION ;
+
+            if(!(ty>=USCM0_TILE_Y&&ty<USCM0_TILE_Y+NUM_TILE_USCM_Y))
+            {
+                draw_clms_tile_fp ( PLL_TILE_X, ty);                            
+            }    
+        }
+    }
+
+    foreach ty_tmp ( {[11:14,21:31,125:135,142:145]} )
+    {
+        ty = ty_tmp ;
+
+        draw_clms_tile_fp ( PLL_TILE_X, ty);                            
+    }   
+
+ //DRM   
+    foreach tx ( L_DRM_TILES_X )
+    {
+        foreach ty ( L_DRM_TILES_Y )
+        {
+            if(!(tx==BLSR_TILE_X_L || tx==BLSR_TILE_X_R))
+            {
+                if(!((tx>=HSST_TILE_D_L_X && tx<HSST_TILE_D_R_X && ty>=HSST_TILE_U_L_Y - 1) || (tx>=HSST_TILE_U_L_X && tx<HSST_TILE_U_R_X && ty<=HSST_TILE_D_R_Y - 1)))
+                {
+                    if(!((tx>PCIE_TILE_L_X && tx<PCIE_TILE_R_X) && (ty>=PCIE_TILE_L_Y && ty<PCIE_TILE_R_Y)))
+                    {
+                        draw_drm_tile_fp ( tx, ty);
+
+                    }
+                }
+            }
+        }
+    }  
+       
+//APM    
+    foreach tx ( L_APM_TILES_X )
+    {
+        foreach ty ( L_APM_TILES_Y )
+        {
+            if(!(tx==BLSR_TILE_X_L || tx==BLSR_TILE_X_R))
+            {
+                if(!((tx>=HSST_TILE_D_L_X && tx<HSST_TILE_D_R_X && ty>=HSST_TILE_U_L_Y - 1) || (tx>=HSST_TILE_U_L_X && tx<HSST_TILE_U_R_X && ty<=HSST_TILE_D_R_Y - 1)))
+                {
+                    if(!((tx>PCIE_TILE_L_X && tx<PCIE_TILE_R_X) && (ty>=PCIE_TILE_L_Y && ty<PCIE_TILE_R_Y)))
+                    {
+
+                        draw_apm_tile_fp ( tx, ty);
+
+                    }
+                }
+            }
+        }
+    }       
+    
+//IOL
+    foreach ty ( {IOL_TILE_Y_U} )
+    {
+        foreach tx ( L_IOL_TILES_X_UD )
+        {
+            draw_iol_tile_ud_fp( tx, ty, 1);
+        }  
+    }
+    foreach ty ( {IOL_TILE_Y_D} )
+    {
+        foreach tx ( L_IOL_TILES_X_UD )
+        {
+            draw_iol_tile_ud_fp( tx, ty, 0);
+        }  
+    } 
+    foreach tx ( {IOL_TILE_X_L,IOL_TILE_X_R} )
+    {
+        int ty_iol[] = (tx==IOL_TILE_X_L) ? L_IOL_TILES_Y_L : L_IOL_TILES_Y_R ;
+
+        foreach ty ( ty_iol )
+        {
+            draw_iol_tile_fp( tx, ty);
+        }      
+    } 
+//IOB
+    draw_iob0_tile_fp( IOB0_TILE_X, IOB_TILE_Y_U);
+    draw_iob1_tile_fp( IOB_TILE_X_R, IOB1_TILE_Y);
+    draw_iob2_tile_fp( IOB2_TILE_X, IOB_TILE_Y_D);
+    draw_iob3_tile_fp( IOB_TILE_X_L, IOB3_TILE_Y);
+    draw_iob4_tile_fp( IOB_TILE_X_L, IOB4_TILE_Y);
+    draw_iob5_tile_fp( IOB_TILE_X_R, IOB5_TILE_Y);    
+      
+//CCS
+   draw_ccs_tile_fp(CCS_TILE_X,CCS_TILE_Y);   
+//USCM
+    unsigned int L_USCM_TILES_X[] = {USCM_TILE_LOC_X};
+    unsigned int L_USCM_TILES_Y[] = {USCM0_TILE_LOC_Y, USCM1_TILE_LOC_Y};
+    int tx_srb = USCM_TILE_X;
+
+    foreach tx ( L_USCM_TILES_X )
+    {
+        foreach ty ( L_USCM_TILES_Y )
+        {
+            int ty_srb = (ty < NUM_TILES_REGION * 3) ? USCM0_TILE_Y : USCM1_TILE_Y;
+            draw_uscm_tile_fp( tx, ty, tx_srb, ty_srb);
+        }      
+    }  
+//iockgatedll    
+    foreach tx ( {IOL_TILE_X_L,IOL_TILE_X_R} )
+    {
+        foreach ty ( L_IOCKGATEDLL_TILES_Y )
+        {
+           draw_iockgatedll_tile_fp( tx, ty);
+        } 
+    }      
+//PLL
+    unsigned int flag_t;
+    unsigned int L_PLL_B_TILES_Y[] = {PLL0_TILE_Y};
+    unsigned int L_PLL_T_TILES_Y[] = {PLL1_TILE_Y};
+
+    foreach rx(L_REGIONS)
+    {
+        foreach ty_tmp ( {PLL0_TILE_Y,PLL1_TILE_Y} )
+        {
+            ty = ty_tmp + rx * NUM_TILES_REGION;
+    
+            flag_t = (ty_tmp==PLL1_TILE_Y) ? 1 : 0 ;
+
+            if(ty>=NUM_TILE_HALF_Y&&ty<=NUM_TILE_HALF_Y + 4 * NUM_TILES_REGION)
+            { 
+                draw_pll_tile_fp( PLL_TILE_X, ty, flag_t);
+            }
+        }  
+    } 
+// DQSL   
+    foreach tx ( {IOL_TILE_X_L,IOL_TILE_X_R} )
+    {        
+            foreach ty ( L_DQSL_TILES_Y )
+        {
+            int flag_ccs = (ty==7&&tx==IOL_TILE_X_R) ? 1 : 0 ;
+
+            draw_dqsl_tile_fp( tx, ty, flag_ccs);
+        }
+    }       
+//
+    int flag_ud , ty_dr ;
+
+    ty_dr = HSST_TILE_D_R_Y ;
+
+    foreach ty({HSST_TILE_D_L_Y,HSST_TILE_U_L_Y})
+    {
+
+        flag_ud = (ty > USCM0_TILE_Y) ? 1 : 0 ;
+
+        draw_hsst_tile_fp(HSST_TILE_D_L_X, ty ,ty_dr, flag_ud);
+    }
+  //
+   draw_pcie_tile_fp(PCIE_TILE_L_X,PCIE_TILE_L_Y,PCIE_TILE_R_X);    
+   
+    draw_analog_tile_fp( ANALOG_TILE_X, ANALOG_TILE_Y,155);            
+} // end of schematic floorplan_view draw_logic_resource of device PGL100H
+
+

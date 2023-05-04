@@ -1,0 +1,81 @@
+******************************************************************
+//
+//  Device    [devOBUFDSB]
+//
+//  project   [Pango]
+//  
+//  Author    [hzhang]
+//
+//  Abstract  [ B part of DS]
+//
+//  Revision History:
+//                       
+//********************************************************************************/
+
+gate device devOBUFDSB : device IOB_B
+{
+    parameter 
+    (   
+        config string IOB_MODE          := "OBUFDS",
+        config string TERMINATED         = "UNUSED",    /* "UNUSED" , "PULLUP" , "PULLDOWN" , "KEEPER" */
+        config string HOT_SOCKET         = "ON",        // ON OFF
+        config string POWER_MODE         = "ON",        // ON OFF
+        config string VCCIO              = "3.3",       // "3.3" "2.5" "1.8" "1.5" "1.2"
+        
+        // obuf
+        config string SLEW_MODE          = "F",  // "F" "S"
+        config string DRV_CURR_EN        = "TRUE",  // "TRUE" "FALSE"  
+        config string DRV_CURR_VAL       = "4",
+        config string PMOS_FINGER        = "1",  // "1" "2" "3" "4" "5" "6"
+        config string NMOS_FINGER        = "1",  // "1" "2" "3" "4" "5" "6"
+        config string IOSTANDARD         = "DEFAULT" 
+    );
+   
+    port
+    (   
+        input TO,
+        input DIFFO_IN, 
+        inout PAD
+     );
+};  // end of device devOBUFDSB
+
+
+/*******************************************************************************
+
+  Device    [devOBUFDSB]
+
+  Author    []
+
+  Abstract  [gate grid devOBUFDSB. structure nestlist]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devOBUFDSB
+{
+    // Wires connecting to ports. 
+    wire ntPAD;
+    wire ntDIFFO_IN;
+    
+    ntDIFFO_IN <= DIFFO_IN;
+    PAD        <= ntPAD;
+    
+    device DIFFO_MUX DIFFO_MUX
+        parameter map
+        ( 
+            IOB_MODE => IOB_MODE 
+        )
+        port map
+        (
+             DIFFO_IN => ntDIFFO_IN,
+             PAD      => ntPAD 
+        );
+     
+};  // end of structure netlist of devOBUFDSB            
+            
+timing tnl of devOBUFDSB
+{
+    wire ntPAD;
+    ntPAD      <= DIFFO_IN;
+    PAD        <= ntPAD;
+}

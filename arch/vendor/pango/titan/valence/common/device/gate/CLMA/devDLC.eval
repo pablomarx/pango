@@ -1,0 +1,151 @@
+*****************************************************************
+
+  Device    [devDLC]
+
+  Author    []
+
+  Abstract  [THE DEVICE CAN BE USED FOR ADDIDTION.]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devDLC : device devD
+{
+    parameter
+    (
+        config bit INITD[31:0]     = 32'h0000_0000,
+        config string FGD_MODE     = "ARITH",              // "LUT5" "ROM" "WMUX" "ARITH" 
+        config string Y3MUX_SEL    = "FG"                  // "L8"  "FG" "CY"                      
+    );
+    
+    port
+    (
+               input    D0, D1, D2, D3, D4, DD,
+               output   Y3,
+        logic  input    FGD_CIN,
+               output   COUT
+
+    );
+}; // end of device devDLC
+
+
+/*******************************************************************************
+
+  Device    [devDLC]
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devDLC
+{
+    // Wires for input ports
+    wire ntD0, ntD1, ntD2, ntD3, ntD4, ntDD; 
+
+    // Wires connecting to output ports
+    wire ntY3MUX;
+    wire ntCYD;
+    // Internal wires
+
+    wire ntFGD_Z;
+    wire ntCYC;
+
+    //
+    // Connection to ports
+    //
+    ntD0      <= D0;
+    ntD1      <= D1;
+    ntD2      <= D2;
+    ntD3      <= D3;
+    ntD4      <= D4;
+    ntDD      <= DD;
+
+    ntCYC     <= FGD_CIN;
+    
+    Y3        <= ntY3MUX;      
+    COUT      <= ntCYD;
+    
+    //
+    // Instances. FGA section
+    //
+
+    device FGA FGD 
+        parameter map
+        (
+            INIT        => INITD,
+            MODE        => FGD_MODE
+        )
+        port map 
+        (
+            A0   => ntD0, 
+            A1   => ntD1,
+            A2   => ntD2,
+            A3   => ntD3,
+            A4   => ntD4,       
+            A5   => ntDD,
+            CIN  => ntCYC,
+            COUT => ntCYD,
+            Z    => ntFGD_Z 
+        );
+
+    device Y3MUX Y3MUX
+        parameter map
+        (
+            CFG  => Y3MUX_SEL
+        )    
+        port map
+        (
+            FG  => ntFGD_Z, CY => ntCYD,
+            Z   => ntY3MUX
+        );
+}; // end of structure netlist of devDLC
+
+timing tnl of devDLC
+{
+    wire ntI0;
+    wire ntI1;
+    operator V_LUT5CARRY V_FGD
+        parameter map 
+        (
+            INIT        => INITD,
+            ID_TO_LUT   => (FGD_MODE == "ARITH4"  || FGD_MODE == "ARITH"   || FGD_MODE == "ARITH6"  || FGD_MODE == "CY01"    || FGD_MODE == "ARITH0" || FGD_MODE == "L5C01" || FGD_MODE == "LUT5"  || FGD_MODE == "ARITH3") ? "FALSE" : "TRUE",
+            CIN_TO_LUT  => (FGD_MODE == "WMUX"    || FGD_MODE == "ARITH9"  || FGD_MODE == "ARITH10" || FGD_MODE == "ARITH11" || FGD_MODE == "ARITH0" || FGD_MODE == "L5C01" || FGD_MODE == "LUT5"  || FGD_MODE == "ARITH3") ? "FALSE" : "TRUE",
+            I4_TO_CARRY => (FGD_MODE == "ARITH14" || FGD_MODE == "ARITH15" || FGD_MODE == "ARITH10" || FGD_MODE == "ARITH11" || FGD_MODE == "ARITH6" || FGD_MODE == "CY01"  || FGD_MODE == "LUT5"  || FGD_MODE == "ARITH3") ? "FALSE" : "TRUE",               
+            I4_TO_LUT   => (FGD_MODE == "ARITH13" || FGD_MODE == "ARITH15" || FGD_MODE == "ARITH9"  || FGD_MODE == "ARITH11" || FGD_MODE == "ARITH"  || FGD_MODE == "CY01"  || FGD_MODE == "L5C01" || FGD_MODE == "ARITH3") ? "FALSE" : "TRUE",
+            SECTION     => "D"
+        )
+        port map 
+        (
+           CIN  => FGD_CIN,
+           I0   => D0,
+           I1   => D1,
+           I2   => D2,
+           I3   => D3,
+           I4   => D4,
+           ID   => DD,
+           COUT => ntI0,
+           S    => ntI1
+        );
+
+     COUT  <= ntI0;
+        
+     if (Y3MUX_SEL != "FFAB")
+     {
+     operator V_MUX V_Y3MUX
+         parameter map
+         (
+             SEL  => (Y3MUX_SEL == "CY") ? "I0" : "I1",
+             SECTION  => "D"
+         )
+         port map
+         (
+             I0 => ntI0,
+             I1 => ntI1,
+             Y => Y3
+         );
+     }
+}

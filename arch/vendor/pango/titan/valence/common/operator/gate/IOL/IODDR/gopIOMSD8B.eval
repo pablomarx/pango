@@ -1,0 +1,126 @@
+*******************************************************************
+
+  Operator    [gopIOMSD8B]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+gate
+operator gopIOMSD8B // pragma PAP_ARC_DISABLE_MPNR
+{
+    parameter
+    (
+        string SER_DES_CLK_SRC  = "IOCLK",      //"IOCLK",  "SAMPLE_CLK" "PROBE_CLK"
+        string OCLK_SRC         = "WCLK",            // "WCLK", "WCLK_DEL" 
+        string DO_SEL         = "DO",   // "DO", "DO_COMP"
+        string TO_SEL         = "TO",   // "TO", "TO_COMP"  
+        bit    GRS_EN           = 1'b0,
+        bit    WL_EXTEND        = 1'b0,
+        bit    IDDR_LRS_EN      = 1'b0,
+        bit    ODDR_LRS_EN      = 1'b0,
+        bit    CLK_I_INV        = 1'b0,
+        bit    CLK_O_INV        = 1'b0,
+        bit    LRS_INV          = 1'b0
+    );
+    port
+    (
+        input   D[1:0],
+        output  Q[1:0],
+
+        input   IFIFO_WADDR[2:0],
+        input   IFIFO_RADDR[2:0],
+
+        input   SER_DES_CLK,
+        
+        input   ICLK,
+        input   TCLK,
+
+        input   SYSCLK /* pragma PAP_ARC_GOP_CTRL_PIN = "GCLK|RCLK"*/,
+
+        input   RESET /* pragma PAP_ARC_GOP_CTRL_PIN = RST*/,
+        input   SLIP,
+
+        output  ODDR_COUT[16:0],
+        input   ODDR_CIN[16:0],
+        input   IDDR_CIN[6:0],
+        output  IDDR_COUT[6:0],
+    
+        output  DO,
+        output  TO,
+        input   DO_IN,
+        input   TO_IN
+    );
+};
+
+implementation impl of gopIOMSD8B
+{
+    // IDDR/ODDR config
+
+    if((SER_DES_CLK_SRC != "SAMPLE_CLK") && (SER_DES_CLK_SRC != "PROBE_CLK") && (SER_DES_CLK_SRC != "IOCLK"))
+    {
+        error("Error config SER_DES_CLK_SRC = %s in gopIMDES8A", SER_DES_CLK_SRC);
+    }
+
+    string ODDR_OCLK      = "WCLK";      // "WCLK", "WCLKDEL"
+
+    if((OCLK_SRC != "WCLK") && (OCLK_SRC != "WCLK_DEL"))
+    {
+        error("Error config OCLK_SRC = %s in gopOMSER8B", OCLK_SRC);
+    }
+    
+    device devIOMSD8IOLB gate_iomsd8iolb
+        parameter map
+        (
+
+            DES_SER_CLK  =>   SER_DES_CLK_SRC,
+            ODDR_OCLK    =>   OCLK_SRC,   
+            DO_SEL       =>   DO_SEL,
+            TO_SEL       =>   TO_SEL,
+
+            WL_EXTEND    =>   WL_EXTEND,
+            GRS_EN       =>   GRS_EN,
+            IDDR_LRS_EN  =>   IDDR_LRS_EN,
+            ODDR_LRS_EN  =>   ODDR_LRS_EN,    
+            CLK_I_INV    =>   CLK_I_INV,
+            CLK_O_INV    =>   CLK_O_INV,
+            LRS_INV      =>   LRS_INV
+        )
+
+        port map 
+        (
+            RX_DATA      =>   Q,
+
+            TX_DATA      =>   D,
+        
+            IFIFO_WADDR  =>   IFIFO_WADDR,
+            IFIFO_RADDR  =>   IFIFO_RADDR,
+
+            IOCLK        =>   (SER_DES_CLK_SRC == "IOCLK") ? SER_DES_CLK : 1'bx,
+
+            SAMPLE_CLK   =>   (SER_DES_CLK_SRC == "SAMPLE_CLK") ? SER_DES_CLK : 1'bx,
+            PROBE_CLK    =>   (SER_DES_CLK_SRC == "PROBE_CLK") ? SER_DES_CLK : 1'bx,
+
+            WCLK         =>   (OCLK_SRC == "WCLK") ? TCLK : 1'bx,
+            WCLK_DEL     =>   (OCLK_SRC == "WCLK_DEL") ? TCLK : 1'bx,
+        
+            DQSI_DEL     =>   ICLK,
+
+            SYSCLK       =>   SYSCLK,
+            LRS          =>   RESET,
+            SLIP         =>   SLIP,
+            
+            IDDR_CIN     =>  IDDR_CIN,
+            ODDR_COUT    =>  ODDR_COUT,
+            IDDR_COUT    =>  IDDR_COUT,
+            ODDR_CIN     =>  ODDR_CIN,
+            
+            DO           =>  DO,
+            TO           =>  TO,
+            DO_IN        =>  DO_IN, 
+            TO_IN        =>  TO_IN
+        );
+};
+
+

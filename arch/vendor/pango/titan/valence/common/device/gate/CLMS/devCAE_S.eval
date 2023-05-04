@@ -1,0 +1,126 @@
+*****************************************************************
+
+  Device    [devCAE_S]
+
+  Author    []
+
+  Abstract  [THE DEVICE MODELLED FOR THE END OF CARRY CHAIN. FOR THE OUTPUT PORT 
+             HAD BEEN USED BY SUM OF CARRY CHAIN, SIGNAL OF THE PORT COUT CAN NOT
+             PASS TO IT DERECTLY.]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devCAE_S : device devC_S
+{
+    parameter
+    (
+        config bit INITC[31:0]     = 32'h0000_ffff,        
+        config string FGC_MODE     = "CYE",                // "LUT5" "ROM" "WMUX" "ARITH"        
+        config string RAM_LUT_SEL  := "LUT",                // "RAM"  "LUT" 
+        config string Y2MUX_SEL    := "CY"                   // "FFCD" "FG" "CY"
+    );
+    
+    port
+    (
+               output   Y2,  
+        logic  input    FGC_CIN
+    );
+}; // end of device devCAE_S
+
+
+/*******************************************************************************
+
+  Device    [devCAE_S]
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devCAE_S
+{
+    // Wires connecting to output ports
+    wire ntY2MUX;
+    // Internal wires
+    wire ntCYC;   
+    wire ntCYB;
+
+    //
+    // Connection to ports
+    //
+    ntCYB     <= FGC_CIN;
+    Y2        <= ntY2MUX;
+    
+    //
+    // Instances. FGA section
+    //
+
+    device FGS FGC 
+        parameter map
+        (
+            INIT        => INITC,
+            MODE        => FGC_MODE,
+            RAM_LUT_SEL => RAM_LUT_SEL
+        )
+        port map 
+        (
+            CIN  => ntCYB,
+            COUT => ntCYC
+        );
+
+    device Y2MUX Y2MUX
+        parameter map
+        (
+            CFG  => Y2MUX_SEL
+        )    
+        port map
+        (
+            CY => ntCYC,
+            Z   => ntY2MUX
+        );
+}; // end of structure netlist of devCAE_S
+
+timing tnl of devCAE_S
+{   
+    wire ntI0;
+    operator V_LUT5CARRY V_FGC
+        parameter map      
+        (
+            INIT        => INITC,
+            ID_TO_LUT   => "FALSE",
+            CIN_TO_LUT  => (FGC_MODE == "L5C01") ? "FALSE" : "TRUE",
+            I4_TO_CARRY => (FGC_MODE == "CY01")  ? "FALSE" : "TRUE",
+            SECTION  => "C"
+        )                  
+        port map 
+        (
+            I0  => 1'b0,  
+            I1  => 1'b0,
+            I2  => 1'b0,
+            I3  => 1'b0,
+            I4  => 1'b0,
+            ID  => 1'b0,
+            CIN => FGC_CIN,
+            COUT => ntI0
+        );     
+           
+     if (Y2MUX_SEL != "FFAB")
+     {           
+     operator V_MUX V_Y2MUX
+         parameter map
+         (
+             SEL  => (Y2MUX_SEL == "CY") ? "I0" : "I1",
+             SECTION  => "C"
+         )
+         port map
+         (
+             I0 => ntI0,
+             I1 => 1'B0,
+             Y => Y2
+         ); 
+    }
+}

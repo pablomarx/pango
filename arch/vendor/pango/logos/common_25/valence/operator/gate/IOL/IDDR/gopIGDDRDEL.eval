@@ -1,0 +1,91 @@
+*******************************************************************
+
+  Operator    [gopIGDDRDEL]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+gate
+operator gopIGDDRDEL
+{
+    parameter
+    (
+        string MIPI_MODE          = "FALSE",
+        string MODE               = "IGDDR",
+        string DELAY_SEL          = "DEFAULT",
+        bit    IODLY_CTRL_EN      = 1'b0,
+        bit    IODLY_STEP[3:0]    = 4'b0000,
+        bit    GRS_EN             = 1'b0,
+        bit    LRS_EN             = 1'b1,
+        bit    CLK_INV            = 1'b0,
+        bit    LRS_INV            = 1'b0
+    );
+    port
+    (
+        input   IODLY_CTRL[2:0],
+        output  IODLY_OV,
+
+        input   DESCLK /*pragma PAP_ARC_GOP_CTRL_PIN="IOCLK"*/,
+        input   SYSCLK /*pragma PAP_ARC_GOP_CTRL_PIN="GCLK|RCLK|COLCLK"*/,
+        input   RESET /*pragma PAP_ARC_GOP_CTRL_PIN="RST"*/,
+        input   PADI,
+        output  PADT,
+        output  Q[7:0],
+        output  OUT,
+        output  INCK,
+        input   MI,
+        output  MO
+    );
+};
+
+implementation impl of gopIGDDRDEL
+{
+    bit    ICLK_SEL[1:0] = 2'b00;
+    if (MODE == "IGDDR")
+    {
+        ICLK_SEL = 2'b10;
+    }
+    else if (MODE == "IGDES4")
+    {
+        ICLK_SEL = 2'b00;
+    }
+    else if (MODE == "IGDES7")
+    {
+        ICLK_SEL = 2'b00;
+    }
+    
+    device devIGDES8IOLADEL gate_igddrioldel
+        parameter map
+        (
+            CP_IDDR_MODE    => MODE,
+            CP_ICLK_SEL     => ICLK_SEL,
+            
+            CP_IODLY_STEP   =>   IODLY_STEP,
+            CP_GRS_DIS      =>   GRS_EN == 1'b0 ? "TRUE" : "FALSE",
+            CP_INLRS_EN     =>   LRS_EN == 1'b0 ? "DISABLE" : "ENABLE",
+            CP_INCLK_POL    =>   CLK_INV == 1'b0 ? "FALSE" : "TRUE",
+            CP_LRS_POL      =>   LRS_INV == 1'b0 ? "FALSE" : "TRUE",
+            CP_MIPI_EN      => MIPI_MODE == "TRUE" ? "ENABLE" : "DISABLE"
+        )
+        port map
+        (
+            RX_DATA      =>   Q,
+            RX_DATA_DD   =>   OUT,
+        
+            IODLY_CTRL   =>   IODLY_CTRL,
+            IODLY_OV     =>   IODLY_OV,
+            
+            CLK_IO       =>   DESCLK,
+            CLK_SYS      =>   SYSCLK,
+            LRS          =>   RESET,
+            TO           =>   PADT,
+            DI           =>   PADI,
+            INCK         =>   INCK,
+            
+            MIPI_SW_DYN_O =>  MO,
+            MIPI_SW_DYN_I =>  MI
+        );
+};
+

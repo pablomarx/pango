@@ -1,0 +1,206 @@
+*************************************************************
+
+Copyright (c) 2014 by PANGO MICROSYSTEMS, INC
+ALL RIGHTS RESERVED.
+
+THE SOURCE CODE CONTAINED HEREIN IS PROPRIETARY TO PANGO MICROSYSTEMS, INC.
+IT SHALL NOT BE REPRODUCED OR DISCLOSED IN WHOLE OR IN PART OR USED BY
+PARTIES WITHOUT WRITTEN AUTHORIZATION FROM THE OWNER.
+
+  Operator  [GTP_FIFO36K_E1]
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+***************************************************************************/
+
+implementation impl of GTP_FIFO36K_E1
+{
+    //string drm_mode = (RAM_MODE == "ROM") ? "ROM" : (
+    //                  (RAM_MODE == "SINGLE_PORT") ? "SPR" : (
+    //                  (RAM_MODE == "SIMPLE_DUAL_PORT") ? "SDP" : "TDP"));
+
+    int CP_DATA_WIDTH = DATA_WIDTH;
+    string CP_DBW_EN = "FALSE";
+    string CP_DBR_EN = "FALSE";
+    
+    if (DATA_WIDTH > 36)
+    {
+        CP_DATA_WIDTH = DATA_WIDTH / 2;
+        CP_DBW_EN = "TRUE";
+        CP_DBR_EN = "TRUE";
+    } 
+    
+    bit CP_SRVAL_A[17:0] = 18'by;
+    bit CP_SRVAL_A1[17:0] = 18'by;
+    bit CP_SRVAL_B[17:0] = 18'h00000;
+    bit CP_SRVAL_B1[17:0] = 18'h00000;
+    if (DATA_WIDTH == 1)
+    {
+        CP_SRVAL_B[8:0] = {1'b0, RST_VAL[0], RST_VAL[0],RST_VAL[0],RST_VAL[0],RST_VAL[0],RST_VAL[0],RST_VAL[0],RST_VAL[0]};
+        CP_SRVAL_B[17:9] = {1'b0, RST_VAL[0], RST_VAL[0],RST_VAL[0],RST_VAL[0],RST_VAL[0],RST_VAL[0],RST_VAL[0],RST_VAL[0]};
+        CP_SRVAL_B1 = CP_SRVAL_B;
+    }
+    else if (DATA_WIDTH == 2)
+    {
+        CP_SRVAL_B[8:0] = {1'b0,RST_VAL[1:0],RST_VAL[1:0],RST_VAL[1:0],RST_VAL[1:0]};
+        CP_SRVAL_B[17:9] = {1'b0,RST_VAL[1:0],RST_VAL[1:0],RST_VAL[1:0],RST_VAL[1:0]};
+        CP_SRVAL_B1 = CP_SRVAL_B;
+    }
+    else if (DATA_WIDTH == 4)
+    {
+        CP_SRVAL_B[8:0] = {1'b0, RST_VAL[3:0], RST_VAL[3:0]};
+        CP_SRVAL_B[17:9] = {1'b0, RST_VAL[3:0], RST_VAL[3:0]};
+        CP_SRVAL_B1 = CP_SRVAL_B;
+    }
+    else if (DATA_WIDTH == 8)
+    {
+        CP_SRVAL_B = {1'b0,RST_VAL[7:0],1'b0,RST_VAL[7:0]};
+        CP_SRVAL_B1 = CP_SRVAL_B;
+    }
+    else if (DATA_WIDTH == 9)
+    {
+        CP_SRVAL_B = {RST_VAL[8:0], RST_VAL[8:0]};
+        CP_SRVAL_B1 = CP_SRVAL_B;
+    }
+    else if (DATA_WIDTH == 16)
+    {
+        CP_SRVAL_B = {1'b0,RST_VAL[15:8],1'b0,RST_VAL[7:0]};
+        CP_SRVAL_B1 = CP_SRVAL_B;
+    }
+    else if (DATA_WIDTH == 18)
+    {
+        CP_SRVAL_B = RST_VAL[17:0];
+        CP_SRVAL_B1 = CP_SRVAL_B;
+    }
+    else if (DATA_WIDTH == 32)
+    {
+        CP_SRVAL_A = {1'b0,RST_VAL[15:8],1'b0,RST_VAL[7:0]};
+        CP_SRVAL_B = {1'b0,RST_VAL[31:24],1'b0,RST_VAL[23:16]};
+        CP_SRVAL_A1 = {1'b0,RST_VAL[15:8],1'b0,RST_VAL[7:0]};
+        CP_SRVAL_B1 = {1'b0,RST_VAL[31:24],1'b0,RST_VAL[23:16]};
+    }
+    else if (DATA_WIDTH == 36)
+    {
+        CP_SRVAL_A = RST_VAL[17:0];
+        CP_SRVAL_B = RST_VAL[35:18];
+        CP_SRVAL_A1 = RST_VAL[17:0];
+        CP_SRVAL_B1 = RST_VAL[35:18];
+    }
+    else if (DATA_WIDTH == 64)
+    {
+        CP_SRVAL_A = {1'b0,RST_VAL[15:8],1'b0,RST_VAL[7:0]};
+        CP_SRVAL_A1 = {1'b0,RST_VAL[47:40],1'b0,RST_VAL[39:32]};
+        CP_SRVAL_B = {1'b0,RST_VAL[31:24],1'b0,RST_VAL[23:16]};
+        CP_SRVAL_B1 = {1'b0,RST_VAL[63:56],1'b0,RST_VAL[55:48]};
+    }
+    else if (DATA_WIDTH == 72)
+    {
+        CP_SRVAL_A = RST_VAL[17:0];
+        CP_SRVAL_A1 = RST_VAL[53:36];
+        CP_SRVAL_B = RST_VAL[35:18];
+        CP_SRVAL_B1 = RST_VAL[71:54];
+    } 
+    
+    wire nt_by_qa0[17:0];
+    wire nt_by_qa1[17:0];
+    wire nt_by_qb1[17:0];  
+    
+    &port refDI[71:0] = (DATA_WIDTH % 9 == 0) ? DI[71:0] : 
+                        {DI[71], DI[63:56], DI[70], DI[55:48], DI[69], DI[47:40], DI[68], DI[39:32],
+                         DI[67], DI[31:24], DI[66], DI[23:16], DI[65], DI[15:8], DI[64], DI[7:0]};
+    &port refDO[71:0] = (DATA_WIDTH % 9 == 0) ? DO[71:0] : 
+                        {DO[71], DO[63:56], DO[70], DO[55:48], DO[69], DO[47:40], DO[68], DO[39:32],
+                         DO[67], DO[31:24], DO[66], DO[23:16], DO[65], DO[15:8], DO[64], DO[7:0]};
+
+    operator gopDRM gopdrm_fifo36k
+    parameter map
+    (
+        CP_DBW_EN     => CP_DBW_EN,
+        CP_DBR_EN     => CP_DBR_EN,
+        CP_DRM_EN_0   => "TRUE",
+        CP_DRM_EN_1   => "TRUE",
+        CP_GRS_DIS_0  => GRS_EN == "TRUE" ? "FALSE" : "TRUE",
+        CP_GRS_DIS_1  => GRS_EN == "TRUE" ? "FALSE" : "TRUE",
+        CP_DBW_EN => CP_DBW_EN,
+        CP_DBR_EN => CP_DBR_EN,
+        CP_DATA_WIDTH_A_0 => CP_DATA_WIDTH,
+        CP_DATA_WIDTH_A_1 => CP_DATA_WIDTH,
+        CP_DATA_WIDTH_B_0 => CP_DATA_WIDTH,
+        CP_DATA_WIDTH_B_1 => CP_DATA_WIDTH,
+        CP_OUTPUT_REG_A_0 => DO_REG ? "ENABLE" : "DISABLE",
+        CP_OUTPUT_REG_A_1 => DO_REG ? "ENABLE" : "DISABLE",
+        CP_OUTPUT_REG_B_0 => DO_REG ? "ENABLE" : "DISABLE",
+        CP_OUTPUT_REG_B_1 => DO_REG ? "ENABLE" : "DISABLE",
+        CP_ECC_RDEN => ECC_READ_EN,
+        CP_ECC_WREN => ECC_WRITE_EN,
+        CP_ALMOST_FULL_OFFSET_0 => ALMOST_FULL_OFFSET,
+        CP_ALMOST_EMPTY_OFFSET_0 => ALMOST_EMPTY_OFFSET,
+        CP_ALMOST_FULL_OFFSET_1 => ALMOST_FULL_OFFSET,
+        CP_ALMOST_EMPTY_OFFSET_1 => ALMOST_EMPTY_OFFSET,        
+        CP_SRVAL_A_0      => CP_SRVAL_A,
+        CP_SRVAL_A_1      => CP_SRVAL_A1,
+        CP_SRVAL_B_0      => CP_SRVAL_B,
+        CP_SRVAL_B_1      => CP_SRVAL_B1,
+        CP_FLAGEMPTY_EN_0 => USE_EMPTY == 0 ? "FALSE" : "TRUE",
+        CP_FLAGFULL_EN_0 => USE_FULL == 0 ? "FALSE" : "TRUE",
+        CP_SYNC_FIFO_0 => SYNC_FIFO,
+        CP_FLAGEMPTY_EN_1 => USE_EMPTY == 0 ? "FALSE" : "TRUE",
+        CP_FLAGFULL_EN_1 => USE_FULL == 0 ? "FALSE" : "TRUE",
+        CP_SYNC_FIFO_1 => SYNC_FIFO,
+        CP_DRM_36K => "TRUE",
+        CP_FIFO_EN_0 => "TRUE",
+        CP_FIFO_EN_1 => "TRUE",
+        CP_BELA_SET_0 => (DATA_WIDTH >= 16) ? "TRUE" : "FALSE",
+        CP_BELA_SET_1 => (DATA_WIDTH >= 16) ? "TRUE" : "FALSE",
+        CP_BEHA_SET_0 => (DATA_WIDTH >= 16) ? "TRUE" : "FALSE",
+        CP_BEHA_SET_1 => (DATA_WIDTH >= 16) ? "TRUE" : "FALSE",
+        CP_BELB_SET_0 => (DATA_WIDTH >= 16) ? "TRUE" : "FALSE",
+        CP_BELB_SET_1 => (DATA_WIDTH >= 16) ? "TRUE" : "FALSE",
+        CP_BEHB_SET_0 => (DATA_WIDTH >= 16) ? "TRUE" : "FALSE",
+        CP_BEHB_SET_1 => (DATA_WIDTH >= 16) ? "TRUE" : "FALSE",
+        CP_CAS_EN => "FALSE"        
+    )
+    port map
+    (
+        CLKA[0]  => WCLK,
+        CLKB[0]  => RCLK,
+        CEA[0]   => WCE,
+        CEB[0]   => RCE,
+        RSTA[0]  => RST,
+        RSTB[0]  => RST,                        
+        OCEB[0]  => ORCE,        
+        
+        ALMOST_EMPTY[0]  => ALMOST_EMPTY,
+        ALMOST_FULL[0]   => ALMOST_FULL,
+        EMPTY[0]         => EMPTY,
+        FULL[0]          => FULL,
+        
+        ECC_SBITERR      => ECC_SBITERR,
+        ECC_DBITERR      => ECC_DBITERR,
+        ECC_INJ_SBITERR  => INJECT_SBITERR,
+        ECC_INJ_DBITERR  => INJECT_DBITERR,
+        
+        ADA_CAS    => 1'b1,
+        ADB_CAS    => 1'b1,
+        WEA[0]     => 1'b1,
+        
+        WEB[0]     => 1'b0,
+        ADSA[0]    => 1'b0,
+        ADSB[0]    => 1'b0,
+        
+        DA0        => refDI[17:0],
+        DA1        => (DATA_WIDTH > 36) ? refDI[53:36] : 18'byyyyyyyyyyyyyyyyyy,
+        DB0        => (DATA_WIDTH > 18) ? refDI[35:18] : 18'byyyyyyyyyyyyyyyyyy,
+        DB1        => (DATA_WIDTH > 36) ? refDI[71:54] : 18'byyyyyyyyyyyyyyyyyy,
+        
+        QA0        => (DATA_WIDTH > 18) ? refDO[17:0] : nt_by_qa0[17:0],
+        QA1        => (DATA_WIDTH > 36) ? refDO[53:36] : nt_by_qa1[17:0],
+        QB0        => (DATA_WIDTH < 32) ? refDO[17:0] : refDO[35:18],
+        QB1        => (DATA_WIDTH > 36) ? refDO[71:54] : nt_by_qb1[17:0]
+    );
+};
+

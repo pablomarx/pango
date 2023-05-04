@@ -1,0 +1,183 @@
+*******************************************************************
+
+  Device    [devL6CD]
+
+  Author    [liujiao]
+
+  Abstract  [LUT-6 by L6CDMUX]
+
+  Revision History:
+
+********************************************************************************/
+gate
+device devL6CD : device CLMA
+{
+
+    parameter
+    (
+        config bit CP_INITC[31:0]     = 32'hffff_ffff,
+        config bit CP_INITD[31:0]     = 32'hffff_ffff,
+        config string CP_MODEC     = "LUT5",               // "LUT5" "ROM" "WMUX" "ARITH"
+        config string CP_MODED     = "LUT5",               // "LUT5" "ROM" "WMUX" "ARITH"
+        config string CP_Y3MUX_SEL    := "FX",                 // "L8"  "FX" "CYX"
+        config string CP_Y2MUX_SEL    := "FX"               // "FFCD" "FX" "CYX"
+    );
+    port
+    (
+        // These are the ports of FGD.
+        input    D0, D1, D2, D3, D4, DD,  
+        output   Y3,
+               
+        // These are the ports of FGC.
+        input    C0, C1, C2, C3, C4, CD,
+        output   Y2,
+ 
+        // These are the ports shared with FGC and FGD.
+        output   Y6CD,
+
+        // These are the ports of RAM.
+        // Here are the ports of RAM write adress( WA[3:0] ), and shared with ROM. 
+        input    M1
+    );
+
+}// end of device devL6CD
+
+/*******************************************************************************
+
+  Device    [devL6CD]
+
+  Author    [liujiao]
+
+  Abstract  [The structure netlist of devL6CD is described in the similar fashion 
+             as in HDL. In unit instantiation statement, the formal pin may be 
+             connected to net which is declared explicitly. 
+             
+             In Valence, the connection can also be made from formal pin to other 
+             pin or port, in which case Valence compiler shall create the net to 
+             fulfil the connection. The built-in naming convention is kicked in 
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devL6CD
+{
+    // Wires for input ports
+    wire ntD0,ntD1,ntD2,ntD3,ntD4,ntDD; 
+    wire ntC0,ntC1,ntC2,ntC3,ntC4,ntCD; 
+
+    wire ntM1;
+
+    // Wires connecting to output ports
+    wire ntY3;
+    wire ntY2;
+    wire ntY6CD;    
+    // Internal wires
+    wire ntL5D;
+    wire ntL5C;
+    //
+    // Connection to ports
+    //
+    ntD0      <= D0;
+    ntD1      <= D1;
+    ntD2      <= D2;
+    ntD3      <= D3;
+    ntD4      <= D4; 
+    ntDD      <= DD;
+ 
+    ntC0      <= C0;
+    ntC1      <= C1;
+    ntC2      <= C2;
+    ntC3      <= C3;
+    ntC4      <= C4;
+    ntCD      <= CD;
+     
+    ntM1      <= M1;
+
+
+    Y3        <= ntY3;
+    Y2        <= ntY2;
+    Y6CD      <= ntY6CD;
+   
+    //
+    // Instances. FGD section
+    //
+
+    device FYC FYD 
+        parameter map
+        (
+            CP_INIT => CP_INITD,
+            CP_MODE => CP_MODED
+        )
+        port map 
+        (
+            A0  => ntD0,
+            A1  => ntD1,
+            A2  => ntD2,
+            A3  => ntD3,
+            A4  => ntD4,
+            AD  => ntDD,
+            L5  => ntL5D 
+        );
+        
+    device YMUX Y3MUX
+        parameter map
+        (
+            CP_OUT_SEL  => CP_Y3MUX_SEL
+        )
+        port map
+        (
+            FX  => ntL5D,
+            Y   => ntY3
+        );
+    //
+    // Instances. FGC section
+    //
+
+    device FY FYC 
+        parameter map
+        (
+            CP_INIT => CP_INITC,
+            CP_MODE => CP_MODEC
+        )
+        port map 
+        (
+            A0  => ntC0,
+            A1  => ntC1,
+            A2  => ntC2,
+            A3  => ntC3,
+            A4  => ntC4,
+            AD  => ntCD,
+            L5   => ntL5C 
+        );   
+        
+    device YMUX Y2MUX
+        parameter map
+        (
+            CP_OUT_SEL  => CP_Y2MUX_SEL
+        )    
+        port map
+        (
+            FX  => ntL5C,
+            Y   => ntY2
+        );
+
+    //
+    // Instances. Common to FGC and FGD sections
+    //
+    
+    device MUX2 L6CDMUX
+        port map
+        (
+            DI0   => ntL5C,
+            DI1   => ntL5D,
+            SEL   => ntM1,
+            DOUT  => ntY6CD
+        );
+        
+}; // end of structure netlist of devL6CD
+
+

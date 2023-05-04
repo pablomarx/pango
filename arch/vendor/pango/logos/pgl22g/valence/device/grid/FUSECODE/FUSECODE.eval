@@ -1,0 +1,106 @@
+*****************************************************************
+
+  Device    [FUSECODE]
+
+  Author    [yqtan]
+
+  Abstract  [The Grid Device FUSECODE]
+
+  Revision History:
+
+********************************************************************************/
+//grid device started
+grid
+device FUSECODE
+{
+    // grid_property_def_start
+    // grid_property_def_end
+
+    parameter
+    (
+        config string CP_USER_EN_EFUSE = "DISABLE"
+    );
+    port
+    (
+// configuration_body_def_on
+
+
+    config input SC_USER_EN_EFUSE = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_USER_EN_EFUSE" */,
+
+// configuration_body_def_end
+
+        output EFUSE[31:0]
+    );
+};
+//grid device end
+
+
+/*******************************************************************************
+
+  Device    [FUSECODE]
+
+  Author    []
+
+  Abstract  [The structure netlist of FUSECODE is described in the similar fashion 
+             as in HDL. In unit instantiation statement, the formal pin may be 
+             connected to net which is declared explicitly. 
+             
+             In Valence, the connection can also be made from formal pin to other 
+             pin or port, in which case Valence compiler shall create the net to 
+             fulfil the connection. The built-in naming convention is kicked in 
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+//grid device structure netlist started
+
+structure netlist of FUSECODE
+{
+   
+}; // end of structure netlist of FUSECODE
+//grid device structure netlist end
+
+
+//grid device configure body started
+
+configuration cfg of FUSECODE
+{
+
+//initial config body0 begin
+    if(CP_USER_EN_EFUSE == "ENABLE")
+    {
+        SC_USER_EN_EFUSE  :=  1'b1;
+    }
+    else if(CP_USER_EN_EFUSE == "DISABLE")
+    {
+        SC_USER_EN_EFUSE  :=  1'b0;
+    }
+    else
+    {
+        SC_USER_EN_EFUSE  :=  1'bx;
+        error ("illegal setting for CP_USER_EN_EFUSE := %s",CP_USER_EN_EFUSE);
+    }
+
+//initial config body0 end
+
+};
+
+//grid device configure body end
+
+timing  fusecode_tnl of FUSECODE
+{
+    operator V_EFUSECODE V_EFUSECODE
+        //parameter map
+        //(
+        //    SIM_EFUSE_VALUE => 32'hFFFFFFFF
+        //)
+        port map
+        (
+            EFUSE_CODE => EFUSE
+        );
+};

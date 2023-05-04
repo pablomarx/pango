@@ -1,0 +1,296 @@
+*****************************************************************
+
+  Device    [LUT5S]
+
+  Author    [yqtan]
+
+  Abstract  [The Prim Device only for CLMS]
+
+  Revision History:
+
+********************************************************************************/
+prim
+device LUT5S
+{
+    parameter
+    (
+        config bit    CP_INIT[31:0] = 32'h0000_0000,
+        config string CP_MODE       = "LUT5",
+        config string CP_MASK       = "FALSE"  //"TRUE" "FALSE"
+    );
+    port 
+    ( 
+        // Input Ports of LUT5S
+        input A0,
+        input A1,
+        input A2,
+        input A3,
+        input A4,
+        input AD,
+        input CIN,
+        input WCK,
+        input WE,
+        input WA[3:0],
+        
+        // Output Ports for LUT5S
+        output K,
+        output G,
+        output L5,
+        output COUT
+    );
+
+};
+
+/**Device***********************************************************************
+
+  Device    LUT5S
+
+  Abstract  [This specified how to propagate the input signal to the outputs based on
+             configuration]
+
+  Revision History:
+
+********************************************************************************/
+propagation prop of LUT5S
+{
+    if (CP_MODE == "RAM")
+    {
+       propagate ( A0  |-> L5 );
+       propagate ( A1  |-> L5 );
+       propagate ( A2  |-> L5 );
+       propagate ( A3  |-> L5 );  
+       propagate ( A4  |-> L5 ); 
+       propagate ( CIN |-> L5 ); 
+          
+       propagate ( AD  |-> L5 );
+       propagate ( WA[3] |-> L5 );
+       propagate ( WA[2] |-> L5 );
+       propagate ( WA[1] |-> L5 );  
+       propagate ( WA[0] |-> L5 ); 
+       propagate ( WCK |-> L5 );    
+       propagate ( WE  |-> L5 ); 
+              
+       // propagate ( A0  |-> COUT );
+       // propagate ( A1  |-> COUT );
+       // propagate ( A2  |-> COUT );
+       // propagate ( A3  |-> COUT );
+       // propagate ( A4  |-> COUT );
+       // propagate ( CIN  |-> COUT ); 
+       // 
+       // propagate ( AD  |-> COUT );
+       // propagate ( WA[3] |-> COUT );
+       // propagate ( WA[2] |-> COUT );
+       // propagate ( WA[1] |-> COUT );  
+       // propagate ( WA[0] |-> COUT ); 
+       // propagate ( WCK |-> COUT );    
+       // propagate ( WE  |-> COUT );           
+    }
+    else
+    {
+       if (CP_MODE == "LUT5" && CP_INIT == 32'hffff_ffff)
+       {
+           propagate ( 1'b1 --> L5 ); 
+       }
+       else if (CP_MODE == "LUT5" && CP_INIT == 32'h0000_0000)
+       {
+           propagate ( 1'b0 --> L5 ); 
+       }
+       else
+       {
+           propagate ( A0  |-> L5 );
+           propagate ( A1  |-> L5 );
+           propagate ( A2  |-> L5 );
+           propagate ( A3  |-> L5 );  
+           propagate ( A4  |-> L5 );   
+           propagate ( AD  |-> L5 );
+           propagate ( CIN |-> L5 );    
+           propagate ( A0  |-> COUT );
+           propagate ( A1  |-> COUT );
+           propagate ( A2  |-> COUT );
+           propagate ( A3  |-> COUT );
+           propagate ( A4  |-> COUT ); 
+           propagate ( AD  |-> COUT );
+           propagate ( CIN  |-> COUT );
+           propagate ( CIN  |-> K );
+           propagate ( CIN  |-> G );
+       }
+    }
+
+}; // end of propagation of LUT5S
+
+/**Device***********************************************************************
+
+  Device    [LUT5S]
+
+  Abstract  [This specified the timing model under specific configuration]
+
+  Revision History:
+
+********************************************************************************/
+timing lut5s_tnl of LUT5S
+{
+    if (CP_MASK == "TRUE")
+    {
+         if (CP_MODE == "RAM")
+         {
+             operator V_RAM16X1 V_FYS
+                 parameter map
+                 (
+                     INIT => CP_INIT[15:0],
+                     WE_POL => "TRUE"
+                 )
+                 port map
+                 (
+                    RADDR => {A3, A2, A1, A0},
+                    WADDR => WA,
+                    WDI   => AD,
+                    WCLK  => WCK,
+                    WE    => WE,
+                    RDO   => L5 
+                 );
+         }
+    }
+    else if(CP_MODE == "LATCH")
+    {
+        string SET_RESET = "SET";
+        string LRS_EN    = "FALSE";
+        
+        if (CP_INIT == 32'hEEEE_2222) // GTP_DLATCH
+        {
+            SET_RESET = "RESET";
+            LRS_EN    = "FASLE";
+        }
+        else if (CP_INIT == 32'h0E0E_0202) // GTP_DLATCH_C
+        {
+            SET_RESET = "RESET";
+            LRS_EN    = "TRUE";
+        }
+        else if (CP_INIT == 32'h0E0A_020A) // GTP_DLATCH_CE
+        {
+            SET_RESET = "RESET";
+            LRS_EN    = "TRUE";
+        }
+        else if (CP_INIT == 32'hEEAA_22AA) // GTP_DLATCH_E
+        {
+            SET_RESET = "RESET";
+            LRS_EN    = "FASLE";
+        }
+        else if (CP_INIT == 32'hFEFE_F2F2) // GTP_DLATCH_P
+        {
+            SET_RESET = "SET";
+            LRS_EN    = "TRUE";
+        }
+        else if (CP_INIT == 32'hFEFA_F2FA) // GTP_DLATCH_PE
+        {
+            SET_RESET = "SET";
+            LRS_EN    = "TRUE";
+        }
+            
+        operator V_LAASYN V_LAASYN
+           parameter map 
+           (
+               SET_RESET => SET_RESET,
+               LRS_EN    => LRS_EN
+           )
+            port map 
+            (
+                Q  => L5,
+                D  => A4,
+                SR => A2,
+                CK => A1,
+                CE => A3
+            );
+    }
+    else if(CP_MODE == "LUT5" || CP_MODE == "ROM" || CP_MODE == "PRIENC")
+    {
+        operator V_LUT5 FYS
+           parameter map
+           (
+               INIT => CP_INIT
+           )
+           port map
+           (
+               I0 => A0,
+               I1 => A1,
+               I2 => A2,
+               I3 => A3,
+               I4 => A4,
+               Y  => L5
+           );
+    }
+    else if(CP_MODE == "LUT5M")
+    {
+        operator V_LUT5M V_FYS
+            parameter map
+            (
+                INIT => CP_INIT
+            )
+            port map
+            (
+                I0  => A0,
+                ID  => AD,
+                I1  => A1,
+                I2  => A2,
+                I3  => A3,
+                I4  => A4,
+                Z   => L5
+            );
+    }
+    else
+    {
+        string I4_TO_LUT   = "TRUE" ; 
+        string I4_TO_CARRY = "FALSE"; 
+        string CIN_TO_LUT  = "FALSE"; 
+        string ID_TO_LUT   = "FALSE";
+
+             if (CP_MODE == "WAND"   ) { I4_TO_LUT = "TRUE" ; I4_TO_CARRY = "FALSE"; CIN_TO_LUT = "FALSE"; ID_TO_LUT = "FALSE"; }
+        else if (CP_MODE == "MUX4"   ) { I4_TO_LUT = "TRUE" ; I4_TO_CARRY = "TRUE" ; CIN_TO_LUT = "FALSE"; ID_TO_LUT = "TRUE" ; }
+        else if (CP_MODE == "ARITH"  ) { I4_TO_LUT = "FALSE"; I4_TO_CARRY = "TRUE" ; CIN_TO_LUT = "TRUE" ; ID_TO_LUT = "FALSE"; }
+        else if (CP_MODE == "XOR"    ) { I4_TO_LUT = "FALSE"; I4_TO_CARRY = "FALSE"; CIN_TO_LUT = "TRUE" ; ID_TO_LUT = "FALSE"; }
+        else if (CP_MODE == "COMP"   ) { I4_TO_LUT = "TRUE" ; I4_TO_CARRY = "TRUE" ; CIN_TO_LUT = "FALSE"; ID_TO_LUT = "FALSE"; }
+        else if (CP_MODE == "ARITH1" ) { I4_TO_LUT = "TRUE" ; I4_TO_CARRY = "TRUE" ; CIN_TO_LUT = "TRUE" ; ID_TO_LUT = "FALSE"; }
+        else if (CP_MODE == "ARITH2" ) { I4_TO_LUT = "TRUE" ; I4_TO_CARRY = "TRUE" ; CIN_TO_LUT = "TRUE" ; ID_TO_LUT = "TRUE" ; }
+        else if (CP_MODE == "ARITH3" ) { I4_TO_LUT = "TRUE" ; I4_TO_CARRY = "FALSE"; CIN_TO_LUT = "FALSE"; ID_TO_LUT = "TRUE" ; }
+        else if (CP_MODE == "ARITH4" ) { I4_TO_LUT = "TRUE" ; I4_TO_CARRY = "FALSE"; CIN_TO_LUT = "TRUE" ; ID_TO_LUT = "FALSE"; }
+        else if (CP_MODE == "ARITH5" ) { I4_TO_LUT = "TRUE" ; I4_TO_CARRY = "FALSE"; CIN_TO_LUT = "TRUE" ; ID_TO_LUT = "TRUE" ; }
+        else if (CP_MODE == "ARITH6" ) { I4_TO_LUT = "FALSE"; I4_TO_CARRY = "TRUE" ; CIN_TO_LUT = "FALSE"; ID_TO_LUT = "FALSE"; }
+        else if (CP_MODE == "ARITH7" ) { I4_TO_LUT = "FALSE"; I4_TO_CARRY = "TRUE" ; CIN_TO_LUT = "FALSE"; ID_TO_LUT = "TRUE" ; }
+        else if (CP_MODE == "ARITH8" ) { I4_TO_LUT = "FALSE"; I4_TO_CARRY = "TRUE" ; CIN_TO_LUT = "TRUE" ; ID_TO_LUT = "TRUE" ; }
+        else if (CP_MODE == "ARITH9" ) { I4_TO_LUT = "FALSE"; I4_TO_CARRY = "FALSE"; CIN_TO_LUT = "FALSE"; ID_TO_LUT = "FALSE"; }
+        else if (CP_MODE == "ARITH10") { I4_TO_LUT = "FALSE"; I4_TO_CARRY = "FALSE"; CIN_TO_LUT = "FALSE"; ID_TO_LUT = "TRUE" ; }
+        else if (CP_MODE == "ARITH11") { I4_TO_LUT = "FALSE"; I4_TO_CARRY = "FALSE"; CIN_TO_LUT = "TRUE" ; ID_TO_LUT = "TRUE" ; }
+        else                           { I4_TO_LUT = "TRUE" ; I4_TO_CARRY = "FALSE"; CIN_TO_LUT = "FALSE"; ID_TO_LUT = "FALSE"; }
+
+        operator V_LUT5CARRY V_FYS
+            parameter map
+            (
+                INIT        =>  CP_INIT,
+                ID_TO_LUT   => ID_TO_LUT,
+                CIN_TO_LUT  => CIN_TO_LUT,
+                I4_TO_CARRY => I4_TO_CARRY,
+                I4_TO_LUT   => I4_TO_LUT
+            )
+            port map
+            (
+               CIN  => CIN,
+               I0   => A0,
+               I1   => A1,
+               I2   => A2,
+               I3   => A3,
+               I4   => A4,
+               ID   => AD,
+               COUT => COUT,
+               S    => L5
+            );
+    }
+};
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,72 @@
+*******************************************************************
+
+  Operator    [gopDLL]
+
+  Abstract  []
+
+  Revision History:
+
+ ********************************************************************************/
+gate
+operator gopDLL
+{
+    parameter
+    (
+        int    CODE_OFFSET  = 0,            // [-4,3]                                            
+        string GRS_EN       = "FALSE",      // global reset/set enable control.
+                                            // 1'b0: "TRUE"; 1'b1 "FALSE"
+        string FAST_LOCK    = "TRUE",       // clock/osclock div. rate select
+                                            // 1'b0: "TRUE"  ; 1'b1 "FALSE"
+
+        string DLL_CLKSEL   = "IOCLK0",     // "NONE": 0; "CLKIN"; "IOCLK0" "IOCLK1" "IOCLK2" "IOCLK3"   
+        bit    DLL_RST_POL  = 1'b1,
+        string DLLOSC_EN    = "TRUE",       // 1'b0 "FALSE" 1'b1 "TRUE"
+        string DLL_FORCE    = "NOSET",      // 1'b0 "NOSET"  1'b1 "SETH"
+        string ROUNDOFF_EN  = "TRUE"        // 1'b0 "FALSE" 1'b1 "TRUE"
+    );
+
+    port
+    (
+        input  CLK /* pragma PAP_ARC_GOP_CTRL_PIN = "GCLK|RCLK|IOCLK"*/,
+        input  UPDATE_N,
+        input  RST /* pragma PAP_ARC_GOP_CTRL_PIN = RST*/,
+        input  PWD,
+        output CTRL_CODE[7:0],
+        output LOCK
+    );
+};
+
+/**Implementation Body*******************************************************************
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_dll of gopDLL
+{
+    device DLL dll_inst
+        parameter map
+        (
+            CODE_OFFSET  => CODE_OFFSET,
+            GRS_EN       => GRS_EN,
+            FAST_LOCK    => FAST_LOCK,
+            DLL_RST_POL  => DLL_RST_POL,
+            DLLOSC_EN    => DLLOSC_EN,
+            DLL_FORCE    => DLL_FORCE,
+            ROUNDOFF_EN  => ROUNDOFF_EN
+        )
+        port map
+        (
+            FREEZE_DLL_OSC      => PWD,
+            UPDATE_N            => UPDATE_N,
+            IOCLK               => CLK,
+            DLL_RST             => RST,
+            LOCK                => LOCK,
+            DLL_CODE            => CTRL_CODE
+        );
+
+}; // end of implementation impl_dll of gopDLL
+

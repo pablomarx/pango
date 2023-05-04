@@ -1,0 +1,108 @@
+*****************************************************************
+
+  Device    [IPAL]
+
+  Author    [clwang]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+grid
+device IPAL
+{
+    parameter
+    (
+         config string IPAL_WIDTH = "X8",
+         config string USE_IPAL = "FALSE",  // "TRUE" OR "FALSE"
+         config bit JTAG_IDCODE[31:0] = 32'hAAAA5555,
+         config int MEM_DEPTH = 1616
+    );
+    port
+    (
+        config input SC_IPAL_M[1:0] = 2'b00 /*pragma PAP_CFG_BIT_NAME = "SC_IPAL_M<1>, SC_IPAL_M<0>" */,
+        config input SC_USER_EN_IPAL = 1'b0 /*pragma PAP_CFG_BIT_NAME = "SC_USER_EN_IPAL" */,
+        input  CLK      = 1'b1, 
+        input  CS_B     = 1'b1, 
+        input  DIN[7:0] = 8'hff, 
+        input  RDWR_B   = 1'b1, 
+        output BUSY          , 
+        output DOUT[7:0] 
+    );
+} // end of device IPAL
+
+/*******************************************************************************
+
+  Device    [IPAL]
+
+  Author    [clwang]
+
+  Abstract  [The structure netlist of IPAL is described in the similar fashion 
+             as in HDL. In unit instantiation statement, the formal pin may be 
+             connected to net which is declared explicitly. 
+             
+             In Valence, the connection can also be made from formal pin to other 
+             pin or port, in which case Valence compiler shall create the net to 
+             fulfil the connection. The built-in naming convention is kicked in 
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+
+structure netlist of IPAL
+{
+     device IPAL_INST IPAL_INST
+        parameter map
+        (
+            IPAL_WIDTH  => IPAL_WIDTH,      
+            JTAG_IDCODE => JTAG_IDCODE,     
+            MEM_DEPTH   => MEM_DEPTH               
+        )
+        port map
+        (
+            CLK     =>   CLK,
+            CS_B    =>   CS_B,
+            DIN     =>   DIN,
+            RDWR_B  =>   RDWR_B,
+            BUSY    =>   BUSY,
+            DOUT    =>   DOUT
+        );
+
+}; // end of structure netlist of IPAL
+
+configuration cfg of IPAL             
+{           
+   if(IPAL_WIDTH == "X8")
+   {
+       SC_IPAL_M := 2'b00;  
+   }
+   SC_USER_EN_IPAL    :=  (USE_IPAL == "TRUE") ? 1'b1 : 1'b0 ; 
+                                       
+}; // end of configuration cfg of IPAL
+
+
+timing tnl of IPAL
+{
+    operator V_IPAL V_IPAL
+        parameter map 
+        (
+            DATA_WIDTH  => IPAL_WIDTH,
+            IDCODE      => JTAG_IDCODE,
+            MEM_DEPTH   => MEM_DEPTH
+        )
+        port map
+        (
+            CLK    => CLK,    
+            CS_N   => CS_B,
+            DI     => DIN,   
+            RW_SEL => RDWR_B,    
+            BUSY   => BUSY,
+            DO     => DOUT  
+        );
+}
+

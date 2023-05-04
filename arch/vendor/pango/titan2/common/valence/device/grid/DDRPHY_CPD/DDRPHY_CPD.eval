@@ -1,0 +1,79 @@
+tarted
+grid
+device DDRPHY_CPD
+{
+    // grid_property_def_start
+    // grid_property_def_end
+
+    parameter
+    (
+        config string CP_CPD_EN = "FALSE"
+    );
+    port
+    (
+// configuration_body_def_on
+
+
+    config input SC_CPD_EN = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_CPD_EN" */,
+
+// configuration_body_def_end
+
+        input CPD_RSTN = 1'b1,
+        input CLK_IO_2X = 1'b1,
+        input CNTR_CLK = 1'b1,
+        input PPLL_SYSCLK = 1'b1,
+        input CPD_DONE = 1'b1,
+        output CPD_UP_DNB,
+        output CPD_LOCK
+    );
+};
+//grid device end
+
+//grid device structure netlist started
+structure netlist of DDRPHY_CPD
+{
+};
+//grid device structure netlist end
+//grid device configure body started
+
+configuration cfg of DDRPHY_CPD
+{
+
+//initial config body0 begin
+    if(CP_CPD_EN == "FALSE")
+    {
+        SC_CPD_EN  :=  1'b0;
+    }
+    else if(CP_CPD_EN == "TRUE")
+    {
+        SC_CPD_EN  :=  1'b1;
+    }
+    else
+    {
+        SC_CPD_EN  :=  1'bx;
+        error("illegal setting for CP_CPD_EN := %s",CP_CPD_EN);
+    }
+
+//initial config body0 end
+
+};
+
+//grid device configure body end
+
+timing ddrphy_cpd_tnl of DDRPHY_CPD
+{
+   if(CP_CPD_EN == "TRUE")
+   {
+        operator V_CLKPD CPD
+        port map (
+            FLAG_PD    => CPD_UP_DNB,
+            LOCK       => CPD_LOCK,
+            RST        => CPD_RSTN,   
+            CLK_SAMPLE => CLK_IO_2X,
+            CLK_CTRL   => CNTR_CLK,   
+            CLK_PHY    => PPLL_SYSCLK,
+            DONE       => CPD_DONE  
+        );
+   }
+};

@@ -1,0 +1,308 @@
+*****************************************************************
+
+  Device    [devIOBUFIOLLDEL]
+
+  Author    [hzhang]
+
+  Abstract  [device base on IOL, used as inout path through to IOB ]
+
+  Revision History:
+
+********************************************************************************/
+
+gate
+device devIOBUFIOLLDEL : device IOL_L
+{
+    parameter
+    (
+        config string TS_MUX_SEL     := "TS_IN",   //" TS_IN", "TS_IN"
+        config string OUT_MUX_SEL    := "DATAIN",    //" DATAIN", "OFF_Q"
+        
+        config string DO_SEL         = "DO",   // "DO", "DO_COMP"
+        config string TO_SEL         = "TO",   // "TO", "TO_COMP"
+        config string DELAY_MODE     = "INDELAY",    //"NODELAY", "INDELAY", "OUTDELAY",
+
+        config bit    CLK_I_INV      = 1'b0,
+        config bit    CLK_O_INV      = 1'b0,
+        config bit    CE_INV         = 1'b0,
+        config bit    LRS_INV        = 1'b0,
+        config bit    TRI_FORCE[1:0]:= 2'b11,
+        config string DELAY_SEL      = "DEFAULT",   //"DEFAULT":  offset      delay offset
+                                                     //"25PS":     offset+25ps
+                                                     //"50PS":     offset+50ps
+                                                     //"100PS":    offset+100ps
+
+        config bit    IODLY_CTRL_EN   = 1'b0,        // The enable signal of IODLY_CTRL,  enable iol auto incr. or decr. .              
+        config bit    IODLY_STEP[6:0] = 7'b000_0000  // IOL input delay chain value control. Each delay step is ~50ps.   
+                                                     // Delay value is linear increased with the binary code increase.
+                                                     // 0000000: minimum input delay
+                                                     // 1000000: mid point input delay
+                                                     // 1111111: maximum input delay
+    );
+    port
+    (
+        input   TX_DATA[0:0],
+        input   TS_CTRL,
+        output  RX_DATA_DD,
+
+        input   IODLY_CTRL[2:0],
+        output  IODLY_OV,
+
+        // from/to IOB
+        output  TO,
+        input   DIN,
+        output DO,
+
+        output  DO_OUT,
+        output  TO_OUT
+    );
+
+}// end of device devIOBUFIOLLDEL
+
+/*******************************************************************************
+
+  Device    [devIOBUFIOLLDEL]
+
+  Author    []
+
+  Abstract  [The structure netlist of devIOBUFIOLLDEL is described in the similar fashion
+             as in HDL. In unit instantiation statement, the formal pin may be
+             connected to net which is declared explicitly.
+
+             In Valence, the connection can also be made from formal pin to other
+             pin or port, in which case Valence compiler shall create the net to
+             fulfil the connection. The built-in naming convention is kicked in
+             to name the automatically created net. However, the objects (net, instance)
+             of this netlist are going to mapped from schematic. The compiler-generated
+             names cause trouble for the mapping. Therefore, all wires are declared
+             explicitly in the following description]
+
+  Revision History:
+
+********************************************************************************/
+structure netlist of devIOBUFIOLLDEL
+{
+    // Wires for input ports
+
+
+    wire ntDIN, ntTS_CTRL;
+
+
+    ntDIN             <= DIN;
+    ntTS_CTRL         <= TS_CTRL;
+
+    // Wires connecting to output ports
+    wire ntIODLY_OV;
+    wire ntIN_DELSEL_MUX;
+
+    wire ntTS_MUX;
+    wire ntOUT_DELSEL_MUX;
+
+    IODLY_OV   <= ntIODLY_OV;
+    
+    RX_DATA_DD   <= ntIN_DELSEL_MUX ;
+
+
+    wire  ntDO_MUX, ntTO_MUX;
+
+    TO_OUT    <= ntTS_MUX;
+    DO_OUT    <= ntOUT_DELSEL_MUX;
+
+    TO        <= ntTO_MUX;
+    DO        <= ntDO_MUX;
+
+    wire ntIN_OUT_DELSEL_MUX;
+    wire ntDELAY_DOUT;
+    
+    wire ntOUTPUT_MUX;
+
+    device TS_MUX_L TS_MUX_L
+        parameter map
+        (
+            TS_SEL => TS_MUX_SEL
+        )
+        port map
+        (
+            I1  => ntTS_CTRL,
+            Y   => ntTS_MUX
+        );
+
+
+    // connected with OFF & ODDR
+
+    device OUTPUT_MUX_L OUTPUT_MUX_L
+        parameter map
+        (
+           OUT_SEL    => OUT_MUX_SEL
+        )
+        port map
+        (
+            I2  => TX_DATA[0],
+            Y   => ntOUTPUT_MUX
+        );
+
+ 
+   // DELAY
+
+    device IN_DELSEL_MUX_L IN_DELSEL_MUX_L
+        parameter map
+        (
+           DELAY_MODE => DELAY_MODE
+        )
+        port map
+        (
+            I1  => ntDELAY_DOUT,
+            I0  => ntDIN,
+            Y   => ntIN_DELSEL_MUX
+        );
+        
+    device OUT_DELSEL_MUX_L OUT_DELSEL_MUX_L
+        parameter map
+        (
+           DELAY_MODE => DELAY_MODE
+        )
+        port map
+        (
+            I0   => ntOUTPUT_MUX,
+            I1   => ntDELAY_DOUT,
+            Y    => ntOUT_DELSEL_MUX
+        );
+
+    device IN_OUT_DELSEL_MUX_L IN_OUT_DELSEL_MUX_L
+        parameter map
+        (
+           DELAY_MODE => DELAY_MODE
+        )
+        port map
+        (
+            I0  => ntOUTPUT_MUX,
+            I1  => ntDIN,
+            Y   => ntIN_OUT_DELSEL_MUX
+        );
+
+   device DELAY_L DELAY_L
+       port map
+       (
+           DIN        => ntIN_OUT_DELSEL_MUX,
+           DOUT       => ntDELAY_DOUT,
+           IODLY_CTRL => IODLY_CTRL,
+           IODLY_OV   => ntIODLY_OV
+       );
+
+    device DO_MUX_L DO_MUX_L
+       parameter map
+       (
+           DO_SEL  => DO_SEL
+       )
+       port map
+       (
+           I0   => ntOUT_DELSEL_MUX,
+
+           Y    => ntDO_MUX
+       );
+
+    device TO_MUX_L TO_MUX_L
+       parameter map
+       (
+           TO_SEL  => TO_SEL
+       )
+       port map
+       (
+           I0   => ntTS_MUX,
+
+           Y    => ntTO_MUX
+       );
+
+}; // end of structure netlist of devIOBUFIOLLDEL
+
+timing tnl of devIOBUFIOLLDEL
+{
+    if( DELAY_MODE == "NODELAY" )
+    {
+        error("DELAY_MODE config error in devIOBUFIOLDEL, the delay mode can't be NODELAY");
+    }
+    
+    wire ntDLY_OUT;
+    wire ntDLY_DIN;
+    wire ntDO;
+    
+    operator V_IODELAY delay
+       parameter map 
+       (
+           DELAY_STEP  => IODLY_STEP,
+           DELAY_DEPTH => 7
+       )
+       port map
+       (
+           DI        => ( DELAY_MODE == "INDELAY" ) ? DIN : ntDLY_DIN,
+           DO        => ( DELAY_MODE == "INDELAY" ) ? ntDLY_OUT : ntDO,
+           DIRECTION => IODLY_CTRL[0],
+           MOVE      => IODLY_CTRL[1],
+           LOAD_N    => IODLY_CTRL[2],
+           DELAY_OB  => IODLY_OV
+       );
+       
+    operator V_BUF ibuf
+        parameter map
+        (
+           SECTION => "IBUF_IOL_DEL"
+        )
+        port map
+        (
+            I => ( DELAY_MODE == "INDELAY" ) ? ntDLY_OUT : DIN,
+            Z => RX_DATA_DD
+        );
+
+
+    DO_OUT <= ntDO;
+
+    operator V_BUF obuf
+        parameter map
+        (
+           SECTION => "OBUF_IOL_DO"
+        )
+        port map
+        (
+            I => TX_DATA[0],
+            Z => ( DELAY_MODE == "INDELAY" ) ? ntDO : ntDLY_DIN
+        );
+
+    operator V_MUX V_MUX_D
+        parameter map
+        (
+            SECTION => "DMUX",
+            SEL     => "I0"
+        )
+        port map
+        (
+            I0  => ntDO,
+            Y   => DO
+        );
+
+    wire ntTO;
+    TO_OUT <= ntTO;
+
+    operator V_BUF tbuf
+        parameter map
+        (
+           SECTION => "OBUF_IOL_TO"
+        )
+        port map
+        (
+            I => TS_CTRL,
+            Z => ntTO
+        );
+
+    operator V_MUX V_MUX_T
+        parameter map
+        (
+            SECTION => "TMUX",
+            SEL     => "I0"
+        )
+        port map
+        (
+            I0  => ntTO,
+            Y   => TO
+        );
+}
+

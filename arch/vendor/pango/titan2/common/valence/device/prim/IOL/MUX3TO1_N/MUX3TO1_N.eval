@@ -1,0 +1,97 @@
+*****************************************************************
+
+  Device    [MUX3TO1_N]
+
+  Author    [clwang]
+
+  Abstract  [The Prim Device Of MUX3TO1_N]
+
+  Revision History:
+
+********************************************************************************/
+prim
+device MUX3TO1_N
+{
+    parameter
+    (
+        config string CP_TEST_EN  = "FALSE" ,
+        config bit     CP_D_SEL   =  1'b0   ,
+        config bit     CP_POL_SEL =  1'b1  
+    );
+    port 
+    (
+        input    TFB,
+        input    DIN0,
+        input    DIN1,
+        output   DOUT
+    );
+
+}; // end of device MUX3TO1_N
+
+/**Device***********************************************************************
+
+  Device    [MUX3TO1_N]
+  
+  Author    [kongbiao]  
+
+  Abstract  [This specified how to propagate the input signal to the outputs based on
+             configuration]
+
+  Revision History:
+
+********************************************************************************/
+propagation pop of MUX3TO1_N
+{
+    if (CP_TEST_EN == "TRUE" && CP_D_SEL == 1'b1)
+    {
+        propagate ( DIN0 |-> DOUT );
+        propagate ( DIN1 |-> DOUT );
+        propagate ( TFB  |-> DOUT );
+    }
+    else
+    {
+        propagate ( DIN0 --> DOUT );
+    }
+}; // end of propagation for MUX3TO1_N
+
+/**Device***********************************************************************                  
+                                                                                                  
+  Device    [MUX3TO1_N]                                                                                
+                                                                                                  
+  Author    [kongbiao]                                                                               
+                                                                                                  
+  Abstract  [This specified the timing model under specific configuration]                        
+                                                                                                  
+  Revision History:                                                                               
+                                                                                                  
+********************************************************************************/                 
+                                                                                                  
+timing  mux21_tnl of MUX3TO1_N  
+{
+    if (CP_TEST_EN == "TRUE" && CP_D_SEL == 1'b1)
+    {
+        wire ntDIN1;
+        if (CP_POL_SEL == 1'b1)
+        {
+            operator V_INV INVDIN1
+            port map
+            (
+               I    =>  DIN1,
+               Z    =>  ntDIN1
+            );
+        }
+
+        operator V_MUX2 MUX2
+        port map
+        (
+           I0   =>  DIN0,
+           I1   => (CP_POL_SEL == 1'b1) ? ntDIN1 : DIN1,
+           SEL  =>  TFB,
+           Z    =>  DOUT
+        );
+    }
+    else
+    {
+        DOUT <= DIN0;
+    }
+};

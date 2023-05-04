@@ -1,0 +1,126 @@
+*****************************************************************
+
+  Device    [IOCKDLY]
+
+  Author    [guoxi]
+
+  Abstract  [The Grid Device IOCKDLY]
+
+  Revision History:
+
+********************************************************************************/
+//grid device started
+grid
+device IOCKDLY
+{
+    // grid_property_def_start
+    // grid_property_def_end
+
+    parameter
+    (
+        config bit CP_CLKDLY_STEP[7:0] = 8'b00000000,
+        config string CP_USE_DLL_STEP = "FALSE"
+    );
+    port
+    (
+// configuration_body_def_on
+
+
+    config input SC_CLKDLY_STEP[7:0] = 8'h0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_CLKDLY_STEP[7],SC_CLKDLY_STEP[6],SC_CLKDLY_STEP[5],SC_CLKDLY_STEP[4],SC_CLKDLY_STEP[3],SC_CLKDLY_STEP[2],SC_CLKDLY_STEP[1],SC_CLKDLY_STEP[0]" */,
+
+    config input SC_USE_DLL_STEP = 1'b0
+    /* pragma  PAP_CFG_BIT_NAME  = "SC_USE_DLL_STEP" */,
+
+// configuration_body_def_end
+
+        input DLL_STEP[7:0] = 8'b1111_1111,
+        input CLK_IN = 1'b1,
+        input LOAD = 1'b1,
+        input MOVE = 1'b1,
+        input DIRECTION = 1'b1,
+        output CLK_OUT,
+        output COUT
+    );
+};
+//grid device end
+
+
+/*******************************************************************************
+
+  Device    [IOCKDLY]
+
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+//grid device structure netlist started
+
+structure netlist of IOCKDLY
+{
+   
+
+  
+}; // end of structure netlist of IOCKDLY
+//grid device structure netlist end
+
+
+floorplan
+structure fp_struct of IOCKDLY
+{
+
+};
+
+//grid device configure body started
+
+configuration cfg of IOCKDLY
+{
+
+ // assign config body begin
+    SC_CLKDLY_STEP  :=  CP_CLKDLY_STEP;
+// assign config body end
+
+//initial config body0 begin
+    if  ( CP_USE_DLL_STEP == "FALSE")
+    {
+        SC_USE_DLL_STEP  :=  1'b0;
+    }
+    else if ( CP_USE_DLL_STEP == "TRUE")
+    {
+        SC_USE_DLL_STEP  :=  1'b1;
+    }
+    else
+    {
+        SC_USE_DLL_STEP  :=  1'b0;
+        error("MODE(%s) is not support!", CP_USE_DLL_STEP );
+    }
+
+//initial config body0 end
+
+};
+
+//grid device configure body end
+
+timing iockdly_tnl of IOCKDLY
+{
+    operator V_IOCLKDELAY V_IOCLKDELAY
+        parameter map
+        (
+           DELAY_STEP_VALUE  => CP_CLKDLY_STEP,
+           DELAY_STEP_SEL    => CP_USE_DLL_STEP == "TRUE" ? "PORT" : "PARAMETER"
+        )
+        port map
+        (
+            CLKIN            => CLK_IN,
+            DELAY_OB         => COUT,
+            LOAD             => LOAD,
+            MOVE             => MOVE,
+            DIRECTION        => DIRECTION,
+
+            CLKOUT           => CLK_OUT,
+            DELAY_STEP       => DLL_STEP
+        );
+};

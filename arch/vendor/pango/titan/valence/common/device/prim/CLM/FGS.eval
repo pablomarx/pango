@@ -1,0 +1,277 @@
+*****************************************************************
+
+  Device    [FGS]
+
+  Author    [clwang]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+prim
+device FGS
+{
+    parameter
+    (
+        config bit INIT[31:0]     = 32'h0000_0000,
+        config string MODE        = "LUT5",        // "LUT5" "ROM" "WMUX" "ARITH" "RAM"
+        config string RAM_LUT_SEL = "RAM"          // "RAM" "LUT"
+    );
+
+    port
+    (
+        // Input Ports of FGS for ROM, RAM, LUT
+        input A0, A1, A2, A3, A4,
+
+        // Input Data Port for RAM, ROM
+        input WD,
+
+        // Address Ports for Write Data of RAM
+        input WA3, WA2, WA1, WA0,
+
+        // Control Ports for RAM
+        input WCK, WE,
+
+        // Ports for Carry Chain
+        input CIN,
+        output COUT,
+
+        // Output Ports for LUT
+        output Z
+    );
+
+};
+
+
+/**Device***********************************************************************
+
+  Device    [FGS]
+
+  Abstract  [This specified how to propagate the input signal to the outputs based on
+             configuration]
+
+  Revision History:
+
+********************************************************************************/
+propagation prop_FGS of FGS
+{
+   if (INIT == 32'hffff_ffff)
+   {
+       propagate ( 1'b1 --> Z ); 
+   }
+   else if (INIT == 32'h0000_0000)
+   {
+       propagate ( 1'b0 --> Z ); 
+   }
+   if (INIT == 32'h00000000 && MODE == "CY01")
+   {
+       propagate ( 1'b0 --> COUT ); 
+   }
+   else if (INIT == 32'hFFFF0000 && MODE == "CY01")
+   {
+       propagate ( 1'b1 --> COUT ); 
+   }
+   
+    //FIXED ME
+    if (MODE == "RAM")
+    {
+       propagate ( A0  |-> Z );
+       propagate ( A1  |-> Z );
+       propagate ( A2  |-> Z );
+       propagate ( A3  |-> Z );
+       propagate ( A4  |-> Z );
+       propagate ( CIN |-> Z );
+
+       propagate ( WD  |-> Z );
+       propagate ( WA3 |-> Z );
+       propagate ( WA2 |-> Z );
+       propagate ( WA1 |-> Z );
+       propagate ( WA0 |-> Z );
+       propagate ( WCK |-> Z );
+       propagate ( WE  |-> Z );
+
+       propagate ( A0  |-> COUT );
+       propagate ( A1  |-> COUT );
+       propagate ( A2  |-> COUT );
+       propagate ( A3  |-> COUT );
+       propagate ( A4  |-> COUT );
+       propagate ( CIN  |-> COUT );
+
+       propagate ( WD  |-> COUT );
+       propagate ( WA3 |-> COUT );
+       propagate ( WA2 |-> COUT );
+       propagate ( WA1 |-> COUT );
+       propagate ( WA0 |-> COUT );
+       propagate ( WCK |-> COUT );
+       propagate ( WE  |-> COUT );
+    }
+    else
+    {
+       propagate ( A0  |-> Z );
+       propagate ( A1  |-> Z );
+       propagate ( A2  |-> Z );
+       propagate ( A3  |-> Z );
+       propagate ( A4  |-> Z );
+       propagate ( WD  |-> Z );
+       propagate ( CIN |-> Z );
+       propagate ( A0  |-> COUT );
+       propagate ( A1  |-> COUT );
+       propagate ( A2  |-> COUT );
+       propagate ( A3  |-> COUT );
+       propagate ( A4  |-> COUT );
+       propagate ( WD  |-> COUT );
+       propagate ( CIN  |-> COUT );
+    }
+
+}; // end of propagation prop_FGS of FGS
+
+
+/**Device***********************************************************************
+
+  Device    [FGS]
+
+  Abstract  [This specified the timing model under specific configuration]
+
+  Revision History:
+
+********************************************************************************/
+timing FGS_tnl of FGS
+{
+    if(RAM_LUT_SEL == "LUT")
+    {
+        if(MODE == "LATCH")
+        {
+            string SET_RESET = "SET";
+            string LRS_EN    = "FALSE";
+
+            if (INIT == 32'hEEEE_2222) // GTP_DLATCH
+            {
+                SET_RESET = "RESET";
+                LRS_EN    = "FASLE";
+            }
+            else if (INIT == 32'h0E0E_0202) // GTP_DLATCH_C
+            {
+                SET_RESET = "RESET";
+                LRS_EN    = "TRUE";
+            }
+            else if (INIT == 32'h0E0A_020A) // GTP_DLATCH_CE
+            {
+                SET_RESET = "RESET";
+                LRS_EN    = "TRUE";
+            }
+            else if (INIT == 32'hEEAA_22AA) // GTP_DLATCH_E
+            {
+                SET_RESET = "RESET";
+                LRS_EN    = "FASLE";
+            }
+            else if (INIT == 32'hFEFE_F2F2) // GTP_DLATCH_P
+            {
+                SET_RESET = "SET";
+                LRS_EN    = "TRUE";
+            }
+            else if (INIT == 32'hFEFA_F2FA) // GTP_DLATCH_PE
+            {
+                SET_RESET = "SET";
+                LRS_EN    = "TRUE";
+            }
+
+            operator V_LAASYN V_LAASYN
+               parameter map
+               (
+                   SET_RESET => SET_RESET,
+                   LRS_EN    => LRS_EN
+               )
+                port map
+                (
+                    Q  => Z,
+                    D  => A4,
+                    SR => A2,
+                    CK => A1,
+                    CE => A3
+                );
+        }
+        else if (MODE == "LUT5" || MODE == "ROM")
+        {
+            operator V_LUT5 V_LUT5
+                parameter map
+                (
+                    INIT => INIT
+                )
+                port map
+                (
+                    I0   => A0,
+                    I1   => A1,
+                    I2   => A2,
+                    I3   => A3,
+                    I4   => A4,
+                    Y    => Z
+                );
+        }
+        else if (MODE == "WMUX")
+        {
+            operator V_LUT5M V_LUT5M
+            parameter map
+            (
+                INIT     => INIT
+            )
+            port map
+            (
+                I0  => A0,
+                ID  => WD,
+                I1  => A1,
+                I2  => A2,
+                I3  => A3,
+                I4  => A4,
+                Z   => Z
+            );
+        }
+        else
+        {
+            operator V_LUT5CARRY V_LUT5CARRY
+                parameter map
+                (
+                    INIT        => INIT,
+                    ID_TO_LUT   => (MODE == "ARITH4"  || MODE == "ARITH"   || MODE == "ARITH6"  || MODE == "CY01"    || MODE == "ARITH0" || MODE == "L5C01" || MODE == "LUT5"  || MODE == "ARITH3") ? "FALSE" : "TRUE",
+                    CIN_TO_LUT  => (MODE == "WMUX"    || MODE == "ARITH9"  || MODE == "ARITH10" || MODE == "ARITH11" || MODE == "ARITH0" || MODE == "L5C01" || MODE == "LUT5"  || MODE == "ARITH3") ? "FALSE" : "TRUE",
+                    I4_TO_CARRY => (MODE == "ARITH14" || MODE == "ARITH15" || MODE == "ARITH10" || MODE == "ARITH11" || MODE == "ARITH6" || MODE == "CY01"  || MODE == "LUT5"  || MODE == "ARITH3") ? "FALSE" : "TRUE",
+                    I4_TO_LUT   => (MODE == "ARITH13" || MODE == "ARITH15" || MODE == "ARITH9"  || MODE == "ARITH11" || MODE == "ARITH"  || MODE == "CY01"  || MODE == "L5C01" || MODE == "ARITH3") ? "FALSE" : "TRUE"
+                )
+                port map
+                (
+                   CIN  => CIN,
+                   COUT => COUT,
+                   I0   => A0,
+                   I1   => A1,
+                   I2   => A2,
+                   I3   => A3,
+                   I4   => A4,
+                   ID   => WD,
+                   S    => Z
+                );
+        }
+    }
+    else if(RAM_LUT_SEL == "RAM")
+    {
+        operator V_RAM16X1 V_RAM16X1
+        parameter map
+        (
+            INIT => INIT
+        )
+        port map
+        (
+           RADDR => {A3, A2, A1, A0},
+           WADDR => {WA3, WA2, WA1, WA0},
+           WDI  => WD,
+           WCLK => WCK,
+           WE   => WE,
+           RDO  => Z
+        );
+    }
+    else
+    {
+        printf("Illegal configuration to generate timing model");
+    }
+
+};
+

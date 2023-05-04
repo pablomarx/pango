@@ -1,0 +1,274 @@
+*********************************************************************
+
+  Operator    [gopL6Q]
+  
+  Author    []
+
+  Abstract  []
+
+  Revision History:
+
+ ********************************************************************************/
+gate
+operator gopL6Q
+{
+    parameter
+    (
+        string GRS_EN       = "FALSE",           // "TRUE" "FALSE"
+        string LRS_EN       = "TRUE",            // "TRUE"   "FALSE"  
+        bit    INITA[31:0]  = 32'h0000_0000,
+        bit    INITB[31:0]  = 32'h0000_0000,
+        string CEMUX_SEL    = "CE",                 // "CE" "CEIN" 
+        string RSMUX_SEL    = "RS",                 // "RS" "RSIN"
+        bit    CLK_POS      = 1'b0,                // 1'b0: "CLK"; 1'b1: "CLK_B"
+        bit    CE_POS       = 1'b0,                // 1'b0: "CE";  1'b1: "CE_B"
+        bit    RS_POS       = 1'b0,                // 1'b0: "RS";  1'b1: "RS_B"
+        string CE_USED      = "USED",               // "USED" "UNUSED"
+        string RS_USED      = "USED",               // "USED" "UNUSED"                               
+        string SYNC_MODE    = "SYNC",               // "SYNC" "ASYNC"
+        string FF_SET       = "RESET"               // "RESET" "SET"            
+    );
+
+    port
+    (
+        input    B0, B1, B2, B3, B4,        
+        input    A0, A1, A2, A3, A4,
+        input    M,
+        input    CLK /* pragma PAP_ARC_GOP_CTRL_PIN = "GCLK|RCLK"*/,
+        input    CE /* pragma PAP_ARC_GOP_CTRL_PIN = CE*/,
+        input    RS /* pragma PAP_ARC_GOP_CTRL_PIN = RST*/,
+        output   RSOUT, CEOUT,
+        output   Z,
+        output   Q
+    );
+};
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devL6ABQ_S  to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devL6ABQ_S of gopL6Q
+{
+    string MODE            = "ROM";   // "LUT5" "WMUX" "ARITH"    
+    device devL6ABQ_S gatedev
+        parameter map 
+        ( 
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,        
+            INITA     => INITA,
+            INITB     => INITB,
+            FGA_MODE  => MODE, 
+            FGB_MODE  => MODE,
+            CEMUX_SEL => CEMUX_SEL,                            // "CE" "CEIN" 
+            RSMUX_SEL => RSMUX_SEL,                            // "RS" "RSIN"
+            CLK_POS   => CLK_POS,                              // "CLK" "CLK_B"   
+            CE_POS    => (CE_USED == "USED") ? CE_POS : 1'b0,
+            RS_POS    => (RS_USED == "USED") ? RS_POS : 1'b1,                             
+            SYNC_MODE => SYNC_MODE,                            // "SYNC" "ASYNC"
+            FFAB_SET  => FF_SET                                // "RESET" "SET"                     
+        )
+        port map 
+        (                            
+            B0    => B0, 
+            B1    => B1, 
+            B2    => B2, 
+            B3    => B3, 
+            B4    => B4,
+                       
+            A0    => A0, 
+            A1    => A1, 
+            A2    => A2, 
+            A3    => A3,
+            A4    => A4,
+                       
+            M0    => M,
+            RS    => (RSMUX_SEL == "RS")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE    => (CEMUX_SEL == "CE")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx, 
+            CLK   => CLK,
+
+            RSIN  => (RSMUX_SEL == "RS")  ? 1'bx : RS,         
+            RSOUT => RSOUT,       
+            CEIN  => (CEMUX_SEL == "CE")  ? 1'bx : CE,        
+            CEOUT => CEOUT,
+            Y0    => Q,
+            Y6AB  => Z 
+        );
+}; // end of implementation impl_devL6ABQ_S of gopL6Q
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devL6CDQ_S to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devL6CDQ_S of gopL6Q
+{
+    string MODE            = "ROM";   // "LUT5" "WMUX" "ARITH"    
+    device devL6CDQ_S gatedev
+        parameter map 
+        ( 
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,
+            INITC     => INITA,
+            INITD     => INITB,
+            FGC_MODE  => MODE, 
+            FGD_MODE  => MODE,
+            CEMUX_SEL => CEMUX_SEL,                            // "CE" "CEIN" 
+            RSMUX_SEL => RSMUX_SEL,                            // "RS" "RSIN"
+            CLK_POS   => CLK_POS,                              // "CLK" "CLK_B"   
+            CE_POS    => (CE_USED == "USED") ? CE_POS : 1'b0,
+            RS_POS    => (RS_USED == "USED") ? RS_POS : 1'b1,                             
+            SYNC_MODE => SYNC_MODE,                            // "SYNC" "ASYNC"
+            FFCD_SET  => FF_SET                                // "RESET" "SET"                     
+        )
+        port map 
+        (                            
+            D0    => B0, 
+            D1    => B1, 
+            D2    => B2, 
+            D3    => B3, 
+            D4    => B4,
+                       
+            C0    => A0, 
+            C1    => A1, 
+            C2    => A2, 
+            C3    => A3,
+            C4    => A4,
+                       
+            M1    => M,
+            RS    => (RSMUX_SEL == "RS")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE    => (CEMUX_SEL == "CE")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx, 
+            CLK   => CLK,
+
+            RSIN  => (RSMUX_SEL == "RS")  ? 1'bx : RS,         
+            RSOUT => RSOUT,       
+            CEIN  => (CEMUX_SEL == "CE")  ? 1'bx : CE,        
+            CEOUT => CEOUT,
+            Y2    => Q,
+            Y6CD  => Z 
+        );
+}; // end of implementation impl_devL6CDQ_S of gopL6Q
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devL6ABQ  to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devL6ABQ of gopL6Q
+{
+    string MODE            = "ROM";   // "LUT5" "WMUX" "ARITH"    
+    device devL6ABQ gatedev
+        parameter map 
+        ( 
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,
+            INITA     => INITA,
+            INITB     => INITB,
+            FGA_MODE  => MODE, 
+            FGB_MODE  => MODE,
+            CEMUX_SEL => CEMUX_SEL,                            // "CE" "CEIN" 
+            RSMUX_SEL => RSMUX_SEL,                            // "RS" "RSIN"
+            CLK_POS   => CLK_POS,                              // "CLK" "CLK_B"   
+            CE_POS    => (CE_USED == "USED") ? CE_POS : 1'b0,
+            RS_POS    => (RS_USED == "USED") ? RS_POS : 1'b1,                             
+            SYNC_MODE => SYNC_MODE,                            // "SYNC" "ASYNC"
+            FFAB_SET  => FF_SET                                // "RESET" "SET"                     
+        )
+        port map 
+        (                            
+            B0    => B0, 
+            B1    => B1, 
+            B2    => B2, 
+            B3    => B3, 
+            B4    => B4,
+                       
+            A0    => A0, 
+            A1    => A1, 
+            A2    => A2, 
+            A3    => A3,
+            A4    => A4,
+                       
+            M0    => M,
+            RS    => (RSMUX_SEL == "RS")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE    => (CEMUX_SEL == "CE")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx, 
+            CLK   => CLK,
+
+            RSIN  => (RSMUX_SEL == "RS")  ? 1'bx : RS,         
+            RSOUT => RSOUT,       
+            CEIN  => (CEMUX_SEL == "CE")  ? 1'bx : CE,        
+            CEOUT => CEOUT,
+            Y0    => Q,
+            Y6AB  => Z 
+        );
+}; // end of implementation impl_devL6ABQ of gopL6Q
+
+/*****************************************************************************************
+
+  Author    []
+
+  Abstract  [Using gate device devL6CDQ to Implement this Gop]
+
+  Revision History:
+
+ *****************************************************************************************/
+implementation impl_devL6CDQ of gopL6Q
+{
+    string MODE            = "ROM";   // "LUT5" "WMUX" "ARITH"    
+    device devL6CDQ gatedev
+        parameter map 
+        ( 
+            GRS_EN    => GRS_EN,
+            LRS_EN    => LRS_EN,
+            INITC     => INITA,
+            INITD     => INITB,
+            FGC_MODE  => MODE, 
+            FGD_MODE  => MODE,
+            CEMUX_SEL => CEMUX_SEL,                            // "CE" "CEIN" 
+            RSMUX_SEL => RSMUX_SEL,                            // "RS" "RSIN"
+            CLK_POS   => CLK_POS,                              // "CLK" "CLK_B"   
+            CE_POS    => (CE_USED == "USED") ? CE_POS : 1'b0,
+            RS_POS    => (RS_USED == "USED") ? RS_POS : 1'b1,                             
+            SYNC_MODE => SYNC_MODE,                            // "SYNC" "ASYNC"
+            FFCD_SET  => FF_SET                                // "RESET" "SET"                     
+        )
+        port map 
+        (                            
+            D0    => B0, 
+            D1    => B1, 
+            D2    => B2, 
+            D3    => B3, 
+            D4    => B4,
+                       
+            C0    => A0, 
+            C1    => A1, 
+            C2    => A2, 
+            C3    => A3,
+            C4    => A4,
+                       
+            M1    => M,
+            RS    => (RSMUX_SEL == "RS")  ? (( RS_USED == "USED" ) ? RS : 1'bz) : 1'bx, 
+            CE    => (CEMUX_SEL == "CE")  ? (( CE_USED == "USED" ) ? CE : 1'bz) : 1'bx, 
+            CLK   => CLK,
+
+            RSIN  => (RSMUX_SEL == "RS")  ? 1'bx : RS,         
+            RSOUT => RSOUT,       
+            CEIN  => (CEMUX_SEL == "CE")  ? 1'bx : CE,        
+            CEOUT => CEOUT,
+            Y2    => Q,
+            Y6CD  => Z 
+        );
+}; // end of implementation impl_devL6CDQ of gopL6Q
+
+

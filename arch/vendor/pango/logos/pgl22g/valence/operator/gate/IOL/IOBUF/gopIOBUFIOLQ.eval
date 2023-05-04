@@ -1,0 +1,195 @@
+*******************************************************************
+
+  Operator    [gopIOBUFIOLQ]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+gate
+operator gopIOBUFIOLQ
+{
+    parameter
+    (
+        string MIPI_MODE       = "FALSE",
+        string GRS_EN          = "FALSE",   
+        string TSFF_CE_EN      = "UNUSED", 
+        string TSFF_LRS_EN     = "UNUSED", 
+        string TSFF_SET        = "RESET",   
+        string TSFF_SYNC       = "ASYNC",   
+        string TSFF_LATCH     = "FF",      
+
+        string OFF_CE_EN      = "UNUSED", 
+        string OFF_LRS_EN     = "UNUSED", 
+        string OFF_SET        = "RESET",   
+        string OFF_SYNC       = "ASYNC",   
+        string OFF_LATCH      = "FF",      
+
+        string IFF_CE_EN      = "UNUSED", 
+        string IFF_LRS_EN     = "UNUSED", 
+        string IFF_SET        = "RESET",   
+        string IFF_SYNC       = "ASYNC",   
+        string IFF_LATCH      = "FF",      
+
+        string CLK_I_INV      = "FALSE",
+        string CLK_O_INV      = "FALSE",
+        string CE_INV         = "FALSE",
+        string LRS_INV        = "FALSE",
+
+        string    OFF_USED       =  "UNUSED", 
+        string    TSFF_USED      =  "UNUSED", 
+        string    IFF_USED       =  "UNUSED"  
+    );
+    port
+    (
+        input   IN,
+        input   TS,
+        output  OUT,
+        output  Z,
+
+        input   SYSCLK /*pragma PAP_ARC_GOP_CTRL_PIN="GCLK|RCLK"*/,
+        input   CE /*pragma PAP_ARC_GOP_CTRL_PIN="CE"*/,
+        input   LRS /*pragma PAP_ARC_GOP_CTRL_PIN="RST"*/,
+
+        // from to IOB
+        output  T,
+        input   I,
+        output  O,
+        output  INCK,
+
+        output  DO_OUT,
+        output  TO_OUT,
+        input   MI,
+        output  MO
+    );
+};
+
+implementation impl of gopIOBUFIOLQ
+{
+
+    string TS_MUX_SEL     = "TS_IN"; 
+    if(TSFF_USED == "USED" )
+    {
+         TS_MUX_SEL = "TS_TSFF";
+    }
+    string OUT_MUX_SEL    = "DATAIN";
+    if(OFF_USED == "USED" )
+    {
+         OUT_MUX_SEL = "OFF_Q";
+    } 
+    
+    if(IFF_USED == "USED")
+    {
+        device devIOBUFIOLQ gate_iobufiolq
+            parameter map
+            (
+                CP_GRS_DIS     =>  GRS_EN == "FALSE" ? "TRUE" : "FALSE",
+                CP_OUTCLK_EN   =>  (OFF_USED  == "USED" || TSFF_USED == "USED") ? "ENABLE" : "DISABLE",
+                CP_INCLK_EN    =>  (IFF_USED  == "USED") ? "ENABLE" : "DISABLE",
+                CP_TOMODE      =>  (TSFF_USED == "USED") ? "FF" : "DD",
+                CP_DOMODE      =>  (OFF_USED  == "USED") ? "FF" : "DD",
+
+
+                CP_OUTCE_EN    => (TSFF_CE_EN  == "USED" || OFF_CE_EN == "USED") ? "ENABLE" : "DISABLE",
+                CP_OUTLRS_EN   => (TSFF_LRS_EN  == "USED" || OFF_LRS_EN == "USED") ? "ENABLE" : "DISABLE",
+                CP_TSFF_SET    => TSFF_SET,
+                CP_FF_SYNC     => TSFF_SYNC,        
+                CP_TSFF_LATCH  => TSFF_LATCH,
+
+                CP_OFF_SET     => OFF_SET,
+                CP_FF_SYNC     => OFF_SYNC,        
+                CP_OFF_LATCH   => OFF_LATCH,
+
+                CP_INCE_EN     => IFF_CE_EN == "USED" ? "ENABLE" : "DISABLE",
+                CP_INLRS_EN    => IFF_LRS_EN == "USED" ? "ENABLE" : "DISABLE",
+                CP_IFF_SET     => IFF_SET,
+                CP_FF_SYNC     => IFF_SYNC,        
+                CP_IFF_LATCH   => IFF_LATCH,
+          
+                CP_INCLK_POL    =>  CLK_I_INV,
+                CP_OUTCLK_POL   =>  CLK_O_INV,
+                CP_CE_POL       =>  CE_INV,
+                CP_LRS_POL      =>  LRS_INV,
+                CP_MIPI_EN      =>  MIPI_MODE == "TRUE" ? "ENABLE" : "DISABLE"
+            )
+            port map 
+            (
+                TX_DATA[7]   =>  IN,
+                TS_CTRL[0]   =>  TS,
+                RX_DATA[0]   =>  OUT,
+                RX_DATA_DD   =>  Z,
+          
+                CLK_SYS      =>  SYSCLK,
+                CE           =>  CE,
+                LRS          =>  LRS,
+          
+                TO           =>  T,
+                DI           =>  I,
+                DO           =>  O,
+                INCK         =>  INCK,
+          
+               DO_OUT        =>  DO_OUT,
+               TO_OUT        =>  TO_OUT,
+            
+               MIPI_SW_DYN_O =>  MO,
+               MIPI_SW_DYN_I =>  MI
+            );
+    }    
+    else
+    {
+        device devIOBUFIOLQ gate_iobufiolq
+            parameter map
+            (
+                CP_GRS_DIS     =>  GRS_EN == "FALSE" ? "TRUE" : "FALSE",
+                CP_OUTCLK_EN   =>  (OFF_USED  == "USED" || TSFF_USED == "USED") ? "ENABLE" : "DISABLE",
+                CP_INCLK_EN    =>  (IFF_USED  == "USED") ? "ENABLE" : "DISABLE",
+                CP_TOMODE      =>  (TSFF_USED == "USED") ? "FF" : "DD",
+                CP_DOMODE      =>  (OFF_USED  == "USED") ? "FF" : "DD",
+
+        
+                CP_OUTCE_EN    => (TSFF_CE_EN  == "USED" || OFF_CE_EN == "USED") ? "ENABLE" : "DISABLE",
+                CP_OUTLRS_EN   => (TSFF_LRS_EN  == "USED" || OFF_LRS_EN == "USED") ? "ENABLE" : "DISABLE",
+                CP_TSFF_SET    => TSFF_SET,
+                CP_FF_SYNC     => TSFF_SYNC,        
+                CP_TSFF_LATCH  => TSFF_LATCH,
+
+                CP_OFF_SET     => OFF_SET,
+                CP_FF_SYNC     => OFF_SYNC,        
+                CP_OFF_LATCH   => OFF_LATCH,
+
+                CP_INCE_EN     => (IFF_CE_EN  == "USED") ? "ENABLE" : "DISABLE",
+                CP_INLRS_EN    => (IFF_LRS_EN  == "USED") ? "ENABLE" : "DISABLE",
+                CP_IFF_SET     => IFF_SET,
+                CP_FF_SYNC     => IFF_SYNC,        
+                CP_IFF_LATCH   => IFF_LATCH,
+          
+                CP_INCLK_POL    =>  CLK_I_INV,
+                CP_OUTCLK_POL   =>  CLK_O_INV,
+                CP_CE_POL       =>  CE_INV,
+                CP_LRS_POL      =>  LRS_INV,
+                CP_MIPI_EN      =>  MIPI_MODE == "TRUE" ? "ENABLE" : "DISABLE"
+            )
+            port map 
+            (
+                TX_DATA[7]   =>  IN,
+                TS_CTRL[0]   =>  TS,
+                RX_DATA_DD   =>  OUT,
+          
+                CLK_SYS      =>  SYSCLK,
+                CE           =>  CE,
+                LRS          =>  LRS,
+          
+                TO           =>  T,
+                DI           =>  I,
+                DO           =>  O,
+                INCK         =>   INCK,
+          
+                DO_OUT       =>  DO_OUT,
+                TO_OUT       =>  TO_OUT,
+            
+                MIPI_SW_DYN_O =>  MO,
+                MIPI_SW_DYN_I =>  MI
+            );
+    }
+};        

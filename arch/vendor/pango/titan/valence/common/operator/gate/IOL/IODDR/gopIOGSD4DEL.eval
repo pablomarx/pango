@@ -1,0 +1,130 @@
+*******************************************************************
+
+  Operator    [gopIOGSD4DEL]
+
+  Abstract  []
+
+  Revision History:
+
+********************************************************************************/
+gate
+operator gopIOGSD4DEL
+{
+    parameter
+    (
+        string IN_MUX_SEL         = "DIN",       // "DIN"     : IN_FROM_PAD
+                                                 // "DIN_CDR" : IN_PAD_FOR_CDR
+
+        string DELAY_MODE      = "NODELAY",   //"NODELAY", "INDELAY", "OUTDELAY",
+        string DELAY_SEL       = "DEFAULT",
+        bit    IODLY_CTRL_EN   = 1'b0,
+        bit    IODLY_STEP[6:0] = 7'b000_0000,
+        bit    GRS_EN           = 1'b0,
+        bit    DPI_EN           = 1'b0,
+
+        string SER_DES_CLK_SRC  = "IOCLK",      //"IOCLK",  "SAMPLE_CLK" "PROBE_CLK"
+        bit    IDDR_LRS_EN      = 1'b0,
+        bit    ODDR_LRS_EN      = 1'b0,
+        bit    CLK_I_INV        = 1'b0,
+        bit    CLK_O_INV        = 1'b0,
+        bit    LRS_INV          = 1'b0
+    );
+    port
+    (
+        input   D[3:0],
+        input   T[1:0],        
+
+        output  Q[3:0],
+        output  OUT,
+
+        input   IODLY_CTRL[2:0],
+        output  IODLY_OV,
+    
+        input   DPI_CTRL[1:0],
+        input   DPI_STS_CLR,
+        output  DPI_STS[1:0],
+
+        input   SER_DES_CLK,
+        
+
+        input   SYSCLK /* pragma PAP_ARC_GOP_CTRL_PIN = "GCLK|RCLK"*/,
+
+        input   RESET /* pragma PAP_ARC_GOP_CTRL_PIN = RST*/,
+        input   SLIP,
+
+        input   PADI,
+        output  PADO,
+        output  PADT,
+
+        input   DO_IN,
+        input   TO_IN,
+        output  DO_OUT,
+        output  TO_OUT
+    );
+};
+
+implementation impl of gopIOGSD4DEL
+{
+    // IDDR/ODDR config
+
+    if((SER_DES_CLK_SRC != "SAMPLE_CLK") && (SER_DES_CLK_SRC != "PROBE_CLK") && (SER_DES_CLK_SRC != "IOCLK"))
+    {
+        error("Error config IDDR_DESCLK = %s in gopIMDES8A", SER_DES_CLK_SRC);
+    }
+
+    device devIOGSD4IOLDEL gate_iogsd4ioldel
+        parameter map
+        (
+            IN_MUX_SEL      => IN_MUX_SEL,
+            DELAY_MODE      => DELAY_MODE,
+            DELAY_SEL       => DELAY_SEL,
+            IODLY_CTRL_EN   => IODLY_CTRL_EN,
+            IODLY_STEP      => IODLY_STEP,
+            GRS_EN       =>  GRS_EN,
+            DPI_EN       =>   DPI_EN,
+                             
+            DES_SER_CLK  =>   SER_DES_CLK_SRC,
+
+            IDDR_LRS_EN  =>   IDDR_LRS_EN,
+            ODDR_LRS_EN  =>   ODDR_LRS_EN,
+
+            CLK_I_INV    =>   CLK_I_INV,
+            CLK_O_INV    =>   CLK_O_INV,
+            LRS_INV      =>   LRS_INV
+        )
+
+        port map 
+        (
+            RX_DATA      =>   Q,
+            RX_DATA_DD   =>  OUT,
+
+            TX_DATA      =>   D,
+            TS_CTRL      =>   T,
+
+            IODLY_CTRL   =>   IODLY_CTRL,
+            IODLY_OV     =>   IODLY_OV,
+
+            DPI_CTRL     =>   DPI_CTRL,
+            DPI_STS_CLR  =>   DPI_STS_CLR,
+            DPI_STS      =>   DPI_STS,
+
+            IOCLK        =>   (SER_DES_CLK_SRC == "IOCLK") ? SER_DES_CLK : 1'bx,
+
+            SAMPLE_CLK   =>   (SER_DES_CLK_SRC == "SAMPLE_CLK") ? SER_DES_CLK : 1'bx,
+            PROBE_CLK    =>   (SER_DES_CLK_SRC == "PROBE_CLK") ? SER_DES_CLK : 1'bx,
+
+            SYSCLK       =>   SYSCLK,
+            LRS          =>   RESET,
+            SLIP         =>   SLIP,
+            DIN          =>   IN_MUX_SEL == "DIN"     ? PADI : 1'bx,
+            DIN_CDR      =>   IN_MUX_SEL == "DIN_CDR" ? PADI : 1'bx,
+
+            DO           =>   PADO, 
+            TO           =>   PADT,
+
+            DO_OUT        =>  DO_OUT,
+            TO_OUT        =>  TO_OUT
+        );
+};
+
+

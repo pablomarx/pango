@@ -1,0 +1,84 @@
+*****************************************************************
+
+  Device    [MUX2TO1_P1]
+
+  Author    [clwang]
+
+  Abstract  [The Prim Device Of MUX2TO1_P1]
+
+  Revision History:
+
+********************************************************************************/
+prim
+device MUX2TO1_P1
+{
+    parameter
+    (
+        config string  CP_TRI_EN   =  "FALSE"
+    );
+    port 
+    (
+        input        TO,
+        input        DIN0,
+        input        DIN1,
+        output       DOUT
+    );
+
+}; // end of device MUX2TO1_P1
+
+/**Device***********************************************************************
+
+  Device    [MUX2TO1_P1]
+  
+  Author    [kongbiao]  
+
+  Abstract  [This specified how to propagate the input signal to the outputs based on
+             configuration]
+
+  Revision History:
+
+********************************************************************************/
+propagation pop of MUX2TO1_P1
+{
+    if (CP_TRI_EN == "TRUE")
+    {
+        propagate ( DIN0 |-> DOUT );
+        propagate ( DIN1 |-> DOUT );
+        propagate ( TO |-> DOUT );
+    }
+    else
+    {
+        propagate ( DIN0 --> DOUT );
+    }
+}; // end of propagation for MUX2TO1_P1
+
+/**Device***********************************************************************                  
+                                                                                                  
+  Device    [MUX2TO1_P1]                                                                                
+                                                                                                  
+  Author    [kongbiao]                                                                               
+                                                                                                  
+  Abstract  [This specified the timing model under specific configuration]                        
+                                                                                                  
+  Revision History:                                                                               
+                                                                                                  
+********************************************************************************/                 
+                                                                                                  
+timing  mux21_tnl of MUX2TO1_P1  
+{
+    if (CP_TRI_EN == "TRUE")
+    {
+        operator V_MUX2 MUX2
+        port map
+        (
+           I0   =>  DIN0,
+           I1   =>  DIN1,
+           SEL  =>  TO,
+           Z    =>  DOUT
+        );
+    }
+    else
+    {
+        DOUT <= DIN0;
+    }
+};

@@ -1,0 +1,69 @@
+*******************************************************************
+
+  Device    [DLY]
+
+  Author    [guoxi]
+
+  Abstract  [The Prim Device Of DLY]
+
+  Revision History:
+
+********************************************************************************/
+prim
+device DLY
+{
+    parameter
+    (
+        config bit    CP_IODLY_STEP[3:0] = 4'b0000,   //d'0~d'15
+        config string CP_IODLY_DYN       = "FALSE",
+        config string CP_IODLY_DEGL      = "FALSE"
+    );
+    port 
+    (
+        input    DIN,
+        input    IODLY_CTRL[2:0],
+        output   DOUT,
+        output   IODLY_OV
+    );
+
+}; // end of device DLY
+
+/**Device***********************************************************************
+
+  Device    [DLY]
+
+  Abstract  [This specified how to propagate the input signal to the outputs based on
+             configuration]
+
+  Revision History:
+
+********************************************************************************/
+propagation prop of DLY
+{
+   propagate ( DIN |-> DOUT );
+   propagate ( IODLY_CTRL[0] |-> IODLY_OV );
+
+   propagate ( IODLY_CTRL[0] |-> DOUT );
+   propagate ( IODLY_CTRL[1] |-> DOUT );
+   propagate ( IODLY_CTRL[2] |-> DOUT );
+};
+
+timing delay_tnl of DLY
+{
+    operator V_IODELAY V_IODELAY  
+        parameter map
+        (
+            DELAY_STEP => CP_IODLY_STEP,
+            DELAY_DEPTH => 4
+        )        
+        port map
+        (
+           DI        =>  DIN,
+           DO        =>  DOUT,
+           DIRECTION =>  IODLY_CTRL[0],
+           MOVE      =>  IODLY_CTRL[1],
+           //LOAD_N    =>  IODLY_CTRL[2],
+           LOAD_N    => (CP_IODLY_DYN == "TRUE") ? IODLY_CTRL[2] : 1'b0,
+           DELAY_OB  =>  IODLY_OV
+        );
+};

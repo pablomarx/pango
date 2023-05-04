@@ -1,0 +1,1087 @@
+*************************************************************
+
+Copyright (c) 2014 by PANGO MICROSYSTEMS, INC
+ALL RIGHTS RESERVED.
+
+THE SOURCE CODE CONTAINED HEREIN IS PROPRIETARY TO PANGO MICROSYSTEMS, INC.
+IT SHALL NOT BE REPRODUCED OR DISCLOSED IN WHOLE OR IN PART OR USED BY
+PARTIES WITHOUT WRITTEN AUTHORIZATION FROM THE OWNER.
+
+  Operator  [GTP_RAM144K]
+
+  Author    [Peifu Shen]
+
+  Abstract  []
+
+  Revision History:
+
+***************************************************************************/
+
+implementation impl of GTP_RAM144K
+{
+    string nameVar;
+    unsigned int idx;
+
+    wire qa000[17:0];
+    wire qa001[17:0];
+    wire qa010[17:0];
+    wire qa011[17:0];
+    wire qa100[17:0];
+    wire qa101[17:0];
+    wire qa110[17:0];
+    wire qa111[17:0];
+    wire qa0[17:0];
+    wire qa1[17:0];
+    wire qb000[17:0];
+    wire qb001[17:0];
+    wire qb010[17:0];
+    wire qb011[17:0];
+    wire qb100[17:0];
+    wire qb101[17:0];
+    wire qb110[17:0];
+    wire qb111[17:0];
+    wire qb0[17:0];
+    wire qb1[17:0];
+    wire ADDRA_14_p, ADDRA_15_p, ADDRA_16_p;
+    wire ADDRB_14_p, ADDRB_15_p, ADDRB_16_p;
+    wire ADDRA_14_q, ADDRA_15_q, ADDRA_16_q;
+    wire ADDRB_14_q, ADDRB_15_q, ADDRB_16_q;
+    wire cea_n_wea, ceb_n_web;
+
+    int mxDATA_WIDTH_A = (DATA_WIDTH_A == 16) ? 17 : DATA_WIDTH_A;
+    int mxDATA_WIDTH_B = (DATA_WIDTH_B == 16) ? 17 : DATA_WIDTH_B;
+    bit cs_mask[2:0] = 3'b111; // maximum of CSA & CSB: 111 011 001 000
+    cs_mask[0] = (DRM18K_NUMBER > 1) ? 1'b1 : 1'b0;
+    cs_mask[1] = (DRM18K_NUMBER > 2) ? 1'b1 : 1'b0;
+    cs_mask[2] = (DRM18K_NUMBER > 4) ? 1'b1 : 1'b0;
+
+    operator GTP_DRM18K drm000
+    parameter map
+    (
+        GRS_EN   => GRS_EN,
+        CSA_MASK => 3'b000,
+        CSB_MASK => 3'b000,
+        DATA_WIDTH_A => DATA_WIDTH_A,
+        DATA_WIDTH_B => DATA_WIDTH_B,
+        DOA_REG => DOA_REG,
+        DOB_REG => DOB_REG,
+        RST_TYPE => RST_TYPE,
+        WRITE_MODE_A => WRITE_MODE_A,
+        WRITE_MODE_B => WRITE_MODE_B,
+        WRITE_COLLISION_ARBITER => WRITE_COLLISION_ARBITER,
+        INIT_00 => INIT_000,
+        INIT_01 => INIT_001,
+        INIT_02 => INIT_002,
+        INIT_03 => INIT_003,
+        INIT_04 => INIT_004,
+        INIT_05 => INIT_005,
+        INIT_06 => INIT_006,
+        INIT_07 => INIT_007,
+        INIT_08 => INIT_008,
+        INIT_09 => INIT_009,
+        INIT_0A => INIT_00A,
+        INIT_0B => INIT_00B,
+        INIT_0C => INIT_00C,
+        INIT_0D => INIT_00D,
+        INIT_0E => INIT_00E,
+        INIT_0F => INIT_00F,
+        INIT_10 => INIT_010,
+        INIT_11 => INIT_011,
+        INIT_12 => INIT_012,
+        INIT_13 => INIT_013,
+        INIT_14 => INIT_014,
+        INIT_15 => INIT_015,
+        INIT_16 => INIT_016,
+        INIT_17 => INIT_017,
+        INIT_18 => INIT_018,
+        INIT_19 => INIT_019,
+        INIT_1A => INIT_01A,
+        INIT_1B => INIT_01B,
+        INIT_1C => INIT_01C,
+        INIT_1D => INIT_01D,
+        INIT_1E => INIT_01E,
+        INIT_1F => INIT_01F,
+        INIT_20 => INIT_020,
+        INIT_21 => INIT_021,
+        INIT_22 => INIT_022,
+        INIT_23 => INIT_023,
+        INIT_24 => INIT_024,
+        INIT_25 => INIT_025,
+        INIT_26 => INIT_026,
+        INIT_27 => INIT_027,
+        INIT_28 => INIT_028,
+        INIT_29 => INIT_029,
+        INIT_2A => INIT_02A,
+        INIT_2B => INIT_02B,
+        INIT_2C => INIT_02C,
+        INIT_2D => INIT_02D,
+        INIT_2E => INIT_02E,
+        INIT_2F => INIT_02F,
+        INIT_30 => INIT_030,
+        INIT_31 => INIT_031,
+        INIT_32 => INIT_032,
+        INIT_33 => INIT_033,
+        INIT_34 => INIT_034,
+        INIT_35 => INIT_035,
+        INIT_36 => INIT_036,
+        INIT_37 => INIT_037,
+        INIT_38 => INIT_038,
+        INIT_39 => INIT_039,
+        INIT_3A => INIT_03A,
+        INIT_3B => INIT_03B,
+        INIT_3C => INIT_03C,
+        INIT_3D => INIT_03D,
+        INIT_3E => INIT_03E,
+        INIT_3F => INIT_03F
+    )
+    port map
+    (
+        CLKA    => CLKA,
+        CEA     => CEA,
+        CSA     => ADDRA[16:14],
+        ADDRA   => (DATA_WIDTH_A > 9) ? {ADDRA[13:2],BEA} : ADDRA[13:0],
+        ADDRA_HOLD => 1'b0,
+        DIA     => DIA,
+        WEA     => WEA,
+        ORCEA   => ORCEA,
+        RSTA    => RSTA,
+
+        CLKB    => CLKB,
+        CEB     => CEB,
+        CSB     => ADDRB[16:14],
+        ADDRB   => (DATA_WIDTH_B > 9) ? {ADDRB[13:2],BEB} : ADDRB[13:0],
+        ADDRB_HOLD => 1'b0,
+        DIB     => DIB,
+        WEB     => WEB,
+        ORCEB   => ORCEB,
+        RSTB    => RSTB,
+
+    //  WWCONF  => WWCONF,
+        DOA     => (cs_mask[0] == 1'b1) ? qa000 : DOA,
+        DOB     => (cs_mask[0] == 1'b1) ? qb000 : DOB
+    );
+
+// 2/4/8-DRM18Ks used
+if (cs_mask[0] == 1'b1)
+{
+    operator GTP_DRM18K drm001
+    parameter map
+    (
+        GRS_EN   => GRS_EN,
+        CSA_MASK => 3'b001,
+        CSB_MASK => 3'b001,
+        DATA_WIDTH_A => DATA_WIDTH_A,
+        DATA_WIDTH_B => DATA_WIDTH_B,
+        DOA_REG => DOA_REG,
+        DOB_REG => DOB_REG,
+        RST_TYPE => RST_TYPE,
+        WRITE_MODE_A => WRITE_MODE_A,
+        WRITE_MODE_B => WRITE_MODE_B,
+        WRITE_COLLISION_ARBITER => WRITE_COLLISION_ARBITER,
+        INIT_00 => INIT_040,
+        INIT_01 => INIT_041,
+        INIT_02 => INIT_042,
+        INIT_03 => INIT_043,
+        INIT_04 => INIT_044,
+        INIT_05 => INIT_045,
+        INIT_06 => INIT_046,
+        INIT_07 => INIT_047,
+        INIT_08 => INIT_048,
+        INIT_09 => INIT_049,
+        INIT_0A => INIT_04A,
+        INIT_0B => INIT_04B,
+        INIT_0C => INIT_04C,
+        INIT_0D => INIT_04D,
+        INIT_0E => INIT_04E,
+        INIT_0F => INIT_04F,
+        INIT_10 => INIT_050,
+        INIT_11 => INIT_051,
+        INIT_12 => INIT_052,
+        INIT_13 => INIT_053,
+        INIT_14 => INIT_054,
+        INIT_15 => INIT_055,
+        INIT_16 => INIT_056,
+        INIT_17 => INIT_057,
+        INIT_18 => INIT_058,
+        INIT_19 => INIT_059,
+        INIT_1A => INIT_05A,
+        INIT_1B => INIT_05B,
+        INIT_1C => INIT_05C,
+        INIT_1D => INIT_05D,
+        INIT_1E => INIT_05E,
+        INIT_1F => INIT_05F,
+        INIT_20 => INIT_060,
+        INIT_21 => INIT_061,
+        INIT_22 => INIT_062,
+        INIT_23 => INIT_063,
+        INIT_24 => INIT_064,
+        INIT_25 => INIT_065,
+        INIT_26 => INIT_066,
+        INIT_27 => INIT_067,
+        INIT_28 => INIT_068,
+        INIT_29 => INIT_069,
+        INIT_2A => INIT_06A,
+        INIT_2B => INIT_06B,
+        INIT_2C => INIT_06C,
+        INIT_2D => INIT_06D,
+        INIT_2E => INIT_06E,
+        INIT_2F => INIT_06F,
+        INIT_30 => INIT_070,
+        INIT_31 => INIT_071,
+        INIT_32 => INIT_072,
+        INIT_33 => INIT_073,
+        INIT_34 => INIT_074,
+        INIT_35 => INIT_075,
+        INIT_36 => INIT_076,
+        INIT_37 => INIT_077,
+        INIT_38 => INIT_078,
+        INIT_39 => INIT_079,
+        INIT_3A => INIT_07A,
+        INIT_3B => INIT_07B,
+        INIT_3C => INIT_07C,
+        INIT_3D => INIT_07D,
+        INIT_3E => INIT_07E,
+        INIT_3F => INIT_07F
+    )
+    port map
+    (
+        CLKA    => CLKA,
+        CEA     => CEA,
+        CSA     => ADDRA[16:14],
+        ADDRA   => (DATA_WIDTH_A > 9) ? {ADDRA[13:2],BEA} : ADDRA[13:0],
+        ADDRA_HOLD => 1'b0,
+        DIA     => DIA,
+        WEA     => WEA,
+        ORCEA   => ORCEA,
+        RSTA    => RSTA,
+
+        CLKB    => CLKB,
+        CEB     => CEB,
+        CSB     => ADDRB[16:14],
+        ADDRB   => (DATA_WIDTH_B > 9) ? {ADDRB[13:2],BEB} : ADDRB[13:0],
+        ADDRB_HOLD => 1'b0,
+        DIB     => DIB,
+        WEB     => WEB,
+        ORCEB   => ORCEB,
+        RSTB    => RSTB,
+
+    //  WWCONF  => WWCONF,
+        DOA     => qa001,
+        DOB     => qb001
+    );
+
+  if (WRITE_MODE_A == "NORMAL_WRITE") {
+    operator GTP_LUT2 iCeaWea
+    parameter map ( INIT => 4'b0010 )
+    port map ( I0 => CEA, I1 => WEA, Z => cea_n_wea);
+  }
+    operator GTP_DFF_E iAddra14
+    parameter map ( GRS_EN => GRS_EN )
+    port map ( D => ADDRA[14], CLK => CLKA,
+               CE => (WRITE_MODE_A == "NORMAL_WRITE") ? cea_n_wea : CEA,
+               Q => (DOA_REG) ? ADDRA_14_p : ADDRA_14_q );
+  if (DOA_REG) {
+    operator GTP_DFF_E iAddra14p
+    parameter map ( GRS_EN => GRS_EN )
+    port map ( D => ADDRA_14_p, CLK => CLKA,
+               CE => ORCEA,
+               Q => ADDRA_14_q );
+  }
+
+  if (WRITE_MODE_B == "NORMAL_WRITE") {
+    operator GTP_LUT2 iCebWeb
+    parameter map ( INIT => 4'b0010 )
+    port map ( I0 => CEB, I1 => WEB, Z => ceb_n_web);
+  }
+    operator GTP_DFF_E iAddrb14
+    parameter map ( GRS_EN => GRS_EN )
+    port map ( D => ADDRB[14], CLK => CLKB,
+               CE => (WRITE_MODE_B == "NORMAL_WRITE") ? ceb_n_web : CEB,
+               Q => (DOB_REG) ? ADDRB_14_p : ADDRB_14_q );
+  if (DOB_REG) {
+    operator GTP_DFF_E iAddrb14p
+    parameter map ( GRS_EN => GRS_EN )
+    port map ( D => ADDRB_14_p, CLK => CLKB,
+               CE => ORCEB,
+               Q => ADDRB_14_q );
+  }
+}
+
+// 4-DRM18Ks or 8-DRM18Ks used
+if (cs_mask[1] == 1'b1)
+{
+    operator GTP_DRM18K drm010
+    parameter map
+    (
+        GRS_EN   => GRS_EN,
+        CSA_MASK => 3'b010,
+        CSB_MASK => 3'b010,
+        DATA_WIDTH_A => DATA_WIDTH_A,
+        DATA_WIDTH_B => DATA_WIDTH_B,
+        DOA_REG => DOA_REG,
+        DOB_REG => DOB_REG,
+        RST_TYPE => RST_TYPE,
+        WRITE_MODE_A => WRITE_MODE_A,
+        WRITE_MODE_B => WRITE_MODE_B,
+        WRITE_COLLISION_ARBITER => WRITE_COLLISION_ARBITER,
+        INIT_00 => INIT_080,
+        INIT_01 => INIT_081,
+        INIT_02 => INIT_082,
+        INIT_03 => INIT_083,
+        INIT_04 => INIT_084,
+        INIT_05 => INIT_085,
+        INIT_06 => INIT_086,
+        INIT_07 => INIT_087,
+        INIT_08 => INIT_088,
+        INIT_09 => INIT_089,
+        INIT_0A => INIT_08A,
+        INIT_0B => INIT_08B,
+        INIT_0C => INIT_08C,
+        INIT_0D => INIT_08D,
+        INIT_0E => INIT_08E,
+        INIT_0F => INIT_08F,
+        INIT_10 => INIT_090,
+        INIT_11 => INIT_091,
+        INIT_12 => INIT_092,
+        INIT_13 => INIT_093,
+        INIT_14 => INIT_094,
+        INIT_15 => INIT_095,
+        INIT_16 => INIT_096,
+        INIT_17 => INIT_097,
+        INIT_18 => INIT_098,
+        INIT_19 => INIT_099,
+        INIT_1A => INIT_09A,
+        INIT_1B => INIT_09B,
+        INIT_1C => INIT_09C,
+        INIT_1D => INIT_09D,
+        INIT_1E => INIT_09E,
+        INIT_1F => INIT_09F,
+        INIT_20 => INIT_0A0,
+        INIT_21 => INIT_0A1,
+        INIT_22 => INIT_0A2,
+        INIT_23 => INIT_0A3,
+        INIT_24 => INIT_0A4,
+        INIT_25 => INIT_0A5,
+        INIT_26 => INIT_0A6,
+        INIT_27 => INIT_0A7,
+        INIT_28 => INIT_0A8,
+        INIT_29 => INIT_0A9,
+        INIT_2A => INIT_0AA,
+        INIT_2B => INIT_0AB,
+        INIT_2C => INIT_0AC,
+        INIT_2D => INIT_0AD,
+        INIT_2E => INIT_0AE,
+        INIT_2F => INIT_0AF,
+        INIT_30 => INIT_0B0,
+        INIT_31 => INIT_0B1,
+        INIT_32 => INIT_0B2,
+        INIT_33 => INIT_0B3,
+        INIT_34 => INIT_0B4,
+        INIT_35 => INIT_0B5,
+        INIT_36 => INIT_0B6,
+        INIT_37 => INIT_0B7,
+        INIT_38 => INIT_0B8,
+        INIT_39 => INIT_0B9,
+        INIT_3A => INIT_0BA,
+        INIT_3B => INIT_0BB,
+        INIT_3C => INIT_0BC,
+        INIT_3D => INIT_0BD,
+        INIT_3E => INIT_0BE,
+        INIT_3F => INIT_0BF
+    )
+    port map
+    (
+        CLKA    => CLKA,
+        CEA     => CEA,
+        CSA     => ADDRA[16:14],
+        ADDRA   => (DATA_WIDTH_A > 9) ? {ADDRA[13:2],BEA} : ADDRA[13:0],
+        ADDRA_HOLD => 1'b0,
+        DIA     => DIA,
+        WEA     => WEA,
+        ORCEA   => ORCEA,
+        RSTA    => RSTA,
+
+        CLKB    => CLKB,
+        CEB     => CEB,
+        CSB     => ADDRB[16:14],
+        ADDRB   => (DATA_WIDTH_B > 9) ? {ADDRB[13:2],BEB} : ADDRB[13:0],
+        ADDRB_HOLD => 1'b0,
+        DIB     => DIB,
+        WEB     => WEB,
+        ORCEB   => ORCEB,
+        RSTB    => RSTB,
+
+    //  WWCONF  => WWCONF,
+        DOA     => qa010,
+        DOB     => qb010
+    );
+
+    operator GTP_DRM18K drm011
+    parameter map
+    (
+        GRS_EN   => GRS_EN,
+        CSA_MASK => 3'b011,
+        CSB_MASK => 3'b011,
+        DATA_WIDTH_A => DATA_WIDTH_A,
+        DATA_WIDTH_B => DATA_WIDTH_B,
+        DOA_REG => DOA_REG,
+        DOB_REG => DOB_REG,
+        RST_TYPE => RST_TYPE,
+        WRITE_MODE_A => WRITE_MODE_A,
+        WRITE_MODE_B => WRITE_MODE_B,
+        WRITE_COLLISION_ARBITER => WRITE_COLLISION_ARBITER,
+        INIT_00 => INIT_0C0,
+        INIT_01 => INIT_0C1,
+        INIT_02 => INIT_0C2,
+        INIT_03 => INIT_0C3,
+        INIT_04 => INIT_0C4,
+        INIT_05 => INIT_0C5,
+        INIT_06 => INIT_0C6,
+        INIT_07 => INIT_0C7,
+        INIT_08 => INIT_0C8,
+        INIT_09 => INIT_0C9,
+        INIT_0A => INIT_0CA,
+        INIT_0B => INIT_0CB,
+        INIT_0C => INIT_0CC,
+        INIT_0D => INIT_0CD,
+        INIT_0E => INIT_0CE,
+        INIT_0F => INIT_0CF,
+        INIT_10 => INIT_0D0,
+        INIT_11 => INIT_0D1,
+        INIT_12 => INIT_0D2,
+        INIT_13 => INIT_0D3,
+        INIT_14 => INIT_0D4,
+        INIT_15 => INIT_0D5,
+        INIT_16 => INIT_0D6,
+        INIT_17 => INIT_0D7,
+        INIT_18 => INIT_0D8,
+        INIT_19 => INIT_0D9,
+        INIT_1A => INIT_0DA,
+        INIT_1B => INIT_0DB,
+        INIT_1C => INIT_0DC,
+        INIT_1D => INIT_0DD,
+        INIT_1E => INIT_0DE,
+        INIT_1F => INIT_0DF,
+        INIT_20 => INIT_0E0,
+        INIT_21 => INIT_0E1,
+        INIT_22 => INIT_0E2,
+        INIT_23 => INIT_0E3,
+        INIT_24 => INIT_0E4,
+        INIT_25 => INIT_0E5,
+        INIT_26 => INIT_0E6,
+        INIT_27 => INIT_0E7,
+        INIT_28 => INIT_0E8,
+        INIT_29 => INIT_0E9,
+        INIT_2A => INIT_0EA,
+        INIT_2B => INIT_0EB,
+        INIT_2C => INIT_0EC,
+        INIT_2D => INIT_0ED,
+        INIT_2E => INIT_0EE,
+        INIT_2F => INIT_0EF,
+        INIT_30 => INIT_0F0,
+        INIT_31 => INIT_0F1,
+        INIT_32 => INIT_0F2,
+        INIT_33 => INIT_0F3,
+        INIT_34 => INIT_0F4,
+        INIT_35 => INIT_0F5,
+        INIT_36 => INIT_0F6,
+        INIT_37 => INIT_0F7,
+        INIT_38 => INIT_0F8,
+        INIT_39 => INIT_0F9,
+        INIT_3A => INIT_0FA,
+        INIT_3B => INIT_0FB,
+        INIT_3C => INIT_0FC,
+        INIT_3D => INIT_0FD,
+        INIT_3E => INIT_0FE,
+        INIT_3F => INIT_0FF
+    )
+    port map
+    (
+        CLKA    => CLKA,
+        CEA     => CEA,
+        CSA     => ADDRA[16:14],
+        ADDRA   => (DATA_WIDTH_A > 9) ? {ADDRA[13:2],BEA} : ADDRA[13:0],
+        ADDRA_HOLD => 1'b0,
+        DIA     => DIA,
+        WEA     => WEA,
+        ORCEA   => ORCEA,
+        RSTA    => RSTA,
+
+        CLKB    => CLKB,
+        CEB     => CEB,
+        CSB     => ADDRB[16:14],
+        ADDRB   => (DATA_WIDTH_B > 9) ? {ADDRB[13:2],BEB} : ADDRB[13:0],
+        ADDRB_HOLD => 1'b0,
+        DIB     => DIB,
+        WEB     => WEB,
+        ORCEB   => ORCEB,
+        RSTB    => RSTB,
+
+    //  WWCONF  => WWCONF,
+        DOA     => qa011,
+        DOB     => qb011
+    );
+
+    operator GTP_DFF_E iAddra15
+    parameter map ( GRS_EN => GRS_EN )
+    port map ( D => ADDRA[15], CLK => CLKA,
+               CE => (WRITE_MODE_A == "NORMAL_WRITE") ? cea_n_wea : CEA,
+               Q => (DOA_REG) ? ADDRA_15_p : ADDRA_15_q );
+  if (DOA_REG) {
+    operator GTP_DFF_E iAddra15p
+    parameter map ( GRS_EN => GRS_EN )
+    port map ( D => ADDRA_15_p, CLK => CLKA,
+               CE => ORCEA,
+               Q => ADDRA_15_q );
+  }
+
+    operator GTP_DFF_E iAddrb15
+    parameter map ( GRS_EN => GRS_EN )
+    port map ( D => ADDRB[15], CLK => CLKB,
+               CE => (WRITE_MODE_B == "NORMAL_WRITE") ? ceb_n_web : CEB,
+               Q => (DOB_REG) ? ADDRB_15_p : ADDRB_15_q );
+  if (DOB_REG) {
+    operator GTP_DFF_E iAddrb15p
+    parameter map ( GRS_EN => GRS_EN )
+    port map ( D => ADDRB_15_p, CLK => CLKB,
+               CE => ORCEB,
+               Q => ADDRB_15_q );
+  }
+
+    for (idx = 0; idx != mxDATA_WIDTH_A; idx += 1) {
+        sprintf(nameVar, "mx4qa0%d", idx);
+        operator GTP_LUTMUX4 *nameVar
+        port map
+        (
+            I0 => qa000[idx], I1 => qa001[idx], I2 => qa010[idx], I3 => qa011[idx],
+            S1 => ADDRA_15_q, S0 => ADDRA_14_q,
+            Z => (cs_mask[2] == 1'b1) ? qa0[idx] : DOA[idx]
+        );
+    }
+
+    for (idx = 0; idx != mxDATA_WIDTH_B; idx += 1) {
+        sprintf(nameVar, "mx4qb0%d", idx);
+        operator GTP_LUTMUX4 *nameVar
+        port map
+        (
+            I0 => qb000[idx], I1 => qb001[idx], I2 => qb010[idx], I3 => qb011[idx],
+            S1 => ADDRB_15_q, S0 => ADDRB_14_q,
+            Z => (cs_mask[2] == 1'b1) ? qb0[idx] : DOB[idx]
+        );
+    }
+}
+
+// 8-DRM18Ks used
+if (cs_mask[2] == 1'b1)
+{
+    operator GTP_DRM18K drm100
+    parameter map
+    (
+        GRS_EN   => GRS_EN,
+        CSA_MASK => 3'b100,
+        CSB_MASK => 3'b100,
+        DATA_WIDTH_A => DATA_WIDTH_A,
+        DATA_WIDTH_B => DATA_WIDTH_B,
+        DOA_REG => DOA_REG,
+        DOB_REG => DOB_REG,
+        RST_TYPE => RST_TYPE,
+        WRITE_MODE_A => WRITE_MODE_A,
+        WRITE_MODE_B => WRITE_MODE_B,
+        WRITE_COLLISION_ARBITER => WRITE_COLLISION_ARBITER,
+        INIT_00 => INIT_100,
+        INIT_01 => INIT_101,
+        INIT_02 => INIT_102,
+        INIT_03 => INIT_103,
+        INIT_04 => INIT_104,
+        INIT_05 => INIT_105,
+        INIT_06 => INIT_106,
+        INIT_07 => INIT_107,
+        INIT_08 => INIT_108,
+        INIT_09 => INIT_109,
+        INIT_0A => INIT_10A,
+        INIT_0B => INIT_10B,
+        INIT_0C => INIT_10C,
+        INIT_0D => INIT_10D,
+        INIT_0E => INIT_10E,
+        INIT_0F => INIT_10F,
+        INIT_10 => INIT_110,
+        INIT_11 => INIT_111,
+        INIT_12 => INIT_112,
+        INIT_13 => INIT_113,
+        INIT_14 => INIT_114,
+        INIT_15 => INIT_115,
+        INIT_16 => INIT_116,
+        INIT_17 => INIT_117,
+        INIT_18 => INIT_118,
+        INIT_19 => INIT_119,
+        INIT_1A => INIT_11A,
+        INIT_1B => INIT_11B,
+        INIT_1C => INIT_11C,
+        INIT_1D => INIT_11D,
+        INIT_1E => INIT_11E,
+        INIT_1F => INIT_11F,
+        INIT_20 => INIT_120,
+        INIT_21 => INIT_121,
+        INIT_22 => INIT_122,
+        INIT_23 => INIT_123,
+        INIT_24 => INIT_124,
+        INIT_25 => INIT_125,
+        INIT_26 => INIT_126,
+        INIT_27 => INIT_127,
+        INIT_28 => INIT_128,
+        INIT_29 => INIT_129,
+        INIT_2A => INIT_12A,
+        INIT_2B => INIT_12B,
+        INIT_2C => INIT_12C,
+        INIT_2D => INIT_12D,
+        INIT_2E => INIT_12E,
+        INIT_2F => INIT_12F,
+        INIT_30 => INIT_130,
+        INIT_31 => INIT_131,
+        INIT_32 => INIT_132,
+        INIT_33 => INIT_133,
+        INIT_34 => INIT_134,
+        INIT_35 => INIT_135,
+        INIT_36 => INIT_136,
+        INIT_37 => INIT_137,
+        INIT_38 => INIT_138,
+        INIT_39 => INIT_139,
+        INIT_3A => INIT_13A,
+        INIT_3B => INIT_13B,
+        INIT_3C => INIT_13C,
+        INIT_3D => INIT_13D,
+        INIT_3E => INIT_13E,
+        INIT_3F => INIT_13F
+    )
+    port map
+    (
+        CLKA    => CLKA,
+        CEA     => CEA,
+        CSA     => ADDRA[16:14],
+        ADDRA   => (DATA_WIDTH_A > 9) ? {ADDRA[13:2],BEA} : ADDRA[13:0],
+        ADDRA_HOLD => 1'b0,
+        DIA     => DIA,
+        WEA     => WEA,
+        ORCEA   => ORCEA,
+        RSTA    => RSTA,
+
+        CLKB    => CLKB,
+        CEB     => CEB,
+        CSB     => ADDRB[16:14],
+        ADDRB   => (DATA_WIDTH_B > 9) ? {ADDRB[13:2],BEB} : ADDRB[13:0],
+        ADDRB_HOLD => 1'b0,
+        DIB     => DIB,
+        WEB     => WEB,
+        ORCEB   => ORCEB,
+        RSTB    => RSTB,
+
+    //  WWCONF  => WWCONF,
+        DOA     => qa100,
+        DOB     => qb100
+    );
+
+    operator GTP_DRM18K drm101
+    parameter map
+    (
+        GRS_EN   => GRS_EN,
+        CSA_MASK => 3'b101,
+        CSB_MASK => 3'b101,
+        DATA_WIDTH_A => DATA_WIDTH_A,
+        DATA_WIDTH_B => DATA_WIDTH_B,
+        DOA_REG => DOA_REG,
+        DOB_REG => DOB_REG,
+        RST_TYPE => RST_TYPE,
+        WRITE_MODE_A => WRITE_MODE_A,
+        WRITE_MODE_B => WRITE_MODE_B,
+        WRITE_COLLISION_ARBITER => WRITE_COLLISION_ARBITER,
+        INIT_00 => INIT_140,
+        INIT_01 => INIT_141,
+        INIT_02 => INIT_142,
+        INIT_03 => INIT_143,
+        INIT_04 => INIT_144,
+        INIT_05 => INIT_145,
+        INIT_06 => INIT_146,
+        INIT_07 => INIT_147,
+        INIT_08 => INIT_148,
+        INIT_09 => INIT_149,
+        INIT_0A => INIT_14A,
+        INIT_0B => INIT_14B,
+        INIT_0C => INIT_14C,
+        INIT_0D => INIT_14D,
+        INIT_0E => INIT_14E,
+        INIT_0F => INIT_14F,
+        INIT_10 => INIT_150,
+        INIT_11 => INIT_151,
+        INIT_12 => INIT_152,
+        INIT_13 => INIT_153,
+        INIT_14 => INIT_154,
+        INIT_15 => INIT_155,
+        INIT_16 => INIT_156,
+        INIT_17 => INIT_157,
+        INIT_18 => INIT_158,
+        INIT_19 => INIT_159,
+        INIT_1A => INIT_15A,
+        INIT_1B => INIT_15B,
+        INIT_1C => INIT_15C,
+        INIT_1D => INIT_15D,
+        INIT_1E => INIT_15E,
+        INIT_1F => INIT_15F,
+        INIT_20 => INIT_160,
+        INIT_21 => INIT_161,
+        INIT_22 => INIT_162,
+        INIT_23 => INIT_163,
+        INIT_24 => INIT_164,
+        INIT_25 => INIT_165,
+        INIT_26 => INIT_166,
+        INIT_27 => INIT_167,
+        INIT_28 => INIT_168,
+        INIT_29 => INIT_169,
+        INIT_2A => INIT_16A,
+        INIT_2B => INIT_16B,
+        INIT_2C => INIT_16C,
+        INIT_2D => INIT_16D,
+        INIT_2E => INIT_16E,
+        INIT_2F => INIT_16F,
+        INIT_30 => INIT_170,
+        INIT_31 => INIT_171,
+        INIT_32 => INIT_172,
+        INIT_33 => INIT_173,
+        INIT_34 => INIT_174,
+        INIT_35 => INIT_175,
+        INIT_36 => INIT_176,
+        INIT_37 => INIT_177,
+        INIT_38 => INIT_178,
+        INIT_39 => INIT_179,
+        INIT_3A => INIT_17A,
+        INIT_3B => INIT_17B,
+        INIT_3C => INIT_17C,
+        INIT_3D => INIT_17D,
+        INIT_3E => INIT_17E,
+        INIT_3F => INIT_17F
+    )
+    port map
+    (
+        CLKA    => CLKA,
+        CEA     => CEA,
+        CSA     => ADDRA[16:14],
+        ADDRA   => (DATA_WIDTH_A > 9) ? {ADDRA[13:2],BEA} : ADDRA[13:0],
+        ADDRA_HOLD => 1'b0,
+        DIA     => DIA,
+        WEA     => WEA,
+        ORCEA   => ORCEA,
+        RSTA    => RSTA,
+
+        CLKB    => CLKB,
+        CEB     => CEB,
+        CSB     => ADDRB[16:14],
+        ADDRB   => (DATA_WIDTH_B > 9) ? {ADDRB[13:2],BEB} : ADDRB[13:0],
+        ADDRB_HOLD => 1'b0,
+        DIB     => DIB,
+        WEB     => WEB,
+        ORCEB   => ORCEB,
+        RSTB    => RSTB,
+
+    //  WWCONF  => WWCONF,
+        DOA     => qa101,
+        DOB     => qb101
+    );
+
+    operator GTP_DRM18K drm110
+    parameter map
+    (
+        GRS_EN   => GRS_EN,
+        CSA_MASK => 3'b110,
+        CSB_MASK => 3'b110,
+        DATA_WIDTH_A => DATA_WIDTH_A,
+        DATA_WIDTH_B => DATA_WIDTH_B,
+        DOA_REG => DOA_REG,
+        DOB_REG => DOB_REG,
+        RST_TYPE => RST_TYPE,
+        WRITE_MODE_A => WRITE_MODE_A,
+        WRITE_MODE_B => WRITE_MODE_B,
+        WRITE_COLLISION_ARBITER => WRITE_COLLISION_ARBITER,
+        INIT_00 => INIT_180,
+        INIT_01 => INIT_181,
+        INIT_02 => INIT_182,
+        INIT_03 => INIT_183,
+        INIT_04 => INIT_184,
+        INIT_05 => INIT_185,
+        INIT_06 => INIT_186,
+        INIT_07 => INIT_187,
+        INIT_08 => INIT_188,
+        INIT_09 => INIT_189,
+        INIT_0A => INIT_18A,
+        INIT_0B => INIT_18B,
+        INIT_0C => INIT_18C,
+        INIT_0D => INIT_18D,
+        INIT_0E => INIT_18E,
+        INIT_0F => INIT_18F,
+        INIT_10 => INIT_190,
+        INIT_11 => INIT_191,
+        INIT_12 => INIT_192,
+        INIT_13 => INIT_193,
+        INIT_14 => INIT_194,
+        INIT_15 => INIT_195,
+        INIT_16 => INIT_196,
+        INIT_17 => INIT_197,
+        INIT_18 => INIT_198,
+        INIT_19 => INIT_199,
+        INIT_1A => INIT_19A,
+        INIT_1B => INIT_19B,
+        INIT_1C => INIT_19C,
+        INIT_1D => INIT_19D,
+        INIT_1E => INIT_19E,
+        INIT_1F => INIT_19F,
+        INIT_20 => INIT_1A0,
+        INIT_21 => INIT_1A1,
+        INIT_22 => INIT_1A2,
+        INIT_23 => INIT_1A3,
+        INIT_24 => INIT_1A4,
+        INIT_25 => INIT_1A5,
+        INIT_26 => INIT_1A6,
+        INIT_27 => INIT_1A7,
+        INIT_28 => INIT_1A8,
+        INIT_29 => INIT_1A9,
+        INIT_2A => INIT_1AA,
+        INIT_2B => INIT_1AB,
+        INIT_2C => INIT_1AC,
+        INIT_2D => INIT_1AD,
+        INIT_2E => INIT_1AE,
+        INIT_2F => INIT_1AF,
+        INIT_30 => INIT_1B0,
+        INIT_31 => INIT_1B1,
+        INIT_32 => INIT_1B2,
+        INIT_33 => INIT_1B3,
+        INIT_34 => INIT_1B4,
+        INIT_35 => INIT_1B5,
+        INIT_36 => INIT_1B6,
+        INIT_37 => INIT_1B7,
+        INIT_38 => INIT_1B8,
+        INIT_39 => INIT_1B9,
+        INIT_3A => INIT_1BA,
+        INIT_3B => INIT_1BB,
+        INIT_3C => INIT_1BC,
+        INIT_3D => INIT_1BD,
+        INIT_3E => INIT_1BE,
+        INIT_3F => INIT_1BF
+    )
+    port map
+    (
+        CLKA    => CLKA,
+        CEA     => CEA,
+        CSA     => ADDRA[16:14],
+        ADDRA   => (DATA_WIDTH_A > 9) ? {ADDRA[13:2],BEA} : ADDRA[13:0],
+        ADDRA_HOLD => 1'b0,
+        DIA     => DIA,
+        WEA     => WEA,
+        ORCEA   => ORCEA,
+        RSTA    => RSTA,
+
+        CLKB    => CLKB,
+        CEB     => CEB,
+        CSB     => ADDRB[16:14],
+        ADDRB   => (DATA_WIDTH_B > 9) ? {ADDRB[13:2],BEB} : ADDRB[13:0],
+        ADDRB_HOLD => 1'b0,
+        DIB     => DIB,
+        WEB     => WEB,
+        ORCEB   => ORCEB,
+        RSTB    => RSTB,
+
+    //  WWCONF  => WWCONF,
+        DOA     => qa110,
+        DOB     => qb110
+    );
+
+    operator GTP_DRM18K drm111
+    parameter map
+    (
+        GRS_EN   => GRS_EN,
+        CSA_MASK => 3'b111,
+        CSB_MASK => 3'b111,
+        DATA_WIDTH_A => DATA_WIDTH_A,
+        DATA_WIDTH_B => DATA_WIDTH_B,
+        DOA_REG => DOA_REG,
+        DOB_REG => DOB_REG,
+        RST_TYPE => RST_TYPE,
+        WRITE_MODE_A => WRITE_MODE_A,
+        WRITE_MODE_B => WRITE_MODE_B,
+        WRITE_COLLISION_ARBITER => WRITE_COLLISION_ARBITER,
+        INIT_00 => INIT_1C0,
+        INIT_01 => INIT_1C1,
+        INIT_02 => INIT_1C2,
+        INIT_03 => INIT_1C3,
+        INIT_04 => INIT_1C4,
+        INIT_05 => INIT_1C5,
+        INIT_06 => INIT_1C6,
+        INIT_07 => INIT_1C7,
+        INIT_08 => INIT_1C8,
+        INIT_09 => INIT_1C9,
+        INIT_0A => INIT_1CA,
+        INIT_0B => INIT_1CB,
+        INIT_0C => INIT_1CC,
+        INIT_0D => INIT_1CD,
+        INIT_0E => INIT_1CE,
+        INIT_0F => INIT_1CF,
+        INIT_10 => INIT_1D0,
+        INIT_11 => INIT_1D1,
+        INIT_12 => INIT_1D2,
+        INIT_13 => INIT_1D3,
+        INIT_14 => INIT_1D4,
+        INIT_15 => INIT_1D5,
+        INIT_16 => INIT_1D6,
+        INIT_17 => INIT_1D7,
+        INIT_18 => INIT_1D8,
+        INIT_19 => INIT_1D9,
+        INIT_1A => INIT_1DA,
+        INIT_1B => INIT_1DB,
+        INIT_1C => INIT_1DC,
+        INIT_1D => INIT_1DD,
+        INIT_1E => INIT_1DE,
+        INIT_1F => INIT_1DF,
+        INIT_20 => INIT_1E0,
+        INIT_21 => INIT_1E1,
+        INIT_22 => INIT_1E2,
+        INIT_23 => INIT_1E3,
+        INIT_24 => INIT_1E4,
+        INIT_25 => INIT_1E5,
+        INIT_26 => INIT_1E6,
+        INIT_27 => INIT_1E7,
+        INIT_28 => INIT_1E8,
+        INIT_29 => INIT_1E9,
+        INIT_2A => INIT_1EA,
+        INIT_2B => INIT_1EB,
+        INIT_2C => INIT_1EC,
+        INIT_2D => INIT_1ED,
+        INIT_2E => INIT_1EE,
+        INIT_2F => INIT_1EF,
+        INIT_30 => INIT_1F0,
+        INIT_31 => INIT_1F1,
+        INIT_32 => INIT_1F2,
+        INIT_33 => INIT_1F3,
+        INIT_34 => INIT_1F4,
+        INIT_35 => INIT_1F5,
+        INIT_36 => INIT_1F6,
+        INIT_37 => INIT_1F7,
+        INIT_38 => INIT_1F8,
+        INIT_39 => INIT_1F9,
+        INIT_3A => INIT_1FA,
+        INIT_3B => INIT_1FB,
+        INIT_3C => INIT_1FC,
+        INIT_3D => INIT_1FD,
+        INIT_3E => INIT_1FE,
+        INIT_3F => INIT_1FF
+    )
+    port map
+    (
+        CLKA    => CLKA,
+        CEA     => CEA,
+        CSA     => ADDRA[16:14],
+        ADDRA   => (DATA_WIDTH_A > 9) ? {ADDRA[13:2],BEA} : ADDRA[13:0],
+        ADDRA_HOLD => 1'b0,
+        DIA     => DIA,
+        WEA     => WEA,
+        ORCEA   => ORCEA,
+        RSTA    => RSTA,
+
+        CLKB    => CLKB,
+        CEB     => CEB,
+        CSB     => ADDRB[16:14],
+        ADDRB   => (DATA_WIDTH_B > 9) ? {ADDRB[13:2],BEB} : ADDRB[13:0],
+        ADDRB_HOLD => 1'b0,
+        DIB     => DIB,
+        WEB     => WEB,
+        ORCEB   => ORCEB,
+        RSTB    => RSTB,
+
+    //  WWCONF  => WWCONF,
+        DOA     => qa111,
+        DOB     => qb111
+    );
+
+    operator GTP_DFF_E iAddra16
+    parameter map ( GRS_EN => GRS_EN )
+    port map ( D => ADDRA[16], CLK => CLKA,
+               CE => (WRITE_MODE_A == "NORMAL_WRITE") ? cea_n_wea : CEA,
+               Q => (DOA_REG) ? ADDRA_16_p : ADDRA_16_q );
+  if (DOA_REG) {
+    operator GTP_DFF_E iAddra16p
+    parameter map ( GRS_EN => GRS_EN )
+    port map ( D => ADDRA_16_p, CLK => CLKA,
+               CE => ORCEA,
+               Q => ADDRA_16_q );
+  }
+
+    operator GTP_DFF_E iAddrb16
+    parameter map ( GRS_EN => GRS_EN )
+    port map ( D => ADDRB[16], CLK => CLKB,
+               CE => (WRITE_MODE_B == "NORMAL_WRITE") ? ceb_n_web : CEB,
+               Q => (DOB_REG) ? ADDRB_16_p : ADDRB_16_q );
+  if (DOB_REG) {
+    operator GTP_DFF_E iAddrb16p
+    parameter map ( GRS_EN => GRS_EN )
+    port map ( D => ADDRB_16_p, CLK => CLKB,
+               CE => ORCEB,
+               Q => ADDRB_16_q );
+  }
+
+    for (idx = 0; idx != mxDATA_WIDTH_A; idx += 1) {
+        sprintf(nameVar, "mx4qa1%d", idx);
+        operator GTP_LUTMUX4 *nameVar
+        port map
+        (
+            I0 => qa100[idx], I1 => qa101[idx], I2 => qa110[idx], I3 => qa111[idx],
+            S1 => ADDRA_15_q, S0 => ADDRA_14_q,
+            Z => qa1[idx]
+        );
+    }
+
+    for (idx = 0; idx != mxDATA_WIDTH_B; idx += 1) {
+        sprintf(nameVar, "mx4qb1%d", idx);
+        operator GTP_LUTMUX4 *nameVar
+        port map
+        (
+            I0 => qb100[idx], I1 => qb101[idx], I2 => qb110[idx], I3 => qb111[idx],
+            S1 => ADDRB_15_q, S0 => ADDRB_14_q,
+            Z => qb1[idx]
+        );
+    }
+}
+
+// 8-DRM18Ks or 2-DRM18Ks used
+if (cs_mask[2] == 1'b1 || cs_mask == 3'b001)
+{
+    for (idx = 0; idx != mxDATA_WIDTH_A; idx += 1) {
+        sprintf(nameVar, "mx2qa%d", idx);
+        operator GTP_LUT3 *nameVar
+        parameter map
+        (
+            INIT => 8'hCA
+        )
+        port map
+        (
+            I0 => (cs_mask[2] == 1'b1) ? qa0[idx] : qa000[idx],
+            I1 => (cs_mask[2] == 1'b1) ? qa1[idx] : qa001[idx],
+            I2 => (cs_mask[2] == 1'b1) ? ADDRA_16_q : ADDRA_14_q,
+            Z => DOA[idx]
+        );
+    }
+
+    for (idx = 0; idx != mxDATA_WIDTH_B; idx += 1) {
+        sprintf(nameVar, "mx2qb%d", idx);
+        operator GTP_LUT3 *nameVar
+        parameter map
+        (
+            INIT => 8'hCA
+        )
+        port map
+        (
+            I0 => (cs_mask[2] == 1'b1) ? qb0[idx] : qb000[idx],
+            I1 => (cs_mask[2] == 1'b1) ? qb1[idx] : qb001[idx],
+            I2 => (cs_mask[2] == 1'b1) ? ADDRB_16_q : ADDRB_14_q,
+            Z => DOB[idx]
+        );
+    }
+}
+
+};
+
